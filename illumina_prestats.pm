@@ -49,7 +49,7 @@ sub runPreStats {
 	    close PS;
 
 	    my $qsub = &qsubTemplate(\%opt,"PRESTATS");
-        print QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStat_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStats_",$coreName,".err -N ",$preStatsJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$preStatsJobId,".sh\n";
+	    print QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStat_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStats_",$coreName,".err -N ",$preStatsJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$preStatsJobId,".sh\n";
 	} else {
 	    print "\t WARNING: FASTQC report for $input already exists, skipping.\n";
 	}
