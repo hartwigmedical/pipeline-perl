@@ -334,44 +334,53 @@ sub checkConfig{
     }
     ## MAPPING
     if($opt{MAPPING} eq "yes"){
-	if(! $opt{BWA_PATH}){ print "ERROR: No BWA_PATH option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_THREADS}){ print "ERROR: No MAPPING_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_MEM}){ print "ERROR: No MAPPING_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_QUEUE}){ print "ERROR: No MAPPING_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_MODE}){ print "ERROR: No MAPPING_MODE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_SETTINGS}){ print "ERROR: No MAPPING_SETTINGS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{MAPPING_MARKDUP}){ print "ERROR: No MAPPING_MARKDUP option found in config files.\n"; $checkFailed = 1; }
-	if( ($opt{MAPPING_MARKDUP} ne "lane") && ($opt{MAPPING_MARKDUP} ne "sample") && ($opt{MAPPING_MARKDUP} ne "no")){
-	    print "ERROR: MAPPING_MARKDUP should be set to sample, lane or no.\n"; $checkFailed = 1;
-	}
-	if( ($opt{MAPPING_MARKDUP} eq "lane") || ($opt{MAPPING_MARKDUP} eq "sample")){
-	    if(! $opt{MAPPING_OVERFLOW_LIST_SIZE}){ print "ERROR: No MAPPING_OVERFLOW_LIST_SIZE option found in config files.\n"; $checkFailed = 1; }
-	}
-	if($opt{MAPPING_MODE} eq 'single'){
-	    if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	    if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
-	}
+    if(! $opt{BWA_PATH}){ print "ERROR: No BWA_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MAPPING_THREADS}){ print "ERROR: No MAPPING_THREADS option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MAPPING_MEM}){ print "ERROR: No MAPPING_MEM option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MAPPING_QUEUE}){ print "ERROR: No MAPPING_QUEUE option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MAPPING_TIME}){ print "ERROR: No MAPPING_TIME option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MAPPING_SETTINGS}){ print "ERROR: No MAPPING_SETTINGS option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{MARKDUP_LEVEL}){ print "ERROR: No MARKDUP_LEVEL option found in config files.\n"; $checkFailed = 1; }
+    if( ($opt{MARKDUP_LEVEL} ne "lane") && ($opt{MARKDUP_LEVEL} ne "sample") && ($opt{MARKDUP_LEVEL} ne "no")){
+        print "ERROR: MARKDUP_LEVEL should be set to sample, lane or no.\n"; $checkFailed = 1;
+    }
+    ## MARKDUP OPTIONS, also used for merging.
+    if( ($opt{MARKDUP_LEVEL} eq "lane") || ($opt{MARKDUP_LEVEL} eq "sample")){
+        if(! $opt{MARKDUP_QUEUE}){ print "ERROR: No MARKDUP_QUEUE option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{MARKDUP_TIME}){ print "ERROR: No MARKDUP_TIME option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{MARKDUP_THREADS}){ print "ERROR: No MARKDUP_THREADS option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{MARKDUP_MEM}){ print "ERROR: No MARKDUP_MEM option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{MARKDUP_OVERFLOW_LIST_SIZE}){ print "ERROR: No MARKDUP_OVERFLOW_LIST_SIZE option found in config files.\n"; $checkFailed = 1; }
+    }
+    if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{FLAGSTAT_TIME}){ print "ERROR: No FLAGSTAT_TIME option found in config files.\n"; $checkFailed = 1; }
     }
     ## POSTSTATS
     if($opt{POSTSTATS} eq "yes"){
-	if(! $opt{BAMMETRICS_PATH}){ print "ERROR: No BAMMETRICS_PATH option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{PICARD_PATH}){ print "ERROR: No PICARD_PATH option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{POSTSTATS_THREADS}){ print "ERROR: No POSTSTATS_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{POSTSTATS_MEM}){ print "ERROR: No POSTSTATS_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{POSTSTATS_QUEUE}){ print "ERROR: No POSTSTATS_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! ($opt{POSTSTATS_TARGETS}) && ! ($opt{POSTSTATS_BAITS}) ){
-	    if(! $opt{POSTSTATS_COVERAGECAP}){ print "ERROR: No POSTSTATS_COVERAGECAP or (POSTSTATS_TARGETS & POSTSTATS_BAITS) options found in config files.\n"; $checkFailed = 1; }
-	}
-	if( $opt{POSTSTATS_TARGETS} && ! -e $opt{POSTSTATS_TARGETS}){ print "ERROR: $opt{POSTSTATS_TARGETS} does Not exist\n"; $checkFailed = 1; }
-	if( $opt{POSTSTATS_BAITS} && ! -e $opt{POSTSTATS_BAITS}){ print "ERROR: $opt{POSTSTATS_BAITS} does Not exist\n"; $checkFailed = 1; }
-	if(! $opt{EXONCALLCOV}){ print "ERROR: No EXONCALLCOV option found in config files.\n"; $checkFailed = 1; }
-	if( $opt{EXONCALLCOV} eq "yes"){
-	    if(! $opt{EXONCALLCOV_PATH}){ print "ERROR: No EXONCALLCOV_PATH option found in config files.\n"; $checkFailed = 1; }
-	    if(! $opt{EXONCALLCOV_BED}){ print "ERROR: No EXONCALLCOV_BED option found in config files.\n"; $checkFailed = 1; }
-	    if(! $opt{EXONCALLCOV_PREF}){ print "ERROR: No EXONCALLCOV_PREF option found in config files.\n"; $checkFailed = 1; }
-	    if(! $opt{EXONCALLCOV_PANEL}){ print "ERROR: No EXONCALLCOV_PANEL option found in config files.\n"; $checkFailed = 1; }
-	    if(! $opt{EXONCALLCOV_ENS}){ print "ERROR: No EXONCALLCOV_ENS option found in config files.\n"; $checkFailed = 1; }
-	}
+    if(! $opt{BAMMETRICS_PATH}){ print "ERROR: No BAMMETRICS_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{PICARD_PATH}){ print "ERROR: No PICARD_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{POSTSTATS_THREADS}){ print "ERROR: No POSTSTATS_THREADS option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{POSTSTATS_MEM}){ print "ERROR: No POSTSTATS_MEM option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{POSTSTATS_QUEUE}){ print "ERROR: No POSTSTATS_QUEUE option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{POSTSTATS_TIME}){ print "ERROR: No POSTSTATS_TIME option found in config files.\n"; $checkFailed = 1; }
+    if(! ($opt{POSTSTATS_TARGETS}) && ! ($opt{POSTSTATS_BAITS}) ){
+        if(! $opt{POSTSTATS_COVERAGECAP}){ print "ERROR: No POSTSTATS_COVERAGECAP or (POSTSTATS_TARGETS & POSTSTATS_BAITS) options found in config files.\n"; $checkFailed = 1; }
+    }
+    if( $opt{POSTSTATS_TARGETS} && ! -e $opt{POSTSTATS_TARGETS}){ print "ERROR: $opt{POSTSTATS_TARGETS} does Not exist\n"; $checkFailed = 1; }
+    if( $opt{POSTSTATS_BAITS} && ! -e $opt{POSTSTATS_BAITS}){ print "ERROR: $opt{POSTSTATS_BAITS} does Not exist\n"; $checkFailed = 1; }
+    if(! $opt{EXONCALLCOV}){ print "ERROR: No EXONCALLCOV option found in config files.\n"; $checkFailed = 1; }
+    if( $opt{EXONCALLCOV} eq "yes"){
+        if(! $opt{EXONCALLCOV_QUEUE}){ print "ERROR: No EXONCALLCOV_QUEUE option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_TIME}){ print "ERROR: No EXONCALLCOV_TIME option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_MEM}){ print "ERROR: No EXONCALLCOV_MEM option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_PATH}){ print "ERROR: No EXONCALLCOV_PATH option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_BED}){ print "ERROR: No EXONCALLCOV_BED option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_PREF}){ print "ERROR: No EXONCALLCOV_PREF option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_PANEL}){ print "ERROR: No EXONCALLCOV_PANEL option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{EXONCALLCOV_ENS}){ print "ERROR: No EXONCALLCOV_ENS option found in config files.\n"; $checkFailed = 1; }
+    }
     }
     ## INDELREALIGNMENT
     if($opt{INDELREALIGNMENT} eq "yes"){
@@ -386,9 +395,7 @@ sub checkConfig{
 	if(! $opt{REALIGNMENT_SCATTER}){ print "ERROR: No REALIGNMENT_SCATTER option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{REALIGNMENT_MODE}){ print "ERROR: No REALIGNMENT_MODE option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
-    }
+	}
     ## BASEQUALITYRECAL
     if($opt{BASEQUALITYRECAL} eq "yes"){
 	if(! $opt{BASERECALIBRATION_MASTERQUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
@@ -400,9 +407,7 @@ sub checkConfig{
 	if(! $opt{BASERECALIBRATION_SCALA}){ print "ERROR: No BASERECALIBRATION_SCALA option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{BASERECALIBRATION_SCATTER}){ print "ERROR: No BASERECALIBRATION_SCATTER option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
-    }
+	}
     ## VARIANT_CALLING
     if($opt{VARIANT_CALLING} eq "yes"){
 	if(! $opt{CALLING_MASTERQUEUE}){ print "ERROR: No CALLING_MASTERQUEUE option found in config files.\n"; $checkFailed = 1; }
