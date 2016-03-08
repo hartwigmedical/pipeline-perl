@@ -617,7 +617,7 @@ sub checkConfig{
 		}
 	    }
 	}
-#    }
+    }
 #    ## NIPT
 #    if($opt{NIPT} eq "yes"){
 #	if(! $opt{NIPT_QUEUE}){ print "ERROR: No NIPT_QUEUE found in .ini file\n"; $checkFailed = 1; }
