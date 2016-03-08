@@ -618,13 +618,13 @@ sub checkConfig{
 	    }
 	}
     }
-#    ## NIPT
-#    if($opt{NIPT} eq "yes"){
-#	if(! $opt{NIPT_QUEUE}){ print "ERROR: No NIPT_QUEUE found in .ini file\n"; $checkFailed = 1; }
-#	if(! $opt{NIPT_THREADS}){ print "ERROR: No NIPT_THREADS found in .ini file\n"; $checkFailed = 1; }
-#	if(! $opt{CHROMATE_PATH}){ print "ERROR: No CHROMATE_PATH found in .ini file\n"; $checkFailed = 1; }
-#	if(! $opt{NIPT_REFERENCESET}){ print "ERROR: No NIPT_REFERENCESET found in .ini file\n"; $checkFailed = 1; }
-#    }
+    ## NIPT
+    if($opt{NIPT} eq "yes"){
+	if(! $opt{NIPT_QUEUE}){ print "ERROR: No NIPT_QUEUE found in .ini file\n"; $checkFailed = 1; }
+	if(! $opt{NIPT_THREADS}){ print "ERROR: No NIPT_THREADS found in .ini file\n"; $checkFailed = 1; }
+	if(! $opt{CHROMATE_PATH}){ print "ERROR: No CHROMATE_PATH found in .ini file\n"; $checkFailed = 1; }
+	if(! $opt{NIPT_REFERENCESET}){ print "ERROR: No NIPT_REFERENCESET found in .ini file\n"; $checkFailed = 1; }
+    }
 
     if ($checkFailed) { 
 	print "One or more options not found in config files.";
