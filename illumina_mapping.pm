@@ -28,7 +28,7 @@ sub runMapping {
     die "GENOME: $opt{GENOME} does not exists!\n" if !-e "$opt{GENOME}";
     die "GENOME BWT: $opt{GENOME}.bwt does not exists!\n" if !-e "$opt{GENOME}.bwt";
     die "GENOME FAI: $FAI does not exists!\n" if !-e $FAI;
-    
+
     my $mainJobID = "$opt{OUTPUT_DIR}/jobs/MapMainJob_".get_job_id().".sh";
 
     open (my $QSUB,">$mainJobID") or die "ERROR: Couldn't create $mainJobID\n";
@@ -37,7 +37,7 @@ sub runMapping {
     my $samples = {};
     my @jobs_to_wait;
     my $toMap = {};
-    
+
     ### Try to search for matching pairs in the input FASTQ files
     foreach my $input (keys %{$opt{FASTQ}}){
 	if($input =~ m/\_R1/){
@@ -64,7 +64,7 @@ sub runMapping {
 	my $R1 = undef;
         my $R2 = undef;
 	my $coreName = undef;
-    
+
 	if(scalar(@files) == 2){
 	    print "Switching to paired end mode!\n";
 	    $R1 = $files[0];
@@ -88,9 +88,9 @@ sub runMapping {
 	$coreName =~ s/\.fastq.gz//;
 	$coreName =~ s/\_R1//;
 	$coreName =~ s/\_R2//;
-    
+
 	my ($RG_PL, $RG_ID, $RG_LB, $RG_SM) = ('ILLUMINA', $coreName, $sampleName, $sampleName);
-	
+
 	if($opt{MARKDUP_LEVEL} eq "lane"){
 	    print "Creating $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam with:\n";
 	}elsif(($opt{MARKDUP_LEVEL} eq "no") || ($opt{MARKDUP_LEVEL} eq "sample")){
@@ -140,7 +140,7 @@ sub runMapping {
 	print MERGE_SH "for i in \"\$\{BAMS\[\@\]\}\"\n";
 	print MERGE_SH "do\n";
 	print MERGE_SH "\tDONEFILE=\`echo \$i | sed -r 's/\(_sorted)*(_dedup)*\\\.bam/\\\.done/'\`\n";
-	
+
 	print MERGE_SH "\tif [ ! -f \$DONEFILE ]\n";
 	print MERGE_SH "\tthen\n";
 	print MERGE_SH "\t\techo \"ERROR: \$i is probably incomplete, no .done file found for it\" >> logs/merge.err\n";
@@ -151,42 +151,42 @@ sub runMapping {
 	print MERGE_SH "then\n";
 	print MERGE_SH "\techo \"ERROR: merging failed due to incomplete BAM-file(s)\" >> logs/merge.err\n";
 	print MERGE_SH "else\n";
-	
+
 	if($opt{MARKDUP_LEVEL} eq "lane"){
 	    if(scalar(@bamList) > 1){
-	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba merge -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam ".join(" ",@bamList)."\n";
-        } else {
-        print MERGE_SH "\tmv $bamList[0] mapping/$sample\_dedup.bam\n";
-        }
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam mapping/$sample\_dedup.bai\n";
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam > mapping/$sample\_dedup.flagstat\n";
+		print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba merge -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam ".join(" ",@bamList)."\n";
+	    } else {
+		print MERGE_SH "\tmv $bamList[0] mapping/$sample\_dedup.bam\n";
+	    }
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam mapping/$sample\_dedup.bai\n";
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MAPPING_THREADS} mapping/$sample\_dedup.bam > mapping/$sample\_dedup.flagstat\n";
 
-    } elsif($opt{MARKDUP_LEVEL} eq "sample") {
-        ### Use markdup to merge and markdup in one step, since sambamba v0.5.8
-        print MERGE_SH "\techo \"Start markdup\t\" `date` \"\t$sample.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n";
-        print MERGE_SH "ulimit -n 4096\n";
-        ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba markdup --tmpdir=$opt{OUTPUT_DIR}/$sample/tmp/ --overflow-list-size=$opt{MARKDUP_OVERFLOW_LIST_SIZE} -t $opt{MARKDUP_THREADS} ".join(" ",@bamList)." mapping/$sample\_dedup.bam\n";
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MARKDUP_THREADS} mapping/$sample\_dedup.bam mapping/$sample\_dedup.bai\n";
-        ### compute resource efficient alternative
-        #print MERGE_SH "module load sambamcram/biobambam\n"
-        #print MERGE_SH "bammerge level=0 tmpfile=\$TMPDIR/",$sample,"merge I=",join(" I=",@bamList)," |bammarkduplicates2 tmpfile=\$TMPDIR/",$sample;
-        #print MERGE_SH "mark markthreads=",$opt{MARKDUP_THREADS}," index=1 M=mapping/",$sample,"_metrics.txt O=mapping/",$sample,"_dedup.bam\n";
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MARKDUP_THREADS} mapping/$sample\_dedup.bam > mapping/$sample\_dedup.flagstat\n";
-        print MERGE_SH "\techo \"End markdup\t\" `date` \"\t$sample.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n";
+	} elsif($opt{MARKDUP_LEVEL} eq "sample") {
+	    ### Use markdup to merge and markdup in one step, since sambamba v0.5.8
+	    print MERGE_SH "\techo \"Start markdup\t\" `date` \"\t$sample.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n";
+	    print MERGE_SH "ulimit -n 4096\n";
+	    ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba markdup --tmpdir=$opt{OUTPUT_DIR}/$sample/tmp/ --overflow-list-size=$opt{MARKDUP_OVERFLOW_LIST_SIZE} -t $opt{MARKDUP_THREADS} ".join(" ",@bamList)." mapping/$sample\_dedup.bam\n";
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MARKDUP_THREADS} mapping/$sample\_dedup.bam mapping/$sample\_dedup.bai\n";
+	    ### compute resource efficient alternative
+	    #print MERGE_SH "module load sambamcram/biobambam\n"
+	    #print MERGE_SH "bammerge level=0 tmpfile=\$TMPDIR/",$sample,"merge I=",join(" I=",@bamList)," |bammarkduplicates2 tmpfile=\$TMPDIR/",$sample;
+	    #print MERGE_SH "mark markthreads=",$opt{MARKDUP_THREADS}," index=1 M=mapping/",$sample,"_metrics.txt O=mapping/",$sample,"_dedup.bam\n";
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MARKDUP_THREADS} mapping/$sample\_dedup.bam > mapping/$sample\_dedup.flagstat\n";
+	    print MERGE_SH "\techo \"End markdup\t\" `date` \"\t$sample.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n";
 
-    } elsif($opt{MARKDUP_LEVEL} eq "no") {
-        if(scalar(@bamList) > 1){
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba merge -t $opt{MARKDUP_THREADS} mapping/$sample.bam ".join(" ",@bamList)."\n";
-        } else {
-        print MERGE_SH "\tmv $bamList[0] mapping/$sample.bam\n";
-        }
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MARKDUP_THREADS} mapping/$sample.bam mapping/$sample.bai\n";
-        print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MARKDUP_THREADS} mapping/$sample.bam > mapping/$sample.flagstat\n";
-    }
-	
+	} elsif($opt{MARKDUP_LEVEL} eq "no") {
+	    if(scalar(@bamList) > 1){
+		print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba merge -t $opt{MARKDUP_THREADS} mapping/$sample.bam ".join(" ",@bamList)."\n";
+	    } else {
+		print MERGE_SH "\tmv $bamList[0] mapping/$sample.bam\n";
+	    }
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MARKDUP_THREADS} mapping/$sample.bam mapping/$sample.bai\n";
+	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MARKDUP_THREADS} mapping/$sample.bam > mapping/$sample.flagstat\n";
+	}
+
 	print MERGE_SH "fi\n\n";
-	
+
 	print MERGE_SH "TOTALREADS=0\n";
 	if($opt{MARKDUP_LEVEL} eq "lane"){
 	    print MERGE_SH "for i in \$( find \$PWD/mapping -name '*sorted_dedup.flagstat')\n";
@@ -197,7 +197,7 @@ sub runMapping {
 	print MERGE_SH "\tVAL=\`grep -m 1 -P \"\\d+\" \$i | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
         print MERGE_SH "\tTOTALREADS=\$((\$TOTALREADS + \$VAL))\n";
 	print MERGE_SH "done\n\n";
-	
+
 	if($opt{MARKDUP_LEVEL} eq "lane"){
 	    print MERGE_SH "if [ -s mapping/$sample\_dedup.flagstat ]\n";
 	    print MERGE_SH "then\n";
@@ -253,13 +253,13 @@ sub runMapping {
 	print MERGE_SH "then\n";
 	print MERGE_SH "\ttouch logs/Mapping_$sample.done\n";
 	print MERGE_SH "fi\n\n";
-	
+
 	print MERGE_SH "echo \"End merge \t\" `date` \"\t$sample\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n\n";
 	close MERGE_SH;
 	my $qsub = &qsubTemplate(\%opt,"MARKDUP");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".out -e ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".err -N ",$jobId,
 	" -hold_jid ",join(",",@jobIds)," ",$opt{OUTPUT_DIR},"/",$sample,"/jobs/",$jobId,".sh\n\n";
-    
+
     }
 
     close $QSUB;
@@ -499,7 +499,7 @@ sub runBamPrep {
 	$opt{BAM_FILES}->{$sample} = "$sample.bam";
 	my $sample_bai = "$opt{OUTPUT_DIR}/$sample/mapping/$sample.bai";
 	my $sample_flagstat = "$opt{OUTPUT_DIR}/$sample/mapping/$sample.flagstat";
-	
+
 	### Check input and symlink
 	if (-e $input){
 	    symlink($input,"$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}");
@@ -512,7 +512,7 @@ sub runBamPrep {
 	if (-e $input_flagstat){
 	    symlink($input_flagstat,"$sample_flagstat");
 	}
-	
+
 	### Index and Flagstat
 	if (-e "$sample_bai" && -e "$sample_flagstat" ) {
 	    next;
@@ -523,9 +523,11 @@ sub runBamPrep {
 	    if (! -e "$sample_bai" ) { print BAM_SH "$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MAPPING_THREADS} mapping/$sample.bam $sample_bai\n"; }
 	    if (! -e "$sample_flagstat" ) { print BAM_SH "$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{MAPPING_THREADS} mapping/$sample.bam > $sample_flagstat\n"; }
 	    close BAM_SH;
-	
-	    system "qsub -q $opt{MAPPING_QUEUE} -P $opt{CLUSTER_PROJECT} -m a -M $opt{MAIL} -pe threaded $opt{MAPPING_THREADS} -R $opt{CLUSTER_RESERVATION} -o $opt{OUTPUT_DIR}/$sample/logs/PrepBam_$sample.out -e $opt{OUTPUT_DIR}/$sample/logs/PrepBam_$sample.err -N $jobId $opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh";
-	
+
+	    my $qsub = &qsubTemplate(\%opt,"MAPPING");
+	    system $qsub." -o ".$opt{OUTPUT_DIR}."/".$sample."/logs/PrepBam_".$sample.".out -e ".$opt{OUTPUT_DIR}."/".$sample."/logs/PrepBam_".$sample.".err -N ".$jobId
+		." ".$opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobId.".sh";
+
 	    push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobId);
 	}
     }

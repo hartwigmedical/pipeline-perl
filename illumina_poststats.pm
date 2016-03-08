@@ -4,7 +4,7 @@
 ### illumina_poststats.pm
 ### - Create post mapping statistics using bammetrics
 ###
-### Authors: R.F.Ernst & S.W.Boymans
+### Authors: R.F.Ernst, S.W.Boymans, H.H.D.Kerstens
 ###
 #######################################################
 
@@ -13,6 +13,8 @@ package illumina_poststats;
 use strict;
 use POSIX qw(tmpnam);
 use FindBin;
+use illumina_sge;
+
 
 sub runPostStats {
     ###
@@ -41,10 +43,11 @@ sub runPostStats {
 	$command .= "-queue $opt{POSTSTATS_QUEUE} ";
 	$command .= "-queue_threads $opt{POSTSTATS_THREADS} ";
 	$command .= "-queue_mem $opt{POSTSTATS_MEM} ";
+	$command .= "-queue_time $opt{POSTSTATS_TIME} ";
 	$command .= "-queue_project $opt{CLUSTER_PROJECT} ";
 	$command .= "-picard_path $opt{PICARD_PATH} ";
 	$command .= "-debug ";
-	
+
 	if ( ($opt{POSTSTATS_TARGETS}) && ($opt{POSTSTATS_BAITS}) ) {
 	    $command .= "-capture ";
 	    $command .= "-targets $opt{POSTSTATS_TARGETS} ";
@@ -53,39 +56,41 @@ sub runPostStats {
 	    $command .= "-wgs ";
 	    $command .= "-coverage_cap 250 ";
 	}
-	
+
 	if ( $opt{SINGLE_END} ) {
 	    $command .= "-single_end ";
 	}
-	
+
 	if ( $opt{CLUSTER_RESERVATION} eq "yes") {
 	    $command .= "-queue_reserve ";
 	}
-	
+
 	my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
 	my $logDir = $opt{OUTPUT_DIR}."/logs";
-        
+
 	open PS_SH, ">$bashFile" or die "cannot open file $bashFile\n";
 	print PS_SH "#!/bin/bash\n\n";
 	print PS_SH "cd $opt{OUTPUT_DIR}\n";
 	print PS_SH "echo \"Start poststats\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
 	print PS_SH "$command\n";
 	print PS_SH "qalter -hold_jid bamMetrics_report_".$runName.",$jobID $jobIDCheck\n\n"; #hack to make sure check does not start before bamMetrics ends.
-	
+
 	## Setup ExonCallCov
 	if ( $opt{EXONCALLCOV} eq "yes" ){
-	    $command = "python $opt{EXONCALLCOV_PATH} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}";
+	    $command = "python $opt{EXONCALLCOV_PATH} --queue $opt{EXONCALLCOV_QUEUE} -a $opt{EXONCALLCOV_TIME} -c $opt{EXONCALLCOV_MEM} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}";
 	    print PS_SH "$command\n";
 	}
-	
+
 	close PS_SH;
-	
+
+	my $qsub = &qsubTemplate(\%opt,"POSTSTATS");
 	if (@runningJobs){
-	    system "qsub -q $opt{POSTSTATS_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{POSTSTATS_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/PostStats_$runName.out -e $logDir/PostStats_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	    system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobID." -hold_jid ".
+		join(",",@runningJobs)." ".$bashFile;
 	} else {
-	    system "qsub -q $opt{POSTSTATS_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{POSTSTATS_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/PostStats_$runName.out -e $logDir/PostStats_$runName.err -N $jobID $bashFile";
+	    system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobID." ".$bashFile;
 	}
-	
+
 	### Check Poststats result
 	my $bashFileCheck = $opt{OUTPUT_DIR}."/jobs/".$jobIDCheck.".sh";
 	open PSCHECK_SH, ">$bashFileCheck" or die "cannot open file $bashFileCheck\n";
@@ -102,7 +107,8 @@ sub runPostStats {
 	print PSCHECK_SH "echo \"Finished poststats\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
 	close PSCHECK_SH;
 
-	system "qsub -q $opt{POSTSTATS_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{POSTSTATS_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/PostStats_$runName.out -e $logDir/PostStats_$runName.err -N $jobIDCheck -hold_jid bamMetrics_report_".$runName.",$jobID $bashFileCheck";
+	system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck.
+	    " -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;
 	return $jobIDCheck;
 
     } else {
@@ -112,7 +118,7 @@ sub runPostStats {
 
 ############
 sub get_job_id {
-   my $id = tmpnam(); 
+   my $id = tmpnam();
       $id=~s/\/tmp\/file//;
    return $id;
 }
@@ -121,24 +127,26 @@ sub bashAndSubmit {
     my $command = shift;
     my $sample = shift;
     my %opt = %{shift()};
-    
+
     my $jobID = "PostStats_".$sample."_".get_job_id();
     my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/PICARD_".$sample."_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
-    
+
     open OUT, ">$bashFile" or die "cannot open file $bashFile\n";
     print OUT "#!/bin/bash\n\n";
     print OUT "cd $opt{OUTPUT_DIR}\n";
     print OUT "$command\n";
-    
+    my $qsub = &qsubTemplate(\%opt,"POSTSTATS");
     if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
-	system "qsub -q $opt{POSTSTATS_QUEUE} -pe threaded $opt{POSTSTATS_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/PostStats_".$sample."_".$jobID.".out -e $logDir/PostStats_".$sample."_".$jobID.".err -N $jobID -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample} })." $bashFile";
+	system $qsub." -o ".$logDir."/PostStats_".$sample."_".$jobID.".out -e ".$logDir."/PostStats_".$sample."_".$jobID.".err -N ".$jobID.
+	    " -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample} })." ".$bashFile;
     } else {
-	system "qsub -q $opt{POSTSTATS_QUEUE} -pe threaded $opt{POSTSTATS_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/PostStats_".$sample."_".$jobID.".out -e $logDir/PostStats_".$sample."_".$jobID.".err -N $jobID $bashFile";
+	system $qsub." -o ".$logDir."/PostStats_".$sample."_".$jobID.".out -e ".$logDir."/PostStats_".$sample."_".$jobID.".err -N ".$jobID.
+	    " ".$bashFile;
     }
     return $jobID;
 }
 
-############ 
+############
 
 1;
