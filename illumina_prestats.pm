@@ -4,13 +4,15 @@
 ### illumina_prestats.pm
 ### - Run fastqc for each fastq
 ###
-### Author: S.W.Boymans
+### Author: S.W.Boymans & H.H.D.Kerstens
 ###################################
 
 package illumina_prestats;
 
 use strict;
 use POSIX qw(tmpnam);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
 
 sub runPreStats {
     ###
@@ -46,7 +48,8 @@ sub runPreStats {
 	    print PS "echo \"End PreStats\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
 	    close PS;
 
-	    print QSUB "qsub -pe threaded $opt{PRESTATS_THREADS} -m a -M $opt{MAIL} -q $opt{PRESTATS_QUEUE} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh\n";
+	    my $qsub = &qsubTemplate(\%opt,"PRESTATS");
+        print QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStat_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/PreStats_",$coreName,".err -N ",$preStatsJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$preStatsJobId,".sh\n";
 	} else {
 	    print "\t WARNING: FASTQC report for $input already exists, skipping.\n";
 	}
