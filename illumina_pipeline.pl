@@ -401,60 +401,60 @@ sub checkConfig{
         if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_TIME}){ print "ERROR: No FLAGSTAT_TIME option found in config files.\n"; $checkFailed = 1; }
     }
-#    ## BASEQUALITYRECAL
-#    if($opt{BASEQUALITYRECAL} eq "yes"){
-#	if(! $opt{BASERECALIBRATION_MASTERQUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_MASTERTHREADS}){ print "ERROR: No BASERECALIBRATION_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_MASTERMEM}){ print "ERROR: No BASERECALIBRATION_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_QUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_THREADS}){ print "ERROR: No BASERECALIBRATION_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_MEM}){ print "ERROR: No BASERECALIBRATION_MEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_SCALA}){ print "ERROR: No BASERECALIBRATION_SCALA option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{BASERECALIBRATION_SCATTER}){ print "ERROR: No BASERECALIBRATION_SCATTER option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-#	}
-#    ## VARIANT_CALLING
-#    if($opt{VARIANT_CALLING} eq "yes"){
-#	if(! $opt{CALLING_MASTERQUEUE}){ print "ERROR: No CALLING_MASTERQUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_MASTERTHREADS}){ print "ERROR: No CALLING_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_MASTERMEM}){ print "ERROR: No CALLING_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_QUEUE}){ print "ERROR: No CALLING_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_THREADS}){ print "ERROR: No CALLING_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_MEM}){ print "ERROR: No CALLING_MEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_SCATTER}){ print "ERROR: No CALLING_SCATTER option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_GVCF}){ print "ERROR: No CALLING_GVCF option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_SCALA}){ print "ERROR: No CALLING_SCALA option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{CALLING_UGMODE}){
-#	    if($opt{CALLING_UGMODE} ne "SNP" and $opt{CALLING_UGMODE} ne "INDEL" and $opt{CALLING_UGMODE} ne "BOTH"){ print "ERROR: UGMODE: $opt{CALLING_UGMODE} does Not exist use SNP, INDEL or BOTH\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{CALLING_STANDCALLCONF}){ print "ERROR: No CALLING_STANDCALLCONF option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{CALLING_STANDEMITCONF}){ print "ERROR: No CALLING_STANDEMITCONF option found in config files.\n"; $checkFailed = 1; }
-#	if( $opt{CALLING_TARGETS} && ! -e $opt{CALLING_TARGETS}) { print"ERROR: $opt{CALLING_TARGETS} does Not exist\n"; $checkFailed = 1; }
-#	if( $opt{CALLING_DBSNP} && ! -e $opt{CALLING_DBSNP}) { print"ERROR: $opt{CALLING_DBSNP} does Not exist\n"; $checkFailed = 1; }
-#	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-#    }
-#    ## FILTER_VARIANTS
-#    if($opt{FILTER_VARIANTS} eq "yes"){
-#	if(! $opt{FILTER_MASTERQUEUE}){ print "ERROR: No FILTER_MASTERQUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_MASTERTHREADS}){ print "ERROR: No FILTER_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_MASTERMEM}){ print "ERROR: No FILTER_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_QUEUE}){ print "ERROR: No FILTER_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_THREADS}){ print "ERROR: No FILTER_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_MEM}){ print "ERROR: No FILTER_MEM option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_SCATTER}){ print "ERROR: No FILTER_SCATTER option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_SCALA}){ print "ERROR: No FILTER_SCALA option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{FILTER_MODE}){ print "ERROR: No FILTER_MODE  option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{FILTER_MODE} ne "SNP" and $opt{FILTER_MODE} ne "INDEL" and $opt{FILTER_MODE} ne "BOTH"){ print "ERROR: FILTER_MODE $opt{FILTER_MODE} does Not exist use SNP, INDEL or BOTH\n"; $checkFailed = 1; }
-#	if ($opt{FILTER_MODE} eq "SNP" || $opt{FILTER_MODE} eq "BOTH") {
-#	    if(! $opt{FILTER_SNPNAME}){ print "ERROR: No FILTER_SNPNAME option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FILTER_SNPEXPR}){ print "ERROR: No FILTER_SNPEXPR  option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if ($opt{FILTER_MODE} eq "INDEL" || $opt{FILTER_MODE} eq "BOTH") {
-#	    if(! $opt{FILTER_INDELNAME}){ print "ERROR: No FILTER_INDELNAME option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FILTER_INDELEXPR}){ print "ERROR: No FILTER_INDELEXPR option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-#    }
+    ## BASEQUALITYRECAL
+    if($opt{BASEQUALITYRECAL} eq "yes"){
+	if(! $opt{BASERECALIBRATION_MASTERQUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_MASTERTHREADS}){ print "ERROR: No BASERECALIBRATION_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_MASTERMEM}){ print "ERROR: No BASERECALIBRATION_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_QUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_THREADS}){ print "ERROR: No BASERECALIBRATION_THREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_MEM}){ print "ERROR: No BASERECALIBRATION_MEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_SCALA}){ print "ERROR: No BASERECALIBRATION_SCALA option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{BASERECALIBRATION_SCATTER}){ print "ERROR: No BASERECALIBRATION_SCATTER option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
+	}
+    ## VARIANT_CALLING
+    if($opt{VARIANT_CALLING} eq "yes"){
+	if(! $opt{CALLING_MASTERQUEUE}){ print "ERROR: No CALLING_MASTERQUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_MASTERTHREADS}){ print "ERROR: No CALLING_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_MASTERMEM}){ print "ERROR: No CALLING_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_QUEUE}){ print "ERROR: No CALLING_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_THREADS}){ print "ERROR: No CALLING_THREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_MEM}){ print "ERROR: No CALLING_MEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_SCATTER}){ print "ERROR: No CALLING_SCATTER option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_GVCF}){ print "ERROR: No CALLING_GVCF option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_SCALA}){ print "ERROR: No CALLING_SCALA option found in config files.\n"; $checkFailed = 1; }
+	if($opt{CALLING_UGMODE}){
+	    if($opt{CALLING_UGMODE} ne "SNP" and $opt{CALLING_UGMODE} ne "INDEL" and $opt{CALLING_UGMODE} ne "BOTH"){ print "ERROR: UGMODE: $opt{CALLING_UGMODE} does Not exist use SNP, INDEL or BOTH\n"; $checkFailed = 1; }
+	}
+	if(! $opt{CALLING_STANDCALLCONF}){ print "ERROR: No CALLING_STANDCALLCONF option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_STANDEMITCONF}){ print "ERROR: No CALLING_STANDEMITCONF option found in config files.\n"; $checkFailed = 1; }
+	if( $opt{CALLING_TARGETS} && ! -e $opt{CALLING_TARGETS}) { print"ERROR: $opt{CALLING_TARGETS} does Not exist\n"; $checkFailed = 1; }
+	if( $opt{CALLING_DBSNP} && ! -e $opt{CALLING_DBSNP}) { print"ERROR: $opt{CALLING_DBSNP} does Not exist\n"; $checkFailed = 1; }
+	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
+    }
+    ## FILTER_VARIANTS
+    if($opt{FILTER_VARIANTS} eq "yes"){
+	if(! $opt{FILTER_MASTERQUEUE}){ print "ERROR: No FILTER_MASTERQUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_MASTERTHREADS}){ print "ERROR: No FILTER_MASTERTHREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_MASTERMEM}){ print "ERROR: No FILTER_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_QUEUE}){ print "ERROR: No FILTER_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_THREADS}){ print "ERROR: No FILTER_THREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_MEM}){ print "ERROR: No FILTER_MEM option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_SCATTER}){ print "ERROR: No FILTER_SCATTER option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_SCALA}){ print "ERROR: No FILTER_SCALA option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_MODE}){ print "ERROR: No FILTER_MODE  option found in config files.\n"; $checkFailed = 1; }
+	if($opt{FILTER_MODE} ne "SNP" and $opt{FILTER_MODE} ne "INDEL" and $opt{FILTER_MODE} ne "BOTH"){ print "ERROR: FILTER_MODE $opt{FILTER_MODE} does Not exist use SNP, INDEL or BOTH\n"; $checkFailed = 1; }
+	if ($opt{FILTER_MODE} eq "SNP" || $opt{FILTER_MODE} eq "BOTH") {
+	    if(! $opt{FILTER_SNPNAME}){ print "ERROR: No FILTER_SNPNAME option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FILTER_SNPEXPR}){ print "ERROR: No FILTER_SNPEXPR  option found in config files.\n"; $checkFailed = 1; }
+	}
+	if ($opt{FILTER_MODE} eq "INDEL" || $opt{FILTER_MODE} eq "BOTH") {
+	    if(! $opt{FILTER_INDELNAME}){ print "ERROR: No FILTER_INDELNAME option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FILTER_INDELEXPR}){ print "ERROR: No FILTER_INDELEXPR option found in config files.\n"; $checkFailed = 1; }
+	}
+	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
+    }
 #    ## SOMATIC_VARIANTS
 #    if($opt{SOMATIC_VARIANTS} eq "yes"){
 #	if(! $opt{SAMTOOLS_PATH}){ print "ERROR: No SAMTOOLS_PATH option found in config files.\n"; $checkFailed = 1; }
