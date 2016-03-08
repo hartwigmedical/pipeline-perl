@@ -323,13 +323,14 @@ sub checkConfig{
     if(! $opt{GENOME}){ print "ERROR: No GENOME option found in config files.\n"; $checkFailed = 1; }
     elsif(! -e $opt{GENOME}){ print"ERROR: $opt{GENOME} does Not exist\n"}
     if(! $opt{SAMBAMBA_PATH}){ print "ERROR: No SAMBAMBA_PATH option found in config files.\n"; $checkFailed = 1; }
-    if(! $opt{QUEUE_PATH}){ print "ERROR: No PICARD_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{QUEUE_PATH}){ print "ERROR: No QUEUE_PATH option found in config files.\n"; $checkFailed = 1; }
     ## PRESTATS
     if($opt{PRESTATS} eq "yes"){
 	if(! $opt{FASTQC_PATH}){ print "ERROR: No FASTQC_PATH option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{PRESTATS_THREADS}){ print "ERROR: No PRESTATS_THREADS option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{PRESTATS_MEM}){ print "ERROR: No PRESTATS_MEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{PRESTATS_QUEUE}){ print "ERROR: No PRESTATS_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{PRESTATS_TIME}){ print "ERROR: No PRESTATS_TIME option found in config files.\n"; $checkFailed = 1; }
     }
     ## MAPPING
     if($opt{MAPPING} eq "yes"){
@@ -357,7 +358,7 @@ sub checkConfig{
 	if(! $opt{PICARD_PATH}){ print "ERROR: No PICARD_PATH option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{POSTSTATS_THREADS}){ print "ERROR: No POSTSTATS_THREADS option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{POSTSTATS_MEM}){ print "ERROR: No POSTSTATS_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{POSTSTATS_QUEUE}){ print "ERROR: No POSTSTATS_THREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{POSTSTATS_QUEUE}){ print "ERROR: No POSTSTATS_QUEUE option found in config files.\n"; $checkFailed = 1; }
 	if(! ($opt{POSTSTATS_TARGETS}) && ! ($opt{POSTSTATS_BAITS}) ){
 	    if(! $opt{POSTSTATS_COVERAGECAP}){ print "ERROR: No POSTSTATS_COVERAGECAP or (POSTSTATS_TARGETS & POSTSTATS_BAITS) options found in config files.\n"; $checkFailed = 1; }
 	}
@@ -409,7 +410,7 @@ sub checkConfig{
 	if(! $opt{CALLING_MASTERMEM}){ print "ERROR: No CALLING_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{CALLING_QUEUE}){ print "ERROR: No CALLING_QUEUE option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{CALLING_THREADS}){ print "ERROR: No CALLING_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{CALLING_MEM}){ print "ERROR: No CALLING_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{CALLING_MEM}){ print "ERROR: No CALLING_MEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{CALLING_SCATTER}){ print "ERROR: No CALLING_SCATTER option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{CALLING_GVCF}){ print "ERROR: No CALLING_GVCF option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{CALLING_SCALA}){ print "ERROR: No CALLING_SCALA option found in config files.\n"; $checkFailed = 1; }
@@ -429,7 +430,7 @@ sub checkConfig{
 	if(! $opt{FILTER_MASTERMEM}){ print "ERROR: No FILTER_MASTERMEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FILTER_QUEUE}){ print "ERROR: No FILTER_QUEUE option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FILTER_THREADS}){ print "ERROR: No FILTER_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FILTER_MEM}){ print "ERROR: No FILTER_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{FILTER_MEM}){ print "ERROR: No FILTER_MEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FILTER_SCATTER}){ print "ERROR: No FILTER_SCATTER option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FILTER_SCALA}){ print "ERROR: No FILTER_SCALA option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FILTER_MODE}){ print "ERROR: No FILTER_MODE  option found in config files.\n"; $checkFailed = 1; }
