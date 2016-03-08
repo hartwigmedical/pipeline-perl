@@ -244,7 +244,7 @@ sub runCheck {
     print BASH "\tfind $opt{OUTPUT_DIR}/somaticVariants/*/logs -size 0 -not -name \"*.done\" -delete\n";
     if($opt{INDELREALIGNMENT} eq "yes"){
 	foreach my $sample (@{$opt{SAMPLES}}){
-	    if($opt{MAPPING_MARKDUP} eq "sample" || $opt{MAPPING_MARKDUP} eq "lane"){
+	    if($opt{MARKDUP_LEVEL} eq "sample" || $opt{MARKDUP_LEVEL} eq "lane"){
 		print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample\_dedup.ba*\n";
 	    } else {
 		print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample.ba*\n";

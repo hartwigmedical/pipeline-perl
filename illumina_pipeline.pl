@@ -455,60 +455,60 @@ sub checkConfig{
 	}
 	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
     }
-#    ## SOMATIC_VARIANTS
-#    if($opt{SOMATIC_VARIANTS} eq "yes"){
-#	if(! $opt{SAMTOOLS_PATH}){ print "ERROR: No SAMTOOLS_PATH option found in config files.\n"; $checkFailed = 1; }
-#	if( $opt{SOMVAR_TARGETS} && ! -e $opt{SOMVAR_TARGETS}) { print"ERROR: $opt{SOMVAR_TARGETS} does not exist\n"; $checkFailed = 1; }
-#	if(! $opt{SOMVAR_REGEX}){ print "ERROR: No SOMVAR_REGEX option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{SOMVAR_STRELKA}){ print "ERROR: No SOMVAR_STRELKA option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{SOMVAR_STRELKA} eq "yes"){
-#	    if(! $opt{STRELKA_PATH}){ print "ERROR: No STRELKA_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{STRELKA_INI}){ print "ERROR: No STRELKA_INI option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{STRELKA_QUEUE}){ print "ERROR: No STRELKA_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{STRELKA_THREADS}){ print "ERROR: No STRELKA_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{SOMVAR_VARSCAN}){ print "ERROR: No SOMVAR_VARSCAN option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{SOMVAR_VARSCAN} eq "yes"){
-#	    if(! $opt{VARSCAN_PATH}){ print "ERROR: No VARSCAN_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{TABIX_PATH}){ print "ERROR: No TABIX_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VARSCAN_QUEUE}){ print "ERROR: No VARSCAN_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VARSCAN_THREADS}){ print "ERROR: No VARSCAN_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VARSCAN_SETTINGS}){ print "ERROR: No VARSCAN_SETTINGS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VARSCAN_POSTSETTINGS}){ print "ERROR: No VARSCAN_POSTSETTINGS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{PILEUP_QUEUE}){ print "ERROR: No PILEUP_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{PILEUP_THREADS}){ print "ERROR: No PILEUP_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{SOMVAR_FREEBAYES}){ print "ERROR: No SOMVAR_FREEBAYES option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{SOMVAR_FREEBAYES} eq "yes"){
-#	    if(! $opt{FREEBAYES_PATH}){ print "ERROR: No FREEBAYES_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VCFSAMPLEDIFF_PATH}){ print "ERROR: No VCFSAMPLEDIFF_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{BIOVCF_PATH}){ print "ERROR: No BIOVCF_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{VCFLIB_PATH}){ print "ERROR: No VCFLIB_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FREEBAYES_QUEUE}){ print "ERROR: No FREEBAYES_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FREEBAYES_THREADS}){ print "ERROR: No FREEBAYES_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FREEBAYES_SETTINGS}){ print "ERROR: No FREEBAYES_SETTINGS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FREEBAYES_SOMATICFILTER}){ print "ERROR: No FREEBAYES_SOMATICFILTER option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{FREEBAYES_GERMLINEFILTER}){ print "ERROR: No FREEBAYES_GERMLINEFILTER option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{SOMVAR_MUTECT}){ print "ERROR: No SOMVAR_MUTECT option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{SOMVAR_MUTECT} eq "yes"){
-#	    if(! $opt{MUTECT_PATH}){ print "ERROR: No MUTECT_PATH option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{MUTECT_QUEUE}){ print "ERROR: No MUTECT_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{MUTECT_THREADS}){ print "ERROR: No MUTECT_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{MUTECT_MEM}){ print "ERROR: No MUTECT_MEM option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{MUTECT_COSMIC}){ print "ERROR: No MUTECT_COSMIC option found in config files.\n"; $checkFailed = 1; }
-#	}
-#	if(! $opt{SOMVARMERGE_QUEUE}){ print "ERROR: No SOMVARMERGE_QUEUE option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{SOMVARMERGE_THREADS}){ print "ERROR: No SOMVARMERGE_THREADS option found in config files.\n"; $checkFailed = 1; }
-#	if(! $opt{SOMVAR_ANNOTATE}){ print "ERROR: No SOMVAR_ANNOTATE option found in config files.\n"; $checkFailed = 1; }
-#	if($opt{SOMVAR_ANNOTATE} eq "yes"){
-#	    if(! $opt{ANNOTATE_DB}){ print "ERROR: No ANNOTATE_DB option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{ANNOTATE_FLAGS}){ print "ERROR: No ANNOTATE_FLAGS option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{ANNOTATE_IDNAME}){ print "ERROR: No ANNOTATE_IDNAME option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{ANNOTATE_IDDB}){ print "ERROR: No ANNOTATE_IDDB option found in config files.\n"; $checkFailed = 1; }
-#	    if(! $opt{CALLING_DBSNP}){ print "ERROR: No CALLING_DBSNP option found in config files.\n"; $checkFailed = 1; }
-#	}
-#    }
+    ## SOMATIC_VARIANTS
+    if($opt{SOMATIC_VARIANTS} eq "yes"){
+	if(! $opt{SAMTOOLS_PATH}){ print "ERROR: No SAMTOOLS_PATH option found in config files.\n"; $checkFailed = 1; }
+	if( $opt{SOMVAR_TARGETS} && ! -e $opt{SOMVAR_TARGETS}) { print"ERROR: $opt{SOMVAR_TARGETS} does not exist\n"; $checkFailed = 1; }
+	if(! $opt{SOMVAR_REGEX}){ print "ERROR: No SOMVAR_REGEX option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{SOMVAR_STRELKA}){ print "ERROR: No SOMVAR_STRELKA option found in config files.\n"; $checkFailed = 1; }
+	if($opt{SOMVAR_STRELKA} eq "yes"){
+	    if(! $opt{STRELKA_PATH}){ print "ERROR: No STRELKA_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{STRELKA_INI}){ print "ERROR: No STRELKA_INI option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{STRELKA_QUEUE}){ print "ERROR: No STRELKA_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{STRELKA_THREADS}){ print "ERROR: No STRELKA_THREADS option found in config files.\n"; $checkFailed = 1; }
+	}
+	if(! $opt{SOMVAR_VARSCAN}){ print "ERROR: No SOMVAR_VARSCAN option found in config files.\n"; $checkFailed = 1; }
+	if($opt{SOMVAR_VARSCAN} eq "yes"){
+	    if(! $opt{VARSCAN_PATH}){ print "ERROR: No VARSCAN_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{TABIX_PATH}){ print "ERROR: No TABIX_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VARSCAN_QUEUE}){ print "ERROR: No VARSCAN_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VARSCAN_THREADS}){ print "ERROR: No VARSCAN_THREADS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VARSCAN_SETTINGS}){ print "ERROR: No VARSCAN_SETTINGS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VARSCAN_POSTSETTINGS}){ print "ERROR: No VARSCAN_POSTSETTINGS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{PILEUP_QUEUE}){ print "ERROR: No PILEUP_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{PILEUP_THREADS}){ print "ERROR: No PILEUP_THREADS option found in config files.\n"; $checkFailed = 1; }
+	}
+	if(! $opt{SOMVAR_FREEBAYES}){ print "ERROR: No SOMVAR_FREEBAYES option found in config files.\n"; $checkFailed = 1; }
+	if($opt{SOMVAR_FREEBAYES} eq "yes"){
+	    if(! $opt{FREEBAYES_PATH}){ print "ERROR: No FREEBAYES_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VCFSAMPLEDIFF_PATH}){ print "ERROR: No VCFSAMPLEDIFF_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{BIOVCF_PATH}){ print "ERROR: No BIOVCF_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{VCFLIB_PATH}){ print "ERROR: No VCFLIB_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FREEBAYES_QUEUE}){ print "ERROR: No FREEBAYES_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FREEBAYES_THREADS}){ print "ERROR: No FREEBAYES_THREADS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FREEBAYES_SETTINGS}){ print "ERROR: No FREEBAYES_SETTINGS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FREEBAYES_SOMATICFILTER}){ print "ERROR: No FREEBAYES_SOMATICFILTER option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{FREEBAYES_GERMLINEFILTER}){ print "ERROR: No FREEBAYES_GERMLINEFILTER option found in config files.\n"; $checkFailed = 1; }
+	}
+	if(! $opt{SOMVAR_MUTECT}){ print "ERROR: No SOMVAR_MUTECT option found in config files.\n"; $checkFailed = 1; }
+	if($opt{SOMVAR_MUTECT} eq "yes"){
+	    if(! $opt{MUTECT_PATH}){ print "ERROR: No MUTECT_PATH option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{MUTECT_QUEUE}){ print "ERROR: No MUTECT_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{MUTECT_THREADS}){ print "ERROR: No MUTECT_THREADS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{MUTECT_MEM}){ print "ERROR: No MUTECT_MEM option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{MUTECT_COSMIC}){ print "ERROR: No MUTECT_COSMIC option found in config files.\n"; $checkFailed = 1; }
+	}
+	if(! $opt{SOMVARMERGE_QUEUE}){ print "ERROR: No SOMVARMERGE_QUEUE option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{SOMVARMERGE_THREADS}){ print "ERROR: No SOMVARMERGE_THREADS option found in config files.\n"; $checkFailed = 1; }
+	if(! $opt{SOMVAR_ANNOTATE}){ print "ERROR: No SOMVAR_ANNOTATE option found in config files.\n"; $checkFailed = 1; }
+	if($opt{SOMVAR_ANNOTATE} eq "yes"){
+	    if(! $opt{ANNOTATE_DB}){ print "ERROR: No ANNOTATE_DB option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{ANNOTATE_FLAGS}){ print "ERROR: No ANNOTATE_FLAGS option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{ANNOTATE_IDNAME}){ print "ERROR: No ANNOTATE_IDNAME option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{ANNOTATE_IDDB}){ print "ERROR: No ANNOTATE_IDDB option found in config files.\n"; $checkFailed = 1; }
+	    if(! $opt{CALLING_DBSNP}){ print "ERROR: No CALLING_DBSNP option found in config files.\n"; $checkFailed = 1; }
+	}
+    }
 #    ## COPY_NUMBER
 #    if($opt{COPY_NUMBER} eq "yes"){
 #	if(! $opt{CNVCHECK_QUEUE} ) { print "ERROR: No CNVCHECK_QUEUE in config files.\n"; $checkFailed = 1; }
