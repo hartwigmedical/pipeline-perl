@@ -36,21 +36,21 @@ sub generic(@){
 
 sub qsubTemplate(@){
     my ($opt,$function)=@_;
-    my $qsub = &generic($opt,$function)." -m a -M ".$$opt{MAIL}." -R ".$$opt{CLUSTER_RESERVATION}." -l h_vmem=".$$opt{$function."_MEM"}."G";
+    my $qsub = &generic($opt,$function)." -m a -M ".$$opt{MAIL}." -R ".$$opt{CLUSTER_RESERVATION};
     return ($qsub)
 }
 
 sub qsubJava(@){
     my ($opt,$function)=@_;
-    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
-    my $qsub = &generic($opt,$function)." -m a -M ".$$opt{MAIL}." -R ".$$opt{CLUSTER_RESERVATION}." -l h_vmem=".$h_vmem;
+#    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
+    my $qsub = &generic($opt,$function)." -m a -M ".$$opt{MAIL}." -R ".$$opt{CLUSTER_RESERVATION};
     return ($qsub)
 }
 
 sub jobNative(@){
     my ($opt,$function)=@_;
-    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
-    my $qsub = &generic($opt,$function).",h_vmem=".$h_vmem;
+#    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
+    my $qsub = &generic($opt,$function);
     $qsub=~s/^qsub//;
     return ($qsub)
 }
