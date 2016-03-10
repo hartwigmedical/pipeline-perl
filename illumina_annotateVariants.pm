@@ -7,13 +7,15 @@
 ###   - SnpSift -> DBNSFP
 ###   - ID from vcf file, for example Cosmic
 ###   - AC and AF from a vcf file, for example GoNL
-### Author: R.F.Ernst
+### Authors: R.F.Ernst & H.H.D.Kerstens
 ##################################################################################################################################################
 
 package illumina_annotateVariants;
 
 use strict;
 use POSIX qw(tmpnam);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
 
 sub runAnnotateVariants {
     ###
@@ -41,7 +43,7 @@ sub runAnnotateVariants {
 	if ( $opt{FILTER_MODE} eq "INDEL" ) { $invcf = $runName.".filtered_indels.vcf"; }
     } elsif ($opt{FILTER_VARIANTS} eq "no") { $invcf = $runName.".raw_variants.vcf"; }
     my $preAnnotateVCF = $invcf;
-    
+
     ### Create main bash script
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/AnnotateVariants_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
@@ -87,7 +89,7 @@ sub runAnnotateVariants {
 	}
 	$invcf = $outvcf;
     }
-    
+
     ### Add ID from a vcf, for example Cosmic
     if($opt{ANNOTATE_IDFIELD} eq "yes"){
 	$outvcf = $invcf;
@@ -105,7 +107,7 @@ sub runAnnotateVariants {
 	}
 	$invcf = $outvcf;
     }
-    
+
     ### Add frequencies from a vcf, for example GoNL
     if($opt{ANNOTATE_FREQUENCIES} eq "yes"){
 	$outvcf = $invcf;
@@ -125,11 +127,11 @@ sub runAnnotateVariants {
 	}
 	$invcf = $outvcf;
     }
-    
+
     ### Check final vcf, last chr and start position must be identical.
     print ANNOTATE_SH "if [ \"\$(tail -n 1 $preAnnotateVCF | cut -f 1,2)\" = \"\$(tail -n 1 $outvcf | cut -f 1,2)\" ]\nthen\n\ttouch $opt{OUTPUT_DIR}/logs/VariantAnnotation.done\nfi\n\n";
     print ANNOTATE_SH "echo \"End variant annotation\t\" `date` \"\t$invcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
-    
+
     ### Process runningjobs
     foreach my $sample (@{$opt{SAMPLES}}){
 	if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
@@ -138,10 +140,11 @@ sub runAnnotateVariants {
     }
 
     ### Start main bash script
+    my $qsub = &qsubJava(\%opt,"ANNOTATE");
     if (@runningJobs){
-	system "qsub -q $opt{ANNOTATE_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{ANNOTATE_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	system "$qsub -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-	system "qsub -q $opt{ANNOTATE_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{ANNOTATE_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID $bashFile";
+	system "$qsub -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID $bashFile";
     }
 
     return $jobID;
