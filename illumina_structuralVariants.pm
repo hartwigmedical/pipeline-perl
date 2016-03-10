@@ -4,7 +4,7 @@
 ### illumina_structuralVariants.pm
 ### - Run structural variant caller Delly
 ###
-### Author: R.F.Ernst & M. van Roosmalen
+### Author: R.F.Ernst , M. van Roosmalen ,H.H.D.Kerstens
 ##################################################################
 
 package illumina_structuralVariants;
@@ -12,6 +12,8 @@ package illumina_structuralVariants;
 use strict;
 use POSIX qw(tmpnam);
 use File::Path qw(make_path);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
 
 my @runningJobs;
 my @sampleBams;
@@ -26,6 +28,8 @@ sub runDelly {
     %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $jobID = "SV_".get_job_id();
+    my $qsub = &qsubTemplate(\%opt,"DELLY_MERGE");
+
 
     # Skip sv calling if .done file exists
     if (-e "$opt{OUTPUT_DIR}/logs/StructuralVariants.done"){
@@ -114,10 +118,9 @@ sub runDelly {
 	        print CONVERT "\t$opt{IAP_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
 	        print CONVERT "fi\n";
 		close CONVERT;
-		
-		system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID -hold_jid ".join(",",@$jobIDs_chunks). " $convert_file";
+		system "$qsub -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID -hold_jid ".join(",",@$jobIDs_chunks). " $convert_file";
 		push @$jobIDs_chunks, $jobID;
-		
+
 		my $jobID2 = "VCF_CONCAT_".get_job_id();
 	        my $vcf_concat_file = "$delly_job_dir/$type\_".$jobID2.".sh";
 		open VCF_CONCAT, ">$vcf_concat_file";
@@ -130,8 +133,8 @@ sub runDelly {
 	        print VCF_CONCAT "\ttouch $delly_log_dir/DELLY_$type.done\n";
 	        print VCF_CONCAT "fi\n\n";
 		close VCF_CONCAT;
-		
-		system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID2 -hold_jid ".join(",",@$jobIDs_chunks). " $vcf_concat_file";
+
+		system "$qsub -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID2 -hold_jid ".join(",",@$jobIDs_chunks). " $vcf_concat_file";
 
 		push @jobIDs_concat, $jobID2;
 	    # Other sv types
@@ -169,7 +172,7 @@ sub runDelly {
 	        print VCF_CONCAT "\ttouch $delly_log_dir/DELLY_$type.done\n";
 	        print VCF_CONCAT "fi\n\n";
 	        close VCF_CONCAT;
-	        system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID -hold_jid ".join(",",@$jobIDs_chunks). " $vcf_concat_file";
+	        system "$qsub -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID -hold_jid ".join(",",@$jobIDs_chunks). " $vcf_concat_file";
 	        push @jobIDs_concat, $jobID;
 	    }
 	# Non split jobs
@@ -192,8 +195,7 @@ sub runDelly {
     		    print CONVERT "\t$opt{IAP_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
     		    print CONVERT "fi\n";
     		    close CONVERT;
-
-		    system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID2 -hold_jid $jobID $convert_file";
+		    system "$qsub -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID2 -hold_jid $jobID $convert_file";
 
 		    my $jobID3 = "VCF_CONCAT_".get_job_id();
 		    my $vcf_concat_file = "$delly_job_dir/$type\_".$jobID3.".sh";
@@ -208,8 +210,8 @@ sub runDelly {
 	    	    print VCF_CONCAT "fi\n\n";
 		    close VCF_CONCAT;
 
-		    system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID3 -hold_jid $jobID2 $vcf_concat_file";
-		
+		    system "$qsub -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID3 -hold_jid $jobID2 $vcf_concat_file";
+
 		    push @jobIDs_concat, $jobID3;
 	    # Other sv types
 	    } else {
@@ -225,9 +227,8 @@ sub runDelly {
 		print VCF_CONCAT "\t>&2 echo \"error\"\n";
 		print VCF_CONCAT "fi\n\n";
 		close VCF_CONCAT;
+		system "$qsub -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID2 -hold_jid $jobID $vcf_concat_file";
 
-		system "qsub -q $opt{DELLY_MERGE_QUEUE} -m a -M $opt{MAIL} -P $opt{CLUSTER_PROJECT} -o $delly_log_dir/$type\_VCF_CONCAT.out -e $delly_log_dir/$type\_VCF_CONCAT.err -N $jobID2 -hold_jid $jobID $vcf_concat_file";
-		
 		push @jobIDs_concat, $jobID2;
 	    }
 	}
@@ -243,10 +244,10 @@ sub submit_delly {
     $logFile =~ s/.sh$/.out/;
     $errorFile =~ s/jobs/logs/;
     $errorFile =~ s/.sh$/.err/;
-
+    my $omp_num_threads = $opt{DELLY_THREADS} * 2;
     open DELLY_SH , ">$bashFile" or die "cannot open file $bashFile\n $! \n";
     print DELLY_SH "#!/bin/bash\n\n";
-    print DELLY_SH "export OMP_NUM_THREADS=".$opt{DELLY_THREADS}."\n";
+    print DELLY_SH "export OMP_NUM_THREADS=".$omp_num_threads."\n";
     print DELLY_SH "$opt{DELLY_PATH}/delly";
     print DELLY_SH " -t " . $type;
     print DELLY_SH " -g " . $opt{GENOME};
@@ -259,11 +260,11 @@ sub submit_delly {
     print DELLY_SH " -o " . $vcfFile;
     print DELLY_SH " ".join(" ", @sampleBams);
     close DELLY_SH;
-
+    my $qsub = &qsubTemplate(\%opt,"DELLY");
     if (@runningJobs) {
-	system "qsub -q $opt{DELLY_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{DELLY_THREADS} -P $opt{CLUSTER_PROJECT} -o $logFile -e $errorFile -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	system "$qsub -o $logFile -e $errorFile -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-        system "qsub -q $opt{DELLY_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{DELLY_THREADS} -P $opt{CLUSTER_PROJECT} -o $logFile -e $errorFile -N $jobID $bashFile";
+        system "$qsub -o $logFile -e $errorFile -N $jobID $bashFile";
     }
     return($logFile);
 }
@@ -319,7 +320,7 @@ sub create_intrachromosomal_chunks {
 	    print EXC join("\t", $chrom, -1, $chrs->{$chrom}) . "\n" unless $chrom =~ /^$chr$/;
 	}
 	close EXC;
-	
+
 	my $jobID = "DELLY_".get_job_id();
 	my $dellyFile = "$delly_job_dir/$type\_$chr\_".$jobID.".sh";
 	push @jobIDs, $jobID;
