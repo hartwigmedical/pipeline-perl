@@ -13,6 +13,9 @@ package illumina_nipt;
 use strict;
 use POSIX qw(tmpnam);
 use FindBin;
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
+
 
 sub runNipt {
     ###
@@ -37,23 +40,27 @@ sub runNipt {
 	my $command = "python $opt{CHROMATE_PATH} -f ";
 	$command .= "-d $opt{NIPT_REFERENCESET} ";
 	$command .= "-x $opt{OUTPUT_DIR}/ ";
-	
+
+	# qsub options
+	$command .= "-q $opt{NIPT_QUEUE} -c $opt{NIPT_TIME} -t $opt{NIPT_THREADS} -m $opt{NIPT_MEM} ";
+
 	my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
 	my $logDir = $opt{OUTPUT_DIR}."/logs";
-        
+
 	open NIPT_SH, ">$bashFile" or die "cannot open file $bashFile\n";
 	print NIPT_SH "#!/bin/bash\n\n";
 	print NIPT_SH "cd $opt{OUTPUT_DIR}\n";
 	print NIPT_SH "echo \"Start NIPT\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
 	print NIPT_SH "$command\n";
 	close NIPT_SH;
-	
+
+	my $qsub = &qsubTemplate(\%opt,"NIPT_MASTER");
 	if (@runningJobs){
-	    system "qsub -q $opt{NIPT_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{NIPT_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	    system "$qsub -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
 	} else {
-	    system "qsub -q $opt{NIPT_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{NIPT_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobID $bashFile";
+	    system "$qsub -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobID $bashFile";
 	}
-	
+
 	### Check Chromate result
 	my $bashFileCheck = $opt{OUTPUT_DIR}."/jobs/".$jobIDCheck.".sh";
 	open NIPTCHECK_SH, ">$bashFileCheck" or die "cannot open file $bashFileCheck\n";
@@ -64,7 +71,7 @@ sub runNipt {
 	print NIPTCHECK_SH "echo \"Finished NIPT\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
 	close NIPTCHECK_SH;
 
-	system "qsub -q $opt{NIPT_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{NIPT_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobIDCheck -hold_jid bamMetrics_report_".$runName.",$jobID $bashFileCheck";
+	system "$qsub -o $logDir/NIPT_$runName.out -e $logDir/NIPT_$runName.err -N $jobIDCheck -hold_jid bamMetrics_report_".$runName.",$jobID $bashFileCheck";
 	return $jobIDCheck;
 
     } else {
@@ -74,11 +81,11 @@ sub runNipt {
 
 ############
 sub get_job_id {
-   my $id = tmpnam(); 
+   my $id = tmpnam();
       $id=~s/\/tmp\/file//;
    return $id;
 }
 
-############ 
+############
 
 1;
