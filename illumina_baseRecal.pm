@@ -11,6 +11,8 @@ package illumina_baseRecal;
 
 use strict;
 use POSIX qw(tmpnam);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
 
 sub runBaseRecalibration {
     ###
@@ -20,31 +22,33 @@ sub runBaseRecalibration {
     my %opt = %{$configuration};
 
     print "Running base recalibration for the following BAM-files:\n";
-    
+
     foreach my $sample (@{$opt{SAMPLES}}){
 	### Set in and output bam file
 	my $inBam = $opt{BAM_FILES}->{$sample};
-	(my $inFlagstat = $inBam) =~ s/bam/flagstat/;
-	(my $outBam = $inBam) =~ s/bam/recalibrated.bam/;
-	(my $outBai = $inBam) =~ s/bam/recalibrated.bai/;
-	(my $outFlagstat = $inBam) =~ s/bam/recalibrated.flagstat/;
-	
+	(my $inFlagstat = $inBam) =~ s/\.bam/\.flagstat/;
+	(my $outBam = $inBam) =~ s/\.bam/\.recalibrated\.bam/;
+	(my $outBai = $inBam) =~ s/\.bam/\.recalibrated\.bai/;
+	(my $outBamBai = $inBam) =~ s/\.bam/\.recalibrated\.bam\.bai/;
+	(my $outFlagstat = $inBam) =~ s/\.bam/\.recalibrated\.flagstat/;
+
 	print "\t$opt{OUTPUT_DIR}/$sample/mapping/$inBam\n";
 	$opt{BAM_FILES}->{$sample} = $outBam;
-	
+
 	### Skip base recalibration if done file present
 	if (-e "$opt{OUTPUT_DIR}/$sample/logs/BaseRecalibration_$sample.done"){
 	    print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/BaseRecalibration_$sample.done exists, skipping \n";
 	    next;
 	}
-	
+
 	### Build Queue command
-	my $command = "java -Xmx".$opt{BASERECALIBRATION_MASTERMEM}."G -jar $opt{QUEUE_PATH}/Queue.jar ";
+	my $command = "java -Xmx".$opt{BASERECALIBRATION_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/$sample/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
 	# cluster options
-	$command .= "-jobQueue $opt{BASERECALIBRATION_QUEUE} -jobNative \"-pe threaded $opt{BASERECALIBRATION_THREADS} -P $opt{CLUSTER_PROJECT}\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/$sample/logs/BaseRecalibration.jobReport.txt "; #Queue options
+	my $jobNative = &jobNative(\%opt,"BASERECALIBRATION");
+	$command .= "-jobQueue $opt{BASERECALIBRATION_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/$sample/logs/BaseRecalibration.jobReport.txt "; #Queue options
 	# baseRecalibration options
 	$command .= "-S $opt{BASERECALIBRATION_SCALA} -R $opt{GENOME} -I $opt{OUTPUT_DIR}/$sample/mapping/$inBam -mem $opt{BASERECALIBRATION_MEM} -nct $opt{BASERECALIBRATION_THREADS} -nsc $opt{BASERECALIBRATION_SCATTER} ";
-	
+
 	### Parsing known files and add them to $command.
 	my @knownFiles;
 	if($opt{BASERECALIBRATION_KNOWN}) {
@@ -64,13 +68,14 @@ sub runBaseRecalibration {
 	my $jobID = "BR_".$sample."_".get_job_id();
 	my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobID.".sh";
 	my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
+	my $qsub = &qsubJava(\%opt,"BASERECALIBRATION_MASTER");
 
 	open BASERECAL_SH, ">$bashFile" or die "cannot open file $bashFile \n";
 	print BASERECAL_SH "#!/bin/bash\n\n";
 	print BASERECAL_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
 	print BASERECAL_SH "cd $opt{OUTPUT_DIR}/$sample/tmp/\n";
 	print BASERECAL_SH "echo \"Start base recalibration\t\" `date` \"\t$inBam\t\" `uname -n` >> ../logs/$sample.log\n\n";
-	
+
 	print BASERECAL_SH "if [ -s $opt{OUTPUT_DIR}/$sample/mapping/$inBam ]\n";
 	print BASERECAL_SH "then\n";
 	print BASERECAL_SH "\t$command\n";
@@ -78,14 +83,14 @@ sub runBaseRecalibration {
 	print BASERECAL_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$inBam does not exist.\" >&2\n";
 	print BASERECAL_SH "fi\n";
 	close BASERECAL_SH;
-	
+
 	### Submit baserecal bash script
 	if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
-	    system "qsub -q $opt{BASERECALIBRATION_MASTERQUEUE} -m a -M $opt{MAIL} -pe threaded $opt{BASERECALIBRATION_MASTERTHREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/BaseRecalibration_$sample.out -e $logDir/BaseRecalibration_$sample.err -N $jobID -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample}})." $bashFile";
+	    system "$qsub -o $logDir/BaseRecalibration_$sample.out -e $logDir/BaseRecalibration_$sample.err -N $jobID -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample}})." $bashFile";
 	} else {
-	    system "qsub -q $opt{BASERECALIBRATION_MASTERQUEUE} -m a -M $opt{MAIL} -pe threaded $opt{BASERECALIBRATION_MASTERTHREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/BaseRecalibration_$sample.out -e $logDir/BaseRecalibration_$sample.err -N $jobID $bashFile";
+	    system "$qsub -o $logDir/BaseRecalibration_$sample.out -e $logDir/BaseRecalibration_$sample.err -N $jobID $bashFile";
 	}
-	
+
 	### Create flagstat bash script
 	my $jobIDFS = "BRFS_".$sample."_".get_job_id();
 	my $bashFileFS = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDFS.".sh";
@@ -106,6 +111,7 @@ sub runBaseRecalibration {
 	print BASERECALFS_SH "\tthen\n";
 	print BASERECALFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/$outBam $opt{OUTPUT_DIR}/$sample/mapping/\n";
 	print BASERECALFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/$outBai $opt{OUTPUT_DIR}/$sample/mapping/\n";
+	print BASERECALFS_SH "\t\tcp $opt{OUTPUT_DIR}/$sample/mapping/$outBai $opt{OUTPUT_DIR}/$sample/mapping/$outBamBai\n";
 	print BASERECALFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/*_baseRecalibration.pdf $opt{OUTPUT_DIR}/$sample/logs/\n";
 	print BASERECALFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/*_post_recal_data.table $opt{OUTPUT_DIR}/$sample/logs/\n";
 	print BASERECALFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/*_recal_data.table $opt{OUTPUT_DIR}/$sample/logs/\n";
@@ -119,9 +125,10 @@ sub runBaseRecalibration {
 	print BASERECALFS_SH "fi\n\n";
 	print BASERECALFS_SH "echo \"End base recalibration\t\" `date` \"\t$inBam\t\" `uname -n` >> ../logs/$sample.log\n";
 	close BASERECALFS_SH;
-	
+
 	### Submit flagstat bash script
-	system "qsub -q $opt{FLAGSTAT_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{FLAGSTAT_THREADS} -R $opt{CLUSTER_RESERVATION} -P $opt{CLUSTER_PROJECT} -o $logDir/BaseRecalibrationFS_$sample.out -e $logDir/BaseRecalibrationFS_$sample.err -N $jobIDFS -hold_jid $jobID $bashFileFS";
+	$qsub = &qsubTemplate(\%opt,"FLAGSTAT");
+	system "$qsub -o $logDir/BaseRecalibrationFS_$sample.out -e $logDir/BaseRecalibrationFS_$sample.err -N $jobIDFS -hold_jid $jobID $bashFileFS";
 
 	push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobID);
 	push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobIDFS);
@@ -131,10 +138,10 @@ sub runBaseRecalibration {
 
 ############
 sub get_job_id {
-   my $id = tmpnam(); 
+   my $id = tmpnam();
       $id=~s/\/tmp\/file//;
    return $id;
 }
-############ 
+############
 
 1;
