@@ -42,6 +42,7 @@ sub qsubTemplate(@){
 
 sub qsubJava(@){
     my ($opt,$function)=@_;
+    # KODU: h_vmem setting leads to issues with Queue.jar wants to spawn jobs
 #    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
     my $qsub = &generic($opt,$function)." -m a -M ".$$opt{MAIL}." -R ".$$opt{CLUSTER_RESERVATION};
     return ($qsub)
@@ -49,6 +50,7 @@ sub qsubJava(@){
 
 sub jobNative(@){
     my ($opt,$function)=@_;
+    # KODU: h_vmem setting leads to issues with Queue.jar wants to spawn jobs
 #    my $h_vmem = (4 + $$opt{$function."_MEM"})."G";
     my $qsub = &generic($opt,$function);
     $qsub=~s/^qsub//;
