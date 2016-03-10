@@ -7,13 +7,15 @@
 ###  - Unified genotyper 
 ### - VCF Prep function if pipeline is started with a vcf file
 ###
-### Author: R.F.Ernst
+### Authors: R.F.Ernst & H.H.D.Kerstens
 ##################################################################
 
 package illumina_calling;
 
 use strict;
 use POSIX qw(tmpnam);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
 
 sub runVariantCalling {
     ###
@@ -31,15 +33,16 @@ sub runVariantCalling {
 	print "WARNING: $opt{OUTPUT_DIR}/logs/VariantCaller.done exists, skipping \n";
 	return \%opt;
     }
-    
+
     ### Create gvcf folder if CALLING_GVCF eq yes
     if((! -e "$opt{OUTPUT_DIR}/gvcf" && $opt{CALLING_GVCF} eq 'yes')){
 	mkdir("$opt{OUTPUT_DIR}/gvcf") or die "Couldn't create directory: $opt{OUTPUT_DIR}/gvcf\n";
     }
-    
+
     ### Build Queue command
-    my $command = "java -Xmx".$opt{CALLING_MASTERMEM}."G -jar $opt{QUEUE_PATH}/Queue.jar ";
-    $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"-pe threaded $opt{CALLING_THREADS} -P $opt{CLUSTER_PROJECT}\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/VariantCaller.jobReport.txt "; #Queue options
+    my $jobNative = &jobNative(\%opt,"CALLING");
+    my $command = "java -Xmx".$opt{CALLING_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
+    $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/VariantCaller.jobReport.txt -memLimit $opt{CALLING_MEM} "; #Queue options
 
     ### Add caller and UG specific settings
     $command .= "-S $opt{CALLING_SCALA} ";
@@ -75,7 +78,7 @@ sub runVariantCalling {
     if ( $opt{CALLING_PLOIDY} ) {
 	$command .= "-ploidy $opt{CALLING_PLOIDY} ";
     }
-    
+
     ### retry option
     if($opt{QUEUE_RETRY} eq 'yes'){
 	$command  .= "-retry 1 ";
@@ -91,7 +94,7 @@ sub runVariantCalling {
     print CALLING_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
     print CALLING_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
     print CALLING_SH "echo \"Start variant caller\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
-    
+
     print CALLING_SH "if [ -s ".shift(@sampleBams)." ";
     foreach my $sampleBam (@sampleBams){
 	print CALLING_SH "-a -s $sampleBam ";
@@ -102,7 +105,7 @@ sub runVariantCalling {
     print CALLING_SH "else\n";
     print CALLING_SH "\techo \"ERROR: One or more input bam files do not exist.\" >&2\n";
     print CALLING_SH "fi\n\n";
-    
+
     print CALLING_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.raw_variants.vcf.done ]\n";
     print CALLING_SH "then\n";
     print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.raw_variants.vcf $opt{OUTPUT_DIR}/\n";
@@ -110,19 +113,20 @@ sub runVariantCalling {
     if($opt{CALLING_GVCF} eq 'yes'){
 	print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/*.g.vcf.gz $opt{OUTPUT_DIR}/gvcf/\n";
 	print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/*.g.vcf.gz.tbi $opt{OUTPUT_DIR}/gvcf/\n";
-	
+
     }
     print CALLING_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantCaller.done\n";
     print CALLING_SH "fi\n\n";
     print CALLING_SH "echo \"Finished variant caller\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
-    
+
     #Start main bash script
+    my $qsub = &qsubJava(\%opt,"CALLING_MASTER");
     if (@runningJobs){
-	system "qsub -q $opt{CALLING_MASTERQUEUE} -m a -M $opt{MAIL} -pe threaded $opt{CALLING_MASTERTHREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	system "$qsub -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-	system "qsub -q $opt{CALLING_MASTERQUEUE} -m a -M $opt{MAIL} -pe threaded $opt{CALLING_MASTERTHREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID $bashFile";
+	system "$qsub -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID $bashFile";
     }
-    
+
     ### Store jobID
     foreach my $sample (@{$opt{SAMPLES}}){
 	push (@{$opt{RUNNING_JOBS}->{$sample}} , $jobID);
@@ -140,7 +144,7 @@ sub runVcfPrep {
 
     symlink($opt{VCF},"$opt{OUTPUT_DIR}/$runName.raw_variants.vcf");
     @{$opt{SAMPLES}} = ($runName);
-    
+
     return \%opt;
 }
 
