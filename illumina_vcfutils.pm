@@ -14,6 +14,9 @@ package illumina_vcfutils;
 
 use strict;
 use POSIX qw(tmpnam);
+use lib "$FindBin::Bin"; #locates pipeline directory
+use illumina_sge;
+
 
 sub runVcfUtils {
     my $configuration = shift;
@@ -21,6 +24,7 @@ sub runVcfUtils {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
     my $jobID = "VCFUTILS_".get_job_id();
+
 
     if (-e "$opt{OUTPUT_DIR}/logs/VCF_UTILS.done"){
 	print "WARNING: $opt{OUTPUT_DIR}/logs/VCF_UTILS.done exists, skipping \n";
@@ -33,7 +37,7 @@ sub runVcfUtils {
 	if($opt{FILTER_MODE} eq "BOTH"){ $vcf = $runName.".filtered_variants.vcf";}
 	if($opt{FILTER_MODE} eq "SNP"){ $vcf = $runName.".filtered_snps.vcf";}
 	if($opt{FILTER_MODE} eq "INDEL"){ $vcf = $runName.".filtered_indels.vcf";}
-    } elsif ($opt{FILTER_VARIANTS} eq "no"){ 
+    } elsif ($opt{FILTER_VARIANTS} eq "no"){
 	$vcf = $runName.".raw_variants.vcf";
     }
 
@@ -74,8 +78,8 @@ sub runVcfUtils {
 	    print "WARNING: $opt{OUTPUT_DIR}/logs/Phase.done exists, skipping \n";
 	} else {
 	    print VCFUTILS_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
-	    print VCFUTILS_SH "java -Xmx8G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T PhaseByTransmission -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$vcf -ped $opt{OUTPUT_DIR}/$runName.ped -o $runName.phased.vcf --MendelianViolationsFile $runName.MendelViol\n\n";
-	    
+	    print VCFUTILS_SH "java -Xmx".$opt{VCFUTILS_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T PhaseByTransmission -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$vcf -ped $opt{OUTPUT_DIR}/$runName.ped -o $runName.phased.vcf --MendelianViolationsFile $runName.MendelViol\n\n";
+
 	    ## Check output
 	    print VCFUTILS_SH "if [ \"\$(tail -n 1 $opt{OUTPUT_DIR}/$vcf | cut -f 1,2)\" = \"\$(tail -n 1 $runName.phased.vcf | cut -f 1,2)\" -a -s $runName.MendelViol ]\n";
 	    print VCFUTILS_SH "then\n";
@@ -95,8 +99,8 @@ sub runVcfUtils {
 	} else {
 	    print VCFUTILS_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
 	    print VCFUTILS_SH "ln -sd $opt{OUTPUT_DIR}/$runName.ped $opt{OUTPUT_DIR}/$runName.fam\n";
-	    print VCFUTILS_SH "java -Xmx8G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T VariantsToBinaryPed -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$vcf -m $opt{OUTPUT_DIR}/$runName.fam -bed gender_check.bed -bim gender_check.bim -fam gender_check.fam -mgq 20\n";
-	    print VCFUTILS_SH "$opt{PLINK_PATH}/plink -bfile gender_check --check-sex\n";
+	    print VCFUTILS_SH "java -Xmx".$opt{VCFUTILS_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T VariantsToBinaryPed -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$vcf -m $opt{OUTPUT_DIR}/$runName.fam -bed gender_check.bed -bim gender_check.bim -fam gender_check.fam -mgq 20\n";
+	    print VCFUTILS_SH "$opt{PLINK_PATH}/plink -bfile gender_check --check-sex $opt{GENDERCHECK_FEMALE_MAX_F} $opt{GENDERCHECK_MALE_MIN_F}\n";
 	    print VCFUTILS_SH "mv plink.sexcheck $opt{OUTPUT_DIR}/gender_check.out\n";
 	    print VCFUTILS_SH "if [ -s $opt{OUTPUT_DIR}/gender_check.out ]; then\n";
 	    print VCFUTILS_SH "\ttouch $opt{OUTPUT_DIR}/logs/Gender_check.done\n";
@@ -118,14 +122,15 @@ sub runVcfUtils {
 	    push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
 	}
     }
-    
+
     ### Run job
+    my $qsub = &qsubJava(\%opt,"VCFUTILS");
     if (@runningJobs){
-	system "qsub -q $opt{VCFUTILS_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{VCFUTILS_THREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/VCFUTILS_$runName.out -e $logDir/VCFUTILS_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	system "$qsub -o $logDir/VCFUTILS_$runName.out -e $logDir/VCFUTILS_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-	system "qsub -q $opt{VCFUTILS_QUEUE} -m a -M $opt{MAIL} -pe threaded $opt{VCFUTILS_THREADS} -P $opt{CLUSTER_PROJECT} -o $logDir/VCFUTILS_$runName.out -e $logDir/VCFUTILS_$runName.err -N $jobID $bashFile";
+	system "$qsub -o $logDir/VCFUTILS_$runName.out -e $logDir/VCFUTILS_$runName.err -N $jobID $bashFile";
     }
-    
+
     return $jobID;
 }
 
