@@ -30,21 +30,27 @@ class HardFilter extends QScript {
     @Argument(doc="Filter mode: BOTH, SNP or INDEL", shortName="mode", required=true)
     var filterMode: String = _
     
+    @Argument(doc="SNP filter types", shortName="snpType", required=true)
+    var snpFilterTypes: List[String] = _
+
+    @Argument(doc="INDEL filter types", shortName="indelType", required=true)
+    var indelFilterTypes: List[String] = _
+
     @Argument(doc="A optional list of SNPfilter names.", shortName="snpFilterName", required=false)
     var snpFilterNames: List[String] = _
-  
+
     @Argument(doc="An optional list of filter expressions.", shortName="snpFilterExpression", required=false)
     var snpFilterExp: List[String] = _
-    
+
     @Argument(doc="An optional list of INDEL filter names.", shortName="indelFilterName", required=false)
     var indelFilterNames: List[String] = _
-      
+
     @Argument(doc="An optional list of INDEL filter expressions.", shortName="indelFilterExpression", required=false)
     var indelFilterExp: List[String] = _
-    
+
     @Argument(doc="The number of SNPs which make up a cluster.", shortName="cluster", required=false)
     var clusterSize: Int = 0
-    
+
     @Argument(doc="The window size (in bases) in which to evaluate clustered SNPs.", shortName="window", required=false)
     var clusterWindowSize: Int = 0
 
@@ -57,17 +63,26 @@ class HardFilter extends QScript {
     def script() {
 	val selectSNP = new SelectVariants with HF_Arguments
 	selectSNP.V = rawVCF
-	selectSNP.selectType :+= Type.SNP
-	selectSNP.selectType :+= Type.NO_VARIATION
+	if (filterMode == "SNP" || filterMode == "BOTH") {
+	    for (snpType <- snpFilterTypes) {
+		if(snpType == "SNP"){
+		    selectSNP.selectType :+= Type.SNP
+		}else if(snpType == "MNP"){
+		    selectSNP.selectType :+= Type.MNP
+		}else if(snpType == "NO_VARIATION"){
+		    selectSNP.selectType :+= Type.NO_VARIATION
+		}
+	    }
+	}
 	selectSNP.out = qscript.out + ".raw_snps.vcf"
 
 	val SNPfilter = new VariantFiltration with HF_Arguments
 	SNPfilter.scatterCount = numScatters
 	SNPfilter.V = selectSNP.out
 	SNPfilter.out = qscript.out + ".filtered_snps.vcf"
-	SNPfilter.filterExpression = snpFilterExp 
+	SNPfilter.filterExpression = snpFilterExp
 	SNPfilter.filterName = snpFilterNames
-	
+
 	if( clusterSize != 0 && clusterWindowSize != 0 ){
 	    SNPfilter.clusterSize = clusterSize
 	    SNPfilter.clusterWindowSize = clusterWindowSize
@@ -75,7 +90,15 @@ class HardFilter extends QScript {
 
 	val selectINDEL = new SelectVariants with HF_Arguments
 	selectINDEL.V = rawVCF
-	selectINDEL.selectType :+= Type.INDEL
+	if (filterMode == "INDEL" || filterMode == "BOTH") {
+	    for (indelType <- indelFilterTypes) {
+		if(indelType == "INDEL"){
+		    selectINDEL.selectType :+= Type.INDEL
+		}else if(indelType == "MIXED"){
+		    selectINDEL.selectType :+= Type.MIXED
+		}
+	    }
+	}
 	selectINDEL.out = qscript.out + ".raw_indels.vcf"
 
 	val INDELfilter = new VariantFiltration with HF_Arguments
