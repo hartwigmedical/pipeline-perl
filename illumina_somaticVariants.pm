@@ -154,13 +154,13 @@ sub runSomaticVariantCallers {
 		if($opt{SOMVAR_VARSCAN} eq "yes"){ print MERGE_SH "-V:varscan $sample_tumor_out_dir/varscan/$sample_tumor_name.merged.Somatic.hc.vcf "; }
 		if($opt{SOMVAR_FREEBAYES} eq "yes"){ print MERGE_SH "-V:freebayes $sample_tumor_out_dir/freebayes/$sample_tumor_name\_somatic_filtered.vcf "; }
 		if($opt{SOMVAR_MUTECT} eq "yes"){ print MERGE_SH "-V:mutect $sample_tumor_out_dir/mutect/$sample_tumor_name\_mutect_passed.vcf ";}
-        print MERGE_SH "\n";
+		print MERGE_SH "\n\n";
 
 		# Filter vcf on target
 		if($opt{SOMVAR_TARGETS}){
 		    $invcf = $outvcf;
 		    $outvcf = "$sample_tumor_out_dir/$sample_tumor_name\_filtered_merged_somatics.vcf";
-		    print MERGE_SH "\njava -Xmx".$opt{SOMVARMERGE_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $invcf -o $outvcf\n";
+		    print MERGE_SH "java -Xmx".$opt{SOMVARMERGE_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $invcf -o $outvcf\n";
 		    print MERGE_SH "rm $invcf*\n\n";
 		}
 		my $preAnnotateVCF = $outvcf;
