@@ -195,7 +195,7 @@ sub runSomaticVariantCallers {
 		$invcf = $outvcf;
 		my $suffix = "_melted.vcf";
 		$outvcf =~ s/.vcf/$suffix/;
-		print MERGE_SH "python $opt{IAP_PATH}/scripts/melt_somatic_vcf.py -v $invcf > $outvcf\n\n";
+		print MERGE_SH "python $opt{IAP_PATH}/scripts/melt_somatic_vcf.py -t $sample_tumor -v $invcf > $outvcf\n\n";
 
 		## Check output files
 		print MERGE_SH "if [ \"\$(tail -n 1 $preAnnotateVCF | cut -f 1,2)\" = \"\$(tail -n 1 $outvcf | cut -f 1,2)\" -a -s $preAnnotateVCF -a -s $outvcf ]\n";
@@ -470,10 +470,13 @@ sub runFreeBayes {
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
     my $freebayes_out_dir = "$out_dir/freebayes";
-
-    ## Create output dir
+    my $freebayes_tmp_dir = "$out_dir/freebayes/tmp";
+    ## Create output & tmp dir
     if(! -e $freebayes_out_dir){
 	make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
+    }
+    if(! -e $freebayes_tmp_dir){
+	make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
     }
 
     ## Skip freebayes if .done file exist
@@ -499,7 +502,7 @@ sub runFreeBayes {
 	$freebayes_command .= "$opt{FREEBAYES_SETTINGS} $sample_ref_bam $sample_tumor_bam > $freebayes_out_dir/$output_name.vcf";
 
 	## Sort vcf, remove duplicate lines and filter on target
-	my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
+	my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
 	my $mv_command;
 	# Filter vcf on target
 	if($opt{SOMVAR_TARGETS}){
@@ -542,7 +545,7 @@ sub runFreeBayes {
     # Setup test, concat and rm of chr chunks
     my $file_test = "if [ -s $sample_ref_bam -a -s $sample_tumor_bam ";
     my $concat_command = "$opt{VCFTOOLS_PATH}/vcf-concat ";
-    my $rm_command = "rm ";
+    my $rm_command = "rm -r $freebayes_tmp_dir ";
     foreach my $chr (@chrs){
 	my $snp_output = $sample_tumor_name."_".$chr;
 	$file_test .= "-a -s $snp_output\.vcf ";

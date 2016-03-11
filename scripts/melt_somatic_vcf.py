@@ -8,8 +8,9 @@ Supported somatic callers: Freebayes, Mutect, Strelka and Varscan.
 
 import argparse
 from itertools import izip_longest
+import re
 
-def melt_somatic_vcf(vcf_file, remove_filtered):
+def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
     try:
         f = open(vcf_file, 'r')
     except IOError:
@@ -32,9 +33,9 @@ def melt_somatic_vcf(vcf_file, remove_filtered):
                     # Find tumor samples index
                     tumor_samples_index = {}
                     for index, sample in enumerate(samples):
-                        if 'T.freebayes' in sample:
+                        if '{0}.freebayes'.format(tumor_sample) == sample:
                             tumor_samples_index['freebayes'] = index
-                        elif 'T.mutect' in sample:
+                        elif '{0}.mutect'.format(tumor_sample) == sample:
                             tumor_samples_index['mutect'] = index
                         elif 'TUMOR.strelka' == sample:
                             tumor_samples_index['strelka'] = index
@@ -50,8 +51,8 @@ def melt_somatic_vcf(vcf_file, remove_filtered):
 
                     ## print header
                     print "{header}\t{sample}".format(
-                        header = '\t'.join(header[:9]),
-                        sample = sample_name
+                            header = '\t'.join(header[:9]),
+                            sample = sample_name
                     )
 
                 else:
@@ -124,10 +125,10 @@ def melt_somatic_vcf(vcf_file, remove_filtered):
                                         strelka_ad.append(float(variant_call[variant_gt_format.index('GU')].split(',')[0]))
                                     elif nucl == "T":
                                         strelka_ad.append(float(variant_call[variant_gt_format.index('TU')].split(',')[0]))
-                                #strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
-                                #strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
-                                #strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
-                                #strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+                                        #strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+                                        #strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+                                        #strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+                                        #strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
 
                             # Parse Indels
                             else:
@@ -144,12 +145,12 @@ def melt_somatic_vcf(vcf_file, remove_filtered):
                         variant_ad.append(str(int(round(sum(allele_ad)/len(allele_ad)))))
 
                     print "{var_data};CC={cc}\t{gt_format}\t{gt}:{ad}:{dp}".format(
-                        var_data = "\t".join(variant[:8]),
-                        cc = caller_count,
-                        gt_format = "GT:AD:DP",
-                        gt = "0/1",
-                        ad = ','.join(variant_ad),
-                        dp = variant_dp,
+                            var_data = "\t".join(variant[:8]),
+                            cc = caller_count,
+                            gt_format = "GT:AD:DP",
+                            gt = "0/1",
+                            ad = ','.join(variant_ad),
+                            dp = variant_dp,
                     )
 
 if __name__ == "__main__":
@@ -159,6 +160,7 @@ if __name__ == "__main__":
 
     required_named = parser.add_argument_group('required named arguments')
     required_named.add_argument('-v', '--vcf_file', help='path/to/file.vcf', required=True)
+    required_named.add_argument('-t', '--tumor_sample', help='Tumor sample name', required=True)
 
     args = parser.parse_args()
-    melt_somatic_vcf(args.vcf_file, args.remove_filtered)
+    melt_somatic_vcf(args.vcf_file, args.remove_filtered, args.tumor_sample)
