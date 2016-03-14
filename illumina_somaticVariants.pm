@@ -583,8 +583,8 @@ sub runFreeBayes {
     print FREEBAYES_SH "\trm $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n\n";
 
     # Filter
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_somatic.vcf | $opt{BIOVCF_PATH}/bio-vcf $opt{FREEBAYES_SOMATICFILTER} > $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf\n";
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_germline.vcf | $opt{BIOVCF_PATH}/bio-vcf $opt{FREEBAYES_GERMLINEFILTER} > $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf\n\n";
+    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_somatic.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_SOMATICFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf\n";
+    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_germline.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_GERMLINEFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf\n\n";
 
     #Check freebayes completed
     print FREEBAYES_SH "\tif [ -s $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf -a -s $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf ]\n";
@@ -601,7 +601,7 @@ sub runFreeBayes {
     close FREEBAYES_SH;
 
     ## Run job
-    my $qsub = &qsubTemplate(\%opt,"FREEBAYES");
+    my $qsub = &qsubJava(\%opt,"FREEBAYES");
     if ( @freebayes_jobs ){
 	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@freebayes_jobs)." $bash_file";
     } else {
