@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Template used by Text::Template. See: http://search.cpan.org/~mjd/Text-Template-1.46/lib/Text/Template.pm
+#
+
+cd {$opt{OUTPUT_DIR}}
+
+echo "Start poststats	" `date` "	" `uname -n` >> {$opt{OUTPUT_DIR}}/logs/{$runName}.log
+
+{$command}
+
+qalter -hold_jid bamMetrics_report_{$runName},{$jobID} {$jobIDCheck}
+
+{ $pcommand = "";
+    if ( $opt{EXONCALLCOV} eq "yes" ){
+	$pcommand = "python $opt{EXONCALLCOV_PATH} --queue $opt{EXONCALLCOV_QUEUE} -a $opt{EXONCALLCOV_TIME} -c $opt{EXONCALLCOV_MEM} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}";
+    }
+    $pcommand;
+}
+
