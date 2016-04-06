@@ -14,6 +14,7 @@ use strict;
 use POSIX qw(tmpnam);
 use FindBin;
 use illumina_sge;
+use illumina_template;
 
 
 sub runPostStats {
@@ -68,20 +69,7 @@ sub runPostStats {
 	my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
 	my $logDir = $opt{OUTPUT_DIR}."/logs";
 
-	open PS_SH, ">$bashFile" or die "cannot open file $bashFile\n";
-	print PS_SH "#!/bin/bash\n\n";
-	print PS_SH "cd $opt{OUTPUT_DIR}\n";
-	print PS_SH "echo \"Start poststats\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
-	print PS_SH "$command\n";
-	print PS_SH "qalter -hold_jid bamMetrics_report_".$runName.",$jobID $jobIDCheck\n\n"; #hack to make sure check does not start before bamMetrics ends.
-
-	## Setup ExonCallCov
-	if ( $opt{EXONCALLCOV} eq "yes" ){
-	    $command = "python $opt{EXONCALLCOV_PATH} --queue $opt{EXONCALLCOV_QUEUE} -a $opt{EXONCALLCOV_TIME} -c $opt{EXONCALLCOV_MEM} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}";
-	    print PS_SH "$command\n";
-	}
-
-	close PS_SH;
+	from_template("PostStats_Job.sh.tmpl", $bashFile, command => $command, runName => $runName, jobID => $jobID, jobIDCheck => $jobIDCheck,  opt => \%opt);
 
 	my $qsub = &qsubTemplate(\%opt,"POSTSTATS");
 	if (@runningJobs){
@@ -93,19 +81,7 @@ sub runPostStats {
 
 	### Check Poststats result
 	my $bashFileCheck = $opt{OUTPUT_DIR}."/jobs/".$jobIDCheck.".sh";
-	open PSCHECK_SH, ">$bashFileCheck" or die "cannot open file $bashFileCheck\n";
-	print PSCHECK_SH "cd $opt{OUTPUT_DIR}\n";
-	print PSCHECK_SH "if [ -s QCStats/*.bamMetrics.pdf -a ";
-	if ( $opt{EXONCALLCOV} eq "yes" ){
-	    foreach my $sample (@{$opt{SAMPLES}}){
-		print PSCHECK_SH "-s Exoncov_v3/$sample.html -a ";
-	    }
-	}
-	print PSCHECK_SH "-s QCStats/*.bamMetrics.html ]\nthen\n";
-	print PSCHECK_SH "\ttouch logs/PostStats.done \n";
-	print PSCHECK_SH "fi\n";
-	print PSCHECK_SH "echo \"Finished poststats\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
-	close PSCHECK_SH;
+	from_template("PostStats_Check.sh.tmpl", $bashFileCheck, runName => $runName, opt => \%opt);
 
 	system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck.
 	    " -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;

@@ -11,10 +11,8 @@ echo "Start poststats	" `date` "	" `uname -n` >> {$opt{OUTPUT_DIR}}/logs/{$runNa
 
 qalter -hold_jid bamMetrics_report_{$runName},{$jobID} {$jobIDCheck}
 
-{ $pcommand = "";
-    if ( $opt{EXONCALLCOV} eq "yes" ){
-	$pcommand = "python $opt{EXONCALLCOV_PATH} --queue $opt{EXONCALLCOV_QUEUE} -a $opt{EXONCALLCOV_TIME} -c $opt{EXONCALLCOV_MEM} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}";
-    }
-    $pcommand;
+{ $opt{EXONCALLCOV} eq "yes" ? 
+	"python $opt{EXONCALLCOV_PATH} --queue $opt{EXONCALLCOV_QUEUE} -a $opt{EXONCALLCOV_TIME} -c $opt{EXONCALLCOV_MEM} -b $opt{EXONCALLCOV_BED} -n $opt{EXONCALLCOV_ENS} -p $opt{EXONCALLCOV_PREF} -l $opt{EXONCALLCOV_PANEL}"
+	:
+	"";
 }
-
