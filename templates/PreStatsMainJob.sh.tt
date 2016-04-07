@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+. [% opt.CLUSTER_PATH %]/settings.sh
+
+[% FOREACH qsub IN qsubOut %]
+[% qsub %]
+[% END %]

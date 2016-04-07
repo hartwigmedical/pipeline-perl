@@ -14,11 +14,24 @@ require Exporter;
 
 use strict;
 use Text::Template;
+use Template;
 use Env qw($TEMPLATES);
 
 my $template_dir = $TEMPLATES;
 
 sub from_template {
+	my $tname = shift || return undef;
+	my $outname = shift || return undef;
+	my %data = @_;
+	my $t = Template->new(INCLUDE_PATH => $template_dir);
+
+	my $tout;
+	open($tout, ">", "$outname") or die "Unable to open $tout for writing";
+	$t->process($tname, \%data, \*$tout) or die $t->error();
+	close($tout);
+};
+
+sub from_template3 {
 	my $tname = shift || return undef;
 	my $outname = shift || return undef;
 	my %data = @_;

@@ -39,7 +39,9 @@ sub runPreStats {
 	    my $preStatsJobId = "PreStat_$coreName\_".get_job_id();
 	    my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 	    push(@{$jobIds->{$sampleName}}, $preStatsJobId);
-	    from_template("PreStat.sh.tmpl", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt);
+	    #from_template("PreStat.sh.tmpl", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt);
+	    from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt);
+		die $preStatsFile;
 	    my $qsub = &qsubTemplate(\%opt,"PRESTATS");
 	    push(@qsubOut, "$qsub -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh");
 	} else {
@@ -48,7 +50,8 @@ sub runPreStats {
 
     }
 
-    from_template("PreStatsMainJob.sh.tmpl", $mainJobID, qsubOut => \@qsubOut, opt => \%opt);
+    from_template("PreStatsMainJob.sh.tt", $mainJobID, qsubOut => \@qsubOut, opt => \%opt);
+	exit;
     system("sh $mainJobID");
 }
 
