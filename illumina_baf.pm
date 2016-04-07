@@ -44,11 +44,6 @@ sub runBAF {
 	    my $output_baf = $sample."_BAF.txt";
 	    my $output_bafplot = $sample."_BAF.pdf";
 
-	    open BAF_SH, ">$bashFile" or die "cannot open file $bashFile \n";
-	    print BAF_SH "#!/bin/bash\n\n";
-	    print BAF_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
-	    print BAF_SH "cd $tmp_dir\n\n";
-
 	    ## Running jobs
 	    if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
 		push( @running_jobs, @{$opt{RUNNING_JOBS}->{$sample}} );
@@ -58,97 +53,36 @@ sub runBAF {
 	    # Run Unified Genotyper
 	    ###
 	    ### Skip if .done file exist
+	    my $ug_ok = 0;
 	    if (-e "$log_dir/BAF_UG_$sample.done"){
 		print "WARNING: $log_dir/BAF_UG_$sample.done exists, skipping Unified Genotyper for $sample \n";
 	    } else {
-		### Build gatk command
-		$command = "java -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp/ -Xmx".$opt{BAF_MEM}."G -jar $opt{QUEUE_PATH}/GenomeAnalysisTK.jar ";
-		$command .= "-T UnifiedGenotyper ";
-		$command .= "-R $opt{GENOME} ";
-		$command .= "-L $opt{BAF_SNPS} ";
-		$command .= "-I $sample_bam ";
-		$command .= "-o $output_vcf ";
-		$command .= "--output_mode EMIT_ALL_SITES ";
-		## AD NT / NCT settings?
-
-		#Create UG bash script
-		print BAF_SH "echo \"Start Unified Genotyper\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n";
-
-		print BAF_SH "if [ -s $sample_bam ]\n";
-		print BAF_SH "then\n";
-		print BAF_SH "\t$command\n";
-		print BAF_SH "else\n";
-		print BAF_SH "\techo \"ERROR: Sample bam file do not exist.\" >&2\n";
-		print BAF_SH "fi\n\n";
-
-		print BAF_SH "if [ \"\$(tail -n 1 $output_vcf | cut -f 1,2)\" = \"\$(tail -n 1 $opt{BAF_SNPS} | cut -f 1,3)\" ]\n";
-		print BAF_SH "then\n";
-		print BAF_SH "\tmv $output_vcf $output_dir\n";
-		print BAF_SH "\tmv $output_vcf.idx $output_dir\n";
-		print BAF_SH "\ttouch $log_dir/BAF_UG_$sample.done\n";
-		print BAF_SH "fi\n";
-		print BAF_SH "echo \"Finished Unified Genotyper\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n\n";
+		$ug_ok = 1;
 	    }
 
 	    ###
 	    # Make BAF file
 	    ###
 	    ### Skip if .done file exist
+	    my $baf_file = 0;
 	    if (-e "$log_dir/BAF_FILE_$sample.done"){
 		print "WARNING: $log_dir/BAF_FILE_$sample.done exists, skipping BAF file for $sample \n";
 	    } else {
-		$command = "cat $output_dir/$output_vcf | ";
-		$command .= "$opt{BIOVCF_PATH}/bio-vcf --num-threads $opt{BAF_THREADS} -i ";
-		$command .= "--sfilter '!s.empty? and s.dp>=20' ";
-		$command .= "--eval '[r.chrom,r.pos,r.ref+\">\"+r.alt[0]]' ";
-		$command .= "--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' ";
-		$command .= "> $output_baf ";
-
-		print BAF_SH "echo \"Start Make BAF file\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n";
-		print BAF_SH "if [ -s $output_dir/$output_vcf -a -e $log_dir/BAF_UG_$sample.done ]\n";
-		print BAF_SH "then\n";
-		print BAF_SH "\t$command\n";
-		print BAF_SH "else\n";
-		print BAF_SH "\techo \"ERROR: Sample BAF vcf and UG done file do not exist.\" >&2\n";
-		print BAF_SH "fi\n\n";
-
-		print BAF_SH "if [ -s $output_baf ]\n";
-		print BAF_SH "then\n";
-		print BAF_SH "\tmv $output_baf $output_dir\n";
-		print BAF_SH "\ttouch $log_dir/BAF_FILE_$sample.done\n";
-		print BAF_SH "fi\n";
-		print BAF_SH "echo \"Finished Make BAF file\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n\n";
+		$baf_file = 1;
 	    }
 	    ###
 	    # Run BAF plots
 	    ###
+	    my $baf_plots = 0;
 	    if (-e "$log_dir/BAF_PLOT_$sample.done"){
 		print "WARNING: $log_dir/BAF_PLOT._$sample done exists, skipping BAF plot for $sample \n";
 	    } else {
-		$command = "Rscript $opt{BAF_PLOTSCRIPT} $tmp_dir $output_dir/$output_baf ";
-		print BAF_SH "echo \"Start BAF plotting\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n";
-		print BAF_SH "if [ -s $output_dir/$output_baf -a -e $log_dir/BAF_FILE_$sample.done ]\n";
-		print BAF_SH "then\n";
-		print BAF_SH "\t$command\n";
-		print BAF_SH "else\n";
-		print BAF_SH "\techo \"ERROR: Sample BAF file and baf file done file do not exist.\" >&2\n";
-		print BAF_SH "fi\n\n";
-
-		print BAF_SH "if [ -s $output_bafplot ]\n";;
-		print BAF_SH "then\n";
-		print BAF_SH "\tmv $output_bafplot $output_dir\n";
-		print BAF_SH "\ttouch $log_dir/BAF_PLOT_$sample.done\n";
-		print BAF_SH "fi\n";
-		print BAF_SH "echo \"Finished Make BAF plot\t\" `date` \"\t\" `uname -n` >> $log_dir/BAF_$sample.log\n\n";
+		$baf_plots = 1;
 	    }
 
-	    ###
-	    # Check all output files
-	    ###
-	    print BAF_SH "if [ -e $log_dir/BAF_UG_$sample.done -a -e $log_dir/BAF_FILE_$sample.done -a -e $log_dir/BAF_PLOT_$sample.done ]\n";
-	    print BAF_SH "then\n";
-	    print BAF_SH "\ttouch $log_dir/BAF_$sample.done\n";
-	    print BAF_SH "fi\n";
+            from_template("BAF_Job.sh.tt", $bashFile, tmp_dir => $tmp_dir, ug_ok => $ug_ok, log_dir => $log_dir, sample => $sample,
+		sample_bam => $sample_bam, output_vcf => $output_vcf, output_dir => $output_dir, baf_file => $baf_file, output_baf => $output_baf,
+		output_bafplot => $output_bafplot, baf_plots => $baf_plots, opt => \%opt);
 
 	    ###
 	    # Submit BAF JOB
