@@ -134,7 +134,6 @@ sub runMapping {
 
 	### Create final merge script
 	from_template("Merge.sh.tt", "$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh", sample => $sample, bamList => \@bamList, bams => $bams, opt => \%opt);
-	die "$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh";
 
 #	open MERGE_SH,">$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh\n";
 #	print MERGE_SH "\#!/bin/sh\n\n";
