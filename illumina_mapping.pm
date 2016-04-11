@@ -301,26 +301,9 @@ sub submitMappingJobs{
 
     ### BWA JOB
     if (! -e "$opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa.done"){
-	open BWA_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh\n";
-	print BWA_SH "\#!/bin/sh\n\n";
-	print BWA_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	print BWA_SH "echo \"Start mapping \t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n\n";
-
-	if($R2){
-	    print "\t$R1\n\t$R2\n";
-	    print BWA_SH "$opt{BWA_PATH}/bwa mem -t $opt{MAPPING_THREADS} $opt{MAPPING_SETTINGS} -R \"\@RG\tID:$RG_ID\tSM:$RG_SM\tPL:$RG_PL\tLB:$RG_LB\tPU:$RG_PU\" $opt{GENOME} $R1 $R2 2>>$opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa_log | $opt{SAMBAMBA_PATH}/sambamba view -t $opt{MAPPING_THREADS} --format=bam -S -o $coreName.bam.tmp /dev/stdin\n\n";
-	}else{
-	    print "\t$R1\n";
-	    print BWA_SH "$opt{BWA_PATH}/bwa mem -t $opt{MAPPING_THREADS} $opt{MAPPING_SETTINGS} -R \"\@RG\tID:$RG_ID\tSM:$RG_SM\tPL:$RG_PL\tLB:$RG_LB\tPU:$RG_PU\" $opt{GENOME} $R1 2>>$opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa_log | $opt{SAMBAMBA_PATH}/sambamba view -t $opt{MAPPING_THREADS} --format=bam -S -o $coreName.bam.tmp /dev/stdin\n\n";
-	}
-	### Check bwa completion
-	print BWA_SH "if grep -Fq '[main] Real time:' $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa_log\n";
-	print BWA_SH "then\n";
-	print BWA_SH "\tmv $coreName.bam.tmp $coreName.bam\n";
-	print BWA_SH "\ttouch $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa.done\n";
-	print BWA_SH "fi\n";
-	print BWA_SH "echo \"End mapping\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n\n";
-	close BWA_SH;
+	print $R2 ? "\t$R1\n\t$R2\n" : "\t$R1\n";
+	from_template("Map.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh", coreName => $coreName, sampleName => $sampleName, R1 => $R1, R2 => $R2, 
+		RG_ID => $RG_ID, RG_SM => $RG_SM, RG_PL => $RG_PL, RG_LB => $RG_LB, RG_PU => $RG_PU, opt => \%opt);
 
 	my $qsub = &qsubTemplate(\%opt,"MAPPING");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
@@ -331,7 +314,6 @@ sub submitMappingJobs{
     ### BWA Flagstat
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat")){
 	from_template("MapFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh", sampleName => $sampleName, coreName => $coreName, opt => \%opt);
-	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh";
 
 	my $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",
