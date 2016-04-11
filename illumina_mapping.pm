@@ -331,7 +331,7 @@ sub submitMappingJobs{
     ### Sort bam
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam")) {
 	from_template("Sort.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh", coreName => $coreName, sampleName => $sampleName, opt => \%opt);
-	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh";
+
 	#open SORT_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh\n";
 	#print SORT_SH "\#!/bin/sh\n\n";
 	#print SORT_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";

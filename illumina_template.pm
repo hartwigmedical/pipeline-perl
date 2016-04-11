@@ -15,8 +15,9 @@ require Exporter;
 use strict;
 use Template;
 use Env qw($TEMPLATES);
+use FindBin;
 
-my $template_dir = $TEMPLATES;
+my $template_dir = $TEMPLATES ? $TEMPLATES : "$FindBin::Bin/templates/";
 
 sub from_template {
 	my $tname = shift || return undef;
