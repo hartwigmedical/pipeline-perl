@@ -174,34 +174,45 @@ sub runRealignment {
 	    my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobID.".sh";
 	    my $jobNative = &jobNative(\%opt,"REALIGNMENT");
 
-	    open REALIGN_SH,">$bashFile" or die "Couldn't create $bashFile\n";
-
-	    print REALIGN_SH "\#!/bin/bash\n\n";
-	    print REALIGN_SH ". $opt{CLUSTER_PATH}/settings.sh\n\n";
-	    print REALIGN_SH "cd $opt{OUTPUT_DIR}/$sample/tmp \n\n";
-	    print REALIGN_SH "echo \"Start indel realignment\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n\n";
-
-	    print REALIGN_SH "if [ -f $opt{OUTPUT_DIR}/$sample/mapping/$bam ]\n";
-	    print REALIGN_SH "then\n";
-	    print REALIGN_SH "\tjava -Xmx".$opt{REALIGNMENT_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/$sample/tmp -jar $opt{QUEUE_PATH}/Queue.jar -R $opt{GENOME} -S $opt{REALIGNMENT_SCALA} -jobQueue $opt{REALIGNMENT_QUEUE} -nt $opt{REALIGNMENT_THREADS} -mem $opt{REALIGNMENT_MEM} -nsc $opt{REALIGNMENT_SCATTER} -mode $opt{REALIGNMENT_MODE} -jobNative \"$jobNative\" ";
-
+	    my $knownIndelFiles = "";
+	    my @knownIndelFilesA = ();
 	    if($opt{REALIGNMENT_KNOWN}) {
 		foreach my $knownIndelFile (@knownIndelFiles) {
 		    if(! -e $knownIndelFile){ die"ERROR: $knownIndelFile does not exist\n" }
-		    else { print REALIGN_SH "-known $knownIndelFile " }
+		    else { push(@knownIndelFilesA, "-known $knownIndelFile"); }
 		}
-	    }
+		$knownIndelFiles = join(" ", @knownIndelFilesA);
+	    };
+	    from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles, opt => \%opt);
 
-	    if($opt{QUEUE_RETRY} eq 'yes'){
-		print REALIGN_SH "-retry 1 ";
-	    }
-
-	    print REALIGN_SH "-run -I $opt{OUTPUT_DIR}/$sample/mapping/$bam -jobRunner GridEngine\n";
-	    print REALIGN_SH "else\n";
-	    print REALIGN_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
-	    print REALIGN_SH "fi\n\n";
-
-	    close REALIGN_SH;
+	    #open REALIGN_SH,">$bashFile" or die "Couldn't create $bashFile\n";
+#
+#	    print REALIGN_SH "\#!/bin/bash\n\n";
+#	    print REALIGN_SH ". $opt{CLUSTER_PATH}/settings.sh\n\n";
+#	    print REALIGN_SH "cd $opt{OUTPUT_DIR}/$sample/tmp \n\n";
+#	    print REALIGN_SH "echo \"Start indel realignment\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n\n";
+#
+#	    print REALIGN_SH "if [ -f $opt{OUTPUT_DIR}/$sample/mapping/$bam ]\n";
+#	    print REALIGN_SH "then\n";
+#	    print REALIGN_SH "\tjava -Xmx".$opt{REALIGNMENT_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/$sample/tmp -jar $opt{QUEUE_PATH}/Queue.jar -R $opt{GENOME} -S $opt{REALIGNMENT_SCALA} -jobQueue $opt{REALIGNMENT_QUEUE} -nt $opt{REALIGNMENT_THREADS} -mem $opt{REALIGNMENT_MEM} -nsc $opt{REALIGNMENT_SCATTER} -mode $opt{REALIGNMENT_MODE} -jobNative \"$jobNative\" ";
+#
+#	    if($opt{REALIGNMENT_KNOWN}) {
+#		foreach my $knownIndelFile (@knownIndelFiles) {
+#		    if(! -e $knownIndelFile){ die"ERROR: $knownIndelFile does not exist\n" }
+#		    else { print REALIGN_SH "-known $knownIndelFile " }
+#		}
+#	    }
+#
+#	    if($opt{QUEUE_RETRY} eq 'yes'){
+#		print REALIGN_SH "-retry 1 ";
+#	    }
+#
+#	    print REALIGN_SH "-run -I $opt{OUTPUT_DIR}/$sample/mapping/$bam -jobRunner GridEngine\n";
+#	    print REALIGN_SH "else\n";
+#	    print REALIGN_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
+#	    print REALIGN_SH "fi\n\n";
+#
+#	    close REALIGN_SH;
 
 	    ### Submit realign bash script
 	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
