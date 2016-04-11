@@ -69,7 +69,7 @@ sub runPostStats {
 	my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
 	my $logDir = $opt{OUTPUT_DIR}."/logs";
 
-	from_template("PostStats_Job.sh.tmpl", $bashFile, command => $command, runName => $runName, jobID => $jobID, jobIDCheck => $jobIDCheck,  opt => \%opt);
+	from_template("PostStats.sh.tt", $bashFile, command => $command, runName => $runName, jobID => $jobID, jobIDCheck => $jobIDCheck,  opt => \%opt);
 
 	my $qsub = &qsubTemplate(\%opt,"POSTSTATS");
 	if (@runningJobs){
@@ -81,7 +81,7 @@ sub runPostStats {
 
 	### Check Poststats result
 	my $bashFileCheck = $opt{OUTPUT_DIR}."/jobs/".$jobIDCheck.".sh";
-	from_template("PostStats_Check.sh.tmpl", $bashFileCheck, runName => $runName, opt => \%opt);
+	from_template("PostStats_Check.sh.tt", $bashFileCheck, runName => $runName, opt => \%opt);
 
 	system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck.
 	    " -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;
