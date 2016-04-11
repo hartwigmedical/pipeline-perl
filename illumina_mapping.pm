@@ -16,6 +16,7 @@ use strict;
 use POSIX qw(tmpnam);
 use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
+use illumina_template;
 
 sub runMapping {
     ###
@@ -378,14 +379,8 @@ sub submitMappingJobs{
     }
     ### Sorted bam index
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai")) {
-	open INDEX_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh\n";
-	print INDEX_SH "\#!/bin/sh\n\n";
-	print INDEX_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	print INDEX_SH "echo \"Start index\t\" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	print INDEX_SH "$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MAPPING_THREADS} $coreName\_sorted.bam $coreName\_sorted.bai \n";
-	print INDEX_SH "echo \"End index\t\" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	close INDEX_SH;
-
+	from_template("Index.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh", sampleName => $sampleName, coreName => $coreName, opt => \%opt);
+	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh";
 	my $qsub = &qsubTemplate(\%opt,"MAPPING");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
 	$indexJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$indexJobId,".sh\n";
@@ -428,49 +423,8 @@ sub submitMappingJobs{
     }
 
     ### Cleanup job, rm intermediate bams after checking flagstat
-    open CLEAN_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$cleanupJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$cleanupJobId.sh\n";
-    print CLEAN_SH "\#!/bin/sh\n\n";
-    print CLEAN_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-    print CLEAN_SH "echo \"Start cleanup\t\" `date` \"\t $coreName \t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-    print CLEAN_SH "rm -f $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err\n"; #rm old error file
-
-    print CLEAN_SH "if [ -s $coreName.flagstat ] && [ -s $coreName\_sorted.flagstat ]\n";
-    print CLEAN_SH "then\n";
-    print CLEAN_SH "\tFS1=\`grep -m 1 -P \"\\d+ \" $coreName.flagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-    print CLEAN_SH "\tFS2=\`grep -m 1 -P \"\\d+ \" $coreName\_sorted.flagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-    print CLEAN_SH "\tif [ \$FS1 -eq \$FS2 ]\n";
-    print CLEAN_SH "\tthen\n";
-    print CLEAN_SH "\t\trm $coreName.bam\n";
-    print CLEAN_SH "\telse\n";
-    print CLEAN_SH "\t\techo \"ERROR: $coreName.flagstat and $coreName\_sorted.flagstat do not have the same read counts\" >> $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err\n";
-    print CLEAN_SH "\tfi\n";
-    print CLEAN_SH "else\n";
-    print CLEAN_SH "\techo \"ERROR: Either $coreName.flagstat or $coreName\_sorted.flagstat is empty.\" >> $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err\n";
-    print CLEAN_SH "fi\n\n";
-
-    if($opt{MARKDUP_LEVEL} eq "lane"){
-	print CLEAN_SH "if [ -s $coreName\_sorted.flagstat ] && [ -s $coreName\_sorted_dedup.flagstat ]\n";
-	print CLEAN_SH "then\n";
-	print CLEAN_SH "\tFS1=\`grep -m 1 -P \"\\d+ \" $coreName\_sorted.flagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-	print CLEAN_SH "\tFS2=\`grep -m 1 -P \"\\d+ \" $coreName\_sorted_dedup.flagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-	print CLEAN_SH "\tif [ \$FS1 -eq \$FS2 ]\n";
-	print CLEAN_SH "\tthen\n";
-	print CLEAN_SH "\t\trm $coreName\_sorted.bam\n";
-	print CLEAN_SH "\t\trm $coreName\_sorted.bam.bai\n";
-	print CLEAN_SH "\telse\n";
-	print CLEAN_SH "\t\techo \"ERROR: $coreName\_sorted.flagstat and $coreName\_sorted_dedup.flagstat do not have the same read counts\" >> $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err\n";
-	print CLEAN_SH "\tfi\n";
-	print CLEAN_SH "else\n";
-	print CLEAN_SH "\techo \"ERROR: Either $coreName\_sorted.flagstat or $coreName\_sorted_dedup.flagstat is empty.\" >> $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err\n";
-	print CLEAN_SH "fi\n\n";
-    }
-
-    print CLEAN_SH "if [ ! -s $opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_cleanup.err ]\n";
-    print CLEAN_SH "then\n";
-    print CLEAN_SH "\ttouch $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.done\n";
-    print CLEAN_SH "fi\n\n";
-    print CLEAN_SH "echo \"End cleanup\t\" `date` \"\t $coreName \t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-    close CLEAN_SH;
+    my $cleanSh = "$opt{OUTPUT_DIR}/$sampleName/jobs/$cleanupJobId.sh";
+    from_template("Clean.sh.tt", $cleanSh, sampleName => $sampleName, coreName => $coreName, opt => \%opt);
 
     my $qsub = &qsubTemplate(\%opt,"MAPPING");
     print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$cleanupJobId,
