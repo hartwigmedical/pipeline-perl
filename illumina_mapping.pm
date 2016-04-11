@@ -330,13 +330,15 @@ sub submitMappingJobs{
 
     ### Sort bam
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam")) {
-	open SORT_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh\n";
-	print SORT_SH "\#!/bin/sh\n\n";
-	print SORT_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	print SORT_SH "echo \"Start sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	print SORT_SH "$opt{SAMBAMBA_PATH}/sambamba sort --tmpdir=$opt{OUTPUT_DIR}/$sampleName/tmp/ -m $opt{MAPPING_MEM}GB -t $opt{MAPPING_THREADS} -o $coreName\_sorted.bam $coreName.bam\n";
-	print SORT_SH "echo \"End sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	close SORT_SH;
+	from_template("Sort.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh", coreName => $coreName, sampleName => $sampleName, opt => \%opt);
+	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh";
+	#open SORT_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh\n";
+	#print SORT_SH "\#!/bin/sh\n\n";
+	#print SORT_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
+	#print SORT_SH "echo \"Start sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
+	#print SORT_SH "$opt{SAMBAMBA_PATH}/sambamba sort --tmpdir=$opt{OUTPUT_DIR}/$sampleName/tmp/ -m $opt{MAPPING_MEM}GB -t $opt{MAPPING_THREADS} -o $coreName\_sorted.bam $coreName.bam\n";
+	#print SORT_SH "echo \"End sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
+	#close SORT_SH;
 
 	my $qsub = &qsubTemplate(\%opt,"MAPPING");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$sortJobId,
