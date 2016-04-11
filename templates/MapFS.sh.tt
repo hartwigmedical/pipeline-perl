@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
+
+echo "Start flagstat	" `date` "	[% coreName %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
+[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] [% coreName %].bam > [% coreName %].flagstat
+
+echo "End Flagstat 	" `date` "	[% coreName %].bam	" `uname -n` >> [% opt.OUTPUT_DIRi %]/[% sampleName %]/logs/[% sampleName %].log

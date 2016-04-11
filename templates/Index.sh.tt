@@ -4,6 +4,9 @@
 #
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
+
 echo "Start index	" `date` "	[% coreName %]_sorted.bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
 [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] [% coreName %]_sorted.bam [% coreName %]_sorted.bai
+
 echo "End index	" `date` "	[% coreName %]_sorted.bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

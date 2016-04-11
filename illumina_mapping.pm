@@ -330,13 +330,8 @@ sub submitMappingJobs{
     }
     ### BWA Flagstat
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat")){
-	open FS1_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh\n";
-	print FS1_SH "\#!/bin/sh\n\n";
-	print FS1_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	print FS1_SH "echo \"Start flagstat\t\" `date` \"\t$coreName.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	print FS1_SH "$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{FLAGSTAT_THREADS} $coreName.bam > $coreName.flagstat\n";
-	print FS1_SH "echo \"End Flagstat \t\" `date` \"\t$coreName.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n\n";
-	close FS1_SH;
+	from_template("MapFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh", sampleName => $sampleName, coreName => $coreName, opt => \%opt);
+	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh";
 
 	my $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",
@@ -380,7 +375,6 @@ sub submitMappingJobs{
     ### Sorted bam index
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai")) {
 	from_template("Index.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh", sampleName => $sampleName, coreName => $coreName, opt => \%opt);
-	die "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh";
 	my $qsub = &qsubTemplate(\%opt,"MAPPING");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
 	$indexJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$indexJobId,".sh\n";
