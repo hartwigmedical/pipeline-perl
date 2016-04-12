@@ -80,7 +80,7 @@ sub runBAF {
 		$baf_plots = 1;
 	    }
 
-            from_template("BAF_Job.sh.tt", $bashFile, tmp_dir => $tmp_dir, ug_ok => $ug_ok, log_dir => $log_dir, sample => $sample,
+            from_template("BAF.sh.tt", $bashFile, tmp_dir => $tmp_dir, ug_ok => $ug_ok, log_dir => $log_dir, sample => $sample,
 		sample_bam => $sample_bam, output_vcf => $output_vcf, output_dir => $output_dir, baf_file => $baf_file, output_baf => $output_baf,
 		output_bafplot => $output_bafplot, baf_plots => $baf_plots, opt => \%opt);
 
