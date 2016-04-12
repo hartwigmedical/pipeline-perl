@@ -36,7 +36,7 @@ Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DI
         	[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
 		rm igv.log
 	else
-		techo "ERROR: [% invcf %] does not exist." >&2
+		echo "ERROR: [% invcf %] does not exist." >&2
 	fi
 	[% IF opt.ANNOTATE_SNPEFF == 'yes' %]
 	if [ -s [% outvcf %]; then

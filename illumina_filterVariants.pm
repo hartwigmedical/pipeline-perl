@@ -14,6 +14,7 @@ use strict;
 use POSIX qw(tmpnam);
 use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
+use illumina_template;
 
 sub runFilterVariants {
     ###
@@ -91,43 +92,45 @@ sub runFilterVariants {
     ### Create main bash script
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/FilterVariants_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
+    from_template("FilterVariants.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
+    die $bashFile;
 
-    open FILTER_SH, ">$bashFile" or die "cannot open file $bashFile \n";
-    print FILTER_SH "#!/bin/bash\n\n";
-    print FILTER_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
-    print FILTER_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
-    print FILTER_SH "echo \"Start variant filter\t\" `date` \"\t$runName.raw_variants.vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
-
-    print FILTER_SH "if [ -s $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf ]\n";
-    print FILTER_SH "then\n";
-    print FILTER_SH "\t$command\n";
-    print FILTER_SH "else\n";
-    print FILTER_SH "\techo \"ERROR: $runName\.raw_variants.vcf does not exist.\" >&2\n";
-    print FILTER_SH "fi\n\n";
-
-    if ($opt{FILTER_MODE} eq "SNP"){
-	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_snps.vcf.done ]\n";
-	print FILTER_SH "then\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_snps.vcf $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_snps.vcf.idx $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
-	print FILTER_SH "fi\n\n";
-    } elsif ($opt{FILTER_MODE} eq "INDEL"){
-	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_indels.vcf.done ]\n";
-	print FILTER_SH "then\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_indels.vcf $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_indels.vcf.idx $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
-	print FILTER_SH "fi\n\n";
-    } elsif ($opt{FILTER_MODE} eq "BOTH"){
-	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_variants.vcf.done ]\n";
-	print FILTER_SH "then\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_variants.vcf $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_variants.vcf.idx $opt{OUTPUT_DIR}/\n";
-	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
-	print FILTER_SH "fi\n\n";
-    }
-    print FILTER_SH "echo \"End variant filter\t\" `date` \"\t$runName.raw_variants.vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
+#    open FILTER_SH, ">$bashFile" or die "cannot open file $bashFile \n";
+#    print FILTER_SH "#!/bin/bash\n\n";
+#    print FILTER_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
+#    print FILTER_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
+#    print FILTER_SH "echo \"Start variant filter\t\" `date` \"\t$runName.raw_variants.vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
+#
+#    print FILTER_SH "if [ -s $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf ]\n";
+#    print FILTER_SH "then\n";
+#    print FILTER_SH "\t$command\n";
+#    print FILTER_SH "else\n";
+#    print FILTER_SH "\techo \"ERROR: $runName\.raw_variants.vcf does not exist.\" >&2\n";
+#    print FILTER_SH "fi\n\n";
+#
+#    if ($opt{FILTER_MODE} eq "SNP"){
+#	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_snps.vcf.done ]\n";
+#	print FILTER_SH "then\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_snps.vcf $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_snps.vcf.idx $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
+#	print FILTER_SH "fi\n\n";
+#    } elsif ($opt{FILTER_MODE} eq "INDEL"){
+#	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_indels.vcf.done ]\n";
+#	print FILTER_SH "then\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_indels.vcf $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_indels.vcf.idx $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
+#	print FILTER_SH "fi\n\n";
+#    } elsif ($opt{FILTER_MODE} eq "BOTH"){
+#	print FILTER_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.filtered_variants.vcf.done ]\n";
+#	print FILTER_SH "then\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_variants.vcf $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.filtered_variants.vcf.idx $opt{OUTPUT_DIR}/\n";
+#	print FILTER_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantFilter.done\n";
+#	print FILTER_SH "fi\n\n";
+#    }
+#    print FILTER_SH "echo \"End variant filter\t\" `date` \"\t$runName.raw_variants.vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
     ### Process runningjobs
     foreach my $sample (@{$opt{SAMPLES}}){
 	if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
