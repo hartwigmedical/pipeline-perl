@@ -164,7 +164,7 @@ sub runMapping {
 	} elsif($opt{MARKDUP_LEVEL} eq "sample") {
 	    ### Use markdup to merge and markdup in one step, since sambamba v0.5.8
 	    print MERGE_SH "\techo \"Start markdup\t\" `date` \"\t$sample.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sample/logs/$sample.log\n";
-	    print MERGE_SH "ulimit -n 4096\n";
+	    print MERGE_SH "ulimit -n 16000\n";
 	    ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
 	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba markdup --tmpdir=$opt{OUTPUT_DIR}/$sample/tmp/ --overflow-list-size=$opt{MARKDUP_OVERFLOW_LIST_SIZE} -t $opt{MARKDUP_THREADS} ".join(" ",@bamList)." mapping/$sample\_dedup.bam\n";
 	    print MERGE_SH "\t$opt{SAMBAMBA_PATH}/sambamba index -t $opt{MARKDUP_THREADS} mapping/$sample\_dedup.bam mapping/$sample\_dedup.bai\n";
