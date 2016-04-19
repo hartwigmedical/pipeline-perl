@@ -48,7 +48,7 @@ sub runAnnotateVariants {
     ### Create main bash script
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/AnnotateVariants_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
-    from_template("AnnotateVariants.sh.tt", $bashFile, runName => $runName, invcf => $invcf, opt => \%opt);
+    from_template("AnnotateVariants.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
 
 #    open ANNOTATE_SH, ">$bashFile" or die "cannot open file $bashFile \n";
 #    print ANNOTATE_SH "#!/bin/bash\n\n";
