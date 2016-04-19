@@ -78,7 +78,7 @@ class VariantCaller extends QScript {
 		haplotypeCaller.L :+= targetFile
 		haplotypeCaller.ip = intervalPadding
 	    }
-	
+
 	    haplotypeCaller.sample_ploidy = samplePloidy
 	
 	    //add function to queue

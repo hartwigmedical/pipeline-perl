@@ -73,7 +73,7 @@ class Realigner extends QScript {
 		targetCreator.num_threads = numDataThreads
 		targetCreator.scatterCount = numScatters
 		targetCreator.out = swapExt(bamFile, "bam", "target.intervals.list")
-		
+
 		//Indel realigner
 		indelRealigner.targetIntervals = targetCreator.out
 		indelRealigner.input_file +:= bamFile
