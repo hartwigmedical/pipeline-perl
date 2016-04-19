@@ -8,7 +8,7 @@ bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]
 
-Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
 ### SnpEff prediction and annotation
