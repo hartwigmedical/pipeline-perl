@@ -14,5 +14,4 @@ qalter -hold_jid bamMetrics_report_[% runName %],[% jobID %] [% jobIDCheck %]
 [% IF opt.EXONCALLCOV == 'yes' %]
 python [% opt.EXONCALLCOV_PATH %] --queue [% opt.EXONCALLCOV_QUEUE %] -a [% opt.EXONCALLCOV_TIME %] -c [% opt.EXONCALLCOV_MEM %] \ 
 	-b [% opt.EXONCALLCOV_BED %] -n [% opt.EXONCALLCOV_ENS %] -p [% opt.EXONCALLCOV_PREF %] -l [% opt.EXONCALLCOV_PANEL %]
-[% END %]:w
-
+[% END %]
