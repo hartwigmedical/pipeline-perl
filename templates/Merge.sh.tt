@@ -65,7 +65,7 @@ done
 
 [% IF opt.MARKDUP_LEVEL == 'lane' %]
 if [ -s mapping/[% sample %]_dedup.flagstat ]; then
-	FS1=`grep -m 1 -P "\d+ \" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
 	if [ $FS1 -eq $TOTALREADS ]; then
 		for i in $( find $PWD/mapping -name '*sorted_dedup.bam'); do
 			rm $i
@@ -78,7 +78,7 @@ else
 fi
 [% ELSIF opt.MARKDUP_LEVEL == 'sample' %]
 if [ -s mapping/[% sample %]_dedup.flagstat ]; then
-	FS1=`grep -m 1 -P "\d+ \" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
 	if [ $FS1 -eq $TOTALREADS ]; then
 		rm mapping/[% sample %].bam 2>/dev/null
 		rm mapping/[% sample %].bai 2>/dev/null
@@ -94,7 +94,7 @@ fi
 
 [% ELSIF opt.MARKDUP_LEVEL == 'no' %]
 if [ -s mapping/[% sample %].flagstat ]; then
-	FS1=`grep -m 1 -P "\d+ \" mapping/[% sample %].flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %].flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
 	if [ $FS1 -eq $TOTALREADS ]; then
 		for i in $( find $PWD/mapping -name '*sorted.bam'); do
 			rm $i
