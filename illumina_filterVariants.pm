@@ -93,7 +93,6 @@ sub runFilterVariants {
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/FilterVariants_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("FilterVariants.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
-    die $bashFile;
 
 #    open FILTER_SH, ">$bashFile" or die "cannot open file $bashFile \n";
 #    print FILTER_SH "#!/bin/bash\n\n";

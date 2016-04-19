@@ -90,7 +90,6 @@ sub runVariantCalling {
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/VariantCalling_".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("VariantCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => \%opt);
-	die $bashFile;
 
 #    open CALLING_SH, ">$bashFile" or die "cannot open file $bashFile \n";
 #    print CALLING_SH "#!/bin/bash\n\n";
