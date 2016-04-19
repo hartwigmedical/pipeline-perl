@@ -332,14 +332,6 @@ sub submitMappingJobs{
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam")) {
 	from_template("Sort.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh", coreName => $coreName, sampleName => $sampleName, opt => \%opt);
 
-	#open SORT_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh\n";
-	#print SORT_SH "\#!/bin/sh\n\n";
-	#print SORT_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	#print SORT_SH "echo \"Start sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	#print SORT_SH "$opt{SAMBAMBA_PATH}/sambamba sort --tmpdir=$opt{OUTPUT_DIR}/$sampleName/tmp/ -m $opt{MAPPING_MEM}GB -t $opt{MAPPING_THREADS} -o $coreName\_sorted.bam $coreName.bam\n";
-	#print SORT_SH "echo \"End sort\t\" `date` \"\t$coreName\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	#close SORT_SH;
-
 	my $qsub = &qsubTemplate(\%opt,"MAPPING");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$sortJobId,
 	" -hold_jid ",$mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$sortJobId,".sh\n";
@@ -349,14 +341,6 @@ sub submitMappingJobs{
     ### Sorted bam flagstat
     if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat")){
 	from_template("SortFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortFSJobId.sh", sampleName => $sampleName, coreName => $coreName, opt => \%opt);
-
-	#open FS2_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$sortFSJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$sortFSJobId.sh\n";
-	#print FS2_SH "\#!/bin/sh\n\n";
-	#print FS2_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	#print FS2_SH "echo \"Start flagstat\t \" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	#print FS2_SH "$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{FLAGSTAT_THREADS} $coreName\_sorted.bam > $coreName\_sorted.flagstat\n";
-	#print FS2_SH "echo \"End flagstat\t \" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n\n";
-	#close FS2_SH;
 
 	my $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
 	print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",

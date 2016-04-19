@@ -91,36 +91,6 @@ sub runVariantCalling {
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("VariantCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => \%opt);
 
-#    open CALLING_SH, ">$bashFile" or die "cannot open file $bashFile \n";
-#    print CALLING_SH "#!/bin/bash\n\n";
-#    print CALLING_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
-#    print CALLING_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
-#    print CALLING_SH "echo \"Start variant caller\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n\n";
-#
-#    print CALLING_SH "if [ -s ".shift(@sampleBams)." ";
-#    foreach my $sampleBam (@sampleBams){
-#	print CALLING_SH "-a -s $sampleBam ";
-#    }
-#    print CALLING_SH "]\n";
-#    print CALLING_SH "then\n";
-#    print CALLING_SH "\t$command\n";
-#    print CALLING_SH "else\n";
-#    print CALLING_SH "\techo \"ERROR: One or more input bam files do not exist.\" >&2\n";
-#    print CALLING_SH "fi\n\n";
-#
-#    print CALLING_SH "if [ -f $opt{OUTPUT_DIR}/tmp/.$runName\.raw_variants.vcf.done ]\n";
-#    print CALLING_SH "then\n";
-#    print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.raw_variants.vcf $opt{OUTPUT_DIR}/\n";
-#    print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/$runName\.raw_variants.vcf.idx $opt{OUTPUT_DIR}/\n";
-#    if($opt{CALLING_GVCF} eq 'yes'){
-#	print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/*.g.vcf.gz $opt{OUTPUT_DIR}/gvcf/\n";
-#	print CALLING_SH "\tmv $opt{OUTPUT_DIR}/tmp/*.g.vcf.gz.tbi $opt{OUTPUT_DIR}/gvcf/\n";
-#
-#    }
-#    print CALLING_SH "\ttouch $opt{OUTPUT_DIR}/logs/VariantCaller.done\n";
-#    print CALLING_SH "fi\n\n";
-#    print CALLING_SH "echo \"Finished variant caller\t\" `date` \"\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
-
     #Start main bash script
     my $qsub = &qsubJava(\%opt,"CALLING_MASTER");
     if (@runningJobs){
