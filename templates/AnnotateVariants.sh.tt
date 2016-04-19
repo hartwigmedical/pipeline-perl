@@ -39,7 +39,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 		echo "ERROR: [% invcf %] does not exist." >&2
 	fi
 	[% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-	if [ -s [% outvcf %]; then
+	if [ -s [% outvcf %] ]; then
 		rm [% invcf %] [% invcf %].idx
 	fi
 	[% END %]
@@ -51,7 +51,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = invcf %]
 	[% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
-	if [ -s [% invcf %]; then
+	if [ -s [% invcf %] ]; then
         	java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
 			 --variant [% invcf %] --dbsnp [% optNNOTATE_IDDB %] --alwaysAppendDbsnpId
 	else
