@@ -185,35 +185,6 @@ sub runRealignment {
 	    };
 	    from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles, opt => \%opt);
 
-	    #open REALIGN_SH,">$bashFile" or die "Couldn't create $bashFile\n";
-#
-#	    print REALIGN_SH "\#!/bin/bash\n\n";
-#	    print REALIGN_SH ". $opt{CLUSTER_PATH}/settings.sh\n\n";
-#	    print REALIGN_SH "cd $opt{OUTPUT_DIR}/$sample/tmp \n\n";
-#	    print REALIGN_SH "echo \"Start indel realignment\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n\n";
-#
-#	    print REALIGN_SH "if [ -f $opt{OUTPUT_DIR}/$sample/mapping/$bam ]\n";
-#	    print REALIGN_SH "then\n";
-#	    print REALIGN_SH "\tjava -Xmx".$opt{REALIGNMENT_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/$sample/tmp -jar $opt{QUEUE_PATH}/Queue.jar -R $opt{GENOME} -S $opt{REALIGNMENT_SCALA} -jobQueue $opt{REALIGNMENT_QUEUE} -nt $opt{REALIGNMENT_THREADS} -mem $opt{REALIGNMENT_MEM} -nsc $opt{REALIGNMENT_SCATTER} -mode $opt{REALIGNMENT_MODE} -jobNative \"$jobNative\" ";
-#
-#	    if($opt{REALIGNMENT_KNOWN}) {
-#		foreach my $knownIndelFile (@knownIndelFiles) {
-#		    if(! -e $knownIndelFile){ die"ERROR: $knownIndelFile does not exist\n" }
-#		    else { print REALIGN_SH "-known $knownIndelFile " }
-#		}
-#	    }
-#
-#	    if($opt{QUEUE_RETRY} eq 'yes'){
-#		print REALIGN_SH "-retry 1 ";
-#	    }
-#
-#	    print REALIGN_SH "-run -I $opt{OUTPUT_DIR}/$sample/mapping/$bam -jobRunner GridEngine\n";
-#	    print REALIGN_SH "else\n";
-#	    print REALIGN_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
-#	    print REALIGN_SH "fi\n\n";
-#
-#	    close REALIGN_SH;
-
 	    ### Submit realign bash script
 	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
 	    if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
@@ -229,37 +200,6 @@ sub runRealignment {
 	    from_template("RealignFS.sh.tt", $bashFileFS, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
 		realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, opt => \%opt);
 
-#	    open REALIGNFS_SH, ">$bashFileFS" or die "cannot open file $bashFileFS \n";
-#	    print REALIGNFS_SH "cd $opt{OUTPUT_DIR}/$sample/tmp\n";
-#
-#	    print REALIGNFS_SH "if [ -s $opt{OUTPUT_DIR}/$sample/tmp/$realignedBam ]\n";
-#	    print REALIGNFS_SH "then\n";
-#
-#	    print REALIGNFS_SH "\t$opt{SAMBAMBA_PATH}/sambamba flagstat -t $opt{REALIGNMENT_THREADS} $opt{OUTPUT_DIR}/$sample/tmp/$realignedBam > $opt{OUTPUT_DIR}/$sample/mapping/$realignedFlagstat\n";
-#	    print REALIGNFS_SH "\tmv $opt{OUTPUT_DIR}/$sample/tmp/$realignedBam $opt{OUTPUT_DIR}/$sample/mapping/$realignedBam\n";
-#	    print REALIGNFS_SH "\tmv $opt{OUTPUT_DIR}/$sample/tmp/$realignedBai $opt{OUTPUT_DIR}/$sample/mapping/$realignedBai\n";
-#	    print REALIGNFS_SH "\tcp $opt{OUTPUT_DIR}/$sample/mapping/$realignedBai $opt{OUTPUT_DIR}/$sample/mapping/$realignedBamBai\n";
-#	    print REALIGNFS_SH "fi\n\n";
-#
-#	    print REALIGNFS_SH "if [ -s $opt{OUTPUT_DIR}/$sample/mapping/$flagstat ] && [ -s $opt{OUTPUT_DIR}/$sample/mapping/$realignedFlagstat ]\n";
-#	    print REALIGNFS_SH "then\n";
-#	    print REALIGNFS_SH "\tFS1=\`grep -m 1 -P \"\\d+ \" $opt{OUTPUT_DIR}/$sample/mapping/$flagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-#	    print REALIGNFS_SH "\tFS2=\`grep -m 1 -P \"\\d+ \" $opt{OUTPUT_DIR}/$sample/mapping/$realignedFlagstat | awk '{{split(\$0,columns , \"+\")} print columns[1]}'\`\n";
-#	    print REALIGNFS_SH "\tif [ \$FS1 -eq \$FS2 ]\n";
-#	    print REALIGNFS_SH "\tthen\n";
-#	    print REALIGNFS_SH "\t\ttouch $opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done\n";
-#	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/IndelRealigner.jobreport.txt $opt{OUTPUT_DIR}/$sample/logs/IndelRealigner.jobreport.txt\n";
-#	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/IndelRealigner.jobreport.pdf $opt{OUTPUT_DIR}/$sample/logs/IndelRealigner.jobreport.pdf\n";
-#	    print REALIGNFS_SH "\telse\n";
-#	    print REALIGNFS_SH "\t\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$flagstat and $opt{OUTPUT_DIR}/$sample/mapping/$realignedFlagstat do not have the same read counts\" >>../logs/Realignment_$sample.err\n";
-#	    print REALIGNFS_SH "\tfi\n";
-#	    print REALIGNFS_SH "else\n";
-#	    print REALIGNFS_SH "\techo \"ERROR: Either $opt{OUTPUT_DIR}/$sample/mapping/$flagstat or $opt{OUTPUT_DIR}/$sample/mapping/$realignedFlagstat is empty.\" >> ../logs/Realignment_$sample.err\n";
-#	    print REALIGNFS_SH "fi\n\n";
-#
-#	    print REALIGNFS_SH "echo \"End indel realignment\t\" `date` \"\t$sample\_dedup.bam\t\" `uname -n` >> $logDir/$sample.log\n";
-#	    close REALIGNFS_SH;
-#
 	    ### Submit flagstat bash script
 	    $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
 	    system $qsub." -o ".$logDir."/RealignmentFS_".$sample.".out -e ".$logDir."/RealignmentFS_".$sample.".err -N ".$jobIDFS." -hold_jid ".$jobID." ".$bashFileFS;
