@@ -53,7 +53,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
         	java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
-			 --variant [% invcf %] --dbsnp [% optNNOTATE_IDDB %] --alwaysAppendDbsnpId
+			 --variant [% invcf %] --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
 	fi
