@@ -6,8 +6,8 @@
 cd [% opt.OUTPUT_DIR %]
 
 if [ -s QCStats/*.bamMetrics.pdf -a \
-	[% IF opt.EXONCALLCOV == 'yes' %]
-		[% FOREACH sample IN opt.SAMPLES  %]
+	[% IF opt.EXONCALLCOV == 'yes' %] \
+		[% FOREACH sample IN opt.SAMPLES  %] \
 			-s Exoncov_v3/[% sample %].html -a \
 		[% END %]
 	[% END %]
