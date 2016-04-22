@@ -51,8 +51,8 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
 
                     ## print header
                     print "{header}\t{sample}".format(
-                            header = '\t'.join(header[:9]),
-                            sample = sample_name
+                        header = '\t'.join(header[:9]),
+                        sample = sample_name
                     )
 
                 else:
@@ -145,12 +145,12 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                         variant_ad.append(str(int(round(sum(allele_ad)/len(allele_ad)))))
 
                     print "{var_data};CC={cc}\t{gt_format}\t{gt}:{ad}:{dp}".format(
-                            var_data = "\t".join(variant[:8]),
-                            cc = caller_count,
-                            gt_format = "GT:AD:DP",
-                            gt = "0/1",
-                            ad = ','.join(variant_ad),
-                            dp = variant_dp,
+                        var_data = "\t".join(variant[:8]),
+                        cc = caller_count,
+                        gt_format = "GT:AD:DP",
+                        gt = "0/1",
+                        ad = ','.join(variant_ad),
+                        dp = variant_dp,
                     )
 
 if __name__ == "__main__":
