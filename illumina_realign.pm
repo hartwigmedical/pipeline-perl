@@ -157,6 +157,8 @@ sub runRealignment {
 	    (my $realignedBai = $bam) =~ s/\.bam/\.realigned\.bai/;
 	    (my $realignedBamBai = $bam) =~ s/\.bam/\.realigned\.bam\.bai/;
 	    (my $realignedFlagstat = $bam) =~ s/\.bam/\.realigned\.flagstat/;
+	    (my $slicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
+	    (my $slicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
 	    $opt{BAM_FILES}->{$sample} = $realignedBam;
 
 	    print "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam\n";
@@ -231,7 +233,9 @@ sub runRealignment {
 	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/$realignedBam $opt{OUTPUT_DIR}/$sample/mapping/$realignedBam\n";
 	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/$realignedBai $opt{OUTPUT_DIR}/$sample/mapping/$realignedBai\n";
 	    print REALIGNFS_SH "\t\tcp $opt{OUTPUT_DIR}/$sample/mapping/$realignedBai $opt{OUTPUT_DIR}/$sample/mapping/$realignedBamBai\n";
-	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/IndelRealigner.jobreport.txt $opt{OUTPUT_DIR}/$sample/logs/IndelRealigner.jobreport.txt\n";
+	    print REALIGNFS_SH "\t\t$opt{SAMBAMBA_PATH}/sambamba view -f bam -o $opt{OUTPUT_DIR}/$sample/mapping/$slicedBam -L $opt{IAP_PATH}/settings/slicing/CPCT_Slicing.bed $opt{OUTPUT_DIR}/$sample/mapping/$realignedBam\n"
+        print REALIGNFS_SH "\t\t$opt{SAMBAMBA_PATH}/sambamba index $opt{OUTPUT_DIR}/$sample/mapping/$slicedBam $opt{OUTPUT_DIR}/$sample/mapping/$slicedBamBai\n"
+        print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/IndelRealigner.jobreport.txt $opt{OUTPUT_DIR}/$sample/logs/IndelRealigner.jobreport.txt\n";
 	    print REALIGNFS_SH "\t\tmv $opt{OUTPUT_DIR}/$sample/tmp/IndelRealigner.jobreport.pdf $opt{OUTPUT_DIR}/$sample/logs/IndelRealigner.jobreport.pdf\n";
 	    print REALIGNFS_SH "\t\ttouch $opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done\n";
 	    print REALIGNFS_SH "\telse\n";
