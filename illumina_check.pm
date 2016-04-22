@@ -136,7 +136,7 @@ sub runCheck {
 	print BASH "\tfailed=true\n";
 	print BASH "fi\n";
     }
-    if($opt{SOMATIC_VARIANTS} eq "yes"){
+    if($opt{SOMATIC_VARIANTS} eq "yes" && ! $opt{VCF}){
 	print BASH "echo \"Somatic variants:\" >>$logFile\n";
 	foreach my $sample (keys(%{$opt{SOMATIC_SAMPLES}})){
 	    foreach my $sample_tumor (@{$opt{SOMATIC_SAMPLES}{$sample}{'tumor'}}){
@@ -156,7 +156,7 @@ sub runCheck {
 	    push( @runningJobs, @{$opt{RUNNING_JOBS}->{'somVar'}} );
 	}
     }
-    if($opt{COPY_NUMBER} eq "yes"){
+    if($opt{COPY_NUMBER} eq "yes" && ! $opt{VCF}){
 	print BASH "echo \"Copy number analysis:\" >>$logFile\n";
 	if($opt{CNV_MODE} eq "sample_control"){
 	    foreach my $sample (keys(%{$opt{SOMATIC_SAMPLES}})){
@@ -188,7 +188,7 @@ sub runCheck {
 	    push( @runningJobs, @{$opt{RUNNING_JOBS}->{'CNV'}} );
 	}
     }
-    if($opt{SV_CALLING} eq "yes"){
+    if($opt{SV_CALLING} eq "yes" && ! $opt{VCF}){
 	print BASH "echo \"SV calling:\" >>$logFile\n";
 	# per sv type done file check
 	my @svTypes = split/\t/, $opt{DELLY_SVTYPE};
