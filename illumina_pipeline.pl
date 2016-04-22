@@ -98,8 +98,7 @@ my $opt_ref;
 if( $opt{FASTQ} ){
     if($opt{PRESTATS} eq "yes"){
 	print "###SCHEDULING PRESTATS###\n";
-	$opt_ref = illumina_prestats::runPreStats(\%opt);
-    %opt = %$opt_ref;
+	illumina_prestats::runPreStats(\%opt);
     }
 
     if($opt{MAPPING} eq "yes"){
