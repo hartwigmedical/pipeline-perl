@@ -264,6 +264,12 @@ sub runCheck {
 	    }
 	}
     }
+    if($opt{SOMATIC_VARIANTS} eq "yes" && $opt{SOMVAR_VARSCAN} eq "yes"){
+    foreach my $sample (@{$opt{SAMPLES}}){
+        print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz\n";
+        print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz.tbi\n";
+    }
+    }
     # Send email.
     print BASH "\tmail -s \"IAP DONE $runName\" \"$opt{MAIL}\" < $logFile\n";
 
