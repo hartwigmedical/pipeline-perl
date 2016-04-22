@@ -129,7 +129,7 @@ sub runAnnotateVariants {
     }
 
     ### KODU: Slice the final annotated VCF for CPCT purposes.
-    $slicedvcf = $invcf;
+    my $slicedvcf = $invcf;
     $slicedvcf =~ s/.vcf/_sliced.vcf/;
     print ANNOTATE_SH "java -Xmx8G -jar $opt{SNPEFF_PATH}/SnpSift.jar intervals $opt{IAP_PATH}/settings/slicing/CPCT_Slicing.bed -i $invcf > $slicedvcf\n";
 
