@@ -131,7 +131,7 @@ sub runAnnotateVariants {
     ### KODU: Slice the final annotated VCF for CPCT purposes.
     $slicedvcf = $invcf;
     $slicedvcf =~ s/.vcf/_sliced.vcf/;
-    print ANNOTATE_SH "java -Xmx8G -jar $opt{SNPEFF_PATH}/SnpSift.jar intervals $opt{IAP_PATH}/settings/slicing/CPCT_Slicing.bed -i $invcf > $slicedvcf
+    print ANNOTATE_SH "java -Xmx8G -jar $opt{SNPEFF_PATH}/SnpSift.jar intervals $opt{IAP_PATH}/settings/slicing/CPCT_Slicing.bed -i $invcf > $slicedvcf\n";
 
     ### Check final vcf, last chr and start position must be identical.
     print ANNOTATE_SH "if [ -s $preAnnotateVCF -a -s $outvcf -a \"\$(tail -n 1 $preAnnotateVCF | cut -f 1,2)\" = \"\$(tail -n 1 $outvcf | cut -f 1,2)\" ]\nthen\n\ttouch $opt{OUTPUT_DIR}/logs/VariantAnnotation.done\nfi\n\n";
