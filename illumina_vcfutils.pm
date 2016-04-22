@@ -58,7 +58,7 @@ sub runVcfUtils {
 	    print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping \n";
 	} else {
 	    print VCFUTILS_SH "cd $opt{OUTPUT_DIR}/tmp/\n";
-	    print VCFUTILS_SH "$opt{VCFTOOLS_PATH}/vcftools --vcf $opt{OUTPUT_DIR}/$vcf --plink\n";
+	    print VCFUTILS_SH "$opt{VCFTOOLS_PATH}/vcftools --temp $opt{OUTPUT_DIR}/tmp/ --vcf $opt{OUTPUT_DIR}/$vcf --plink\n";
 	    print VCFUTILS_SH "$opt{PLINK_PATH}/plink --file out --make-bed --noweb\n";
 	    print VCFUTILS_SH "$opt{KING_PATH}/king -b plink.bed --kinship\n";
 	    print VCFUTILS_SH "cp king.kin0 $opt{OUTPUT_DIR}/$runName.kinship\n";
