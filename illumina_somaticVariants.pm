@@ -323,7 +323,7 @@ sub runPileup {
     print PILEUP_SH "\t\tmv $pileup.gz* $opt{OUTPUT_DIR}/$sample/mapping/\n";
     print PILEUP_SH "\t\ttouch $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done\n";
     print PILEUP_SH "\telse\n";
-    print PILEUP_SH "\t\techo \"ERROR: $pileup.gz seems incomplete, it does not end with \$lastScaffold\" >&2\n";
+    print PILEUP_SH "\t\techo \"ERROR: $pileup.gz seems incomplete, it does not end with MT\" >&2\n";
     print PILEUP_SH "\tfi\n";
     print PILEUP_SH "else\n";
     print PILEUP_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
