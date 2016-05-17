@@ -35,7 +35,7 @@ else
 	[% ELSIF opt.MARKDUP_LEVEL == 'sample' %]
 		### Use markdup to merge and markdup in one step, since sambamba v0.5.8
 		echo "Start markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
-		ulimit -n 4096
+		ulimit -n 16000
 		### Centos7 hpc: Use $TMPDIR as tmpdir variable.
 		[% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.bam
 		[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.bam mapping/[% sample %]_dedup.bai

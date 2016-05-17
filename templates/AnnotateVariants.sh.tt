@@ -16,7 +16,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', '_snpEff.vcf') %]
 
 	if [ -s [% invcf %] ]; then
-		java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config  [% opt.ANNOTATE_DB %] -v [% invcf %] [% opt.ANNOTATE_FLAGS %] > [% outvcf %]
+		java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config  [% opt.ANNOTATE_DB %] -v [% invcf %] [% opt.ANNOTATE_FLAGS %] > [% outvcf %]
 		[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
 		rm igv.log
 	else
@@ -32,7 +32,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', '_snpSift.vcf') %]
 
 	if [ -s [% invcf %] ]; then
-        	java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.SNPEFF_PATH %]/SnpSift.jar dbnsfp -v -f [% opt.ANNOTATE_FIELDS %] -db [% opt.ANNOTATE_DBNSFP %] [% invcf %] > [% outvcf %]
+        	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/SnpSift.jar dbnsfp -v -f [% opt.ANNOTATE_FIELDS %] -db [% opt.ANNOTATE_DBNSFP %] [% invcf %] > [% outvcf %]
         	[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
 		rm igv.log
 	else
@@ -52,7 +52,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
-        	java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
+        	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
 			 --variant [% invcf %] --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
@@ -71,7 +71,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
-		java -Xmx[% opt.ANNOTATE_MEM %]g -jar [% opt.SNPEFF_PATH %]/SnpSift.jar annotate -tabix -name [% opt.ANNOTATE_FREQNAME %]_ -info [% opt.ANNOTATE_FREQINFO %] [% opt.ANNOTATE_FREQDB %] [% invcf %] > [% outvcf %]
+		java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/SnpSift.jar annotate -tabix -name [% opt.ANNOTATE_FREQNAME %]_ -info [% opt.ANNOTATE_FREQINFO %] [% opt.ANNOTATE_FREQDB %] [% invcf %] > [% outvcf %]
 		[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
 		rm igv.log
 	else
@@ -85,6 +85,10 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% invcf = outvcf %]
 [% END %]
 
+### KODU: Slice the final annotated VCF for CPCT purposes.
+[% slicedvcf = invcf %]
+[% slicedvcf =~ s/.vcf/_sliced.vcf/ %]
+java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.IAP_PATH %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
 
 ### Check final vcf, last chr and start position must be identical.
 if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$(tail -n 1 [% preAnnotateVCF %] | cut -f 1,2)" = "$(tail -n 1 [% outvcf %] | cut -f 1,2)" ]; then

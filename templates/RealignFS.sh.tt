@@ -7,18 +7,20 @@ cd  [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] ]; then
 	[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.REALIGNMENT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %]
-	mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
-	mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %]
-	cp [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBamBai %]
 fi
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] ]; then
 	FS1=`grep -m 1 -P "\d+ " [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] | awk '{{split($0,columns , "+")} print columns[1]}'`
 	FS2=`grep -m 1 -P "\d+ " [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] | awk '{{split($0,columns , "+")} print columns[1]}'`
 	if [ $FS1 -eq $FS2 ]; then
-		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
+  	mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+  	mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %]
+  	cp [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBamBai %]
+    [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBam %] -L [% opt.IAP_PATH %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+    [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBamBai %]
 		mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.txt [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.txt
 		mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.pdf
+		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 	else
 		echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] and [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] do not have the same read counts" >>../logs/Realignment_[% sample %].err
 	fi

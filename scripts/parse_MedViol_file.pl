@@ -102,7 +102,7 @@ foreach my $loc (sort keys %vars) {
     
     print OUT $vars{$loc}{full_line},"\n";
     
-    
+
     #filter lines from org VCf file
     my ($chr,$pos) = split("_",$loc);
     system "grep -P \"^$chr\t$pos\" $vcf_file >> $output_name.vcf";

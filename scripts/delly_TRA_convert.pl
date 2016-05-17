@@ -24,7 +24,7 @@ while(my $line = <VCF>) {
 		} elsif ($ct eq "3to5") {
 			$ct = "5to3";
 		} else {
-		
+
 		}
 		$consensus =~ tr/acgtACGT/tgcaTGCA/;
 		$consensus = reverse($consensus);

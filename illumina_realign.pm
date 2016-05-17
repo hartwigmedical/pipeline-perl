@@ -158,6 +158,8 @@ sub runRealignment {
 	    (my $realignedBai = $bam) =~ s/\.bam/\.realigned\.bai/;
 	    (my $realignedBamBai = $bam) =~ s/\.bam/\.realigned\.bam\.bai/;
 	    (my $realignedFlagstat = $bam) =~ s/\.bam/\.realigned\.flagstat/;
+	    (my $slicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
+	    (my $slicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
 	    $opt{BAM_FILES}->{$sample} = $realignedBam;
 
 	    print "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam\n";
