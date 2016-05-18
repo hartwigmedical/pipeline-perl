@@ -86,8 +86,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 [% END %]
 
 ### KODU: Slice the final annotated VCF for CPCT purposes.
-[% slicedvcf = invcf %]
-[% slicedvcf =~ s/.vcf/_sliced.vcf/ %]
+[% slicedvcf = invcf.replace('.vcf', '_sliced.vcf') %]
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.IAP_PATH %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
 
 ### Check final vcf, last chr and start position must be identical.
