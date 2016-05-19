@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]/[% sampleName %]
+
+echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
+[% opt.FASTQC_PATH %]/fastqc [% input %] -o QCStats --noextract -t 1
+
+touch logs/PreStats_[% sampleName %].done
+
+echo "End PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

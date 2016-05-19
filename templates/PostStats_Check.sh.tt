@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]
+
+[% ifmcd = '-s QCStats/*.bamMetrics.pdf -a ' %]
+[% IF opt.EXONCALLCOV == 'yes' %] \
+	[% FOREACH sample IN opt.SAMPLES  %] \
+		[% ifcmd = ifcmd _ '-s Exoncov_v3/' _ sample _ ' -a ' %]
+	[% END %]
+[% END %]
+
+if [ [% ifcmd %] -s QCStats/*.bamMetrics.html ]; then
+	touch logs/PostStats.done
+fi
+
+echo "Finished poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

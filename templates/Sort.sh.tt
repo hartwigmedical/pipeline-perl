@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
+
+echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
+[% opt.SAMBAMBA_PATH %]/sambamba sort --tmpdir=[% opt.OUTPUT_DIR %]/[% sampleName %]/tmp/ -m [% opt.MAPPING_MEM %]GB -t [% opt.MAPPING_THREADS %] -o [% coreName %]_sorted.bam  [% coreName %].bam
+
+echo "End sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+

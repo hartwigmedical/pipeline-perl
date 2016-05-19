@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+bash [% opt.CLUSTER_PATH %]/settings.sh
+
+cd [% opt.OUTPUT_DIR %]/tmp
+
+echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+
+[% sampleBam = sampleBams.shift %]
+[% bamIfList = "-s " _ sampleBam  %]
+[% FOREACH sampleBam in sampleBams %]
+	[% bamIfList = bamList _ "-a -s " _ sampleBam %]
+[% END %]
+
+if [ [% bamIfList %] ]; then
+	[% command %]
+else
+	echo "ERROR: One or more input bam files do not exist." >&2
+fi
+
+if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
+	mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].raw_variants.vcf [% opt.OUTPUT_DIR %]/
+	mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].raw_variants.vcf.idx [% opt.OUTPUT_DIR %]/
+	[% IF opt.CALLING_GVCF == 'yes' %]
+		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz [% opt.OUTPUT_DIR %]/gvcf/
+		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% opt.OUTPUT_DIR %]/gvcf/
+	[% END %]
+	touch [% opt.OUTPUT_DIR %]/logs/VariantCaller.done
+fi
+
+echo "Finished variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+

@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]/[% sample %]
+
+echo "Start merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+
+# rm old error file
+rm -f [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %]_cleanup.err
+
+BAMS=([% bams %])
+PASS=0
+for i in "${BAMS[@]}"; do
+	DONEFILE=`echo $i | sed -r 's/(_sorted)*(_dedup)*\.bam/\.done/'`
+
+        if [ ! -f $DONEFILE ]; then
+        	echo "ERROR: $i is probably incomplete, no .done file found for it" >> logs/merge.err
+		PASS=1
+	fi
+done
+
+if [ $PASS -eq 1 ]; then
+	echo "ERROR: merging failed due to incomplete BAM-file(s)" >> logs/merge.err
+else
+	[% IF opt.MARKDUP_LEVEL == 'lane' %]
+		[% IF bamList.size > 1 %]
+                	[% opt.SAMBAMBA_PATH %]/sambamba merge -t [% opt.MAPPING_THREADS %] mapping/[% sample %]_dedup.bam [% bams %]
+		[% ELSE %]
+                	mv [% bamList.0 %] mapping/[% sample %]_dedup.bam
+		[% END %]
+		[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] mapping/[% sample %]_dedup.bam mapping/[% sample %]_dedup.bai
+		[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MAPPING_THREADS %] mapping/[% sample %]_dedup.bam > mapping/[% sample %]_dedup.flagstat
+	[% ELSIF opt.MARKDUP_LEVEL == 'sample' %]
+		### Use markdup to merge and markdup in one step, since sambamba v0.5.8
+		echo "Start markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+		ulimit -n 16000
+		### Centos7 hpc: Use $TMPDIR as tmpdir variable.
+		[% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.bam
+		[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.bam mapping/[% sample %]_dedup.bai
+		### compute resource efficient alternative
+		[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.bam > mapping/[% sample %]_dedup.flagstat
+            	echo "End markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+	[% ELSIF opt.MARKDUP_LEVEL == 'no' %]
+		[% IF bamList.size > 1 %]
+			[% opt.SAMBAMBA_PATH %]/sambamba merge -t [% opt.MARKDUP_THREADS %] mapping/[% sample %].bam [% bams %]
+		[% ELSE %]
+			mv [% bamList.0 %] mapping/[% sample %].bam
+		[% END %]
+		[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %].bam mapping/[% sample %].bai
+		[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %].bam > mapping/[% sample %].flagstat
+	[% END %]
+fi
+
+TOTALREADS=0
+[% IF opt.MARKDUP_LEVEL == 'lane' %]
+for i in $( find $PWD/mapping -name '*sorted_dedup.flagstat'); do
+[% ELSIF opt.MARKDUP_LEVEL == 'no' or opt.MARKDUP_LEVEL == 'sample' %]
+for i in $( find $PWD/mapping -name '*sorted.flagstat'); do
+[% END %]
+	VAL=`grep -m 1 -P "\d+" $i | awk '{{split($0,columns , "+")} print columns[1]}'`
+	TOTALREADS=$(($TOTALREADS + $VAL))
+done
+
+[% IF opt.MARKDUP_LEVEL == 'lane' %]
+if [ -s mapping/[% sample %]_dedup.flagstat ]; then
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	if [ $FS1 -eq $TOTALREADS ]; then
+		for i in $( find $PWD/mapping -name '*sorted_dedup.bam'); do
+			rm $i
+		done
+	else
+		echo "ERROR: read counts from *sorted_dedup.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
+	fi
+else
+	echo "ERROR: mapping/[% sample %]_dedup.flagstat is empty." >> logs/[% sample %]_cleanup.err
+fi
+[% ELSIF opt.MARKDUP_LEVEL == 'sample' %]
+if [ -s mapping/[% sample %]_dedup.flagstat ]; then
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	if [ $FS1 -eq $TOTALREADS ]; then
+		rm mapping/[% sample %].bam 2>/dev/null
+		rm mapping/[% sample %].bai 2>/dev/null
+		for i in $( find $PWD/mapping -name '*sorted.bam'); do
+			rm $i
+		done
+	else
+		echo "ERROR: read counts from *sorted_dedup.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
+	fi
+else
+	echo "ERROR: mapping/[% sample %]_dedup.flagstat is empty." >> logs/[% sample %]_cleanup.err
+fi
+
+[% ELSIF opt.MARKDUP_LEVEL == 'no' %]
+if [ -s mapping/[% sample %].flagstat ]; then
+	FS1=`grep -m 1 -P "\d+" mapping/[% sample %].flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	if [ $FS1 -eq $TOTALREADS ]; then
+		for i in $( find $PWD/mapping -name '*sorted.bam'); do
+			rm $i
+		done
+	else
+		echo "ERROR: read counts from *sorted.flagstat files and mapping/[% sample %].flagstat do not match" >> logs/[% sample %]_cleanup.err
+	fi
+else
+	echo "ERROR: mapping/[% sample %].flagstat is empty." >> logs/[% sample %]_cleanup.err
+fi
+[% END %]
+
+if [ ! -s logs/[% sample %]_cleanup.err ]; then
+	touch logs/Mapping_[% sample %].done
+fi
+
+echo "End merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

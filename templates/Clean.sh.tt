@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
+
+echo "Start cleanup	" `date` "	 [% coreName %] 	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
+rm -f [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err
+
+if [ -s [% coreName %].flagstat ] && [ -s [% coreName %]_sorted.flagstat ]; then
+	FS1=`grep -m 1 -P "\d+ " [% coreName %].flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	FS2=`grep -m 1 -P "\d+ " [% coreName %]_sorted.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	if [ $FS1 -eq $FS2 ]; then
+		rm [% coreName %].bam
+	else
+		echo "ERROR: [% coreName %].flagstat and [% coreName %]_sorted.flagstat do not have the same read counts" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err
+	fi
+else
+	echo "ERROR: Either [% coreName %].flagstat or [% coreName %]_sorted.flagstat is empty." >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err
+fi
+
+[% IF opt.MARKDUP_LEVEL == 'lane' %]
+if [ -s [% coreName %]_sorted.flagstat ] && [ -s [% coreName %]_sorted_dedup.flagstat ]; then
+	FS1=`grep -m 1 -P "\d+ \" [% coreName %]_sorted.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+        FS2=`grep -m 1 -P "\d+ \" [% coreName %]_sorted_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+	if [ $FS1 -eq $FS2 ]; then
+        	rm [% coreName %]_sorted.bam
+        	rm [% coreName %]_sorted.bam.bai
+	else
+		echo "ERROR: [% coreName %]_sorted.flagstat and [% coreName %]_sorted_dedup.flagstat do not have the same read counts" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err
+	fi
+else
+	echo "ERROR: [% coreName %]_sorted.flagstat and [% coreName %]_sorted_dedup.flagstat do not have the same read counts" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err
+fi
+[% END %]
+
+if [ ! -s [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_cleanup.err ]; then
+	touch [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping/[% coreName %].done
+fi
+
+echo "End cleanup	" `date` "	 [% coreName %] 	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
