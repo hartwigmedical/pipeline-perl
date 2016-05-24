@@ -3,9 +3,19 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+export JOB_NAME=PostStats
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
 cd [% opt.OUTPUT_DIR %]
 
 echo "Start poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP=
+	export JOB_STATUS=started
+	[% opt.REPORT_STATUS %]
+[% END %]
 
 [% command %]
 
@@ -14,4 +24,10 @@ qalter -hold_jid bamMetrics_report_[% runName %],[% jobID %] [% jobIDCheck %]
 [% IF opt.EXONCALLCOV == 'yes' %]
 python [% opt.EXONCALLCOV_PATH %] --queue [% opt.EXONCALLCOV_QUEUE %] -a [% opt.EXONCALLCOV_TIME %] -c [% opt.EXONCALLCOV_MEM %] \ 
 	-b [% opt.EXONCALLCOV_BED %] -n [% opt.EXONCALLCOV_ENS %] -p [% opt.EXONCALLCOV_PREF %] -l [% opt.EXONCALLCOV_PANEL %]
+[% END %]
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP=
+	export JOB_STATUS=finished
+	[% opt.REPORT_STATUS %]
 [% END %]

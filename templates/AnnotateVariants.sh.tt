@@ -3,6 +3,9 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+export JOB_NAME=AnnotateVariants
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
@@ -12,15 +15,34 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
 ### SnpEff prediction and annotation
+
 	[% outvcf = invcf %]
 	[% outvcf = outvcf.replace('.vcf', '_snpEff.vcf') %]
 
 	if [ -s [% invcf %] ]; then
-		java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config  [% opt.ANNOTATE_DB %] -v [% invcf %] [% opt.ANNOTATE_FLAGS %] > [% outvcf %]
-		[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
-		rm igv.log
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPEFF
+  		export JOB_STATUS=started
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
+    
+  	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config  [% opt.ANNOTATE_DB %] -v [% invcf %] [% opt.ANNOTATE_FLAGS %] > [% outvcf %]
+  	[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
+  	rm igv.log
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPEFF
+  		export JOB_STATUS=finished
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPEFF
+  		export JOB_STATUS=failed
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	fi
 
 	[% invcf = outvcf %]
@@ -32,11 +54,29 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', '_snpSift.vcf') %]
 
 	if [ -s [% invcf %] ]; then
-        	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/SnpSift.jar dbnsfp -v -f [% opt.ANNOTATE_FIELDS %] -db [% opt.ANNOTATE_DBNSFP %] [% invcf %] > [% outvcf %]
-        	[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
-		rm igv.log
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPSIFT
+  		export JOB_STATUS=started
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
+    
+  	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/SnpSift.jar dbnsfp -v -f [% opt.ANNOTATE_FIELDS %] -db [% opt.ANNOTATE_DBNSFP %] [% invcf %] > [% outvcf %]
+  	[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
+  	rm igv.log
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPSIFT
+  		export JOB_STATUS=finished
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_SNPSIFT
+  		export JOB_STATUS=failed
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	fi
 	[% IF opt.ANNOTATE_SNPEFF == 'yes' %]
 	if [ -s [% outvcf %] ]; then
@@ -52,10 +92,28 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
-        	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
-			 --variant [% invcf %] --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_IDFIELD
+  		export JOB_STATUS=started
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
+    
+  	java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.ANNOTATE_THREADS %] -R [% opt.GENOME %] -o [% outvcf %] \
+  	  --variant [% invcf %] --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
+          
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_IDFIELD
+  		export JOB_STATUS=finished
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_IDFIELD
+  		export JOB_STATUS=failed
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	fi
 	[% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
 	if [ -s [% outvcf %] ]; then
@@ -71,11 +129,29 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_FREQUENCIES
+  		export JOB_STATUS=started
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
+    
 		java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp -jar [% opt.SNPEFF_PATH %]/SnpSift.jar annotate -tabix -name [% opt.ANNOTATE_FREQNAME %]_ -info [% opt.ANNOTATE_FREQINFO %] [% opt.ANNOTATE_FREQDB %] [% invcf %] > [% outvcf %]
 		[% opt.IGVTOOLS_PATH %]/igvtools index [% outvcf %]
 		rm igv.log
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_FREQUENCIES
+  		export JOB_STATUS=started
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
+    
+  	[% IF opt.REPORT_STATUS %]
+  		export JOB_STEP=ANNOTATE_FREQUENCIES
+  		export JOB_STATUS=failed
+  		[% opt.REPORT_STATUS %]
+  	[% END %]
 	fi
 	[% IF opt.ANNOTATE_SNPSIFT == 'yes' OR opt.ANNOTATE_SNPEFF == 'yes' OR opt.ANNOTATE_IDFIELD == 'yes' %]
 	if [ -s [% outvcf %] ]; then
@@ -87,11 +163,36 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 
 ### KODU: Slice the final annotated VCF for CPCT purposes.
 [% slicedvcf = invcf.replace('.vcf', '_sliced.vcf') %]
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP=ANNOTATE_SLICE
+	export JOB_STATUS=started
+	[% opt.REPORT_STATUS %]
+[% END %]
+
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.IAP_PATH %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP=ANNOTATE_SLICE
+	export JOB_STATUS=finished
+	[% opt.REPORT_STATUS %]
+[% END %]
 
 ### Check final vcf, last chr and start position must be identical.
 if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$(tail -n 1 [% preAnnotateVCF %] | cut -f 1,2)" = "$(tail -n 1 [% outvcf %] | cut -f 1,2)" ]; then
 	touch [% opt.OUTPUT_DIR %]/logs/VariantAnnotation.done
+  
+  [% IF opt.REPORT_STATUS %]
+  	export JOB_STEP=
+  	export JOB_STATUS=success
+  	[% opt.REPORT_STATUS %]
+  [% END %]
+  [% IF opt.REPORT_STATUS %]
+else
+  	export JOB_STEP=
+  	export JOB_STATUS=failed
+  	[% opt.REPORT_STATUS %]
+  [% END %]
 fi
 
 echo "End variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

@@ -3,6 +3,10 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+export JOB_NAME=VariantCalling
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]/tmp
@@ -16,9 +20,22 @@ echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/
 [% END %]
 
 if [ [% bamIfList %] ]; then
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP=
+		export JOB_STATUS=started
+		[% opt.REPORT_STATUS %]
+	[% END %]
+
 	[% command %]
 else
 	echo "ERROR: One or more input bam files do not exist." >&2
+
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP=
+		export JOB_STATUS=failed
+		[% opt.REPORT_STATUS %]
+	[% END %]
+
 fi
 
 if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
@@ -29,6 +46,13 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% opt.OUTPUT_DIR %]/gvcf/
 	[% END %]
 	touch [% opt.OUTPUT_DIR %]/logs/VariantCaller.done
+
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP=
+		export JOB_STATUS=success
+		[% opt.REPORT_STATUS %]
+	[% END %]
+  
 fi
 
 echo "Finished variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
