@@ -4,7 +4,7 @@
 #
 
 export JOB_NAME=VariantFilter
-export JOB_SET="[% sample %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh

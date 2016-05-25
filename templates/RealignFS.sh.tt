@@ -4,7 +4,7 @@
 #
 
 export JOB_NAME=RealignFS
-export JOB_SET="[% sample %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 [% IF opt.REPORT_STATUS %]

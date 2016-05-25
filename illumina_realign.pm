@@ -185,7 +185,7 @@ sub runRealignment {
 		}
 		$knownIndelFiles = join(" ", @knownIndelFilesA);
 	    };
-	    from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles, opt => \%opt);
+	    from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles, opt => \%opt, runName => $runName);
 
 	    ### Submit realign bash script
 	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
@@ -200,7 +200,7 @@ sub runRealignment {
 	    my $bashFileFS = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDFS.".sh";
 
 	    from_template("RealignFS.sh.tt", $bashFileFS, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
-		realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, opt => \%opt);
+		realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, opt => \%opt, runName => $runName);
 
 	    ### Submit flagstat bash script
 	    $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
