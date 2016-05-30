@@ -17,7 +17,7 @@ echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sa
 if [ -s [% sample_bam %] ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=UNIFIED_GENOTYPER
-		export JOB_STATUS=started
+		export JOB_STATUS=processing
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -54,7 +54,7 @@ echo "Start Make BAF file	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample
 if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %].done ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=BAF_FILE
-		export JOB_STATUS=started
+		export JOB_STATUS=processing
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -84,7 +84,7 @@ echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample 
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=BAF_PLOTS
-		export JOB_STATUS=started
+		export JOB_STATUS=processing
 		[% opt.REPORT_STATUS %]
 	[% END %]
   

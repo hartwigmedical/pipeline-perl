@@ -13,7 +13,7 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=[% sample %]
-	export JOB_STATUS=started
+	export JOB_STATUS=processing
 	[% opt.REPORT_STATUS %]
 [% END %]
 

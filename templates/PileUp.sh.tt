@@ -15,7 +15,7 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]
 then
   [% IF opt.REPORT_STATUS %]
     export JOB_STEP="[% sample %]"
-    export JOB_STATUS="started"
+    export JOB_STATUS="processing"
     [% opt.REPORT_STATUS %]
   [% END %]
 

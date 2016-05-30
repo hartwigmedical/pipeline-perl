@@ -22,7 +22,7 @@ echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/
 if [ [% bamIfList %] ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=started
+		export JOB_STATUS=processing
 		[% opt.REPORT_STATUS %]
 	[% END %]
 

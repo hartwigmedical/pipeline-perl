@@ -13,7 +13,7 @@ then
   
   [% IF opt.REPORT_STATUS %]
     export JOB_STEP=
-    export JOB_STATUS="started"
+    export JOB_STATUS="processing"
     [% opt.REPORT_STATUS %]
   [% END %]
 

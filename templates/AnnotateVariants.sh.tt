@@ -22,7 +22,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=ANNOTATE_SNPEFF
-  		export JOB_STATUS=started
+  		export JOB_STATUS=processing
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -56,7 +56,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=ANNOTATE_SNPSIFT
-  		export JOB_STATUS=started
+  		export JOB_STATUS=processing
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -94,7 +94,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=ANNOTATE_IDFIELD
-  		export JOB_STATUS=started
+  		export JOB_STATUS=processing
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -131,7 +131,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=ANNOTATE_FREQUENCIES
-  		export JOB_STATUS=started
+  		export JOB_STATUS=processing
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -141,7 +141,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
     
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=ANNOTATE_FREQUENCIES
-  		export JOB_STATUS=started
+  		export JOB_STATUS=processing
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
@@ -166,7 +166,7 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=ANNOTATE_SLICE
-	export JOB_STATUS=started
+	export JOB_STATUS=processing
 	[% opt.REPORT_STATUS %]
 [% END %]
 

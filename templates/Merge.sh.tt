@@ -11,7 +11,7 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=
-	export JOB_STATUS=started
+	export JOB_STATUS=processing
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -42,7 +42,7 @@ if [ $PASS -eq 1 ]; then
 else
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=MERGE
-		export JOB_STATUS=started
+		export JOB_STATUS=processing
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -93,7 +93,7 @@ done
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=MARKDUP
-	export JOB_STATUS=started
+	export JOB_STATUS=processing
 	[% opt.REPORT_STATUS %]
 [% END %]
 
