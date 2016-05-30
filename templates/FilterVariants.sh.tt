@@ -3,7 +3,7 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-export JOB_NAME=VariantFilter
+export JOB_NAME="VariantFilter"
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -16,7 +16,7 @@ echo "Start variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n
 if [ -s [% opt.OUTPUT_DIR %]/[% runName %].raw_variants.vcf ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=processing
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -26,7 +26,7 @@ else
   
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=failed
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
@@ -39,7 +39,7 @@ fi
     
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=
-  		export JOB_STATUS=success
+  		export JOB_STATUS="success"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -51,7 +51,7 @@ fi
     
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=
-  		export JOB_STATUS=success
+  		export JOB_STATUS="success"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -63,7 +63,7 @@ fi
     
   	[% IF opt.REPORT_STATUS %]
   		export JOB_STEP=
-  		export JOB_STATUS=success
+  		export JOB_STATUS="success"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi

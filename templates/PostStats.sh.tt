@@ -13,7 +13,7 @@ echo "Start poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% ru
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=
-	export JOB_STATUS=processing
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -28,6 +28,6 @@ python [% opt.EXONCALLCOV_PATH %] --queue [% opt.EXONCALLCOV_QUEUE %] -a [% opt.
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=
-	export JOB_STATUS=finished
+	export JOB_STATUS="finished"
 	[% opt.REPORT_STATUS %]
 [% END %]

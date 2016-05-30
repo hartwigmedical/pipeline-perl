@@ -11,7 +11,7 @@ cd [% opt.OUTPUT_DIR %]
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP=
-	export JOB_STATUS=processing
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -27,13 +27,13 @@ if [ [% ifcmd %] -s QCStats/*.bamMetrics.html ]; then
   
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=success
+		export JOB_STATUS="success"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 	[% IF opt.REPORT_STATUS %]
 else
 		export JOB_STEP=
-		export JOB_STATUS=failed
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi

@@ -4,7 +4,7 @@
 #
 
 export JOB_NAME=Sort
-export JOB_SET="[% sampleName %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
@@ -12,8 +12,8 @@ cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=processing
+	export JOB_STEP="[% sampleName %]"
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -21,8 +21,8 @@ echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/
 
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=finished
+	export JOB_STEP="[% sampleName %]"
+	export JOB_STATUS="finished"
 	[% opt.REPORT_STATUS %]
 [% END %]
 

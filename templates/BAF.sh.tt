@@ -3,8 +3,8 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-export JOB_NAME=BAF
-export JOB_SET="[% sample %]"
+export JOB_NAME="BAF"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
@@ -16,8 +16,8 @@ echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sa
 
 if [ -s [% sample_bam %] ]; then
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=UNIFIED_GENOTYPER
-		export JOB_STATUS=processing
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -33,14 +33,14 @@ if [ "$(tail -n 1 [% output_vcf %] | cut -f 1,2)" = "$(tail -n 1 [% opt.BAF_SNPS
 	touch [% log_dir %]/BAF_UG_[% sample %].done
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=UNIFIED_GENOTYPER
-		export JOB_STATUS=finished
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="finished"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 else
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=UNIFIED_GENOTYPER
-		export JOB_STATUS=failed
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
@@ -53,8 +53,8 @@ echo "Start Make BAF file	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample
 
 if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %].done ]; then
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=BAF_FILE
-		export JOB_STATUS=processing
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -63,16 +63,16 @@ if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %
 		--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=BAF_FILE
-		export JOB_STATUS=finished
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="finished"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 else
 	echo "ERROR: Sample BAF vcf and UG done file do not exist." >&2
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=BAF_FILE
-		export JOB_STATUS=failed
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
@@ -83,8 +83,8 @@ fi
 echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=BAF_PLOTS
-		export JOB_STATUS=processing
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -98,14 +98,14 @@ if [ -s [% output_bafplot %] ]; then
 	touch [% log_dir %]/BAF_PLOT_[% sample %].done
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=BAF_PLOTS
-		export JOB_STATUS=finished
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="finished"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 	[% IF opt.REPORT_STATUS %]
 else
-		export JOB_STEP=BAF_PLOTS
-		export JOB_STATUS=failed
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
@@ -118,13 +118,13 @@ if [ -e [% log_dir %]/BAF_UG_[% sample %].done -a -e [% log_dir %]/BAF_FILE_[% s
   
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=success
+		export JOB_STATUS="success"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 	[% IF opt.REPORT_STATUS %]
 else
 		export JOB_STEP=
-		export JOB_STATUS=failed
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi

@@ -4,14 +4,14 @@
 #
 
 export JOB_NAME=Merge
-export JOB_SET="[% sample %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sample %]
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=processing
+	export JOB_STEP="[% sample %]"
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -35,14 +35,14 @@ if [ $PASS -eq 1 ]; then
 	echo "ERROR: merging failed due to incomplete BAM-file(s)" >> logs/merge.err
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=MERGE
-		export JOB_STATUS=failed
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 else
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=MERGE
-		export JOB_STATUS=processing
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -75,8 +75,8 @@ else
 	[% END %]
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=MERGE
-		export JOB_STATUS=finished
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="finished"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
@@ -91,9 +91,11 @@ for i in $( find $PWD/mapping -name '*sorted.flagstat'); do
 	TOTALREADS=$(($TOTALREADS + $VAL))
 done
 
+export JOB_NAME=Markdup
+
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=MARKDUP
-	export JOB_STATUS=processing
+	export JOB_STEP="[% sample %]"
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -145,22 +147,16 @@ if [ ! -s logs/[% sample %]_cleanup.err ]; then
 	touch logs/Mapping_[% sample %].done
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=MARKDUP
-		export JOB_STATUS=success
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="success"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 	[% IF opt.REPORT_STATUS %]
 else
-		export JOB_STEP=MARKDUP
-		export JOB_STATUS=failed
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
-
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=finished
-	[% opt.REPORT_STATUS %]
-[% END %]
 
 echo "End merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

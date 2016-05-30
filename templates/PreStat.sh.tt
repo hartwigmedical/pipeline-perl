@@ -13,7 +13,7 @@ echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DI
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS=processing
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -21,7 +21,7 @@ echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DI
 
 [% IF opt.REPORT_STATUS %]
 	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS=finished
+	export JOB_STATUS="finished"
 	[% opt.REPORT_STATUS %]
 [% END %]
 

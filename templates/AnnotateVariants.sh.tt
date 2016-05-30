@@ -21,8 +21,8 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPEFF
-  		export JOB_STATUS=processing
+  		export JOB_STEP="ANNOTATE_SNPEFF"
+  		export JOB_STATUS="processing"
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -31,16 +31,16 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
   	rm igv.log
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPEFF
-  		export JOB_STATUS=finished
+  		export JOB_STEP="ANNOTATE_SNPEFF"
+  		export JOB_STATUS="finished"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPEFF
-  		export JOB_STATUS=failed
+  		export JOB_STEP="ANNOTATE_SNPEFF"
+  		export JOB_STATUS="failed"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -55,8 +55,8 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPSIFT
-  		export JOB_STATUS=processing
+  		export JOB_STEP="ANNOTATE_SNPSIFT"
+  		export JOB_STATUS="processing"
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -65,16 +65,16 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
   	rm igv.log
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPSIFT
-  		export JOB_STATUS=finished
+  		export JOB_STEP="ANNOTATE_SNPSIFT"
+  		export JOB_STATUS="finished"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_SNPSIFT
-  		export JOB_STATUS=failed
+  		export JOB_STEP="ANNOTATE_SNPSIFT"
+  		export JOB_STATUS="failed"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -93,8 +93,8 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_IDFIELD
-  		export JOB_STATUS=processing
+  		export JOB_STEP="ANNOTATE_IDFIELD"
+  		export JOB_STATUS="processing"
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -102,16 +102,16 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
   	  --variant [% invcf %] --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
           
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_IDFIELD
-  		export JOB_STATUS=finished
+  		export JOB_STEP="ANNOTATE_IDFIELD"
+  		export JOB_STATUS="finished"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_IDFIELD
-  		export JOB_STATUS=failed
+  		export JOB_STEP="ANNOTATE_IDFIELD"
+  		export JOB_STATUS="failed"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -130,8 +130,8 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
 	if [ -s [% invcf %] ]; then
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_FREQUENCIES
-  		export JOB_STATUS=processing
+  		export JOB_STEP="ANNOTATE_FREQUENCIES"
+  		export JOB_STATUS="processing"
   		[% opt.REPORT_STATUS %]
   	[% END %]
     
@@ -140,16 +140,16 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 		rm igv.log
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_FREQUENCIES
-  		export JOB_STATUS=processing
+  		export JOB_STEP="ANNOTATE_FREQUENCIES"
+  		export JOB_STATUS="processing"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
 		echo "ERROR: [% invcf %] does not exist." >&2
     
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=ANNOTATE_FREQUENCIES
-  		export JOB_STATUS=failed
+  		export JOB_STEP="ANNOTATE_FREQUENCIES"
+  		export JOB_STATUS="failed"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -165,16 +165,16 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 [% slicedvcf = invcf.replace('.vcf', '_sliced.vcf') %]
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=ANNOTATE_SLICE
-	export JOB_STATUS=processing
+	export JOB_STEP="ANNOTATE_SLICE"
+	export JOB_STATUS="processing"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.IAP_PATH %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=ANNOTATE_SLICE
-	export JOB_STATUS=finished
+	export JOB_STEP="ANNOTATE_SLICE"
+	export JOB_STATUS="finished"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
@@ -184,13 +184,13 @@ if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$(tail -n 1 [% preAnnotateVC
   
   [% IF opt.REPORT_STATUS %]
   	export JOB_STEP=
-  	export JOB_STATUS=success
+  	export JOB_STATUS="success"
   	[% opt.REPORT_STATUS %]
   [% END %]
   [% IF opt.REPORT_STATUS %]
 else
   	export JOB_STEP=
-  	export JOB_STATUS=failed
+  	export JOB_STATUS="failed"
   	[% opt.REPORT_STATUS %]
   [% END %]
 fi

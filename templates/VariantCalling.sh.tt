@@ -22,7 +22,7 @@ echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/
 if [ [% bamIfList %] ]; then
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=processing
+		export JOB_STATUS="processing"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 
@@ -32,7 +32,7 @@ else
 
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=failed
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 
@@ -49,7 +49,7 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 
 	[% IF opt.REPORT_STATUS %]
 		export JOB_STEP=
-		export JOB_STATUS=success
+		export JOB_STATUS="success"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
