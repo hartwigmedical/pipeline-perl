@@ -37,13 +37,13 @@ then
       export JOB_STATUS="success"
       [% opt.REPORT_STATUS %]
     [% END %]
+    [% IF opt.REPORT_STATUS %]
+    else
+      export JOB_STEP=
+      export JOB_STATUS="failed"
+      [% opt.REPORT_STATUS %]
+    [% END %]
   fi
-  echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP=
-    export JOB_STATUS="failed"
-    [% opt.REPORT_STATUS %]
-  [% END %]
 else
   echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
   [% IF opt.REPORT_STATUS %]
@@ -52,3 +52,6 @@ else
     [% opt.REPORT_STATUS %]
   [% END %]
 fi
+
+echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
+
