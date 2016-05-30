@@ -4,7 +4,7 @@
 #
 
 export JOB_NAME=PreStat
-export JOB_SET="[% sampleName %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]
@@ -12,7 +12,7 @@ cd [% opt.OUTPUT_DIR %]/[% sampleName %]
 echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% input %]"
+	export JOB_STEP="[% sampleName %]"
 	export JOB_STATUS=started
 	[% opt.REPORT_STATUS %]
 [% END %]
@@ -20,7 +20,7 @@ echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DI
 [% opt.FASTQC_PATH %]/fastqc [% input %] -o QCStats --noextract -t 1
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% input %]"
+	export JOB_STEP="[% sampleName %]"
 	export JOB_STATUS=finished
 	[% opt.REPORT_STATUS %]
 [% END %]

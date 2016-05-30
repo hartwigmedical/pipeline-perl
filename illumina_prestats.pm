@@ -27,6 +27,7 @@ sub runPreStats {
     print "Creating FASTQC report for the following fastq.gz files:\n";
 
     my @qsubOut = ();
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     foreach my $input (keys %{$opt{FASTQ}}){
 	my $coreName = undef;
 	$coreName = (split("/", $input))[-1];
@@ -39,7 +40,7 @@ sub runPreStats {
 	    my $preStatsJobId = "PreStat_$coreName\_".get_job_id();
 	    my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 	    push(@{$jobIds->{$sampleName}}, $preStatsJobId);
-	    from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt);
+	    from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt, runName => $runName);
 	    my $qsub = &qsubTemplate(\%opt,"PRESTATS");
 	    push(@qsubOut, "$qsub -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh");
 	} else {

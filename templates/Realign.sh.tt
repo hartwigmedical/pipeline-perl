@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
+	export JOB_STEP=[% sample %]
 	export JOB_STATUS=started
 	[% opt.REPORT_STATUS %]
 [% END %]
@@ -25,7 +25,7 @@ if [ -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]; then
 		-run -I [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] -jobRunner GridEngine [% IF opt.QUEUE_RETRY == 'yes' %] -retry 1 [% END %]
   
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
+		export JOB_STEP=[% sample %]
 		export JOB_STATUS=finished
 		[% opt.REPORT_STATUS %]
 	[% END %]
@@ -33,7 +33,7 @@ else
 	echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist." >&2
 
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
+		export JOB_STEP=[% sample %]
 		export JOB_STATUS=failed
 		[% opt.REPORT_STATUS %]
 	[% END %]

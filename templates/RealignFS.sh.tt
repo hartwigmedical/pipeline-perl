@@ -4,21 +4,15 @@
 #
 
 export JOB_NAME=RealignFS
-export JOB_SET="[% runName %]"
+export JOB_SET= "[% runName %]"
 export JOB_START=$(date +%s)
-
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=started
-	[% opt.REPORT_STATUS %]
-[% END %]
 
 cd  [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] ]; then
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=FLAGSTAT
-		export JOB_STATUS=started
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="started"
 		[% opt.REPORT_STATUS %]
 	[% END %]
   
@@ -39,16 +33,16 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
 		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 
   	[% IF opt.REPORT_STATUS %]
-   		export JOB_STEP=FLAGSTAT
-  		export JOB_STATUS=success
+   		export JOB_STEP="[% sample %]"
+  		export JOB_STATUS="success"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	else
 		echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] and [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] do not have the same read counts" >>../logs/Realignment_[% sample %].err
 
   	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=FLAGSTAT
-  		export JOB_STATUS=failed
+  		export JOB_STEP="[% sample %]"
+  		export JOB_STATUS="failed"
   		[% opt.REPORT_STATUS %]
   	[% END %]
 	fi
@@ -56,15 +50,15 @@ else
 	echo "ERROR: Either [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] or [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] is empty." >> ../logs/Realignment_[% sample %].err
 
 	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=FLAGSTAT
-		export JOB_STATUS=failed
+		export JOB_STEP="[% sample %]"
+		export JOB_STATUS="failed"
 		[% opt.REPORT_STATUS %]
 	[% END %]
 fi
 
 [% IF opt.REPORT_STATUS %]
-	export JOB_STEP=
-	export JOB_STATUS=finished
+	export JOB_STEP="[% sample %]"
+	export JOB_STATUS="finished"
 	[% opt.REPORT_STATUS %]
 [% END %]
 
