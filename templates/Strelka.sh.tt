@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Strelka
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+if [ -s [% sample_tumor_bam %] -a -s [% sample_ref_bam %] ]
+then
+  echo "Start Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
+  
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP=
+    export JOB_STATUS="started"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+
+  # Run Strelka
+  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
+
+  cd [% out_dir %]/strelka
+  make -j 8
+
+  # Check strelka completed
+  if [ -f [% out_dir %]/strelka/task.complete ]
+  then
+    java -Xmx[% opt.STRELKA_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] --genotypemergeoption unsorted -o passed.somatic.merged.vcf -V results/passed.somatic.snvs.vcf -V results/passed.somatic.indels.vcf 
+    perl -p -e 's/\t([A-Z][A-Z]:)/\tGT:$1/g' passed.somatic.merged.vcf | perl -p -e 's/(:T[UO]R?)\t/$1\t0\/0:/g' | perl -p -e 's/(:\d+,\d+)\t/$1\t0\/1:/g' | perl -p -e 's/(#CHROM.*)/##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility.\n$1/g' > temp.vcf
+    mv temp.vcf passed.somatic.merged.vcf
+    rm -r chromosomes/
+    touch [% log_dir %]/strelka.done
+    
+    [% IF opt.REPORT_STATUS %]
+      export JOB_STEP=
+      export JOB_STATUS="success"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+  fi
+  echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP=
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+else
+  echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP=
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi

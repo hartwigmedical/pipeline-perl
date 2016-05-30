@@ -229,53 +229,26 @@ sub runStrelka {
     my ($sample_tumor, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
-    my $strelka_out_dir = "$out_dir/strelka";
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
 
     ## Skip Strelka if .done file exist
     if (-e "$log_dir/strelka.done"){
-	print "WARNING: $log_dir/strelka.done, skipping \n";
-	return;
+      print "WARNING: $log_dir/strelka.done, skipping \n";
+      return;
     }
 
     ## Create strelka bash script
     my $job_id = "STR_".$sample_tumor."_".get_job_id();
     my $bash_file = $job_dir."/".$job_id.".sh";
-
-    open STRELKA_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print STRELKA_SH "#!/bin/bash\n\n";
-    print STRELKA_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-    print STRELKA_SH "then\n";
-    print STRELKA_SH "\techo \"Start Strelka\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/strelka.log\n\n";
-
-    # Run Strelka
-    print STRELKA_SH "\t$opt{STRELKA_PATH}/bin/configureStrelkaWorkflow.pl --tumor $sample_tumor_bam --normal $sample_ref_bam --ref $opt{GENOME} --config $opt{STRELKA_INI} --output-dir $strelka_out_dir\n\n";
-
-    print STRELKA_SH "\tcd $strelka_out_dir\n";
-    print STRELKA_SH "\tmake -j 8\n\n";
-
-    # Check strelka completed
-    print STRELKA_SH "\tif [ -f $strelka_out_dir/task.complete ]\n";
-    print STRELKA_SH "\tthen\n";
-    print STRELKA_SH "\t\tjava -Xmx".$opt{STRELKA_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T CombineVariants -R $opt{GENOME} --genotypemergeoption unsorted -o passed.somatic.merged.vcf -V results/passed.somatic.snvs.vcf -V results/passed.somatic.indels.vcf \n";
-    print STRELKA_SH "\t\tperl -p -e 's/\\t([A-Z][A-Z]:)/\\tGT:\$1/g' passed.somatic.merged.vcf | perl -p -e 's/(:T[UO]R?)\\t/\$1\\t0\\/0:/g' | perl -p -e 's/(:\\d+,\\d+)\\t/\$1\\t0\\/1:/g' | perl -p -e 's/(#CHROM.*)/##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility.\\n\$1/g' > temp.vcf\n";
-    print STRELKA_SH "\t\tmv temp.vcf passed.somatic.merged.vcf\n";
-    print STRELKA_SH "\t\trm -r chromosomes/ \n";
-    print STRELKA_SH "\t\ttouch $log_dir/strelka.done\n";
-    print STRELKA_SH "\tfi\n\n";
-    print STRELKA_SH "\techo \"End Strelka\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/strelka.log\n\n";
-
-    print STRELKA_SH "else\n";
-    print STRELKA_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-    print STRELKA_SH "fi\n";
-
-    close STRELKA_SH;
+    
+    from_template("Strelka.sh.tt", "$bash_file", runName => $runName, out_dir => $out_dir, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, log_dir => $log_dir, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"STRELKA");
     if ( @running_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
 
     return $job_id;
