@@ -296,53 +296,43 @@ sub runVarscan {
 
     ## Create output dir
     if( ! -e $varscan_out_dir ){
-	make_path($varscan_out_dir) or die "Couldn't create directory: $varscan_out_dir\n";
+      make_path($varscan_out_dir) or die "Couldn't create directory: $varscan_out_dir\n";
     }
 
     ## Skip varscan if .done file exist
     if ( -e "$log_dir/varscan.done" ){
-	print "WARNING: $log_dir/varscan.done exists, skipping \n";
-	return;
+      print "WARNING: $log_dir/varscan.done exists, skipping \n";
+      return;
     }
 
     ## Run varscan per chromosome
     my $dictFile = $opt{GENOME};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     $dictFile =~ s/.fasta$/.dict/;
     my @chrs = @{get_chrs_from_dict($dictFile)};
     my @varscan_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "VS_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
-	#TODO: make named pipes for example:
-	#print VARSCAN_SH "mkfifo ",$sample_ref_pileup,";\nmkfifo ",$sample_tumor_pileup,";\n";
-	#print VARSCAN_SH "gunzip -c ",$sample_ref_pileup,".gz >",$sample_ref_pileup," &\n";
-	#print VARSCAN_SH "gunzip -c ",$sample_tumor_pileup,".gz >",$sample_tumor_pileup," &\n";
-	open VARSCAN_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print VARSCAN_SH "#!/bin/bash\n\n";
-	print VARSCAN_SH "cd $varscan_out_dir\n";
-	print VARSCAN_SH "if [ -s $sample_ref_pileup -a -s $sample_tumor_pileup ]\n";
-	print VARSCAN_SH "then\n";
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "VS_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
+      #TODO: make named pipes for example:
+      #print VARSCAN_SH "mkfifo ",$sample_ref_pileup,";\nmkfifo ",$sample_tumor_pileup,";\n";
+      #print VARSCAN_SH "gunzip -c ",$sample_ref_pileup,".gz >",$sample_ref_pileup," &\n";
+      #print VARSCAN_SH "gunzip -c ",$sample_tumor_pileup,".gz >",$sample_tumor_pileup," &\n";
 
-	print VARSCAN_SH "\techo \"Start Varscan\t\" `date` \"\t $chr \t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-	print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} somatic <($opt{TABIX_PATH}/tabix $sample_ref_pileup $chr) <($opt{TABIX_PATH}/tabix $sample_tumor_pileup $chr) $output_name $opt{VARSCAN_SETTINGS} --output-vcf 1\n\n";
-	print VARSCAN_SH "\techo \"End Varscan\t\" `date` \"\t $chr $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-	print VARSCAN_SH "else\n";
-	print VARSCAN_SH "\techo \"ERROR: $sample_tumor_pileup or $sample_ref_pileup does not exist.\" >&2\n";
-	print VARSCAN_SH "fi\n";
-	close VARSCAN_SH;
+      from_template("Varscan.sh.tt", "$bash_file", chr => $chr, output_name => $output_name, varscan_out_dir => $varscan_out_dir, log_dir => $log_dir, sample_ref_pileup => $sample_ref_pileup, sample_tumor_pileup => $sample_tumor_pileup, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"VARSCAN");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"VARSCAN");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
 
-	push(@varscan_jobs,$job_id);
+      push(@varscan_jobs,$job_id);
     }
 
     ## Concat chromosome vcfs
@@ -356,55 +346,26 @@ sub runVarscan {
     my $rm_command = "rm ";
 
     foreach my $chr (@chrs){
-	my $snp_output = $sample_tumor_name."_".$chr.".snp.vcf";
-	my $indel_output = $sample_tumor_name."_".$chr.".indel.vcf";
-	$file_test .= "-a -s $snp_output -a -s $indel_output ";
-	$snp_concat_command .= "$snp_output ";
-	$indel_concat_command .= "$indel_output ";
-	$rm_command .= "$snp_output $indel_output ";
+      my $snp_output = $sample_tumor_name."_".$chr.".snp.vcf";
+      my $indel_output = $sample_tumor_name."_".$chr.".indel.vcf";
+      $file_test .= "-a -s $snp_output -a -s $indel_output ";
+      $snp_concat_command .= "$snp_output ";
+      $indel_concat_command .= "$indel_output ";
+      $rm_command .= "$snp_output $indel_output ";
     }
     $file_test .= "]";
     $snp_concat_command .= "> $sample_tumor_name.snp.vcf";
     $indel_concat_command .= "> $sample_tumor_name.indel.vcf";
 
     # Create bash script
-    open VARSCAN_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print VARSCAN_SH "#!/bin/bash\n\n";
-
-    print VARSCAN_SH "cd $varscan_out_dir\n";
-    print VARSCAN_SH "$file_test\n";
-    print VARSCAN_SH "then\n";
-    print VARSCAN_SH "\techo \"Start concat and postprocess Varscan\t\" `date` \"\t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-    print VARSCAN_SH "\t$snp_concat_command\n";
-    print VARSCAN_SH "\t$indel_concat_command\n\n";
-
-    # postprocessing
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} processSomatic $sample_tumor_name.indel.vcf $opt{VARSCAN_POSTSETTINGS}\n";
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} processSomatic $sample_tumor_name.snp.vcf $opt{VARSCAN_POSTSETTINGS}\n\n";
-
-    # merge varscan hc snps and indels
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T CombineVariants -R $opt{GENOME} --genotypemergeoption unsorted -o $sample_tumor_name.merged.Somatic.hc.vcf -V $sample_tumor_name.snp.Somatic.hc.vcf -V $sample_tumor_name.indel.Somatic.hc.vcf\n";
-    print VARSCAN_SH "\tsed -i 's/SSC/VS_SSC/' $sample_tumor_name.merged.Somatic.hc.vcf\n\n"; # to resolve merge conflict with FB vcfs
-
-    # Check varscan completed
-    print VARSCAN_SH "\tif [ -s $sample_tumor_name.merged.Somatic.hc.vcf ]\n";
-    print VARSCAN_SH "\tthen\n";
-    print VARSCAN_SH "\t\t$rm_command\n"; #remove tmp chr vcf files
-    print VARSCAN_SH "\t\ttouch $log_dir/varscan.done\n";
-    print VARSCAN_SH "\tfi\n\n";
-    print VARSCAN_SH "\techo \"END concat and postprocess Varscan\t\" `date` \"\t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-
-    print VARSCAN_SH "else\n";
-    print VARSCAN_SH "\techo \"ERROR: $sample_tumor_pileup or $sample_ref_pileup does not exist.\" >&2\n";
-    print VARSCAN_SH "fi\n";
-    close VARSCAN_SH;
+    from_template("VarscanPS.sh.tt", "$bash_file", varscan_out_dir => $varscan_out_dir, file_test => $file_test, sample_ref_pileup => $sample_ref_pileup, sample_tumor_pileup => $sample_tumor_pileup, sample_tumor_name => $sample_tumor_name, rm_command => $rm_command, snp_concat_command => $snp_concat_command, indel_concat_command => $indel_concat_command, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"VARSCAN");
     if ( @varscan_jobs ){
-        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@varscan_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@varscan_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
     return $job_id;
 }
