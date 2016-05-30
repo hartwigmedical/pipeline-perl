@@ -270,6 +270,7 @@ sub runPileup {
     }
 
     ## Create pileup bash script
+    my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
     my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobID.".sh";
     
     from_template("PileUp.sh.tt", "$bashFile", sample => $sample, bam => $bam, pileup => $pileup, runName => $runName, opt => \%opt);
