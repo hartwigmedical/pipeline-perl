@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=PileUp
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
+
+echo "Start pileup" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+
+if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]
+then
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% sample %]"
+    export JOB_STATUS="started"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+
+  PATH=[% opt.SAMTOOLS_PATH %]:$PATH
+  export PATH
+  
+  [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t [% opt.PILEUP_THREADS %] --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.SOMVAR_TARGETS %]-L [% opt.SOMVAR_TARGETS %][% END %] 
+  [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
+
+  if [ "$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)" = "MT" ]
+  #lastScaffold=`tail -n1 [% opt.SOMVAR_TARGETS %] |cut -f 1`;
+  #if [ "$(gunzip -c [% pileup %] |tail -n 1 | cut -f 1)" = "$lastScaffold" ]
+  then
+    mv [% pileup %].gz* [% opt.OUTPUT_DIR %]/[% sample %]/mapping/
+    touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Pileup_[% sample %].done
+    
+    [% IF opt.REPORT_STATUS %]
+      export JOB_STEP="[% sample %]"
+      export JOB_STATUS="success"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+  else
+    echo "ERROR: [% pileup %].gz seems incomplete, it does not end with MT" >&2
+    
+    [% IF opt.REPORT_STATUS %]
+      export JOB_STEP="[% sample %]"
+      export JOB_STATUS="failed"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+  fi
+else
+  echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist." >&2
+  
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% sample %]"
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi
+
+echo "END pileup 	" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

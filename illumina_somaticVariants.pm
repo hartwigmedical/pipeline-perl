@@ -16,6 +16,7 @@ use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
+use illumina_template;
 
 sub parseSamples {
     ###
@@ -291,49 +292,14 @@ sub runPileup {
 
     ## Check for pileup.done file
     if (-e "$opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done"){
-	print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done exists, skipping\n";
-	return $jobID;
+      print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done exists, skipping\n";
+      return $jobID;
     }
-
-    ## Pileup command
-    my $pileup_command = "$opt{SAMBAMBA_PATH}/sambamba mpileup -t $opt{PILEUP_THREADS} --tmpdir=$opt{OUTPUT_DIR}/$sample/tmp/ ";
-    if ( $opt{SOMVAR_TARGETS} ) {
-	$pileup_command .= "-L $opt{SOMVAR_TARGETS} ";
-    }
-    # here a faster compressor (snappy) or multithreaded gzip (pigz -p4 ) will allow for more speed
-    $pileup_command .= "$opt{OUTPUT_DIR}/$sample/mapping/$bam --samtools \"-q 1 -f $opt{GENOME}\" | $opt{TABIX_PATH}/bgzip -c > $pileup.gz";
-
-    # TABIX
-    my $tabix_command = "$opt{TABIX_PATH}/tabix -s 1 -b 2 -e 2 $pileup.gz";
 
     ## Create pileup bash script
-    my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
     my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobID.".sh";
-
-    open PILEUP_SH,">$bashFile" or die "Couldn't create $bashFile\n";
-    print PILEUP_SH "\#!/bin/sh\n\n";
-    print PILEUP_SH "cd $opt{OUTPUT_DIR}/$sample/tmp\n";
-    print PILEUP_SH "echo \"Start pileup\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n\n";
-    print PILEUP_SH "if [ -s $opt{OUTPUT_DIR}/$sample/mapping/$bam ]\n";
-    print PILEUP_SH "then\n";
-    print PILEUP_SH "\tPATH=$opt{SAMTOOLS_PATH}:\$PATH\n";
-    print PILEUP_SH "\texport PATH\n";
-    print PILEUP_SH "\t$pileup_command\n";
-    print PILEUP_SH "\t$tabix_command\n";
-    print PILEUP_SH "\tif [ \"\$($opt{TABIX_PATH}/tabix $pileup.gz MT | tail -n 1 | cut -f 1)\" = \"MT\" ]\n";
-    #print PILEUP_SH "\t lastScaffold=`tail -n1 $opt{SOMVAR_TARGETS} |cut -f 1`;\n";
-    #print PILEUP_SH "\tif [ \"\$(gunzip -c $pileup |tail -n 1 | cut -f 1)\" = \"\$lastScaffold\" ]\n";
-    print PILEUP_SH "\tthen\n";
-    print PILEUP_SH "\t\tmv $pileup.gz* $opt{OUTPUT_DIR}/$sample/mapping/\n";
-    print PILEUP_SH "\t\ttouch $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done\n";
-    print PILEUP_SH "\telse\n";
-    print PILEUP_SH "\t\techo \"ERROR: $pileup.gz seems incomplete, it does not end with MT\" >&2\n";
-    print PILEUP_SH "\tfi\n";
-    print PILEUP_SH "else\n";
-    print PILEUP_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
-    print PILEUP_SH "fi\n\n";
-    print PILEUP_SH "echo \"END pileup\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n";
-    close PILEUP_SH;
+    
+    from_template("PileUp.sh.tt", "$bashFile", sample => $sample, bam => $bam, pileup => $pileup, runName => $runName, opt => \%opt);
 
     ### Submit realign bash script
     my $qsub = &qsubTemplate(\%opt,"PILEUP");
