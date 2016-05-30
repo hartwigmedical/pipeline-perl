@@ -374,20 +374,21 @@ sub runFreeBayes {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $freebayes_out_dir = "$out_dir/freebayes";
     my $freebayes_tmp_dir = "$out_dir/freebayes/tmp";
     ## Create output & tmp dir
     if(! -e $freebayes_out_dir){
-	make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
+      make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
     }
     if(! -e $freebayes_tmp_dir){
-	make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
+      make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
     }
 
     ## Skip freebayes if .done file exist
     if (-e "$log_dir/freebayes.done"){
-	print "WARNING: $log_dir/freebayes.done exists, skipping \n";
-	return;
+      print "WARNING: $log_dir/freebayes.done exists, skipping \n";
+      return;
     }
 
     ## Run freebayes per chromosome
@@ -397,50 +398,37 @@ sub runFreeBayes {
     my @freebayes_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "FB_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "FB_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
 
-	## Create freebayes command
-	my $freebayes_command = "$opt{FREEBAYES_PATH}/freebayes -f $opt{GENOME} -r $chr ";
-	$freebayes_command .= "$opt{FREEBAYES_SETTINGS} $sample_ref_bam $sample_tumor_bam > $freebayes_out_dir/$output_name.vcf";
+      ## Create freebayes command
+      my $freebayes_command = "$opt{FREEBAYES_PATH}/freebayes -f $opt{GENOME} -r $chr ";
+      $freebayes_command .= "$opt{FREEBAYES_SETTINGS} $sample_ref_bam $sample_tumor_bam > $freebayes_out_dir/$output_name.vcf";
 
-	## Sort vcf, remove duplicate lines and filter on target
-	my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
-	my $mv_command;
-	# Filter vcf on target
-	if($opt{SOMVAR_TARGETS}){
-	    $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
-	    $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf $freebayes_out_dir/$output_name.vcf";
-	} else {
-	    $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq.vcf $freebayes_out_dir/$output_name.vcf";
-	}
-	## Create bashscript
-	open FREEBAYES_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print FREEBAYES_SH "#!/bin/bash\n\n";
-	print FREEBAYES_SH "cd $freebayes_out_dir\n";
-	print FREEBAYES_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-	print FREEBAYES_SH "then\n";
-	print FREEBAYES_SH "\techo \"Start Freebayes\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n\n";
-	print FREEBAYES_SH "\t$freebayes_command\n";
-	print FREEBAYES_SH "\t$sort_uniq_filter_command\n";
-	print FREEBAYES_SH "\t$mv_command\n\n";
-	print FREEBAYES_SH "\techo \"End Freebayes\t\" `date` \"\t $chr $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-	print FREEBAYES_SH "else\n";
-	print FREEBAYES_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-	print FREEBAYES_SH "fi\n";
-	close FREEBAYES_SH;
+      ## Sort vcf, remove duplicate lines and filter on target
+      my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
+      my $mv_command;
+      # Filter vcf on target
+      if($opt{SOMVAR_TARGETS}){
+        $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
+        $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf $freebayes_out_dir/$output_name.vcf";
+      } else {
+        $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq.vcf $freebayes_out_dir/$output_name.vcf";
+      }
+      ## Create bashscript
+      from_template("Freebayes.sh.tt", "$bash_file", chr => $chr, freebayes_command => $freebayes_command, sort_uniq_filter_command => $sort_uniq_filter_command, mv_command => $mv_command, freebayes_out_dir => $freebayes_out_dir, sample_tumor_bam => $sample_tumor_bam, sample_ref_bam => $sample_ref_bam, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"FREEBAYES");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"FREEBAYES");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
 
-	push(@freebayes_jobs,$job_id);
+      push(@freebayes_jobs,$job_id);
     }
 
     ## Concat chromosome vcfs and postprocess vcf
@@ -452,65 +440,23 @@ sub runFreeBayes {
     my $concat_command = "$opt{VCFTOOLS_PATH}/vcf-concat ";
     my $rm_command = "rm -r $freebayes_tmp_dir ";
     foreach my $chr (@chrs){
-	my $snp_output = $sample_tumor_name."_".$chr;
-	$file_test .= "-a -s $snp_output\.vcf ";
-	$concat_command .= "$snp_output\.vcf ";
-	$rm_command .= "$snp_output\* ";
+      my $snp_output = $sample_tumor_name."_".$chr;
+      $file_test .= "-a -s $snp_output\.vcf ";
+      $concat_command .= "$snp_output\.vcf ";
+      $rm_command .= "$snp_output\* ";
     }
     $file_test .= "]";
     $concat_command .= "> $sample_tumor_name.vcf";
 
     # Create bash script
-    open FREEBAYES_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print FREEBAYES_SH "#!/bin/bash\n\n";
-
-    print FREEBAYES_SH "cd $freebayes_out_dir\n";
-    print FREEBAYES_SH "$file_test\n";
-    print FREEBAYES_SH "then\n";
-    print FREEBAYES_SH "\techo \"Start concat and postprocess Freebayes\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-    print FREEBAYES_SH "\t$concat_command\n\n";
-
-    # Uniqify freebayes output
-    print FREEBAYES_SH "\tuniq $freebayes_out_dir/$sample_tumor_name.vcf > $freebayes_out_dir/$sample_tumor_name.uniq.vcf\n";
-    print FREEBAYES_SH "\tmv $freebayes_out_dir/$sample_tumor_name.uniq.vcf $freebayes_out_dir/$sample_tumor_name.vcf\n\n";
-
-    # get sample ids
-    print FREEBAYES_SH "\tsample_R=`grep -P \"^#CHROM\" $freebayes_out_dir/$sample_tumor_name.vcf | cut -f 10`\n";
-    print FREEBAYES_SH "\tsample_T=`grep -P \"^#CHROM\" $freebayes_out_dir/$sample_tumor_name.vcf | cut -f 11`\n\n";
-
-    # annotate somatic and germline scores
-    print FREEBAYES_SH "\t$opt{VCFLIB_PATH}/vcfsamplediff VT \$sample_R \$sample_T $freebayes_out_dir/$sample_tumor_name.vcf > $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n";
-    print FREEBAYES_SH "\tsed -i 's/SSC/FB_SSC/' $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n"; # to resolve merge conflicts with varscan vcfs
-    print FREEBAYES_SH "\tgrep -P \"^#\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf > $freebayes_out_dir/$sample_tumor_name\_germline.vcf\n";
-    print FREEBAYES_SH "\tgrep -P \"^#\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf > $freebayes_out_dir/$sample_tumor_name\_somatic.vcf\n";
-    print FREEBAYES_SH "\tgrep -i \"VT=germline\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf >> $freebayes_out_dir/$sample_tumor_name\_germline.vcf\n";
-    print FREEBAYES_SH "\tgrep -i \"VT=somatic\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf >> $freebayes_out_dir/$sample_tumor_name\_somatic.vcf\n";
-    print FREEBAYES_SH "\trm $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n\n";
-
-    # Filter
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_somatic.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_SOMATICFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf\n";
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_germline.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_GERMLINEFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf\n\n";
-
-    #Check freebayes completed
-    print FREEBAYES_SH "\tif [ -s $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf -a -s $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf ]\n";
-    print FREEBAYES_SH "\tthen\n";
-    print FREEBAYES_SH "\t\t$rm_command\n";
-    print FREEBAYES_SH "\t\ttouch $log_dir/freebayes.done\n\n"; ## Check on complete output!!!
-    print FREEBAYES_SH "\tfi\n";
-
-    print FREEBAYES_SH "\techo \"End concat and postprocess Freebayes\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-    print FREEBAYES_SH "else\n";
-    print FREEBAYES_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-    print FREEBAYES_SH "fi\n";
-
-    close FREEBAYES_SH;
+    from_template("FreebayesPP.sh.tt", "$bash_file", file_test => $file_test, concat_command => $concat_command, rm_command => $rm_command, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, freebayes_out_dir => $freebayes_out_dir, sample_tumor_name => $sample_tumor_name, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"FREEBAYES");
     if ( @freebayes_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@freebayes_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@freebayes_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
     return $job_id;
 }

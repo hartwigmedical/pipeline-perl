@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Freebayes
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+
+cd [% freebayes_out_dir %]
+
+[% file_test %]
+then
+  echo "Start concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="PostProcess"
+    export JOB_STATUS="processing"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+  
+  [% concat_command %]
+  
+  # Uniqify freebayes output
+  uniq [% freebayes_out_dir %]/[% sample_tumor_name %].vcf > [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf
+  mv [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf [% freebayes_out_dir %]/[% sample_tumor_name %].vcf
+  
+  # get sample ids
+  sample_R=`grep -P \"^#CHROM\" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 10`
+  sample_T=`grep -P \"^#CHROM\" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 11`
+
+  # annotate somatic and germline scores
+  [% opt.VCFLIB_PATH %]/vcfsamplediff VT $sample_R $sample_T [% freebayes_out_dir %]/[% sample_tumor_name %].vcf > [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf
+  sed -i 's/SSC/FB_SSC/' [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf   # to resolve merge conflicts with varscan vcfs
+  grep -P "^#" [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf > [% freebayes_out_dir %]/[% sample_tumor_name %]_germline.vcf
+  grep -P "^#" [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf > [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic.vcf
+  grep -i "VT=germline" [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf >> [% freebayes_out_dir %]/[% sample_tumor_name %]_germline.vcf
+  grep -i "VT=somatic" [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf >> [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic.vcf
+  rm [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf
+
+  # Filter
+  cat [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic.vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_SOMATICFILTER %]" > [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf
+  cat [% freebayes_out_dir %]/[% sample_tumor_name %]_germline.vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_GERMLINEFILTER %]" > [% freebayes_out_dir %]/[% sample_tumor_name %]_germline_filtered.vcf
+
+  #Check freebayes completed
+  if [ -s [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf -a -s [% freebayes_out_dir %]/[% sample_tumor_name %]_germline_filtered.vcf ]
+  then
+    [% rm_command %]
+    
+    ## Check on complete output!!!
+    touch [% log_dir %]/freebayes.done
+    
+    [% IF opt.REPORT_STATUS %]
+      export JOB_STEP="PostProcess"
+      export JOB_STATUS="success"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+    [% IF opt.REPORT_STATUS %]
+  else
+      export JOB_STEP="PostProcess"
+      export JOB_STATUS="failed"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+  fi
+  
+  echo "End concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+else
+  echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
+  
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="PostProcess"
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi  
