@@ -4,7 +4,7 @@
 #
 
 export JOB_NAME=RealignFS
-export JOB_SET= "[% runName %]"
+export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
 cd  [% opt.OUTPUT_DIR %]/[% sample %]/tmp
