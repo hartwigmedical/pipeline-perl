@@ -22,7 +22,7 @@ then
   PATH=[% opt.SAMTOOLS_PATH %]:$PATH
   export PATH
   
-  [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t [% opt.PILEUP_THREADS %] --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.SOMVAR_TARGETS %]-L [% opt.SOMVAR_TARGETS %][% END %] 
+  [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t [% opt.PILEUP_THREADS %] --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.SOMVAR_TARGETS %]-L [% opt.SOMVAR_TARGETS %][% END %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] --samtools "-q 1 -f [% opt.GENOME %]" | [% opt.TABIX_PATH %]/bgzip -c > [% pileup %].gz
   [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
 
   if [ "$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)" = "MT" ]
