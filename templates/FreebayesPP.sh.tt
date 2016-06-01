@@ -26,8 +26,8 @@ then
   mv [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf [% freebayes_out_dir %]/[% sample_tumor_name %].vcf
   
   # get sample ids
-  sample_R=`grep -P \"^#CHROM\" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 10`
-  sample_T=`grep -P \"^#CHROM\" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 11`
+  sample_R=`grep -P "^#CHROM" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 10`
+  sample_T=`grep -P "^#CHROM" [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | cut -f 11`
 
   # annotate somatic and germline scores
   [% opt.VCFLIB_PATH %]/vcfsamplediff VT $sample_R $sample_T [% freebayes_out_dir %]/[% sample_tumor_name %].vcf > [% freebayes_out_dir %]/[% sample_tumor_name %]_VTannot.vcf
