@@ -465,21 +465,22 @@ sub runMutect {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $mutect_out_dir = "$out_dir/mutect";
     my $mutect_tmp_dir = "$mutect_out_dir/tmp";
 
     ## Create output and tmp dir
     if(! -e $mutect_out_dir){
-	make_path($mutect_out_dir) or die "Couldn't create directory: $mutect_out_dir\n";
+      make_path($mutect_out_dir) or die "Couldn't create directory: $mutect_out_dir\n";
     }
     if(! -e $mutect_tmp_dir){
-	make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
+      make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
     }
 
     ## Skip Mutect if .done file exist
     if (-e "$log_dir/mutect.done"){
-	print "WARNING: $log_dir/mutect.done, skipping \n";
-	return;
+      print "WARNING: $log_dir/mutect.done, skipping \n";
+      return;
     }
 
     ## Build Queue command
@@ -493,13 +494,13 @@ sub runMutect {
 
     ### Optional settings
     #if ( $opt{SOMVAR_TARGETS} ) {
-	#$command .= "-L $opt{SOMVAR_TARGETS} ";
-	#if ( $opt{CALLING_INTERVALPADDING} ) {
-	    #$command .= "-ip $opt{CALLING_INTERVALPADDING} ";
-	#}
+      #$command .= "-L $opt{SOMVAR_TARGETS} ";
+      #if ( $opt{CALLING_INTERVALPADDING} ) {
+        #$command .= "-ip $opt{CALLING_INTERVALPADDING} ";
+      #}
     #}
     #if($opt{QUEUE_RETRY} eq 'yes'){
-	#$command  .= "-retry 1 ";
+      #$command  .= "-retry 1 ";
     #}
 
     ## Set run option
@@ -512,39 +513,29 @@ sub runMutect {
     my @mutect_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "MUT_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "MUT_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
 
-	### Mutect .jar command
-	my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
-	$command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
-	#if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
-	$command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
-	$command .= "--out $output_name\.out --vcf $output_name\_mutect.vcf";
+      ### Mutect .jar command
+      my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
+      $command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
+      #if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
+      $command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
+      $command .= "--out $output_name\.out --vcf $output_name\_mutect.vcf";
 
-	## Create mutect bash script
-	open MUTECT_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print MUTECT_SH "#!/bin/bash\n\n";
-	print MUTECT_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-	print MUTECT_SH "then\n";
-	print MUTECT_SH "\techo \"Start Mutect\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-	print MUTECT_SH "\tcd $mutect_tmp_dir\n";
-	print MUTECT_SH "\t$command\n";
-	print MUTECT_SH "\techo \"End Mutect\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-	print MUTECT_SH "else\n";
-	print MUTECT_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-	print MUTECT_SH "fi\n";
+      ## Create mutect bash script
+      from_template("Mutect.sh.tt", "$bash_file", command => $command, chr => $chr, mutect_tmp_dir => $mutect_tmp_dir, sample_tumor_bam => $sample_tumor_bam, sample_ref_bam => $sample_ref_bam, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"MUTECT");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
-	push(@mutect_jobs, $job_id);
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"MUTECT");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
+      push(@mutect_jobs, $job_id);
     }
 
     ## Concat chromosome vcfs
@@ -557,49 +548,22 @@ sub runMutect {
     my $filter_command = "cat $sample_tumor_name\_mutect.vcf | java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"( na FILTER ) | (FILTER = 'PASS')\" > $sample_tumor_name\_mutect_passed.vcf \n";
 
     foreach my $chr (@chrs){
-	my $output = $sample_tumor_name."_".$chr."_mutect.vcf";
-	$file_test .= "-a -s $output ";
-	$concat_command .= "$output ";
+      my $output = $sample_tumor_name."_".$chr."_mutect.vcf";
+      $file_test .= "-a -s $output ";
+      $concat_command .= "$output ";
     }
     $file_test .= "]";
     $concat_command .= "> $sample_tumor_name\_mutect.vcf";
 
     # Create bash script
-    open MUTECT_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print MUTECT_SH "#!/bin/bash\n\n";
-
-    print MUTECT_SH "cd $mutect_tmp_dir\n";
-    print MUTECT_SH "$file_test\n";
-    print MUTECT_SH "then\n";
-    print MUTECT_SH "\techo \"Start concat and filter Mutect\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n";
-    print MUTECT_SH "\t$concat_command\n";
-    print MUTECT_SH "\t$filter_command\n";
-
-    # Check Mutect completed
-    print MUTECT_SH "\tif [ -s $sample_tumor_name\_mutect.vcf -a -s $sample_tumor_name\_mutect_passed.vcf ]\n";
-    print MUTECT_SH "\tthen\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect.vcf $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect.vcf.idx $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect_passed.vcf $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect_passed.vcf.idx $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tcd $mutect_out_dir/\n";
-    print MUTECT_SH "\t\trm -r tmp/\n";
-    print MUTECT_SH "\t\ttouch $log_dir/mutect.done\n";
-    print MUTECT_SH "\tfi\n\n";
-    print MUTECT_SH "\techo \"End concat and filter Mutect\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-
-    print MUTECT_SH "else\n";
-    print MUTECT_SH "\techo \"ERROR: $sample_tumor_bam, $sample_ref_bam or a chromosome chunk vcf does not exist.\" >&2\n";
-    print MUTECT_SH "fi\n";
-
-    close MUTECT_SH;
+    from_template("MutectCF.sh.tt", "$bash_file", mutect_tmp_dir => $mutect_tmp_dir, file_test => $file_test, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, sample_tumor_name => $sample_tumor_name, concat_command => $concat_command, filter_command => $filter_command, mutect_out_dir => $mutect_out_dir, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"MUTECT");
     if ( @mutect_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@mutect_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@mutect_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
 
     return $job_id;

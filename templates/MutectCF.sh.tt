@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Mutect
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+cd [% mutect_tmp_dir %]
+
+[% file_test %]
+then
+  echo "Start concat and filter Mutect  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
+
+  [% IF opt.REPORT_STATUS %]
+  	export JOB_STEP="CF"
+  	export JOB_STATUS="processing"
+  	[% opt.REPORT_STATUS %]
+  [% END %]
+
+  [% concat_command %]
+  [% filter_command %]
+
+  # Check Mutect completed
+  if [ -s [% sample_tumor_name ]%_mutect.vcf -a -s [% sample_tumor_name %]_mutect_passed.vcf ]
+  then
+    mv [% sample_tumor_name %]_mutect.vcf [% mutect_out_dir %]/
+    mv [% sample_tumor_name %]_mutect.vcf.idx [% mutect_out_dir %]/
+    mv [% sample_tumor_name %]_mutect_passed.vcf [% mutect_out_dir %]/
+    mv [% sample_tumor_name %]_mutect_passed.vcf.idx [% mutect_out_dir %]/
+    cd [% mutect_out_dir %]/
+    rm -r tmp/
+    touch [% log_dir %]/mutect.done
+    
+    [% IF opt.REPORT_STATUS %]
+    	export JOB_STEP="CF"
+    	export JOB_STATUS="success"
+    	[% opt.REPORT_STATUS %]
+    [% END %]
+    [% IF opt.REPORT_STATUS %]
+  else
+    	export JOB_STEP="CF"
+    	export JOB_STATUS="failed"
+    	[% opt.REPORT_STATUS %]
+    [% END %]
+  fi
+  echo "End concat and filter Mutect  " `date` "   [% sample_ref_bam %]   [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
+else
+  echo "ERROR: [% sample_tumor_bam %], [% sample_ref_bam %] or a chromosome chunk vcf does not exist." >&2
+  
+  [% IF opt.REPORT_STATUS %]
+  	export JOB_STEP="CF"
+  	export JOB_STATUS="failed"
+  	[% opt.REPORT_STATUS %]
+  [% END %]
+fi
