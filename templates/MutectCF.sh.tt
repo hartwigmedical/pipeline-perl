@@ -23,7 +23,7 @@ then
   [% filter_command %]
 
   # Check Mutect completed
-  if [ -s [% sample_tumor_name ]%_mutect.vcf -a -s [% sample_tumor_name %]_mutect_passed.vcf ]
+  if [ -s [% sample_tumor_name %]_mutect.vcf -a -s [% sample_tumor_name %]_mutect_passed.vcf ]
   then
     mv [% sample_tumor_name %]_mutect.vcf [% mutect_out_dir %]/
     mv [% sample_tumor_name %]_mutect.vcf.idx [% mutect_out_dir %]/
