@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Varscan
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+cd [% varscan_out_dir %]
+
+if [ -s [% sample_ref_pileup %] -a -s [% sample_tumor_pileup %] ]
+then
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="processing"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+  
+  echo "Start Varscan  " `date` "   [% chr %]    [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+  java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] somatic <([% opt.TABIX_PATH %]/tabix [% sample_ref_pileup %] [% chr %]) <([% opt.TABIX_PATH %]/tabix [% sample_tumor_pileup %] [% chr %]) [% output_name %]  [% opt.VARSCAN_SETTINGS %] --output-vcf 1
+  echo "End Varscan " `date` "   [% chr %] [% sample_ref_pileup %]   [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="finished"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+else
+  echo "ERROR: [% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist." >&2
+
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi

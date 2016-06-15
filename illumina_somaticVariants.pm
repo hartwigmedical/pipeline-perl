@@ -16,6 +16,7 @@ use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
+use illumina_template;
 
 sub parseSamples {
     ###
@@ -228,53 +229,26 @@ sub runStrelka {
     my ($sample_tumor, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
-    my $strelka_out_dir = "$out_dir/strelka";
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
 
     ## Skip Strelka if .done file exist
     if (-e "$log_dir/strelka.done"){
-	print "WARNING: $log_dir/strelka.done, skipping \n";
-	return;
+      print "WARNING: $log_dir/strelka.done, skipping \n";
+      return;
     }
 
     ## Create strelka bash script
     my $job_id = "STR_".$sample_tumor."_".get_job_id();
     my $bash_file = $job_dir."/".$job_id.".sh";
-
-    open STRELKA_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print STRELKA_SH "#!/bin/bash\n\n";
-    print STRELKA_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-    print STRELKA_SH "then\n";
-    print STRELKA_SH "\techo \"Start Strelka\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/strelka.log\n\n";
-
-    # Run Strelka
-    print STRELKA_SH "\t$opt{STRELKA_PATH}/bin/configureStrelkaWorkflow.pl --tumor $sample_tumor_bam --normal $sample_ref_bam --ref $opt{GENOME} --config $opt{STRELKA_INI} --output-dir $strelka_out_dir\n\n";
-
-    print STRELKA_SH "\tcd $strelka_out_dir\n";
-    print STRELKA_SH "\tmake -j 8\n\n";
-
-    # Check strelka completed
-    print STRELKA_SH "\tif [ -f $strelka_out_dir/task.complete ]\n";
-    print STRELKA_SH "\tthen\n";
-    print STRELKA_SH "\t\tjava -Xmx".$opt{STRELKA_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T CombineVariants -R $opt{GENOME} --genotypemergeoption unsorted -o passed.somatic.merged.vcf -V results/passed.somatic.snvs.vcf -V results/passed.somatic.indels.vcf \n";
-    print STRELKA_SH "\t\tperl -p -e 's/\\t([A-Z][A-Z]:)/\\tGT:\$1/g' passed.somatic.merged.vcf | perl -p -e 's/(:T[UO]R?)\\t/\$1\\t0\\/0:/g' | perl -p -e 's/(:\\d+,\\d+)\\t/\$1\\t0\\/1:/g' | perl -p -e 's/(#CHROM.*)/##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility.\\n\$1/g' > temp.vcf\n";
-    print STRELKA_SH "\t\tmv temp.vcf passed.somatic.merged.vcf\n";
-    print STRELKA_SH "\t\trm -r chromosomes/ \n";
-    print STRELKA_SH "\t\ttouch $log_dir/strelka.done\n";
-    print STRELKA_SH "\tfi\n\n";
-    print STRELKA_SH "\techo \"End Strelka\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/strelka.log\n\n";
-
-    print STRELKA_SH "else\n";
-    print STRELKA_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-    print STRELKA_SH "fi\n";
-
-    close STRELKA_SH;
+    
+    from_template("Strelka.sh.tt", "$bash_file", runName => $runName, out_dir => $out_dir, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, log_dir => $log_dir, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"STRELKA");
     if ( @running_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
 
     return $job_id;
@@ -291,49 +265,15 @@ sub runPileup {
 
     ## Check for pileup.done file
     if (-e "$opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done"){
-	print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done exists, skipping\n";
-	return $jobID;
+      print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done exists, skipping\n";
+      return $jobID;
     }
-
-    ## Pileup command
-    my $pileup_command = "$opt{SAMBAMBA_PATH}/sambamba mpileup -t $opt{PILEUP_THREADS} --tmpdir=$opt{OUTPUT_DIR}/$sample/tmp/ ";
-    if ( $opt{SOMVAR_TARGETS} ) {
-	$pileup_command .= "-L $opt{SOMVAR_TARGETS} ";
-    }
-    # here a faster compressor (snappy) or multithreaded gzip (pigz -p4 ) will allow for more speed
-    $pileup_command .= "$opt{OUTPUT_DIR}/$sample/mapping/$bam --samtools \"-q 1 -f $opt{GENOME}\" | $opt{TABIX_PATH}/bgzip -c > $pileup.gz";
-
-    # TABIX
-    my $tabix_command = "$opt{TABIX_PATH}/tabix -s 1 -b 2 -e 2 $pileup.gz";
 
     ## Create pileup bash script
     my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
     my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobID.".sh";
-
-    open PILEUP_SH,">$bashFile" or die "Couldn't create $bashFile\n";
-    print PILEUP_SH "\#!/bin/sh\n\n";
-    print PILEUP_SH "cd $opt{OUTPUT_DIR}/$sample/tmp\n";
-    print PILEUP_SH "echo \"Start pileup\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n\n";
-    print PILEUP_SH "if [ -s $opt{OUTPUT_DIR}/$sample/mapping/$bam ]\n";
-    print PILEUP_SH "then\n";
-    print PILEUP_SH "\tPATH=$opt{SAMTOOLS_PATH}:\$PATH\n";
-    print PILEUP_SH "\texport PATH\n";
-    print PILEUP_SH "\t$pileup_command\n";
-    print PILEUP_SH "\t$tabix_command\n";
-    print PILEUP_SH "\tif [ \"\$($opt{TABIX_PATH}/tabix $pileup.gz MT | tail -n 1 | cut -f 1)\" = \"MT\" ]\n";
-    #print PILEUP_SH "\t lastScaffold=`tail -n1 $opt{SOMVAR_TARGETS} |cut -f 1`;\n";
-    #print PILEUP_SH "\tif [ \"\$(gunzip -c $pileup |tail -n 1 | cut -f 1)\" = \"\$lastScaffold\" ]\n";
-    print PILEUP_SH "\tthen\n";
-    print PILEUP_SH "\t\tmv $pileup.gz* $opt{OUTPUT_DIR}/$sample/mapping/\n";
-    print PILEUP_SH "\t\ttouch $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done\n";
-    print PILEUP_SH "\telse\n";
-    print PILEUP_SH "\t\techo \"ERROR: $pileup.gz seems incomplete, it does not end with MT\" >&2\n";
-    print PILEUP_SH "\tfi\n";
-    print PILEUP_SH "else\n";
-    print PILEUP_SH "\techo \"ERROR: $opt{OUTPUT_DIR}/$sample/mapping/$bam does not exist.\" >&2\n";
-    print PILEUP_SH "fi\n\n";
-    print PILEUP_SH "echo \"END pileup\t\" `date` \"\t$bam\t\" `uname -n` >> $logDir/$sample.log\n";
-    close PILEUP_SH;
+    
+    from_template("PileUp.sh.tt", "$bashFile", sample => $sample, bam => $bam, pileup => $pileup, runName => $runName, opt => \%opt);
 
     ### Submit realign bash script
     my $qsub = &qsubTemplate(\%opt,"PILEUP");
@@ -356,53 +296,43 @@ sub runVarscan {
 
     ## Create output dir
     if( ! -e $varscan_out_dir ){
-	make_path($varscan_out_dir) or die "Couldn't create directory: $varscan_out_dir\n";
+      make_path($varscan_out_dir) or die "Couldn't create directory: $varscan_out_dir\n";
     }
 
     ## Skip varscan if .done file exist
     if ( -e "$log_dir/varscan.done" ){
-	print "WARNING: $log_dir/varscan.done exists, skipping \n";
-	return;
+      print "WARNING: $log_dir/varscan.done exists, skipping \n";
+      return;
     }
 
     ## Run varscan per chromosome
     my $dictFile = $opt{GENOME};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     $dictFile =~ s/.fasta$/.dict/;
     my @chrs = @{get_chrs_from_dict($dictFile)};
     my @varscan_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "VS_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
-	#TODO: make named pipes for example:
-	#print VARSCAN_SH "mkfifo ",$sample_ref_pileup,";\nmkfifo ",$sample_tumor_pileup,";\n";
-	#print VARSCAN_SH "gunzip -c ",$sample_ref_pileup,".gz >",$sample_ref_pileup," &\n";
-	#print VARSCAN_SH "gunzip -c ",$sample_tumor_pileup,".gz >",$sample_tumor_pileup," &\n";
-	open VARSCAN_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print VARSCAN_SH "#!/bin/bash\n\n";
-	print VARSCAN_SH "cd $varscan_out_dir\n";
-	print VARSCAN_SH "if [ -s $sample_ref_pileup -a -s $sample_tumor_pileup ]\n";
-	print VARSCAN_SH "then\n";
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "VS_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
+      #TODO: make named pipes for example:
+      #print VARSCAN_SH "mkfifo ",$sample_ref_pileup,";\nmkfifo ",$sample_tumor_pileup,";\n";
+      #print VARSCAN_SH "gunzip -c ",$sample_ref_pileup,".gz >",$sample_ref_pileup," &\n";
+      #print VARSCAN_SH "gunzip -c ",$sample_tumor_pileup,".gz >",$sample_tumor_pileup," &\n";
 
-	print VARSCAN_SH "\techo \"Start Varscan\t\" `date` \"\t $chr \t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-	print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} somatic <($opt{TABIX_PATH}/tabix $sample_ref_pileup $chr) <($opt{TABIX_PATH}/tabix $sample_tumor_pileup $chr) $output_name $opt{VARSCAN_SETTINGS} --output-vcf 1\n\n";
-	print VARSCAN_SH "\techo \"End Varscan\t\" `date` \"\t $chr $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-	print VARSCAN_SH "else\n";
-	print VARSCAN_SH "\techo \"ERROR: $sample_tumor_pileup or $sample_ref_pileup does not exist.\" >&2\n";
-	print VARSCAN_SH "fi\n";
-	close VARSCAN_SH;
+      from_template("Varscan.sh.tt", "$bash_file", chr => $chr, output_name => $output_name, varscan_out_dir => $varscan_out_dir, log_dir => $log_dir, sample_ref_pileup => $sample_ref_pileup, sample_tumor_pileup => $sample_tumor_pileup, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"VARSCAN");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"VARSCAN");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
 
-	push(@varscan_jobs,$job_id);
+      push(@varscan_jobs,$job_id);
     }
 
     ## Concat chromosome vcfs
@@ -416,55 +346,26 @@ sub runVarscan {
     my $rm_command = "rm ";
 
     foreach my $chr (@chrs){
-	my $snp_output = $sample_tumor_name."_".$chr.".snp.vcf";
-	my $indel_output = $sample_tumor_name."_".$chr.".indel.vcf";
-	$file_test .= "-a -s $snp_output -a -s $indel_output ";
-	$snp_concat_command .= "$snp_output ";
-	$indel_concat_command .= "$indel_output ";
-	$rm_command .= "$snp_output $indel_output ";
+      my $snp_output = $sample_tumor_name."_".$chr.".snp.vcf";
+      my $indel_output = $sample_tumor_name."_".$chr.".indel.vcf";
+      $file_test .= "-a -s $snp_output -a -s $indel_output ";
+      $snp_concat_command .= "$snp_output ";
+      $indel_concat_command .= "$indel_output ";
+      $rm_command .= "$snp_output $indel_output ";
     }
     $file_test .= "]";
     $snp_concat_command .= "> $sample_tumor_name.snp.vcf";
     $indel_concat_command .= "> $sample_tumor_name.indel.vcf";
 
     # Create bash script
-    open VARSCAN_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print VARSCAN_SH "#!/bin/bash\n\n";
-
-    print VARSCAN_SH "cd $varscan_out_dir\n";
-    print VARSCAN_SH "$file_test\n";
-    print VARSCAN_SH "then\n";
-    print VARSCAN_SH "\techo \"Start concat and postprocess Varscan\t\" `date` \"\t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-    print VARSCAN_SH "\t$snp_concat_command\n";
-    print VARSCAN_SH "\t$indel_concat_command\n\n";
-
-    # postprocessing
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} processSomatic $sample_tumor_name.indel.vcf $opt{VARSCAN_POSTSETTINGS}\n";
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{VARSCAN_PATH} processSomatic $sample_tumor_name.snp.vcf $opt{VARSCAN_POSTSETTINGS}\n\n";
-
-    # merge varscan hc snps and indels
-    print VARSCAN_SH "\tjava -Xmx".$opt{VARSCAN_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T CombineVariants -R $opt{GENOME} --genotypemergeoption unsorted -o $sample_tumor_name.merged.Somatic.hc.vcf -V $sample_tumor_name.snp.Somatic.hc.vcf -V $sample_tumor_name.indel.Somatic.hc.vcf\n";
-    print VARSCAN_SH "\tsed -i 's/SSC/VS_SSC/' $sample_tumor_name.merged.Somatic.hc.vcf\n\n"; # to resolve merge conflict with FB vcfs
-
-    # Check varscan completed
-    print VARSCAN_SH "\tif [ -s $sample_tumor_name.merged.Somatic.hc.vcf ]\n";
-    print VARSCAN_SH "\tthen\n";
-    print VARSCAN_SH "\t\t$rm_command\n"; #remove tmp chr vcf files
-    print VARSCAN_SH "\t\ttouch $log_dir/varscan.done\n";
-    print VARSCAN_SH "\tfi\n\n";
-    print VARSCAN_SH "\techo \"END concat and postprocess Varscan\t\" `date` \"\t $sample_ref_pileup \t $sample_tumor_pileup\t\" `uname -n` >> $log_dir/varscan.log\n";
-
-    print VARSCAN_SH "else\n";
-    print VARSCAN_SH "\techo \"ERROR: $sample_tumor_pileup or $sample_ref_pileup does not exist.\" >&2\n";
-    print VARSCAN_SH "fi\n";
-    close VARSCAN_SH;
+    from_template("VarscanPS.sh.tt", "$bash_file", varscan_out_dir => $varscan_out_dir, file_test => $file_test, sample_ref_pileup => $sample_ref_pileup, sample_tumor_pileup => $sample_tumor_pileup, sample_tumor_name => $sample_tumor_name, rm_command => $rm_command, snp_concat_command => $snp_concat_command, indel_concat_command => $indel_concat_command, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"VARSCAN");
     if ( @varscan_jobs ){
-        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@varscan_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@varscan_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
     return $job_id;
 }
@@ -473,20 +374,21 @@ sub runFreeBayes {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $freebayes_out_dir = "$out_dir/freebayes";
     my $freebayes_tmp_dir = "$out_dir/freebayes/tmp";
     ## Create output & tmp dir
     if(! -e $freebayes_out_dir){
-	make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
+      make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
     }
     if(! -e $freebayes_tmp_dir){
-	make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
+      make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
     }
 
     ## Skip freebayes if .done file exist
     if (-e "$log_dir/freebayes.done"){
-	print "WARNING: $log_dir/freebayes.done exists, skipping \n";
-	return;
+      print "WARNING: $log_dir/freebayes.done exists, skipping \n";
+      return;
     }
 
     ## Run freebayes per chromosome
@@ -496,50 +398,37 @@ sub runFreeBayes {
     my @freebayes_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "FB_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "FB_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
 
-	## Create freebayes command
-	my $freebayes_command = "$opt{FREEBAYES_PATH}/freebayes -f $opt{GENOME} -r $chr ";
-	$freebayes_command .= "$opt{FREEBAYES_SETTINGS} $sample_ref_bam $sample_tumor_bam > $freebayes_out_dir/$output_name.vcf";
+      ## Create freebayes command
+      my $freebayes_command = "$opt{FREEBAYES_PATH}/freebayes -f $opt{GENOME} -r $chr ";
+      $freebayes_command .= "$opt{FREEBAYES_SETTINGS} $sample_ref_bam $sample_tumor_bam > $freebayes_out_dir/$output_name.vcf";
 
-	## Sort vcf, remove duplicate lines and filter on target
-	my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
-	my $mv_command;
-	# Filter vcf on target
-	if($opt{SOMVAR_TARGETS}){
-	    $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
-	    $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf $freebayes_out_dir/$output_name.vcf";
-	} else {
-	    $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq.vcf $freebayes_out_dir/$output_name.vcf";
-	}
-	## Create bashscript
-	open FREEBAYES_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print FREEBAYES_SH "#!/bin/bash\n\n";
-	print FREEBAYES_SH "cd $freebayes_out_dir\n";
-	print FREEBAYES_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-	print FREEBAYES_SH "then\n";
-	print FREEBAYES_SH "\techo \"Start Freebayes\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n\n";
-	print FREEBAYES_SH "\t$freebayes_command\n";
-	print FREEBAYES_SH "\t$sort_uniq_filter_command\n";
-	print FREEBAYES_SH "\t$mv_command\n\n";
-	print FREEBAYES_SH "\techo \"End Freebayes\t\" `date` \"\t $chr $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-	print FREEBAYES_SH "else\n";
-	print FREEBAYES_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-	print FREEBAYES_SH "fi\n";
-	close FREEBAYES_SH;
+      ## Sort vcf, remove duplicate lines and filter on target
+      my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
+      my $mv_command;
+      # Filter vcf on target
+      if($opt{SOMVAR_TARGETS}){
+        $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
+        $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf $freebayes_out_dir/$output_name.vcf";
+      } else {
+        $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq.vcf $freebayes_out_dir/$output_name.vcf";
+      }
+      ## Create bashscript
+      from_template("Freebayes.sh.tt", "$bash_file", chr => $chr, freebayes_command => $freebayes_command, sort_uniq_filter_command => $sort_uniq_filter_command, mv_command => $mv_command, freebayes_out_dir => $freebayes_out_dir, sample_tumor_bam => $sample_tumor_bam, sample_ref_bam => $sample_ref_bam, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"FREEBAYES");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"FREEBAYES");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
 
-	push(@freebayes_jobs,$job_id);
+      push(@freebayes_jobs,$job_id);
     }
 
     ## Concat chromosome vcfs and postprocess vcf
@@ -551,65 +440,23 @@ sub runFreeBayes {
     my $concat_command = "$opt{VCFTOOLS_PATH}/vcf-concat ";
     my $rm_command = "rm -r $freebayes_tmp_dir ";
     foreach my $chr (@chrs){
-	my $snp_output = $sample_tumor_name."_".$chr;
-	$file_test .= "-a -s $snp_output\.vcf ";
-	$concat_command .= "$snp_output\.vcf ";
-	$rm_command .= "$snp_output\* ";
+      my $snp_output = $sample_tumor_name."_".$chr;
+      $file_test .= "-a -s $snp_output\.vcf ";
+      $concat_command .= "$snp_output\.vcf ";
+      $rm_command .= "$snp_output\* ";
     }
     $file_test .= "]";
     $concat_command .= "> $sample_tumor_name.vcf";
 
     # Create bash script
-    open FREEBAYES_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print FREEBAYES_SH "#!/bin/bash\n\n";
-
-    print FREEBAYES_SH "cd $freebayes_out_dir\n";
-    print FREEBAYES_SH "$file_test\n";
-    print FREEBAYES_SH "then\n";
-    print FREEBAYES_SH "\techo \"Start concat and postprocess Freebayes\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-    print FREEBAYES_SH "\t$concat_command\n\n";
-
-    # Uniqify freebayes output
-    print FREEBAYES_SH "\tuniq $freebayes_out_dir/$sample_tumor_name.vcf > $freebayes_out_dir/$sample_tumor_name.uniq.vcf\n";
-    print FREEBAYES_SH "\tmv $freebayes_out_dir/$sample_tumor_name.uniq.vcf $freebayes_out_dir/$sample_tumor_name.vcf\n\n";
-
-    # get sample ids
-    print FREEBAYES_SH "\tsample_R=`grep -P \"^#CHROM\" $freebayes_out_dir/$sample_tumor_name.vcf | cut -f 10`\n";
-    print FREEBAYES_SH "\tsample_T=`grep -P \"^#CHROM\" $freebayes_out_dir/$sample_tumor_name.vcf | cut -f 11`\n\n";
-
-    # annotate somatic and germline scores
-    print FREEBAYES_SH "\t$opt{VCFLIB_PATH}/vcfsamplediff VT \$sample_R \$sample_T $freebayes_out_dir/$sample_tumor_name.vcf > $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n";
-    print FREEBAYES_SH "\tsed -i 's/SSC/FB_SSC/' $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n"; # to resolve merge conflicts with varscan vcfs
-    print FREEBAYES_SH "\tgrep -P \"^#\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf > $freebayes_out_dir/$sample_tumor_name\_germline.vcf\n";
-    print FREEBAYES_SH "\tgrep -P \"^#\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf > $freebayes_out_dir/$sample_tumor_name\_somatic.vcf\n";
-    print FREEBAYES_SH "\tgrep -i \"VT=germline\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf >> $freebayes_out_dir/$sample_tumor_name\_germline.vcf\n";
-    print FREEBAYES_SH "\tgrep -i \"VT=somatic\" $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf >> $freebayes_out_dir/$sample_tumor_name\_somatic.vcf\n";
-    print FREEBAYES_SH "\trm $freebayes_out_dir/$sample_tumor_name\_VTannot.vcf\n\n";
-
-    # Filter
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_somatic.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_SOMATICFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf\n";
-    print FREEBAYES_SH "\tcat $freebayes_out_dir/$sample_tumor_name\_germline.vcf | java -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"$opt{FREEBAYES_GERMLINEFILTER}\" > $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf\n\n";
-
-    #Check freebayes completed
-    print FREEBAYES_SH "\tif [ -s $freebayes_out_dir/$sample_tumor_name\_somatic_filtered.vcf -a -s $freebayes_out_dir/$sample_tumor_name\_germline_filtered.vcf ]\n";
-    print FREEBAYES_SH "\tthen\n";
-    print FREEBAYES_SH "\t\t$rm_command\n";
-    print FREEBAYES_SH "\t\ttouch $log_dir/freebayes.done\n\n"; ## Check on complete output!!!
-    print FREEBAYES_SH "\tfi\n";
-
-    print FREEBAYES_SH "\techo \"End concat and postprocess Freebayes\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/freebayes.log\n";
-    print FREEBAYES_SH "else\n";
-    print FREEBAYES_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-    print FREEBAYES_SH "fi\n";
-
-    close FREEBAYES_SH;
+    from_template("FreebayesPP.sh.tt", "$bash_file", file_test => $file_test, concat_command => $concat_command, rm_command => $rm_command, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, freebayes_out_dir => $freebayes_out_dir, sample_tumor_name => $sample_tumor_name, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"FREEBAYES");
     if ( @freebayes_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@freebayes_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@freebayes_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
     return $job_id;
 }
@@ -618,21 +465,22 @@ sub runMutect {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
+    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $mutect_out_dir = "$out_dir/mutect";
     my $mutect_tmp_dir = "$mutect_out_dir/tmp";
 
     ## Create output and tmp dir
     if(! -e $mutect_out_dir){
-	make_path($mutect_out_dir) or die "Couldn't create directory: $mutect_out_dir\n";
+      make_path($mutect_out_dir) or die "Couldn't create directory: $mutect_out_dir\n";
     }
     if(! -e $mutect_tmp_dir){
-	make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
+      make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
     }
 
     ## Skip Mutect if .done file exist
     if (-e "$log_dir/mutect.done"){
-	print "WARNING: $log_dir/mutect.done, skipping \n";
-	return;
+      print "WARNING: $log_dir/mutect.done, skipping \n";
+      return;
     }
 
     ## Build Queue command
@@ -646,13 +494,13 @@ sub runMutect {
 
     ### Optional settings
     #if ( $opt{SOMVAR_TARGETS} ) {
-	#$command .= "-L $opt{SOMVAR_TARGETS} ";
-	#if ( $opt{CALLING_INTERVALPADDING} ) {
-	    #$command .= "-ip $opt{CALLING_INTERVALPADDING} ";
-	#}
+      #$command .= "-L $opt{SOMVAR_TARGETS} ";
+      #if ( $opt{CALLING_INTERVALPADDING} ) {
+        #$command .= "-ip $opt{CALLING_INTERVALPADDING} ";
+      #}
     #}
     #if($opt{QUEUE_RETRY} eq 'yes'){
-	#$command  .= "-retry 1 ";
+      #$command  .= "-retry 1 ";
     #}
 
     ## Set run option
@@ -665,39 +513,29 @@ sub runMutect {
     my @mutect_jobs;
 
     foreach my $chr (@chrs){
-	## ADD: Chunk done check and skip if done.
-	my $job_id = "MUT_".$sample_tumor."_".$chr."_".get_job_id();
-	my $bash_file = $job_dir."/".$job_id.".sh";
-	my $output_name = $sample_tumor_name."_".$chr;
+      ## ADD: Chunk done check and skip if done.
+      my $job_id = "MUT_".$sample_tumor."_".$chr."_".get_job_id();
+      my $bash_file = $job_dir."/".$job_id.".sh";
+      my $output_name = $sample_tumor_name."_".$chr;
 
-	### Mutect .jar command
-	my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
-	$command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
-	#if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
-	$command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
-	$command .= "--out $output_name\.out --vcf $output_name\_mutect.vcf";
+      ### Mutect .jar command
+      my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
+      $command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
+      #if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
+      $command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
+      $command .= "--out $output_name\.out --vcf $output_name\_mutect.vcf";
 
-	## Create mutect bash script
-	open MUTECT_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-	print MUTECT_SH "#!/bin/bash\n\n";
-	print MUTECT_SH "if [ -s $sample_tumor_bam -a -s $sample_ref_bam ]\n";
-	print MUTECT_SH "then\n";
-	print MUTECT_SH "\techo \"Start Mutect\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-	print MUTECT_SH "\tcd $mutect_tmp_dir\n";
-	print MUTECT_SH "\t$command\n";
-	print MUTECT_SH "\techo \"End Mutect\t\" `date` \"\t $chr \t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-	print MUTECT_SH "else\n";
-	print MUTECT_SH "\techo \"ERROR: $sample_tumor_bam or $sample_ref_bam does not exist.\" >&2\n";
-	print MUTECT_SH "fi\n";
+      ## Create mutect bash script
+      from_template("Mutect.sh.tt", "$bash_file", command => $command, chr => $chr, mutect_tmp_dir => $mutect_tmp_dir, sample_tumor_bam => $sample_tumor_bam, sample_ref_bam => $sample_ref_bam, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
-	## Run job
-	my $qsub = &qsubJava(\%opt,"MUTECT");
-	if ( @running_jobs ){
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
-	} else {
-	    system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
-	}
-	push(@mutect_jobs, $job_id);
+      ## Run job
+      my $qsub = &qsubJava(\%opt,"MUTECT");
+      if ( @running_jobs ){
+        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@running_jobs)." $bash_file";
+      } else {
+        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      }
+      push(@mutect_jobs, $job_id);
     }
 
     ## Concat chromosome vcfs
@@ -710,49 +548,22 @@ sub runMutect {
     my $filter_command = "cat $sample_tumor_name\_mutect.vcf | java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"( na FILTER ) | (FILTER = 'PASS')\" > $sample_tumor_name\_mutect_passed.vcf \n";
 
     foreach my $chr (@chrs){
-	my $output = $sample_tumor_name."_".$chr."_mutect.vcf";
-	$file_test .= "-a -s $output ";
-	$concat_command .= "$output ";
+      my $output = $sample_tumor_name."_".$chr."_mutect.vcf";
+      $file_test .= "-a -s $output ";
+      $concat_command .= "$output ";
     }
     $file_test .= "]";
     $concat_command .= "> $sample_tumor_name\_mutect.vcf";
 
     # Create bash script
-    open MUTECT_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-    print MUTECT_SH "#!/bin/bash\n\n";
-
-    print MUTECT_SH "cd $mutect_tmp_dir\n";
-    print MUTECT_SH "$file_test\n";
-    print MUTECT_SH "then\n";
-    print MUTECT_SH "\techo \"Start concat and filter Mutect\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n";
-    print MUTECT_SH "\t$concat_command\n";
-    print MUTECT_SH "\t$filter_command\n";
-
-    # Check Mutect completed
-    print MUTECT_SH "\tif [ -s $sample_tumor_name\_mutect.vcf -a -s $sample_tumor_name\_mutect_passed.vcf ]\n";
-    print MUTECT_SH "\tthen\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect.vcf $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect.vcf.idx $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect_passed.vcf $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tmv $sample_tumor_name\_mutect_passed.vcf.idx $mutect_out_dir/\n";
-    print MUTECT_SH "\t\tcd $mutect_out_dir/\n";
-    print MUTECT_SH "\t\trm -r tmp/\n";
-    print MUTECT_SH "\t\ttouch $log_dir/mutect.done\n";
-    print MUTECT_SH "\tfi\n\n";
-    print MUTECT_SH "\techo \"End concat and filter Mutect\t\" `date` \"\t $sample_ref_bam \t $sample_tumor_bam\t\" `uname -n` >> $log_dir/mutect.log\n\n";
-
-    print MUTECT_SH "else\n";
-    print MUTECT_SH "\techo \"ERROR: $sample_tumor_bam, $sample_ref_bam or a chromosome chunk vcf does not exist.\" >&2\n";
-    print MUTECT_SH "fi\n";
-
-    close MUTECT_SH;
+    from_template("MutectCF.sh.tt", "$bash_file", mutect_tmp_dir => $mutect_tmp_dir, file_test => $file_test, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, sample_tumor_name => $sample_tumor_name, concat_command => $concat_command, filter_command => $filter_command, mutect_out_dir => $mutect_out_dir, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"MUTECT");
     if ( @mutect_jobs ){
-	system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@mutect_jobs)." $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",",@mutect_jobs)." $bash_file";
     } else {
-	system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+      system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
     }
 
     return $job_id;

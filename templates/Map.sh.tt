@@ -3,9 +3,19 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+export JOB_NAME=Map
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start mapping 	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP="[% sampleName %]"
+	export JOB_STATUS="processing"
+	[% opt.REPORT_STATUS %]
+[% END %]
 
 [% IF R2 %]
 [% opt.BWA_PATH %]/bwa mem -t [% opt.MAPPING_THREADS %] [% opt.MAPPING_SETTINGS %] -R "@RG	ID:[% RG_ID %]	SM:[% RG_SM %]	PL:[% RG_PL %]	LB:[% RG_LB %]	PU:[% RG_PU %]" [% opt.GENOME %] [% R1 %] [% R2 %] \
@@ -17,7 +27,19 @@ echo "Start mapping 	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR
 
 if grep -Fq '[main] Real time:' [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log; then
 	mv [% coreName %].bam.tmp [% coreName %].bam
-        touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
+	touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="[% sampleName %]"
+		export JOB_STATUS="success"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+	[% IF opt.REPORT_STATUS %]
+else
+		export JOB_STEP="[% sampleName %]"
+		export JOB_STATUS="failed"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 fi
 
 echo "End mapping	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

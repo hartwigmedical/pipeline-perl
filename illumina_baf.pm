@@ -31,6 +31,7 @@ sub runBAF {
 	my $tmp_dir = $opt{OUTPUT_DIR}."/".$sample."/tmp/";
 	my $job_dir = $opt{OUTPUT_DIR}."/".$sample."/jobs/";
 	my $output_dir = $opt{OUTPUT_DIR}."/".$sample."/";
+	my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
 	my $command;
 	my @running_jobs;
 
@@ -82,7 +83,7 @@ sub runBAF {
 
             from_template("BAF.sh.tt", $bashFile, tmp_dir => $tmp_dir, ug_ok => $ug_ok, log_dir => $log_dir, sample => $sample,
 		sample_bam => $sample_bam, output_vcf => $output_vcf, output_dir => $output_dir, baf_file => $baf_file, output_baf => $output_baf,
-		output_bafplot => $output_bafplot, baf_plots => $baf_plots, opt => \%opt);
+		output_bafplot => $output_bafplot, baf_plots => $baf_plots, runName => $runName, opt => \%opt);
 
 	    ###
 	    # Submit BAF JOB

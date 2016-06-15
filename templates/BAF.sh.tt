@@ -2,14 +2,25 @@
 #
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
+
+export JOB_NAME="BAF"
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
 bash [% opt.CLUSTER_PATH %]/settings.sh
 cd [% tmp_dir %]
 
 # Run Unified Genotyper
 [% IF ug_ok == 1 %]
-echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log"
+echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 
 if [ -s [% sample_bam %] ]; then
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="processing"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+  
 	java -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp/ -Xmx[% opt.BAF_MEM %]G -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
 		-T UnifiedGenotyper -R [% opt.GENOME %] -L [% opt.BAF_SNPS %] -I [% sample_bam %] -o [% output_vcf %] --output_mode EMIT_ALL_SITES
 else
@@ -18,8 +29,20 @@ fi
                 
 if [ "$(tail -n 1 [% output_vcf %] | cut -f 1,2)" = "$(tail -n 1 [% opt.BAF_SNPS %]| cut -f 1,3)" ]; then
 	mv [% output_vcf %] [% output_dir %]
-        mv [% output_vcf %].idx [% output_dir %]
-        touch [% log_dir %]/BAF_UG_[% sample %].done
+	mv [% output_vcf %].idx [% output_dir %]
+	touch [% log_dir %]/BAF_UG_[% sample %].done
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="finished"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+else
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="UNIFIED_GENOTYPER"
+		export JOB_STATUS="failed"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 fi
 echo "Finished Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 [% END %]
@@ -29,11 +52,29 @@ echo "Finished Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[%
 echo "Start Make BAF file	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 
 if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %].done ]; then
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="processing"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+  
 	cat [% output_dir %]/[% output_vcf %] | [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
 		--sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]'  \
 		--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="finished"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 else
 	echo "ERROR: Sample BAF vcf and UG done file do not exist." >&2
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="BAF_FILE"
+		export JOB_STATUS="failed"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 fi
 [% END %]
 
@@ -41,6 +82,12 @@ fi
 [% IF baf_plots == 1 %]
 echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="processing"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+  
 	Rscript [% opt.BAF_PLOTSCRIPT %] [% tmp_dir %] [% output_dir %]/[% output_baf %]
 else
 	echo "ERROR: Sample BAF file and baf file done file do not exist." >&2
@@ -49,6 +96,18 @@ fi
 if [ -s [% output_bafplot %] ]; then
 	mv [% output_bafplot %] [% output_dir %]
 	touch [% log_dir %]/BAF_PLOT_[% sample %].done
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="finished"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+	[% IF opt.REPORT_STATUS %]
+else
+		export JOB_STEP="BAF_PLOTS"
+		export JOB_STATUS="failed"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 fi
 echo "Finished Make BAF plot	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 [% END %]
@@ -56,4 +115,16 @@ echo "Finished Make BAF plot	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sam
 # Check all output files
 if [ -e [% log_dir %]/BAF_UG_[% sample %].done -a -e [% log_dir %]/BAF_FILE_[% sample %].done -a -e [% log_dir %]/BAF_PLOT_[% sample %].done ]; then
 	touch [% log_dir %]/BAF_[% sample %].done
+  
+	[% IF opt.REPORT_STATUS %]
+		export JOB_STEP=
+		export JOB_STATUS="success"
+		[% opt.REPORT_STATUS %]
+	[% END %]
+	[% IF opt.REPORT_STATUS %]
+else
+		export JOB_STEP=
+		export JOB_STATUS="failed"
+		[% opt.REPORT_STATUS %]
+	[% END %]
 fi

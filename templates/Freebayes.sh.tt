@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Freebayes
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+cd [% freebayes_out_dir %]
+if [ -s [% sample_tumor_bam %] -a -s [% sample_ref_bam %] ]
+then
+  echo "Start Freebayes  " `date` "   [% chr %]    [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="processing"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+
+  [% freebayes_command %]
+  [% sort_uniq_filter_command %]
+  [% mv_command %]
+  
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="finished"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+  
+  echo "End Freebayes  " `date` "   [% chr %] [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+else
+  echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
+
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="[% chr %]"
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi

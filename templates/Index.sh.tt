@@ -3,10 +3,26 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+export JOB_NAME=Index
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start index	" `date` "	[% coreName %]_sorted.bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP="[% sampleName %]"
+	export JOB_STATUS="processing"
+	[% opt.REPORT_STATUS %]
+[% END %]
+
 [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] [% coreName %]_sorted.bam [% coreName %]_sorted.bai
+
+[% IF opt.REPORT_STATUS %]
+	export JOB_STEP="[% sampleName %]"
+	export JOB_STATUS="finished"
+	[% opt.REPORT_STATUS %]
+[% END %]
 
 echo "End index	" `date` "	[% coreName %]_sorted.bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

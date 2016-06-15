@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=Varscan
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+
+cd [% varscan_out_dir %]
+[% file_test %]
+then
+  echo "Start concat and postprocess Varscan  " `date` "   [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+  
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="processSomatic"
+    export JOB_STATUS="processing"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+  
+  [% snp_concat_command %]
+  [% indel_concat_command %]
+
+# postprocessing
+  java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] processSomatic [% sample_tumor_name %].indel.vcf [% opt.VARSCAN_POSTSETTINGS %]
+  java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] processSomatic [% sample_tumor_name %].snp.vcf [% opt.VARSCAN_POSTSETTINGS %]
+
+  # merge varscan hc snps and indels
+  java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] --genotypemergeoption unsorted -o [% sample_tumor_name %].merged.Somatic.hc.vcf -V [% sample_tumor_name %].snp.Somatic.hc.vcf -V [% sample_tumor_name %].indel.Somatic.hc.vcf
+  
+  # to resolve merge conflict with FB vcfs
+  sed -i 's/SSC/VS_SSC/' [% sample_tumor_name %].merged.Somatic.hc.vcf
+
+# Check varscan completed
+  if [ -s [% sample_tumor_name %].merged.Somatic.hc.vcf ]
+  then
+    #remove tmp chr vcf files
+    [% rm_command %]
+    touch [% log_dir %]/varscan.done
+    
+    [% IF opt.REPORT_STATUS %]
+      export JOB_STEP="processSomatic"
+      export JOB_STATUS="success"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+    [% IF opt.REPORT_STATUS %]
+    else
+      export JOB_STEP="processSomatic"
+      export JOB_STATUS="failed"
+      [% opt.REPORT_STATUS %]
+    [% END %]
+  fi
+  echo "END concat and postprocess Varscan  " `date` "   [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+else
+  echo "ERROR: [% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist." >&2
+  [% IF opt.REPORT_STATUS %]
+    export JOB_STEP="processSomatic"
+    export JOB_STATUS="failed"
+    [% opt.REPORT_STATUS %]
+  [% END %]
+fi
