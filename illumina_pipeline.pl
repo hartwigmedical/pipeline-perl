@@ -605,8 +605,7 @@ sub checkConfig{
 	if(! $opt{BAF_TIME}){ print "ERROR: No BAF_TIME option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{BIOVCF_PATH}){ print "ERROR: No BIOVCF_PATH option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{BAF_SNPS}){ print "ERROR: No BAF_SNPS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BAF_PLOTSCRIPT}){ print "ERROR: No BAF_PLOTSCRIPT option found in config files.\n"; $checkFailed = 1; }
-    }
+	}
     ## ANNOTATE_VARIANTS
     if($opt{ANNOTATE_VARIANTS} eq "yes"){
 	if(! $opt{SNPEFF_PATH}){ print "ERROR: No SNPEFF_PATH option found in config files.\n"; $checkFailed = 1; }
