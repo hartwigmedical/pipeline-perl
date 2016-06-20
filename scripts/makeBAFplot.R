@@ -91,23 +91,23 @@ df <- df[!is.na(df$CHROM),]
 df$CHROM <- factor(df$CHROM, levels=chromosomes)
 #rm(rowdat)
 
-pdf(file=paste0(outdir,sample,"_BAF.pdf"), width=10, height=2, pointsize=6, useDingbats=FALSE)
+pdf(file=paste0(outdir,sample,"_BAF.pdf"), width=15, height=2, pointsize=6, useDingbats=FALSE)
 
-p <- ggplot(df, aes(POS, baf, group=CHROM)) + geom_point(shape=20) + facet_wrap(~CHROM, nrow=1, scales="free_x")
+p <- ggplot(df, aes(POS, baf, group=CHROM)) + geom_point(shape=20, size=0.2, alpha=0.5) + facet_wrap(~CHROM, nrow=1, scales="free_x")
 
 p <- p + theme(
-  axis.line.x=element_blank(),
-  axis.text.x=element_blank(),
-  axis.ticks.x=element_blank(),
+axis.line.x=element_blank(),
+axis.text.x=element_blank(),
+axis.ticks.x=element_blank(),
 
-  panel.grid.minor=element_blank(),
-  panel.grid.major.x=element_blank(),
-  panel.grid.major.y=element_line(colour="grey80", linetype=2, size=0.2),
+panel.grid.minor=element_blank(),
+panel.grid.major.x=element_blank(),
+panel.grid.major.y=element_line(colour="grey80", linetype=2, size=0.2),
 
-  legend.position="none",
-  panel.background=element_blank(),
-  panel.border=element_blank(),
-  plot.background=element_blank())
+legend.position="none",
+panel.background=element_blank(),
+panel.border=element_blank(),
+plot.background=element_blank())
 
 print(p)
 dev.off()
