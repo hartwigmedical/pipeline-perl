@@ -13,11 +13,7 @@ echo "Start pileup" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sam
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]
 then
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="[% sample %]"
-    export JOB_STATUS="processing"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step=sample status="processing" %]
 
   PATH=[% opt.SAMTOOLS_PATH %]:$PATH
   export PATH
@@ -32,28 +28,16 @@ then
     mv [% pileup %].gz* [% opt.OUTPUT_DIR %]/[% sample %]/mapping/
     touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Pileup_[% sample %].done
     
-    [% IF opt.REPORT_STATUS %]
-      export JOB_STEP="[% sample %]"
-      export JOB_STATUS="success"
-      [% opt.REPORT_STATUS %]
-    [% END %]
+    [% INCLUDE Status.tt step=sample status="success" %]
   else
     echo "ERROR: [% pileup %].gz seems incomplete, it does not end with MT" >&2
     
-    [% IF opt.REPORT_STATUS %]
-      export JOB_STEP="[% sample %]"
-      export JOB_STATUS="failed"
-      [% opt.REPORT_STATUS %]
-    [% END %]
+    [% INCLUDE Status.tt step=sample status="failed" %]
   fi
 else
   echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist." >&2
   
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="[% sample %]"
-    export JOB_STATUS="failed"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step=sample status="failed" %]
 fi
 
 echo "END pileup 	" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

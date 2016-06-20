@@ -13,11 +13,7 @@ cd [% freebayes_out_dir %]
 [% file_test %]
 then
   echo "Start concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="PostProcess"
-    export JOB_STATUS="processing"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="PostProcess" status="processing" %]
   
   [% concat_command %]
   
@@ -50,26 +46,14 @@ then
     ## Check on complete output!!!
     touch [% log_dir %]/freebayes.done
     
-    [% IF opt.REPORT_STATUS %]
-      export JOB_STEP="PostProcess"
-      export JOB_STATUS="success"
-      [% opt.REPORT_STATUS %]
-    [% END %]
-    [% IF opt.REPORT_STATUS %]
+    [% INCLUDE Status.tt step="PostProcess" status="success" %]
   else
-      export JOB_STEP="PostProcess"
-      export JOB_STATUS="failed"
-      [% opt.REPORT_STATUS %]
-    [% END %]
+    [% INCLUDE Status.tt step="PostProcess" status="failed" %]
   fi
   
   echo "End concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
 else
   echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
   
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="PostProcess"
-    export JOB_STATUS="failed"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="PostProcess" status="failed" %]
 fi  

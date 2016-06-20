@@ -1,0 +1,3 @@
+export JOB_STEP="[% step %]"
+export JOB_STATUS="[% status %]"
+[% opt.REPORT_STATUS %]

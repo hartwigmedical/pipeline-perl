@@ -10,11 +10,7 @@ export JOB_START=$(date +%s)
 cd  [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] ]; then
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="processing"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="processing" %]
   
 	[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.REALIGNMENT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %]
 fi
@@ -32,34 +28,16 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
 		mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.pdf
 		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 
-  	[% IF opt.REPORT_STATUS %]
-   		export JOB_STEP="[% sample %]"
-  		export JOB_STATUS="success"
-  		[% opt.REPORT_STATUS %]
-  	[% END %]
+  	[% INCLUDE Status.tt step=sample status="success" %]
 	else
 		echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] and [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] do not have the same read counts" >>../logs/Realignment_[% sample %].err
 
-  	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP="[% sample %]"
-  		export JOB_STATUS="failed"
-  		[% opt.REPORT_STATUS %]
-  	[% END %]
+  	[% INCLUDE Status.tt step=sample status="failed" %]
 	fi
 else
 	echo "ERROR: Either [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] or [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] is empty." >> ../logs/Realignment_[% sample %].err
 
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="failed" %]
 fi
-
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sample %]"
-	export JOB_STATUS="finished"
-	[% opt.REPORT_STATUS %]
-[% END %]
 
 echo "End indel realignment	" `date` "	[% sample %]_dedup.bam	" `uname -n` >> [% logDir %]/[% sample %].log

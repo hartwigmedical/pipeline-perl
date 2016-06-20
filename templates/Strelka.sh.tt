@@ -11,11 +11,7 @@ if [ -s [% sample_tumor_bam %] -a -s [% sample_ref_bam %] ]
 then
   echo "Start Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
   
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP=
-    export JOB_STATUS="processing"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="" status="processing" %]
 
   # Run Strelka
   [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
@@ -32,25 +28,13 @@ then
     rm -r chromosomes/
     touch [% log_dir %]/strelka.done
     
-    [% IF opt.REPORT_STATUS %]
-      export JOB_STEP=
-      export JOB_STATUS="success"
-      [% opt.REPORT_STATUS %]
-    [% END %]
-    [% IF opt.REPORT_STATUS %]
-    else
-      export JOB_STEP=
-      export JOB_STATUS="failed"
-      [% opt.REPORT_STATUS %]
-    [% END %]
+    [% INCLUDE Status.tt step="" status="success" %]
+  else
+    [% INCLUDE Status.tt step="" status="failed" %]
   fi
 else
   echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP=
-    export JOB_STATUS="failed"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="" status="failed" %]
 fi
 
 echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log

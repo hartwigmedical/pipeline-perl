@@ -9,11 +9,7 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sample %]
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sample %]"
-	export JOB_STATUS="processing"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sample status="processing" %]
 
 echo "Start merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
@@ -34,17 +30,9 @@ done
 if [ $PASS -eq 1 ]; then
 	echo "ERROR: merging failed due to incomplete BAM-file(s)" >> logs/merge.err
   
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="failed" %]
 else
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="processing"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="processing" %]
   
 	[% IF opt.MARKDUP_LEVEL == 'lane' %]
 		[% IF bamList.size > 1 %]
@@ -74,11 +62,7 @@ else
 		[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %].bam > mapping/[% sample %].flagstat
 	[% END %]
   
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="finished"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="finished" %]
 fi
 
 TOTALREADS=0
@@ -93,11 +77,7 @@ done
 
 export JOB_NAME=Markdup
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sample %]"
-	export JOB_STATUS="processing"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sample status="processing" %]
 
 [% IF opt.MARKDUP_LEVEL == 'lane' %]
 if [ -s mapping/[% sample %]_dedup.flagstat ]; then
@@ -146,17 +126,9 @@ fi
 if [ ! -s logs/[% sample %]_cleanup.err ]; then
 	touch logs/Mapping_[% sample %].done
   
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="success"
-		[% opt.REPORT_STATUS %]
-	[% END %]
-	[% IF opt.REPORT_STATUS %]
+	[% INCLUDE Status.tt step=sample status="success" %]
 else
-		export JOB_STEP="[% sample %]"
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sample status="failed" %]
 fi
 
 echo "End merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

@@ -20,21 +20,13 @@ echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/
 [% END %]
 
 if [ [% bamIfList %] ]; then
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
-		export JOB_STATUS="processing"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step="" status="processing" %]
 
 	[% command %]
 else
 	echo "ERROR: One or more input bam files do not exist." >&2
 
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step="" status="failed" %]
 
 fi
 
@@ -47,11 +39,7 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 	[% END %]
 	touch [% opt.OUTPUT_DIR %]/logs/VariantCaller.done
 
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
-		export JOB_STATUS="success"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step="" status="success" %]
   
 fi
 

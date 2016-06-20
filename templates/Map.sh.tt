@@ -11,11 +11,7 @@ cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start mapping 	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS="processing"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sampleName status="processing" %]
 
 [% IF R2 %]
 [% opt.BWA_PATH %]/bwa mem -t [% opt.MAPPING_THREADS %] [% opt.MAPPING_SETTINGS %] -R "@RG	ID:[% RG_ID %]	SM:[% RG_SM %]	PL:[% RG_PL %]	LB:[% RG_LB %]	PU:[% RG_PU %]" [% opt.GENOME %] [% R1 %] [% R2 %] \
@@ -29,17 +25,9 @@ if grep -Fq '[main] Real time:' [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% co
 	mv [% coreName %].bam.tmp [% coreName %].bam
 	touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
   
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP="[% sampleName %]"
-		export JOB_STATUS="success"
-		[% opt.REPORT_STATUS %]
-	[% END %]
-	[% IF opt.REPORT_STATUS %]
+	[% INCLUDE Status.tt step=sampleName status="success" %]
 else
-		export JOB_STEP="[% sampleName %]"
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step=sampleName status="failed" %]
 fi
 
 echo "End mapping	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

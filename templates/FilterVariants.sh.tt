@@ -14,21 +14,13 @@ cd [% opt.OUTPUT_DIR %]/tmp
 echo "Start variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 if [ -s [% opt.OUTPUT_DIR %]/[% runName %].raw_variants.vcf ]; then
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
-		export JOB_STATUS="processing"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step="" status="processing" %]
   
 	[% command %]
 else
 	echo "ERROR: [% runName %].raw_variants.vcf does not exist." >&2
   
-	[% IF opt.REPORT_STATUS %]
-		export JOB_STEP=
-		export JOB_STATUS="failed"
-		[% opt.REPORT_STATUS %]
-	[% END %]
+	[% INCLUDE Status.tt step="" status="failed" %]
 fi
 
 [% IF opt.FILTER_MODE == 'yes' %]
@@ -37,11 +29,7 @@ fi
 		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_snps.vcf.idx [% opt.OUTPUT_DIR %]/
 		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
     
-  	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=
-  		export JOB_STATUS="success"
-  		[% opt.REPORT_STATUS %]
-  	[% END %]
+  	[% INCLUDE Status.tt step="" status="success" %]
 	fi
 [% ELSIF opt.FILTER_MODE == 'INDEL' %]
 	if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_indels.vcf.done ]; then
@@ -49,11 +37,7 @@ fi
 		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_indels.vcf.idx [% opt.OUTPUT_DIR %]/
 		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
     
-  	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=
-  		export JOB_STATUS="success"
-  		[% opt.REPORT_STATUS %]
-  	[% END %]
+  	[% INCLUDE Status.tt step="" status="success" %]
 	fi
 [% ELSIF opt.FILTER_MODE == 'BOTH' %]
 	if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; then
@@ -61,11 +45,7 @@ fi
 		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf.idx [% opt.OUTPUT_DIR %]/
 		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
     
-  	[% IF opt.REPORT_STATUS %]
-  		export JOB_STEP=
-  		export JOB_STATUS="success"
-  		[% opt.REPORT_STATUS %]
-  	[% END %]
+  	[% INCLUDE Status.tt step="" status="success" %]
 	fi
 [% END %]
 

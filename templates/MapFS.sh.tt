@@ -11,18 +11,10 @@ cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start flagstat	" `date` "	[% coreName %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS="processing"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sampleName status="processing" %]
 
 [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] [% coreName %].bam > [% coreName %].flagstat
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS="finished"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sampleName status="finished" %]
 
 echo "End Flagstat 	" `date` "	[% coreName %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

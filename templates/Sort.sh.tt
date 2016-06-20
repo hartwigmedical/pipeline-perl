@@ -11,20 +11,11 @@ cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS="processing"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sampleName status="processing" %]
 
 [% opt.SAMBAMBA_PATH %]/sambamba sort --tmpdir=[% opt.OUTPUT_DIR %]/[% sampleName %]/tmp/ -m [% opt.MAPPING_MEM %]GB -t [% opt.MAPPING_THREADS %] -o [% coreName %]_sorted.bam  [% coreName %].bam
 
-
-[% IF opt.REPORT_STATUS %]
-	export JOB_STEP="[% sampleName %]"
-	export JOB_STATUS="finished"
-	[% opt.REPORT_STATUS %]
-[% END %]
+[% INCLUDE Status.tt step=sampleName status="finished" %]
 
 echo "End sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 

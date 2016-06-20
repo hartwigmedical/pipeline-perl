@@ -13,27 +13,15 @@ then
   echo "Start Mutect  " `date` "   [% chr %]    [% sample_ref_bam %]    [% sample_tumor_bam %] " `uname -n` >> [% log_dir %]/mutect.log
   cd [% mutect_tmp_dir %]
 
-  [% IF opt.REPORT_STATUS %]
-  	export JOB_STEP="[% chr %]"
-  	export JOB_STATUS="processing"
-  	[% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step=chr status="processing" %]
 
   [% command %]
   
-  [% IF opt.REPORT_STATUS %]
-  	export JOB_STEP="[% chr %]"
-  	export JOB_STATUS="finished"
-  	[% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step=chr status="finished" %]
   
   echo "End Mutect  " `date` "   [% chr %]    [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
 else
   echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
   
-  [% IF opt.REPORT_STATUS %]
-  	export JOB_STEP="[% chr %]"
-  	export JOB_STATUS="failed"
-  	[% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step=chr status="failed" %]
 fi

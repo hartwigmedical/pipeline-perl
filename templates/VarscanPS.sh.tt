@@ -13,11 +13,7 @@ cd [% varscan_out_dir %]
 then
   echo "Start concat and postprocess Varscan  " `date` "   [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
   
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="processSomatic"
-    export JOB_STATUS="processing"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="processSomatic" status="processing" %]
   
   [% snp_concat_command %]
   [% indel_concat_command %]
@@ -39,24 +35,12 @@ then
     [% rm_command %]
     touch [% log_dir %]/varscan.done
     
-    [% IF opt.REPORT_STATUS %]
-      export JOB_STEP="processSomatic"
-      export JOB_STATUS="success"
-      [% opt.REPORT_STATUS %]
-    [% END %]
-    [% IF opt.REPORT_STATUS %]
-    else
-      export JOB_STEP="processSomatic"
-      export JOB_STATUS="failed"
-      [% opt.REPORT_STATUS %]
-    [% END %]
+    [% INCLUDE Status.tt step="processSomatic" status="success" %]
+  else
+    [% INCLUDE Status.tt step="processSomatic" status="failed" %]
   fi
   echo "END concat and postprocess Varscan  " `date` "   [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
 else
   echo "ERROR: [% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist." >&2
-  [% IF opt.REPORT_STATUS %]
-    export JOB_STEP="processSomatic"
-    export JOB_STATUS="failed"
-    [% opt.REPORT_STATUS %]
-  [% END %]
+  [% INCLUDE Status.tt step="processSomatic" status="failed" %]
 fi
