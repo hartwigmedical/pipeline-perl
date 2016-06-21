@@ -444,22 +444,7 @@ sub checkConfig{
         if(! $opt{CNVCHECK_THREADS} ) { print "ERROR: No CNVCHECK_THREADS  in config files.\n"; $checkFailed = 1; }
         if(! $opt{CNVCHECK_MEM} ) { print "ERROR: No CNVCHECK_MEM in config files.\n"; $checkFailed = 1; }
         if(! $opt{CNVCHECK_TIME} ) { print "ERROR: No CNVCHECK_TIME in config files.\n"; $checkFailed = 1; }
-        if(! $opt{CNV_CONTRA}){ print "ERROR: No CNV_CONTRA  in config files.\n"; $checkFailed = 1; }
         if(! $opt{CNV_MODE}){ print "ERROR: No CNV_MODE in config files. \n"; $checkFailed = 1; }
-        if($opt{CNV_CONTRA} eq "yes"){
-            if($opt{CNV_MODE} eq "sample"){ print "ERROR: Running Contra in CNV_MODE sample is not possible.\n"; $checkFailed = 1;}
-            if(! $opt{CONTRA_PATH}){ print "ERROR: No CONTRA_PATH option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CONTRA_QUEUE}){ print "ERROR: No CONTRA_QUEUE option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CONTRA_THREADS}){ print "ERROR: No CONTRA_THREADS option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CONTRA_MEM}){ print "ERROR: No CONTRA_MEM option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CNV_TARGETS}){ print "ERROR: No CNV_TARGETS option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CONTRA_FLAGS}){ print "ERROR: No CONTRA_FLAGS option found in config files.\n"; $checkFailed = 1; }
-            if(! $opt{CONTRA_VISUALIZATION}){ print "ERROR: No CONTRA_VISUALIZATION option found in config files.\n"; $checkFailed = 1; }
-            if($opt{CONTRA_VISUALIZATION} eq "yes"){
-                if(! $opt{CONTRA_PLOTSCRIPT}){ print "ERROR: No CONTRA_PLOTSCRIPT option found in config files.\n"; $checkFailed = 1; }
-                if(! $opt{CONTRA_PLOTDESIGN}){ print "ERROR: No CONTRA_PLOTDESIGN option found in config files.\n"; $checkFailed = 1; }
-            }
-        }
         if(! $opt{CNV_FREEC}){ print "ERROR: No CNV_FREEC  in config files.\n"; $checkFailed = 1; }
         if($opt{CNV_FREEC} eq "yes"){
             if(! $opt{FREEC_PATH}){ print "ERROR: No FREEC_PATH option found in config files.\n"; $checkFailed = 1; }
