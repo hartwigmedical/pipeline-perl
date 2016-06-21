@@ -3,7 +3,6 @@
 # UMC Utrecht. All rights reserved
 #
 
-
 package illumina_sge;
 use strict;
 use warnings;
@@ -20,11 +19,6 @@ BEGIN {
         &jobNative
    );
 }
-
-#EXCEPTIONS
-#my %excepts=();
-#$excepts{"MEM_THREADS"}{"REALIGNMENT"}=1;
-#$excepts{"MEM_THREADS"}{"CALLING"}=1;
 
 sub generic(@){
     my ($opt,$function)=@_;
