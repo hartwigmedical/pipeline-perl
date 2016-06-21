@@ -30,7 +30,7 @@ sub runFilterVariants {
 	my @SNPFilterExprs = split("\t",$opt{FILTER_SNPEXPR});
 	my @snpTypes = split(",",$opt{FILTER_SNPTYPES});
 
-	foreach my $snpType (@snpTypes){
+	foreach my $snpType (@snpTypes) {
 		$command.= "-snpType $snpType ";
 	}
 
@@ -50,7 +50,7 @@ sub runFilterVariants {
 	my @INDELFilterExprs = split("\t",$opt{FILTER_INDELEXPR});
 	my @indelTypes = split(",",$opt{FILTER_INDELTYPES});
 
-	foreach my $indelType (@indelTypes){
+	foreach my $indelType (@indelTypes) {
 		$command.= "-indelType $indelType ";
 	}
 
@@ -58,7 +58,7 @@ sub runFilterVariants {
 		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length.";
 	}
 
-	foreach my $i (0 .. scalar(@INDELFilterNames)-1 ){
+	foreach my $i (0 .. scalar(@INDELFilterNames)-1 ) {
 		$command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
 	}
 
@@ -68,16 +68,18 @@ sub runFilterVariants {
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("FilterVariants.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
 
-    foreach my $sample (@{$opt{SAMPLES}}){
-	if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
-	    push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
-	}
+    foreach my $sample (@{$opt{SAMPLES}}) {
+        if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
+            push( @runningJobs, join( ",", @{$opt{RUNNING_JOBS}->{$sample}} ) );
+        }
+    }
 
-    my $qsub = &qsubJava(\%opt,"FILTER_MASTER");
-    if (@runningJobs){
-	    system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+    my $qsub = &qsubJava( \%opt, "FILTER_MASTER" );
+    if (@runningJobs) {
+        system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID -hold_jid ".join(
+                ",", @runningJobs )." $bashFile";
     } else {
-	    system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID $bashFile";
     }
 
     return $jobID;
