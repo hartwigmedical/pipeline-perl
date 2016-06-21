@@ -106,20 +106,6 @@ sub runVariantCalling {
     return \%opt;
 }
 
-sub runVcfPrep {
-    ###
-    # Run vcf prep when starting pipeline with a vcf file.
-    ##
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
-
-    symlink($opt{VCF},"$opt{OUTPUT_DIR}/$runName.raw_variants.vcf");
-    @{$opt{SAMPLES}} = ($runName);
-
-    return \%opt;
-}
-
 ############
 sub get_job_id {
     my $id = tmpnam();
