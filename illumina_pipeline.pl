@@ -24,10 +24,8 @@ use illumina_annotateVariants;
 use illumina_kinship;
 use illumina_check;
 
-### Check correct usage
 die usage() if @ARGV == 0;
 
-### initiate opt hash with settings
 my %opt;
 my $configurationFile;
 
@@ -35,7 +33,7 @@ my $configurationFile;
     'RUNNING_JOBS'		=> {}, #do not use in .conf or .ini
     'BAM_FILES'			=> {}, #do not use in .conf or .ini
     'SAMPLES'			=> undef, #do not use in .conf or .ini
-    'PIPELINE_PATH'		=> dirname(abs_path($0)) # current IAP root directory
+    'PIPELINE_PATH'		=> dirname(abs_path($0)) # current pipeline root directory
 );
 
 ############ READ RUN SETTINGS FORM .conf FILE ############

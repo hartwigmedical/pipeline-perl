@@ -223,7 +223,7 @@ sub runCheck {
     print BASH "if [ \"\$failed\" = true  ]\n";
     print BASH "then\n";
     print BASH "\techo \"One or multiple step(s) of the pipeline failed. \" >>$logFile\n";
-    print BASH "\tmail -s \"IAP FAILED $runName\" \"$opt{MAIL}\" < $logFile\n";
+    print BASH "\tmail -s \"Pipeline FAILED $runName\" \"$opt{MAIL}\" < $logFile\n";
 
     ### Pipeline done
     print BASH "else\n";
@@ -247,7 +247,7 @@ sub runCheck {
     }
     }
     # Send email.
-    print BASH "\tmail -s \"IAP DONE $runName\" \"$opt{MAIL}\" < $logFile\n";
+    print BASH "\tmail -s \"Pipeline DONE $runName\" \"$opt{MAIL}\" < $logFile\n";
 
     # Create md5sum.txt
     print BASH "\n\tcd $opt{OUTPUT_DIR}\n";

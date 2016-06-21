@@ -2,11 +2,11 @@
 
 """
 melt_somatic_vcf.py - Version 2
-Melts / merges somatic vcf files coming from the IAP.
+Melts / merges somatic vcf files coming from the pipeline.
 Supported somatic callers: Freebayes, Mutect, Strelka and Varscan.
 
 Input:
-    - vcf_file: merged somatic vcf file created by the IAP.
+    - vcf_file: merged somatic vcf file created by the pipeline.
     - tumor_sample: tumor sample name, used to find somatic tumor columns and as the sample name in the output vcf.
 
 Output:
@@ -71,7 +71,7 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                         sys.exit("Error: Found {0} sample somatic variant caller combinations, expected {1}. Please check tumor_sample name.".format(len(tumor_samples_index.keys()),len(samples)/2))
 
                     ## print meta-information lines with melter info to vcf
-                    print "##source=IAP/scripts/melt_somatic_vcf.py"
+                    print "##source=pipeline/scripts/melt_somatic_vcf.py"
                     print "##INFO=<ID=CSA,Number=R,Type=Integer,Description=\"Number of somatic variant callers with support for allele.\">"
                     print "##INFO=<ID=CSP,Number=R,Type=Integer,Description=\"Number of somatic variant callers with support for position.\">"
                     print "{header}\t{sample}".format(
