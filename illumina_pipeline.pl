@@ -150,7 +150,7 @@ if( $opt{FASTQ} ) {
     if($opt{KINSHIP} eq "yes"){
         print "\n###SCHEDULING Kinship Jobs####\n";
         my $kinship_job = illumina_kinship::runKinship(\%opt);
-        $opt{RUNNING_JOBS}->{'KINSHIP'} = $kinship_job;
+        $opt{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
     }
 
     if($opt{CHECKING} eq "yes"){

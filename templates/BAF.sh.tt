@@ -10,8 +10,7 @@ export JOB_START=$(date +%s)
 bash [% opt.CLUSTER_PATH %]/settings.sh
 cd [% tmp_dir %]
 
-# Run Unified Genotyper
-[% IF ug_ok == 1 %]
+[% IF run_unified_genotyper == 1 %]
 echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 
 if [ -s [% sample_bam %] ]; then
@@ -35,8 +34,7 @@ fi
 echo "Finished Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 [% END %]
 
-# Make BAF File
-[% IF baf_file == 1 %]
+[% IF create_baf_file == 1 %]
 echo "Start Make BAF file	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 
 if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %].done ]; then
@@ -58,8 +56,7 @@ else
 fi
 [% END %]
 
-# Run BAF plots
-[% IF baf_plots == 1 %]
+[% IF create_baf_plots == 1 %]
 echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="processing" %]
@@ -80,7 +77,6 @@ fi
 echo "Finished Make BAF plot	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 [% END %]
 
-# Check all output files
 if [ -e [% log_dir %]/BAF_UG_[% sample %].done -a -e [% log_dir %]/BAF_FILE_[% sample %].done -a -e [% log_dir %]/BAF_PLOT_[% sample %].done ]; then
 	touch [% log_dir %]/BAF_[% sample %].done
   
