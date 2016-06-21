@@ -378,7 +378,7 @@ sub checkConfig{
     if($opt{SOMATIC_VARIANTS} eq "yes") {
         if(! $opt{SAMTOOLS_PATH}){ print "ERROR: No SAMTOOLS_PATH option found in config files.\n"; $checkFailed = 1; }
         if( $opt{SOMVAR_TARGETS} && ! -e $opt{SOMVAR_TARGETS}) { print"ERROR: $opt{SOMVAR_TARGETS} does not exist\n"; $checkFailed = 1; }
-        if(! $opt{SOMVAR_REGEX}){ print "ERROR: No SOMVAR_REGEX option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{SOMATIC_REGEX}){ print "ERROR: No SOMATIC_REGEX option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{SOMVAR_STRELKA}){ print "ERROR: No SOMVAR_STRELKA option found in config files.\n"; $checkFailed = 1; }
         if($opt{SOMVAR_STRELKA} eq "yes") {
             if(! $opt{STRELKA_PATH}){ print "ERROR: No STRELKA_PATH option found in config files.\n"; $checkFailed = 1; }
@@ -446,9 +446,6 @@ sub checkConfig{
         if(! $opt{CNVCHECK_TIME} ) { print "ERROR: No CNVCHECK_TIME in config files.\n"; $checkFailed = 1; }
         if(! $opt{CNV_CONTRA}){ print "ERROR: No CNV_CONTRA  in config files.\n"; $checkFailed = 1; }
         if(! $opt{CNV_MODE}){ print "ERROR: No CNV_MODE in config files. \n"; $checkFailed = 1; }
-        if($opt{CNV_MODE} eq "sample_control"){
-            if(! $opt{CNV_REGEX}){ print "ERROR: No CNV_REGEX in config files. \n"; $checkFailed = 1; }
-        }
         if($opt{CNV_CONTRA} eq "yes"){
             if($opt{CNV_MODE} eq "sample"){ print "ERROR: Running Contra in CNV_MODE sample is not possible.\n"; $checkFailed = 1;}
             if(! $opt{CONTRA_PATH}){ print "ERROR: No CONTRA_PATH option found in config files.\n"; $checkFailed = 1; }

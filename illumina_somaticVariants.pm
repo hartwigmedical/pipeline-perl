@@ -20,7 +20,7 @@ sub parseSamples {
 
     foreach my $sample (@{$opt{SAMPLES}}){
 	# Parse cpct samples based on regular expression defining two groups, sample name and sample origin.
-	my ($cpct_name,$origin) = ($sample =~ /$opt{SOMVAR_REGEX}/);
+	my ($cpct_name, $origin) = ($sample =~ /$opt{SOMATIC_REGEX}/);
 
 	if ( (! $cpct_name) || (! $origin) ){
 	    print "WARNING: $sample is not passing somatic samplename parsing, skipping \n\n";

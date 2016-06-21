@@ -8,16 +8,12 @@ use File::Path qw(make_path);
 use illumina_sge;
 
 sub parseSamples {
-    ###
-    # Parse samples names used in sample_control mode
-    # Expects CPCT samples (CPCT........T/R)
-    ###
     my $configuration = shift;
     my %opt = %{$configuration};
     my %somatic_samples;
 
     foreach my $sample (@{$opt{SAMPLES}}){
-		my ($cpct_name,$origin) = ($sample =~ /$opt{CNV_REGEX}/);
+		my ($cpct_name,$origin) = ($sample =~ /$opt{SOMATIC_REGEX}/);
 		if ( (! $cpct_name) || (! $origin) ){
 			print "WARNING: $sample is not passing copy number samplename parsing, skipping \n\n";
 			next;
