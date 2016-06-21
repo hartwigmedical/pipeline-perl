@@ -21,7 +21,7 @@ if [ -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]; then
 
 	java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp -jar [% opt.QUEUE_PATH %]/Queue.jar -R [% opt.GENOME %] -S [% opt.REALIGNMENT_SCALA %] -jobQueue [% opt.REALIGNMENT_QUEUE %] \
 		-nt [% opt.REALIGNMENT_THREADS %] -mem [% opt.REALIGNMENT_MEM %] -nsc [% opt.REALIGNMENT_SCATTER %] -mode single -jobNative "[% jobNative %]" [% knownIndelFiles %] \
-		-run -I [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] -jobRunner GridEngine [% IF opt.QUEUE_RETRY == 'yes' %] -retry 1 [% END %]
+		-run -I [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] -jobRunner GridEngine
   
 	[% INCLUDE Status.tt step=sample status="finished" %]
 else

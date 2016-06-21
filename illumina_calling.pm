@@ -62,10 +62,6 @@ sub runVariantCalling {
         $command .= "-ploidy $opt{CALLING_PLOIDY} ";
     }
 
-    if($opt{QUEUE_RETRY} eq 'yes'){
-        $command  .= "-retry 1 ";
-    }
-
     $command .= "-run";
 
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/VariantCalling_".$jobID.".sh";

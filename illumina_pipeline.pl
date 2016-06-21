@@ -322,7 +322,6 @@ sub checkConfig{
         if(! $opt{REALIGNMENT_MERGETHREADS}){ print "ERROR: No REALIGNMENT_MERGETHREADS option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{REALIGNMENT_SCALA}){ print "ERROR: No REALIGNMENT_SCALA option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{REALIGNMENT_SCATTER}){ print "ERROR: No REALIGNMENT_SCATTER option found in config files.\n"; $checkFailed = 1; }
-        if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
@@ -349,7 +348,6 @@ sub checkConfig{
         if(! $opt{CALLING_STANDEMITCONF}){ print "ERROR: No CALLING_STANDEMITCONF option found in config files.\n"; $checkFailed = 1; }
         if( $opt{CALLING_TARGETS} && ! -e $opt{CALLING_TARGETS}) { print"ERROR: $opt{CALLING_TARGETS} does Not exist\n"; $checkFailed = 1; }
         if( $opt{CALLING_DBSNP} && ! -e $opt{CALLING_DBSNP}) { print"ERROR: $opt{CALLING_DBSNP} does Not exist\n"; $checkFailed = 1; }
-        if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
     }
 
     ## FILTER_VARIANTS
@@ -370,7 +368,6 @@ sub checkConfig{
         if(! $opt{FILTER_INDELTYPES}){ print "ERROR: No FILTER_INDELTYPES option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FILTER_INDELNAME}){ print "ERROR: No FILTER_INDELNAME option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FILTER_INDELEXPR}){ print "ERROR: No FILTER_INDELEXPR option found in config files.\n"; $checkFailed = 1; }
-        if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
     }
 
     ## SOMATIC_VARIANTS

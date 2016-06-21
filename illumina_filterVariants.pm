@@ -61,10 +61,6 @@ sub runFilterVariants {
 		$command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
 	}
 
-    if($opt{QUEUE_RETRY} eq 'yes'){
-        $command  .= "-retry 1 ";
-    }
-
     $command .= "-run";
 
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/FilterVariants_".$jobID.".sh";
