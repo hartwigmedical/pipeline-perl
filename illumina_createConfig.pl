@@ -1,9 +1,4 @@
 #!/usr/bin/perl -w
-###################################################
-### illumina_createConfig.pl
-### - Creates a config file based on user input
-### Author: R.F.Ernst
-###################################################
 
 use strict;
 use Cwd            qw( abs_path );
@@ -11,13 +6,8 @@ use File::Basename qw( dirname );
 use Getopt::Long;
 use File::Path qw(make_path);
 
-### Variables ###
 my $settingsDir = dirname(abs_path($0))."/settings";
 
-### Check usage ###
-#interactive() if @ARGV == 0;
-
-### Parse options ###
 my $iniFile;
 my $iniPath;
 my $ini;
@@ -42,7 +32,6 @@ or die usage();
 
 if ($help || ! ( $iniFile || $iniPath ) || ! $outputDir || ! (@fastqDirs || @bamDirs || $vcfFile ) || ! $mail ) { usage() }
 
-### Non interactive mode ###
 if ( $iniFile) {
     $ini = $settingsDir."/".$iniFile;
 } elsif ($iniPath) {
@@ -54,7 +43,6 @@ if ( ! -e $ini ) {
 }
 createConfig($ini,$outputDir,\@fastqDirs,\@bamDirs,$vcfFile,$mail,$run);
 
-### Parse and print available ini files ###
 sub getIniFiles{
     my $iniDir = shift;
     my @iniFiles;
@@ -72,7 +60,6 @@ sub getIniFiles{
     return(@iniFiles);
 }
 
-### Create config file ###
 sub createConfig {
     my $iniFile = $_[0];
     my $outputDir = $_[1];
@@ -95,54 +82,51 @@ sub createConfig {
     print CONFIG "MAIL\t$mail\n";
 
     if(@fastqDirs){
-	print CONFIG "\n### FASTQ FILES ###\n";
-	#Find fastq files for each rawDataDir
-	foreach my $fastqDir (@fastqDirs){
-	    if(! -e $fastqDir) { die "$fastqDir does not exist." }
-	    print CONFIG "# $fastqDir\n";
-	    my $query_one = $fastqDir."/*.fastq.gz "; # look in fastq folder
-	    my $query_two = $fastqDir."/*/*.fastq.gz "; # look one folder deep
-	    my $query_three = $fastqDir."/*/*/*.fastq.gz "; # look two folders deep
-	    my @fastqFiles = glob($query_one.$query_two.$query_three);
-	    foreach my $fastqFile (@fastqFiles){ print CONFIG "FASTQ\t$fastqFile\n" }
-	}
+        print CONFIG "\n### FASTQ FILES ###\n";
+        #Find fastq files for each rawDataDir
+        foreach my $fastqDir (@fastqDirs){
+            if(! -e $fastqDir) { die "$fastqDir does not exist." }
+            print CONFIG "# $fastqDir\n";
+            my $query_one = $fastqDir."/*.fastq.gz "; # look in fastq folder
+            my $query_two = $fastqDir."/*/*.fastq.gz "; # look one folder deep
+            my $query_three = $fastqDir."/*/*/*.fastq.gz "; # look two folders deep
+            my @fastqFiles = glob($query_one.$query_two.$query_three);
+            foreach my $fastqFile (@fastqFiles){ print CONFIG "FASTQ\t$fastqFile\n" }
+        }
     }
 
     if(@bamDirs){
-	print CONFIG "\n### BAM FILES###\n";
-	foreach my $bamDir (@bamDirs){
-	    if(! -e $bamDir) { die "$bamDir does not exist." }
-	    print CONFIG "# $bamDir\n";
-	    my $query_one = $bamDir."/*.bam "; # look in bam folder
-	    my $query_two = $bamDir."/*/*.bam "; # look one folder deep
-	    my @bamFiles = glob($query_one.$query_two);
-	    foreach my $bamFile (@bamFiles){
-		my $baiFile = $bamFile;
-		$baiFile =~ s/\.bam/.bai/;
-		if (! (-e $baiFile || -e "$bamFile.bai")) { die "ERROR: $bamFile.bai or $baiFile does not exist please create an index for $bamFile" }
-		print CONFIG "BAM\t$bamFile\n"
-	    }
-	}
+        print CONFIG "\n### BAM FILES###\n";
+        foreach my $bamDir (@bamDirs){
+            if(! -e $bamDir) { die "$bamDir does not exist." }
+            print CONFIG "# $bamDir\n";
+            my $query_one = $bamDir."/*.bam "; # look in bam folder
+            my $query_two = $bamDir."/*/*.bam "; # look one folder deep
+            my @bamFiles = glob($query_one.$query_two);
+            foreach my $bamFile (@bamFiles){
+            my $baiFile = $bamFile;
+            $baiFile =~ s/\.bam/.bai/;
+            if (! (-e $baiFile || -e "$bamFile.bai")) { die "ERROR: $bamFile.bai or $baiFile does not exist please create an index for $bamFile" }
+            print CONFIG "BAM\t$bamFile\n"
+            }
+        }
     }
 
     if($vcfFile){
-	print CONFIG "\n### VCF FILE###\n";
+	    print CONFIG "\n### VCF FILE###\n";
 	if(! -e $vcfFile) { die "$vcfFile does not exist." }
-	print CONFIG "VCF\t$vcfFile\n"
+	    print CONFIG "VCF\t$vcfFile\n"
     }
 
     close CONFIG;
 
-    ###Run pipeline if -run is specified 
     if($run) {
-	### run pipeline
-	my $pipeline = dirname(abs_path($0))."/illumina_pipeline.pl";
-	system "perl $pipeline $configFile";
+        my $pipeline = dirname(abs_path($0))."/illumina_pipeline.pl";
+        system "perl $pipeline $configFile";
     }
 }
 
-### Help information ###
-sub usage{
+sub usage {
     print "Usage: perl illumina_createConfig.pl\n\n";
     print "Advanced usage: \n";
     print "illumina_createConfig.pl (-i|-iniFile settings.ini OR -ip|-iniPath /path/to/settings.ini) -o|-outputDir /path/to/outputDir (-f|-fastqDir /fastqFolder OR -b|-bamDir /bamFolder OR -v|-vcfFile vcfFile.vcf) -m|-mail example\@mail.nl [-run]\n\n";
@@ -151,7 +135,6 @@ sub usage{
     exit;
 }
 
-### Interactive mode ###
 sub interactive{
     print "Using interactive mode \n";
     print "Avaible setting files:\n";
