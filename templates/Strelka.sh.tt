@@ -14,7 +14,7 @@ then
   [% INCLUDE Status.tt step="" status="processing" %]
 
   # Run Strelka
-  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
+  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.PIPELINE_PATH %]/[% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
 
   cd [% out_dir %]/strelka
   make -j 8
