@@ -11,7 +11,7 @@ use illumina_template;
 sub runPostStats {
     my $configuration = shift;
     my %opt = %{$configuration};
-    my @runningJobs; #internal job array
+    my @runningJobs;
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my $jobID = "PostStats_".get_job_id();
     my $jobIDCheck = "PostStats_Check_".get_job_id();

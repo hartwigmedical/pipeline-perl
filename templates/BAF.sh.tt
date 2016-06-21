@@ -45,7 +45,11 @@ if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %
 	cat [% output_dir %]/[% output_vcf %] | [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
 		--sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]'  \
 		--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
-  
+
+    mv [% output_baf %] [% output_dir %]
+  	touch [% log_dir %]/BAF_FILE_$sample.done
+  	echo "Finished Make BAF file    " `date` "   " `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+
 	[% INCLUDE Status.tt step="BAF_FILE" status="finished" %]
 else
 	echo "ERROR: Sample BAF vcf and UG done file do not exist." >&2
