@@ -14,7 +14,6 @@ use illumina_prestats;
 use illumina_mapping;
 use illumina_poststats;
 use illumina_realign;
-use illumina_baseRecal;
 use illumina_calling;
 use illumina_filterVariants;
 use illumina_somaticVariants;
@@ -43,83 +42,61 @@ my $configurationFile;
 $configurationFile = $ARGV[0];
 
 open (CONFIGURATION, "<$configurationFile") or die "Couldn't open .conf file: $configurationFile\n";
-while(<CONFIGURATION>){
+while(<CONFIGURATION>) {
     chomp;
     next if m/^#/ or ! $_;
     my ($key, $val) = split("\t",$_,2);
-    #parse ini file
+
     if($key eq 'INIFILE') {
-	$opt{$key} = $val;
-	open (INI, "<$val") or die "Couldn't open .ini file $val\n";
-	while(<INI>){
-	    chomp;
-	    next if m/^#/ or ! $_;
-	    my ($key, $val) = split("\t",$_,2);
-	    $opt{$key} = $val;
-	}
-	close INI;
-    #parse other config attributes
-    } elsif($key eq 'FASTQ' || $key eq 'BAM') {
+        $opt{$key} = $val;
+        open (INI, "<$val") or die "Couldn't open .ini file $val\n";
+        while(<INI>) {
+            chomp;
+            next if m/^#/ or ! $_;
+            my ($key, $val) = split("\t",$_,2);
+            $opt{$key} = $val;
+        }
+        close INI;
+    } elsif ($key eq 'FASTQ') {
         $opt{$key}->{$val} = 1;
     } else {
         $opt{$key} = $val;
     }
-
 }
 close CONFIGURATION;
 
 ############ START PIPELINE  ############
 
-### Check config file
 checkConfig();
-
-###Parse samples from FASTQ or BAM files
 getSamples();
 createOutputDirs();
 
-### Copy ini file to logs dir
 system "cp $opt{INIFILE} $opt{OUTPUT_DIR}/logs";
 
-### Start pipeline components
 my $opt_ref;
 
-### Mapping or bam input
-if( $opt{FASTQ} ){
-    if($opt{PRESTATS} eq "yes"){
-	print "###SCHEDULING PRESTATS###\n";
-	illumina_prestats::runPreStats(\%opt);
+if( $opt{FASTQ} ) {
+    if($opt{PRESTATS} eq "yes") {
+        print "###SCHEDULING PRESTATS###\n";
+        illumina_prestats::runPreStats(\%opt);
     }
 
-    if($opt{MAPPING} eq "yes"){
-	print "\n###SCHEDULING MAPPING###\n";
-	$opt_ref = illumina_mapping::runMapping(\%opt);
-	%opt = %$opt_ref;
+    if ($opt{MAPPING} eq "yes") {
+        print "\n###SCHEDULING MAPPING###\n";
+        $opt_ref = illumina_mapping::runMapping(\%opt);
+        %opt = %$opt_ref;
     }
 
-} if( $opt{BAM} ) {
-    print "\n###SCHEDULING BAM PREP###\n";
-    $opt_ref = illumina_mapping::runBamPrep(\%opt);
-    %opt = %$opt_ref;
-}
-
-### Post mapping
-if(! $opt{VCF} ){
-    if($opt{POSTSTATS} eq "yes"){
-	print "\n###SCHEDULING POSTSTATS###\n";
-	my $postStatsJob = illumina_poststats::runPostStats(\%opt);
-	$opt{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
+    if($opt{POSTSTATS} eq "yes") {
+        print "\n###SCHEDULING POSTSTATS###\n";
+        my $postStatsJob = illumina_poststats::runPostStats(\%opt);
+        $opt{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
     }
 
-    if($opt{INDELREALIGNMENT} eq "yes"){
-	print "\n###SCHEDULING INDELREALIGNMENT###\n";
-	$opt_ref = illumina_realign::runRealignment(\%opt);
-	%opt = %$opt_ref;
-    }
-
-    if($opt{BASEQUALITYRECAL} eq "yes"){
-	print "\n###SCHEDULING BASERECALIBRATION###\n";
-	$opt_ref = illumina_baseRecal::runBaseRecalibration(\%opt);
-	%opt = %$opt_ref;
+    if($opt{INDELREALIGNMENT} eq "yes") {
+        print "\n###SCHEDULING INDELREALIGNMENT###\n";
+        $opt_ref = illumina_realign::runRealignment(\%opt);
+        %opt = %$opt_ref;
     }
 
 ### Variant Caller
@@ -296,7 +273,6 @@ sub checkConfig{
     if(! $opt{MAPPING}){ print "ERROR: No MAPPING option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{POSTSTATS}){ print "ERROR: No POSTSTATS option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{INDELREALIGNMENT}){ print "ERROR: No INDELREALIGNMENT option found in config files. \n"; $checkFailed = 1; }
-    if(! $opt{BASEQUALITYRECAL}){ print "ERROR: No BASEQUALITYRECAL option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{VARIANT_CALLING}){ print "ERROR: No VARIANT_CALLING option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{FILTER_VARIANTS}){ print "ERROR: No FILTER_VARIANTS option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{SOMATIC_VARIANTS}){ print "ERROR: No SOMATIC_VARIANTS option found in config files. \n"; $checkFailed = 1; }
@@ -386,24 +362,7 @@ sub checkConfig{
 	if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
 	if(! $opt{FLAGSTAT_TIME}){ print "ERROR: No FLAGSTAT_TIME option found in config files.\n"; $checkFailed = 1; }
     }
-    ## BASEQUALITYRECAL
-    if($opt{BASEQUALITYRECAL} eq "yes"){
-	if(! $opt{BASERECALIBRATION_MASTER_QUEUE}){ print "ERROR: No BASERECALIBRATION_MASTER_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_MASTER_TIME}){ print "ERROR: No BASERECALIBRATION_MASTER_TIME option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_MASTER_THREADS}){ print "ERROR: No BASERECALIBRATION_MASTER_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_MASTER_MEM}){ print "ERROR: No BASERECALIBRATION_MASTER_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_QUEUE}){ print "ERROR: No BASERECALIBRATION_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_THREADS}){ print "ERROR: No BASERECALIBRATION_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_MEM}){ print "ERROR: No BASERECALIBRATION_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_TIME}){ print "ERROR: No BASERECALIBRATION_TIME option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_SCALA}){ print "ERROR: No BASERECALIBRATION_SCALA option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{BASERECALIBRATION_SCATTER}){ print "ERROR: No BASERECALIBRATION_SCATTER option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{QUEUE_RETRY}){ print "ERROR: No QUEUE_RETRY option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{FLAGSTAT_TIME}){ print "ERROR: No FLAGSTAT_TIME option found in config files.\n"; $checkFailed = 1; }
-    }
+
     ## VARIANT_CALLING
     if($opt{VARIANT_CALLING} eq "yes"){
 	if(! $opt{CALLING_MASTER_QUEUE}){ print "ERROR: No CALLING_MASTER_QUEUE option found in config files.\n"; $checkFailed = 1; }

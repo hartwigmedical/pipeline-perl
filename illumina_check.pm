@@ -73,15 +73,6 @@ sub runCheck {
 		print BASH "\tfailed=true\n";
 		print BASH "fi\n";
 	    }
-	    if($opt{BASEQUALITYRECAL} eq "yes"){
-		$doneFile = $opt{OUTPUT_DIR}."/$sample/logs/BaseRecalibration_$sample.done";
-		print BASH "if [ -f $doneFile ]; then\n";
-		print BASH "\techo \"\t Base recalibration: done \" >>$logFile\n";
-		print BASH "else\n";
-		print BASH "\techo \"\t Base recalibration: failed \">>$logFile\n";
-		print BASH "\tfailed=true\n";
-		print BASH "fi\n";
-	    }
 	    if($opt{BAF} eq "yes"){
 		$doneFile = $opt{OUTPUT_DIR}."/$sample/logs/BAF_$sample.done";
 		print BASH "if [ -f $doneFile ]; then\n";
