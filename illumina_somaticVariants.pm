@@ -1,14 +1,5 @@
 #!/usr/bin/perl -w
 
-#########################################################
-### illumina_somaticVariants.pm
-### - Run somatic variant callers
-###   - Varscan, Strelka, FreeBayes
-### - Merge and annotate somatic high confidence calls.
-###
-### Author: R.F.Ernst & H.H.D.Kerstens
-#########################################################
-
 package illumina_somaticVariants;
 
 use strict;
@@ -475,7 +466,7 @@ sub runMutect {
     }
     if(! -e $mutect_tmp_dir){
       make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
-    }\
+    }
 
     ## Skip Mutect if .done file exist
     if (-e "$log_dir/mutect.done"){
