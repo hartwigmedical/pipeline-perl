@@ -3,7 +3,6 @@
 use strict;
 use POSIX qw(tmpnam);
 use Getopt::Long;
-use FindBin;
 use File::Path qw(make_path);
 use File::Copy qw(copy);
 use Cwd qw( abs_path );

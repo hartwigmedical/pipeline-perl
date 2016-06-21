@@ -4,7 +4,6 @@ package illumina_poststats;
 
 use strict;
 use POSIX qw(tmpnam);
-use FindBin;
 use illumina_sge;
 use illumina_template;
 

@@ -1,9 +1,7 @@
-#
-# Copyright (c) Hindrik H.D. Kerstens and
-# UMC Utrecht. All rights reserved
-#
+#!/usr/bin/perl -w
 
 package illumina_sge;
+
 use strict;
 use warnings;
 

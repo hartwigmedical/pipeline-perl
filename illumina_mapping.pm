@@ -1,15 +1,5 @@
 #!/usr/bin/perl -w
 
-##################################################################################################################################################
-### illumina_mapping.pm
-### - Map illumina sequencing data using bwa-mem
-### - Use sambamba to merge lanes to a sample bam and mark duplicates.
-### - Generate flagstats after each step to check bam integrity.
-###
-### Authors: S.W.Boymans, R.F.Ernst, H.H.D.kerstens
-###
-##################################################################################################################################################
-
 package illumina_mapping;
 
 use strict;
