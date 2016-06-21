@@ -28,11 +28,13 @@ die usage() if @ARGV == 0;
 my %opt;
 my $configurationFile;
 
+# KODU - Do not use in .conf or .ini
 %opt = (
-    'RUNNING_JOBS'		=> {}, #do not use in .conf or .ini
-    'BAM_FILES'			=> {}, #do not use in .conf or .ini
-    'SAMPLES'			=> undef, #do not use in .conf or .ini
-    'PIPELINE_PATH'		=> dirname(abs_path($0)) # current pipeline root directory
+    'RUNNING_JOBS'		=> {},
+    'BAM_FILES'			=> {},
+    'SAMPLES'			=> undef,
+    'PIPELINE_PATH'		=> dirname(abs_path($0)),
+    'SINGLE_END'        => undef
 );
 
 ############ READ RUN SETTINGS FORM .conf FILE ############
@@ -307,12 +309,6 @@ sub checkConfig{
         if(! $opt{POSTSTATS_MEM}){ print "ERROR: No POSTSTATS_MEM option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{POSTSTATS_QUEUE}){ print "ERROR: No POSTSTATS_QUEUE option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{POSTSTATS_TIME}){ print "ERROR: No POSTSTATS_TIME option found in config files.\n"; $checkFailed = 1; }
-        if(! ($opt{POSTSTATS_TARGETS}) && ! ($opt{POSTSTATS_BAITS}) ){
-            if(! $opt{POSTSTATS_COVERAGECAP}){ print "ERROR: No POSTSTATS_COVERAGECAP or (POSTSTATS_TARGETS & POSTSTATS_BAITS) options found in config files.\n"; $checkFailed = 1; }
-        }
-        if( $opt{POSTSTATS_TARGETS} && ! -e $opt{POSTSTATS_TARGETS}){ print "ERROR: $opt{POSTSTATS_TARGETS} does Not exist\n"; $checkFailed = 1; }
-        if( $opt{POSTSTATS_BAITS} && ! -e $opt{POSTSTATS_BAITS}){ print "ERROR: $opt{POSTSTATS_BAITS} does Not exist\n"; $checkFailed = 1; }
-        if(! $opt{EXONCALLCOV}){ print "ERROR: No EXONCALLCOV option found in config files.\n"; $checkFailed = 1; }
     }
 
     ## INDELREALIGNMENT
