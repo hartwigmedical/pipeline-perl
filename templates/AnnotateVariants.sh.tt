@@ -14,7 +14,6 @@ cd [% opt.OUTPUT_DIR %]
 echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-### SnpEff prediction and annotation
 
 	[% outvcf = invcf %]
 	[% outvcf = outvcf.replace('.vcf', '_snpEff.vcf') %]
@@ -37,7 +36,6 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 [% END %]
 
 [% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
-### SnpSift DBNSFP, add annotation from multiple sources
 	[% outvcf = invcf %]
 	[% outvcf = outvcf.replace('.vcf', '_snpSift.vcf') %]
 
@@ -63,7 +61,6 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 [% END %]
 
 [% IF opt.ANNOTATE_IDFIELD == 'yes' %]
-### Add ID from a vcf, for example Cosmic
 	[% outvcf = invcf %]
 	[% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]
@@ -88,7 +85,6 @@ echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUT
 [% END %]
 
 [% IF opt.ANNOTATE_FREQUENCIES == 'yes' %]
-### Add frequencies from a vcf, for example GoNL
 	[% outvcf = invcf %]
 	[% suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' %]
 	[% outvcf = outvcf.replace('.vcf', suffix) %]

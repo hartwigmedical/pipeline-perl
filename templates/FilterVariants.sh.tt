@@ -23,31 +23,13 @@ else
 	[% INCLUDE Status.tt step="" status="failed" %]
 fi
 
-[% IF opt.FILTER_MODE == 'yes' %]
-	if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_snps.vcf.done ]; then
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_snps.vcf [% opt.OUTPUT_DIR %]/
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_snps.vcf.idx [% opt.OUTPUT_DIR %]/
-		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
-    
-  	[% INCLUDE Status.tt step="" status="success" %]
-	fi
-[% ELSIF opt.FILTER_MODE == 'INDEL' %]
-	if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_indels.vcf.done ]; then
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_indels.vcf [% opt.OUTPUT_DIR %]/
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_indels.vcf.idx [% opt.OUTPUT_DIR %]/
-		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
-    
-  	[% INCLUDE Status.tt step="" status="success" %]
-	fi
-[% ELSIF opt.FILTER_MODE == 'BOTH' %]
-	if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; then
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf [% opt.OUTPUT_DIR %]/
-		mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf.idx [% opt.OUTPUT_DIR %]/
-		touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
-    
-  	[% INCLUDE Status.tt step="" status="success" %]
-	fi
-[% END %]
+if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; then
+    mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf [% opt.OUTPUT_DIR %]/
+    mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf.idx [% opt.OUTPUT_DIR %]/
+    touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
+
+    [% INCLUDE Status.tt step="" status="success" %]
+fi
 
 echo "End variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 

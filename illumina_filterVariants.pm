@@ -39,49 +39,46 @@ sub runFilterVariants {
     $command .= "-jobQueue $opt{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/VariantFilter.jobReport.txt ";
 
     ### Common settings
-    $command .= "-S $opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} -mode $opt{FILTER_MODE} ";
+    $command .= "-S $opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} -mode both ";
 
-    ### Mode dependent settings
-    if ($opt{FILTER_MODE} eq "SNP" || $opt{FILTER_MODE} eq "BOTH") {
 	my @SNPFilterNames = split("\t",$opt{FILTER_SNPNAME});
 	my @SNPFilterExprs = split("\t",$opt{FILTER_SNPEXPR});
 	my @snpTypes = split(",",$opt{FILTER_SNPTYPES});
 
 	## Add SNP Types
 	foreach my $snpType (@snpTypes){
-	    $command.= "-snpType $snpType ";
+		$command.= "-snpType $snpType ";
 	}
 
 	## SNP Filter Settings
 	if (scalar(@SNPFilterNames) ne scalar(@SNPFilterExprs)) {
-	    die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length.";
+		die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length.";
 	}
 	foreach my $i (0 .. scalar(@SNPFilterNames)-1 ){
-	    $command .= "-snpFilterName $SNPFilterNames[$i] -snpFilterExpression \"$SNPFilterExprs[$i]\" ";
+		$command .= "-snpFilterName $SNPFilterNames[$i] -snpFilterExpression \"$SNPFilterExprs[$i]\" ";
 	}
 	if ($opt{FILTER_CLUSTERSIZE} and $opt{FILTER_CLUSTERWINDOWSIZE}){
-	    $command .= "-cluster $opt{FILTER_CLUSTERSIZE} -window $opt{FILTER_CLUSTERWINDOWSIZE} ";
+		$command .= "-cluster $opt{FILTER_CLUSTERSIZE} -window $opt{FILTER_CLUSTERWINDOWSIZE} ";
 	}
-    }
+	}
 
-    if ($opt{FILTER_MODE} eq "INDEL" || $opt{FILTER_MODE} eq "BOTH") {
 	my @INDELFilterNames = split("\t",$opt{FILTER_INDELNAME});
 	my @INDELFilterExprs = split("\t",$opt{FILTER_INDELEXPR});
 	my @indelTypes = split(",",$opt{FILTER_INDELTYPES});
 
 	## Add SNP Types
 	foreach my $indelType (@indelTypes){
-	    $command.= "-indelType $indelType ";
+		$command.= "-indelType $indelType ";
 	}
 
 	if (scalar(@INDELFilterNames) ne scalar(@INDELFilterExprs)) {
-	    die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length.";
+		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length.";
 	}
 
 	foreach my $i (0 .. scalar(@INDELFilterNames)-1 ){
-	    $command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
+		$command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
 	}
-    }
+
     ### retry option
     if($opt{QUEUE_RETRY} eq 'yes'){
         $command  .= "-retry 1 ";
@@ -99,7 +96,6 @@ sub runFilterVariants {
 	if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
 	    push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
 	}
-    }
 
     ### Start main bash script
     my $qsub = &qsubJava(\%opt,"FILTER_MASTER");

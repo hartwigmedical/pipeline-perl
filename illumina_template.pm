@@ -1,12 +1,5 @@
 #!/usr/bin/perl -w
 
-###################################
-### illumina_template.pm
-### - Use templates to generate files
-###
-### Author: awolfs@schubergphilis.com
-###################################
-
 package illumina_template;
 require Exporter;
 @ISA = qw(Exporter);
