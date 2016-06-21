@@ -4,6 +4,7 @@ use strict;
 use POSIX qw(tmpnam);
 use Getopt::Long;
 use File::Path qw(make_path);
+use FindBin;
 use File::Copy qw(copy);
 use Cwd qw( abs_path );
 use File::Basename qw( dirname );
