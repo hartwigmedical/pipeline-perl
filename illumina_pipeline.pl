@@ -1,14 +1,5 @@
 #!/usr/bin/perl -w
-##########################################
-### illumina_pipeline.pl
-### - Main pipeline script
-### - Read and check config and ini file
-### - Start selected modules
-###
-### Author: S.W.Boymans & R.F.Ernst
-##########################################
 
-### Load common perl modules ####
 use strict;
 use POSIX qw(tmpnam);
 use Getopt::Long;
@@ -18,8 +9,7 @@ use File::Copy qw(copy);
 use Cwd qw( abs_path );
 use File::Basename qw( dirname );
 
-### Load pipeline modules ####
-use lib "$FindBin::Bin"; #locates pipeline directory
+use lib "$FindBin::Bin";
 use illumina_prestats;
 use illumina_mapping;
 use illumina_poststats;
@@ -46,7 +36,7 @@ my $configurationFile;
     'RUNNING_JOBS'		=> {}, #do not use in .conf or .ini
     'BAM_FILES'			=> {}, #do not use in .conf or .ini
     'SAMPLES'			=> undef, #do not use in .conf or .ini
-    'IAP_PATH'			=> dirname(abs_path($0)) # current IAP root directory
+    'PIPELINE_PATH'		=> dirname(abs_path($0)) # current IAP root directory
 );
 
 ############ READ RUN SETTINGS FORM .conf FILE ############

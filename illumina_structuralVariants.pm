@@ -115,7 +115,7 @@ sub runDelly {
 	        print CONVERT "\t>&2 echo \"error\"\n";
 	        print CONVERT "else\n";
 	        print CONVERT "\t$opt{VCFTOOLS_PATH}/vcf-concat -f $delly_tmp_dir/$type\_vcf_files.txt | $opt{VCFTOOLS_PATH}/vcf-sort -c > $delly_tmp_dir/$runName\_$type.vcf\n";
-	        print CONVERT "\t$opt{IAP_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
+	        print CONVERT "\t$opt{PIPELINE_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
 	        print CONVERT "fi\n";
 		close CONVERT;
 		system "$qsub -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID -hold_jid ".join(",",@$jobIDs_chunks). " $convert_file";
@@ -192,7 +192,7 @@ sub runDelly {
 		    print CONVERT "#!/bin/bash\n\n";
 		    print CONVERT "TAIL=`tail -n 1 $logFile`\n";
     		    print CONVERT "if [[ \$TAIL =~ Done.\$ ]] ; then\n";
-    		    print CONVERT "\t$opt{IAP_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
+    		    print CONVERT "\t$opt{PIPELINE_PATH}/scripts/delly_TRA_convert.pl $delly_tmp_dir/$runName\_$type.vcf\n";
     		    print CONVERT "fi\n";
     		    close CONVERT;
 		    system "$qsub -o $delly_log_dir/$type\_CONVERT.out -e $delly_log_dir/$type\_CONVERT.err -N $jobID2 -hold_jid $jobID $convert_file";

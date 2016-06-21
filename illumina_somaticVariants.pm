@@ -200,7 +200,7 @@ sub runSomaticVariantCallers {
 		$invcf = $outvcf;
 		my $suffix = "_melted.vcf";
 		$outvcf =~ s/.vcf/$suffix/;
-		print MERGE_SH "python $opt{IAP_PATH}/scripts/melt_somatic_vcf.py -t $sample_tumor -v $invcf > $outvcf\n\n";
+		print MERGE_SH "python $opt{PIPELINE_PATH}/scripts/melt_somatic_vcf.py -t $sample_tumor -v $invcf > $outvcf\n\n";
 
 		## Check output files
 		print MERGE_SH "if [ \"\$(tail -n 1 $preAnnotateVCF | cut -f 1,2)\" = \"\$(tail -n 1 $outvcf | cut -f 1,2)\" -a -s $preAnnotateVCF -a -s $outvcf ]\n";
