@@ -449,7 +449,7 @@ sub runFreeBayes {
     $concat_command .= "> $sample_tumor_name.vcf";
 
     # Create bash script
-    from_template("FreebayesPP.sh.tt", "$bash_file", file_test => $file_test, concat_command => $concat_command, rm_command => $rm_command, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, freebayes_out_dir => $freebayes_out_dir, sample_tumor_name => $sample_tumor_name, log_dir => $log_dir, runName => $runName, opt => \%opt);
+    from_template("FreebayesPostProcess.sh.tt", "$bash_file", file_test => $file_test, concat_command => $concat_command, rm_command => $rm_command, sample_ref_bam => $sample_ref_bam, sample_tumor_bam => $sample_tumor_bam, freebayes_out_dir => $freebayes_out_dir, sample_tumor_name => $sample_tumor_name, log_dir => $log_dir, runName => $runName, opt => \%opt);
 
     ## Run job
     my $qsub = &qsubJava(\%opt,"FREEBAYES");
