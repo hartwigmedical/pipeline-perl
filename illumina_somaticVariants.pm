@@ -5,6 +5,7 @@ package illumina_somaticVariants;
 use strict;
 use POSIX qw(tmpnam);
 use File::Path qw(make_path);
+use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
