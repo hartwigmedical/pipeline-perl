@@ -6,5 +6,5 @@
 . [% opt.CLUSTER_PATH %]/settings.sh
 
 [% FOREACH qsub IN qsubOut %]
-[% qsub %]
+    [% qsub %]
 [% END %]
