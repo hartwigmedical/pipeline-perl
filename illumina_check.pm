@@ -167,24 +167,8 @@ sub runCheck {
 	    push( @runningJobs, @{$opt{RUNNING_JOBS}->{'CNV'}} );
 	}
     }
-    if($opt{SV_CALLING} eq "yes" && ! $opt{VCF}){
-	print BASH "echo \"SV calling:\" >>$logFile\n";
-	# per sv type done file check
-	my @svTypes = split/\t/, $opt{DELLY_SVTYPE};
-	foreach my $type (@svTypes){
-	    my $done_file = "$opt{OUTPUT_DIR}/DELLY/logs/DELLY_$type.done";
-	    print BASH "if [ -f $done_file ]; then\n";
-	    print BASH "\techo \"\t $type: done \" >>$logFile\n";
-	    print BASH "else\n";
-	    print BASH "\techo \"\t $type: failed \">>$logFile\n";
-	    print BASH "\tfailed=true\n";
-	    print BASH "fi\n";
-	}
-	if ( $opt{RUNNING_JOBS}->{'sv'} ){
-	    push( @runningJobs, @{$opt{RUNNING_JOBS}->{'sv'}} );
-	}
-    }
-    if($opt{FILTER_VARIANTS} eq "yes"){
+
+	if($opt{FILTER_VARIANTS} eq "yes"){
 	$doneFile = $opt{OUTPUT_DIR}."/logs/VariantFilter.done";
 	print BASH "if [ -f $doneFile ]; then\n";
 	print BASH "\techo \"Variant filter: done \" >>$logFile\n";
