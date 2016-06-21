@@ -115,18 +115,6 @@ sub runCheck {
 	    push( @runningJobs, $opt{RUNNING_JOBS}->{'postStats'} );
 	}
     }
-    if($opt{NIPT} eq "yes" && ! $opt{VCF}){
-	$doneFile = $opt{OUTPUT_DIR}."/logs/NIPT.done";
-	print BASH "if [ -f $doneFile ]; then\n";
-	print BASH "\techo \"NIPT: done \" >>$logFile\n";
-	print BASH "else\n";
-	print BASH "\techo \"NIPT: failed \">>$logFile\n";
-	print BASH "\tfailed=true\n";
-	print BASH "fi\n";
-	if ( $opt{RUNNING_JOBS}->{'nipt'} ){
-	    push( @runningJobs, $opt{RUNNING_JOBS}->{'nipt'} );
-	}
-    }
     if($opt{VARIANT_CALLING} eq "yes" && ! $opt{VCF}){
 	$doneFile = $opt{OUTPUT_DIR}."/logs/VariantCaller.done";
 	print BASH "if [ -f $doneFile ]; then\n";

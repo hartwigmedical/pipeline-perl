@@ -33,7 +33,6 @@ use illumina_structuralVariants;
 use illumina_baf;
 use illumina_annotateVariants;
 use illumina_vcfutils;
-use illumina_nipt;
 use illumina_check;
 
 ### Check correct usage
@@ -131,12 +130,6 @@ if(! $opt{VCF} ){
 	print "\n###SCHEDULING BASERECALIBRATION###\n";
 	$opt_ref = illumina_baseRecal::runBaseRecalibration(\%opt);
 	%opt = %$opt_ref;
-    }
-
-    if($opt{NIPT} eq "yes"){
-	print "\n###SCHEDULING NIPT###\n";
-	my $niptJob = illumina_nipt::runNipt(\%opt);
-	$opt{RUNNING_JOBS}->{'nipt'} = $niptJob;
     }
 
 ### Variant Caller
@@ -323,7 +316,6 @@ sub checkConfig{
     if(! $opt{BAF}){ print "ERROR: No BAF option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{ANNOTATE_VARIANTS}){ print "ERROR: No ANNOTATE_VARIANTS option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{VCF_UTILS}){ print "ERROR: No VCF_UTILS option found in config files. \n"; $checkFailed = 1; }
-    if(! $opt{NIPT}){ print "ERROR: No NIPT option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{CHECKING}){ print "ERROR: No CHECKING option found in config files. \n"; $checkFailed = 1; }
 
     ### Module Settings / tools
@@ -669,19 +661,6 @@ sub checkConfig{
 		}
 	    }
 	}
-    }
-    ## NIPT
-    if($opt{NIPT} eq "yes"){
-	if(! $opt{NIPT_MASTER_QUEUE}){ print "ERROR: No NIPT_MASTER_QUEUE found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_MASTER_TIME}){ print "ERROR: No NIPT_MASTER_TIME found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_MASTER_THREADS}){ print "ERROR: No NIPT_MASTER_TRHEADS found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_MASTER_MEM}){ print "ERROR: No NIPT_MASTER_MEM found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_QUEUE}){ print "ERROR: No NIPT_QUEUE found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_TIME}){ print "ERROR: No NIPT_TIME found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_THREADS}){ print "ERROR: No NIPT_THREADS found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_MEM}){ print "ERROR: No NIPT_MEM found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{CHROMATE_PATH}){ print "ERROR: No CHROMATE_PATH found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{NIPT_REFERENCESET}){ print "ERROR: No NIPT_REFERENCESET found in .ini file\n"; $checkFailed = 1; }
     }
 
     ## CHECKING
