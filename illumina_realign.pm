@@ -28,9 +28,15 @@ sub runRealignment {
 	    (my $realignedBai = $bam) =~ s/\.bam/\.realigned\.bai/;
 	    (my $realignedBamBai = $bam) =~ s/\.bam/\.realigned\.bam\.bai/;
 	    (my $realignedFlagstat = $bam) =~ s/\.bam/\.realigned\.flagstat/;
-	    (my $slicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
-	    (my $slicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
-	    $opt{BAM_FILES}->{$sample} = $realignedBam;
+
+        (my $healthCheckPreRealignSlicedBam = $bam) =~ s/\.bam/\.qc.prerealign.sliced\.bam/;
+        (my $healthCheckPreRealignSlicedBamBai = $bam) =~ s/\.bam/\.qc.prerealign.sliced\.bam\.bai/;
+        (my $healthCheckPostRealignSlicedBam = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam/;
+        (my $healthCheckPostRealignSlicedBamBai = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam\.bai/;
+        (my $cpctSlicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
+	    (my $cpctSlicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
+
+        $opt{BAM_FILES}->{$sample} = $realignedBam;
 
 	    print "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam\n";
 
@@ -54,7 +60,8 @@ sub runRealignment {
 			$knownIndelFiles = join(" ", @knownIndelFilesA);
 	    }
 
-		from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles, opt => \%opt, runName => $runName);
+		from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles,
+            healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam, healthCheckPreRealignSlicedBamBai => $healthCheckPreRealignSlicedBamBai, opt => \%opt, runName => $runName);
 
 	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
 	    if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
@@ -67,8 +74,8 @@ sub runRealignment {
 	    my $realignPostProcessScript = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDFS.".sh";
 
 	    from_template("RealignPostProcess.sh.tt", $realignPostProcessScript, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
-		    realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, slicedBam => $slicedBam, slicedBamBai => $slicedBamBai,
-            opt => \%opt, runName => $runName);
+		    realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, cpctSlicedBam => $cpctSlicedBam, cpctSlicedBamBai => $cpctSlicedBamBai,
+            healthCheckPostRealignSlicedBam => $healthCheckPostRealignSlicedBam, healthCheckPostRealignSlicedBamBai => $healthCheckPostRealignSlicedBamBai, opt => \%opt, runName => $runName);
 
 	    $qsub = &qsubTemplate(\%opt, "FLAGSTAT");
 	    system $qsub." -o ".$logDir."/RealignmentPostProcess_".$sample.".out -e ".$logDir."/RealignmentPostProcess_".$sample.".err -N ".$jobIDFS." -hold_jid ".$jobID." ".$realignPostProcessScript;

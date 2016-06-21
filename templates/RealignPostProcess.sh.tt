@@ -22,10 +22,14 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
         mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
         mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %]
         cp [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBamBai %]
-        [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
-        [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% slicedBamBai %]
-		mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.txt [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.txt
-		mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.pdf
+        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.txt [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.txt
+        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealigner.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealigner.jobreport.pdf
+
+        [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBamBai %]
+        [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBamBai %]
+
 		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 
   	    [% INCLUDE Status.tt step=sample status="success" %]
