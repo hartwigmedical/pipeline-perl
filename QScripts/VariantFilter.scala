@@ -5,7 +5,7 @@ import org.broadinstitute.gatk.queue.extensions.gatk._
 import htsjdk.variant.variantcontext.VariantContext.Type
 import org.broadinstitute.gatk.utils.variant.GATKVariantContextUtils
 
-class HardFilter extends QScript {
+class VariantFilter extends QScript {
     // Create an alias 'qscript' to be able to access variables in the HardFilter.
     // 'qscript' is now the same as 'HardFilter.this'
     qscript =>

@@ -475,36 +475,13 @@ sub runMutect {
     }
     if(! -e $mutect_tmp_dir){
       make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
-    }
+    }\
 
     ## Skip Mutect if .done file exist
     if (-e "$log_dir/mutect.done"){
       print "WARNING: $log_dir/mutect.done, skipping \n";
       return;
     }
-
-    ## Build Queue command
-    ## wait for GATK-MuTect integration, see http://gatkforums.broadinstitute.org/discussion/comment/24614#Comment_24614
-    #my $command = "java -Xmx".$javaMem."G -Xms".$opt{MUTECT_MASTERMEM}."G -jar $opt{QUEUE_PATH}/Queue.jar ";
-    #$command .= "-jobQueue $opt{MUTECT_QUEUE} -jobNative \"-pe threaded $opt{MUTECT_THREADS} -P $opt{CLUSTER_PROJECT}\" -jobRunner GridEngine -jobReport $log_dir/mutect.jobReport.txt "; #Queue options
-    #$command .= "-S $opt{MUTECT_SCALA} ";
-    #$command .= "-R $opt{GENOME} -O $sample_tumor_name -mem $opt{MUTECT_MEM} -nsc $opt{MUTECT_SCATTER} ";
-    #$command .= "-tb $sample_tumor_bam -nb $sample_ref_bam ";
-    #$command .= "-D $opt{CALLING_DBSNP} -C $opt{MUTECT_COSMIC} ";
-
-    ### Optional settings
-    #if ( $opt{SOMVAR_TARGETS} ) {
-      #$command .= "-L $opt{SOMVAR_TARGETS} ";
-      #if ( $opt{CALLING_INTERVALPADDING} ) {
-        #$command .= "-ip $opt{CALLING_INTERVALPADDING} ";
-      #}
-    #}
-    #if($opt{QUEUE_RETRY} eq 'yes'){
-      #$command  .= "-retry 1 ";
-    #}
-
-    ## Set run option
-    #$command .= "-run";
 
     ### Run mutect per chromosome
     my $dictFile = $opt{GENOME};
