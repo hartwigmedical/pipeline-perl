@@ -64,14 +64,14 @@ sub runRealignment {
 	    }
 
 	    my $jobIDFS = "RealignFS_".$sample."_".get_job_id();
-	    my $bashFileFS = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDFS.".sh";
+	    my $realignPostProcessScript = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDFS.".sh";
 
-	    from_template("RealignFS.sh.tt", $bashFileFS, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
-		realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, opt => \%opt, runName => $runName);
+	    from_template("RealignPostProcess.sh.tt", $realignPostProcessScript, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
+		    realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, slicedBam => $slicedBam, slicedBamBai => $slicedBamBai,
+            opt => \%opt, runName => $runName);
 
-	    ### Submit flagstat bash script
-	    $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
-	    system $qsub." -o ".$logDir."/RealignmentFS_".$sample.".out -e ".$logDir."/RealignmentFS_".$sample.".err -N ".$jobIDFS." -hold_jid ".$jobID." ".$bashFileFS;
+	    $qsub = &qsubTemplate(\%opt, "FLAGSTAT");
+	    system $qsub." -o ".$logDir."/RealignmentPostProcess_".$sample.".out -e ".$logDir."/RealignmentPostProcess_".$sample.".err -N ".$jobIDFS." -hold_jid ".$jobID." ".$realignPostProcessScript;
 
 	    push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobID);
 	    push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobIDFS);
