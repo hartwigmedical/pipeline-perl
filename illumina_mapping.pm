@@ -19,9 +19,6 @@ use illumina_sge;
 use illumina_template;
 
 sub runMapping {
-    ###
-    # Main mapping function, submits all separate mapping jobs.
-    ###
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
@@ -37,70 +34,64 @@ sub runMapping {
     print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $samples = {};
-    my @jobs_to_wait;
     my $toMap = {};
 
     ### Try to search for matching pairs in the input FASTQ files
-    foreach my $input (keys %{$opt{FASTQ}}){
-	if($input =~ m/\_R1/){
-	    my $pairName = $input;
-	    $pairName =~ s/\_R1/\_R2/;
-	    if(exists ($opt{FASTQ}->{$pairName})){
-		$toMap->{$input."#".$pairName} = 1;
-	    }else{
-		$toMap->{$input} = 1;
-	    }
-	}elsif($input =~ m/\_R2/){
-	    my $pairName = $input;
-	    $pairName =~ s/\_R2/\_R1/;
-	    if(exists ($opt{FASTQ}->{$pairName})){
-		$toMap->{$pairName."#".$input} = 1;
-	    }else{
-		$toMap->{$input} = 1;
-	    }
-	}
+    foreach my $input (keys %{$opt{FASTQ}}) {
+		if($input =~ m/\_R1/) {
+			my $pairName = $input;
+			$pairName =~ s/\_R1/\_R2/;
+			if(exists ($opt{FASTQ}->{$pairName})) {
+				$toMap->{$input."#".$pairName} = 1;
+			} else {
+				$toMap->{$input} = 1;
+			}
+		} elsif ($input =~ m/\_R2/) {
+			my $pairName = $input;
+			$pairName =~ s/\_R2/\_R1/;
+			if (exists ($opt{FASTQ}->{$pairName})) {
+				$toMap->{$pairName."#".$input} = 1;
+			} else {
+				$toMap->{$input} = 1;
+			}
+		}
     }
 
     foreach my $input (keys %{$toMap}){
-	my @files = split("#",$input);
-	my $R1 = undef;
+		my @files = split("#",$input);
+		my $R1 = undef;
         my $R2 = undef;
-	my $coreName = undef;
+		my $coreName = undef;
 
-	if(scalar(@files) == 2){
-	    print "Switching to paired end mode!\n";
-	    $R1 = $files[0];
-	    $R2 = $files[1];
-	    if($R1 !~ m/fastq.gz$/ or $R2 !~ m/fastq.gz$/){
-		die "ERROR: Invalid input files:\n\t$R1\n\t$R2\n";
-	    }
-	}elsif(scalar(@files) == 1){
-	    print "Switching to fragment mode!\n";
-	    $R1 = $files[0];
-	    $opt{SINGLE_END} = 1;
-	    if($R1 !~ m/fastq.gz$/){
-	        die "ERROR: Invalid input file:\n\t$R1\n";
-	    }
-	}else{
-	    die "ERROR: Invalid input pair: $input\n";
-	}
+		if (scalar(@files) == 2) {
+			print "Switching to paired end mode!\n";
+			$R1 = $files[0];
+			$R2 = $files[1];
+			if($R1 !~ m/fastq.gz$/ or $R2 !~ m/fastq.gz$/) {
+				die "ERROR: Invalid input files:\n\t$R1\n\t$R2\n";
+			}
+		} elsif (scalar(@files) == 1) {
+			print "Switching to fragment mode!\n";
+			$R1 = $files[0];
+			$opt{SINGLE_END} = 1;
+			if ($R1 !~ m/fastq.gz$/) {
+				die "ERROR: Invalid input file:\n\t$R1\n";
+			}
+		} else {
+			die "ERROR: Invalid input pair: $input\n";
+		}
 
-	$coreName = (split("/", $R1))[-1];
-	my ($sampleName, $flowcellID, $index, $lane, $tag) =  split("_", $coreName);
-	$coreName =~ s/\.fastq.gz//;
-	$coreName =~ s/\_R1//;
-	$coreName =~ s/\_R2//;
+		$coreName = (split("/", $R1))[-1];
+		my ($sampleName, $flowcellID, $index, $lane, $tag) =  split("_", $coreName);
+		$coreName =~ s/\.fastq.gz//;
+		$coreName =~ s/\_R1//;
+		$coreName =~ s/\_R2//;
 
-	my ($RG_PL, $RG_ID, $RG_LB, $RG_SM) = ('ILLUMINA', $coreName, $sampleName, $sampleName);
+		my ($RG_PL, $RG_ID, $RG_LB, $RG_SM) = ('ILLUMINA', $coreName, $sampleName, $sampleName);
 
-	if($opt{MARKDUP_LEVEL} eq "lane"){
-	    print "Creating $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam with:\n";
-	}elsif(($opt{MARKDUP_LEVEL} eq "no") || ($opt{MARKDUP_LEVEL} eq "sample")){
-	    print "Creating $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam with:\n";
-	}
+		print "Creating $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam with:\n";
 
-	## Submit mapping jobs per fastq (pair)
-	submitMappingJobs(\%opt,$QSUB, $samples, $sampleName, $coreName, $R1, $R2, $flowcellID);
+		submitMappingJobs(\%opt,$QSUB, $samples, $sampleName, $coreName, $R1, $R2, $flowcellID);
     }
 
     print "\n";
@@ -115,25 +106,18 @@ sub runMapping {
 	    push(@jobIds, $chunk->{'jobId'});
 	}
 
-	if(($opt{MARKDUP_LEVEL} eq "lane") || ($opt{MARKDUP_LEVEL} eq "sample")){
-	    $opt{BAM_FILES}->{$sample} = "$sample\_dedup.bam";
-	    print "Creating $opt{BAM_FILES}->{$sample}\n";
-	}elsif($opt{MARKDUP_LEVEL} eq "no"){
-	    $opt{BAM_FILES}->{$sample} = "$sample.bam";
-	    print "Creating $opt{BAM_FILES}->{$sample}\n";
-	}
+	$opt{BAM_FILES}->{$sample} = "$sample\_dedup.bam";
+	print "Creating $opt{BAM_FILES}->{$sample}\n";
 
-	### Skip mapping if dedup.done file already exists
 	if (-e "$opt{OUTPUT_DIR}/$sample/logs/Mapping_$sample.done"){
 	    print "\tWARNING: $opt{OUTPUT_DIR}/$sample/logs/Mapping_$sample.done exists, skipping\n";
 	    next;
-        }
+	}
 
 	my $jobId = "Merge_$sample\_".get_job_id();
 	push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobId);
 	my $bams = join(" ", @bamList);
 
-	### Create final merge script
 	from_template("Merge.sh.tt", "$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh", sample => $sample, bamList => \@bamList, bams => $bams, runName => $runName, opt => \%opt);
 
 	my $qsub = &qsubTemplate(\%opt,"MARKDUP");
@@ -167,11 +151,7 @@ sub submitMappingJobs{
     my $markdupFSJobId = "MarkDupFS_$coreName\_".get_job_id();
     my $cleanupJobId = "Clean_$coreName\_".get_job_id();
 
-    if($opt{MARKDUP_LEVEL} eq "lane"){
-	push(@{$samples->{$sampleName}}, {'jobId'=>$cleanupJobId, 'file'=>"$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam"});
-    }elsif(($opt{MARKDUP_LEVEL} eq "no") || ($opt{MARKDUP_LEVEL} eq "sample")){
-	push(@{$samples->{$sampleName}}, {'jobId'=>$cleanupJobId, 'file'=>"$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam"});
-    }
+    push(@{$samples->{$sampleName}}, {'jobId'=>$cleanupJobId, 'file'=>"$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam"});
 
     ###Skip mapping if coreName_sorted_dedup.done file already exists
     if (-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.done"){
@@ -232,22 +212,6 @@ sub submitMappingJobs{
 	print "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai exist and is not empty, skipping sorted bam index\n";
     }
 
-    ### Mark duplicates
-    if($opt{MARKDUP_LEVEL} eq "lane"){
-	if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam")) {
-	    open MARKDUP_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$markdupJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$markdupJobId.sh\n";
-	    print MARKDUP_SH "\#!/bin/sh\n\n";
-	    print MARKDUP_SH "cd $opt{OUTPUT_DIR}/$sampleName/mapping \n";
-	    print MARKDUP_SH "echo \"Start markdup\t\" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	    print MARKDUP_SH "$opt{SAMBAMBA_PATH}/sambamba markdup --overflow-list-size=$opt{MARKDUP_OVERFLOW_LIST_SIZE} --tmpdir=$opt{OUTPUT_DIR}/$sampleName/tmp/ -t $opt{MAPPING_THREADS} $coreName\_sorted.bam $coreName\_sorted_dedup.bam \n";
-	    print MARKDUP_SH "echo \"End markdup\t\" `date` \"\t$coreName\_sorted.bam\t\" `uname -n` >> $opt{OUTPUT_DIR}/$sampleName/logs/$sampleName.log\n";
-	    close MARKDUP_SH;
-	    my $qsub = &qsubTemplate(\%opt,"MAPPING");
-	    print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
-	    $markdupJobId," -hold_jid ",$indexJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$markdupJobId,".sh\n";
-	} else {
-	    print "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.bam exist and is not empty, skipping sort\n";
-	}
     ### Mark duplicates flagstat
 	if ((! -e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted_dedup.flagstat")){
 	    open FS3_SH,">$opt{OUTPUT_DIR}/$sampleName/jobs/$markdupFSJobId.sh" or die "Couldn't create $opt{OUTPUT_DIR}/$sampleName/jobs/$markdupFSJobId.sh\n";
