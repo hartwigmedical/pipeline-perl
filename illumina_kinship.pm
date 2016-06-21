@@ -4,7 +4,6 @@ package illumina_kinship;
 
 use strict;
 use POSIX qw(tmpnam);
-use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 

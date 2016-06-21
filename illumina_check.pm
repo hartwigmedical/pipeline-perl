@@ -5,7 +5,6 @@ package illumina_check;
 use strict;
 use POSIX qw(tmpnam);
 use FindBin;
-use lib "$FindBin::Bin";
 use illumina_sge;
 
 sub runCheck {

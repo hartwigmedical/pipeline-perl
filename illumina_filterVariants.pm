@@ -12,7 +12,6 @@ package illumina_filterVariants;
 
 use strict;
 use POSIX qw(tmpnam);
-use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
 use illumina_template;
 

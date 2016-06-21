@@ -1,22 +1,11 @@
 #!/usr/bin/perl -w
 
-##################################################################################################################################################
-### illumina_copyNumber.pm
-### - Run copy number tools
-###   - Contra and freec
-###   - Tow modes: sample_control (CPCT) & sample (WGS only)
-###
-### Author: R.F.Ernst & H.H.D.Kerstens
-##################################################################################################################################################
-
 package illumina_copyNumber;
 
 use strict;
 use POSIX qw(tmpnam);
 use File::Path qw(make_path);
-use lib "$FindBin::Bin"; #locates pipeline directory
 use illumina_sge;
-
 
 sub parseSamples {
     ###
@@ -28,22 +17,19 @@ sub parseSamples {
     my %somatic_samples;
 
     foreach my $sample (@{$opt{SAMPLES}}){
-	# Parse cpct samples based on expected naming
-	my ($cpct_name,$origin) = ($sample =~ /$opt{CNV_REGEX}/);
-	if ( (! $cpct_name) || (! $origin) ){
-	    print "WARNING: $sample is not passing copy number samplename parsing, skipping \n\n";
-	    next;
-	}
+		my ($cpct_name,$origin) = ($sample =~ /$opt{CNV_REGEX}/);
+		if ( (! $cpct_name) || (! $origin) ){
+			print "WARNING: $sample is not passing copy number samplename parsing, skipping \n\n";
+			next;
+		}
 
-	# Reference sample
-	if ($origin =~ m/R.*/){
-	    push(@{$somatic_samples{$cpct_name}{"ref"}},$sample);
-	}
+		if ($origin =~ m/R.*/){
+			push(@{$somatic_samples{$cpct_name}{"ref"}},$sample);
+		}
 
-	# Tumor samples
-	elsif ($origin =~ m/T.*/){
-	    push(@{$somatic_samples{$cpct_name}{"tumor"}},$sample);
-	}
+		elsif ($origin =~ m/T.*/){
+			push(@{$somatic_samples{$cpct_name}{"tumor"}},$sample);
+		}
     }
 
     $opt{SOMATIC_SAMPLES} = {%somatic_samples};
