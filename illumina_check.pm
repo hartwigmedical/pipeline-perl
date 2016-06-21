@@ -211,17 +211,18 @@ sub runCheck {
 	print BASH "\tfailed=true\n";
 	print BASH "fi\n";
     }
-    if($opt{VCF_UTILS} eq "yes"){
-	$doneFile = $opt{OUTPUT_DIR}."/logs/VCF_UTILS.done";
-	print BASH "if [ -f $doneFile ]; then\n";
-	print BASH "\techo \"VCF Utils: done \" >>$logFile\n";
-	print BASH "else\n";
-	print BASH "\techo \"VCF Utils: failed \">>$logFile\n";
-	print BASH "\tfailed=true\n";
-	print BASH "fi\n";
-	if ( $opt{RUNNING_JOBS}->{'VCF_UTILS'} ){
-	    push( @runningJobs, $opt{RUNNING_JOBS}->{'VCF_UTILS'} );
-	}
+
+    if($opt{KINSHIP} eq "yes"){
+		$doneFile = $opt{OUTPUT_DIR}."/logs/Kinship.done";
+		print BASH "if [ -f $doneFile ]; then\n";
+		print BASH "\techo \"Kinship: done \" >>$logFile\n";
+		print BASH "else\n";
+		print BASH "\techo \"Kinship: failed \">>$logFile\n";
+		print BASH "\tfailed=true\n";
+		print BASH "fi\n";
+		if ( $opt{RUNNING_JOBS}->{'KINSHIP'} ){
+			push( @runningJobs, $opt{RUNNING_JOBS}->{'KINSHIP'} );
+		}
     }
 
     ### Check failed variable and mail report

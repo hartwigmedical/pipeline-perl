@@ -32,7 +32,7 @@ use illumina_copyNumber;
 use illumina_structuralVariants;
 use illumina_baf;
 use illumina_annotateVariants;
-use illumina_vcfutils;
+use illumina_kinship;
 use illumina_check;
 
 ### Check correct usage
@@ -193,11 +193,10 @@ if($opt{ANNOTATE_VARIANTS} eq "yes"){
     }
 }
 
-### VCFUTILS step
-if($opt{VCF_UTILS} eq "yes"){
-    print "\n###SCHEDULING VCF UTILS Module Jobs####\n";
-    my $vcfutils_job = illumina_vcfutils::runVcfUtils(\%opt);
-    $opt{RUNNING_JOBS}->{'VCF_UTILS'} = $vcfutils_job;
+if($opt{KINSHIP} eq "yes"){
+    print "\n###SCHEDULING Kinship Jobs####\n";
+    my $kinship_job = illumina_kinship::runKinship(\%opt);
+    $opt{RUNNING_JOBS}->{'KINSHIP'} = $kinship_job;
 }
 
 if($opt{CHECKING} eq "yes"){
@@ -315,7 +314,7 @@ sub checkConfig{
     if(! $opt{SV_CALLING}){ print "ERROR: No SV_CALLING option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{BAF}){ print "ERROR: No BAF option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{ANNOTATE_VARIANTS}){ print "ERROR: No ANNOTATE_VARIANTS option found in config files. \n"; $checkFailed = 1; }
-    if(! $opt{VCF_UTILS}){ print "ERROR: No VCF_UTILS option found in config files. \n"; $checkFailed = 1; }
+    if(! $opt{KINSHIP}){ print "ERROR: No KINSHIP option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{CHECKING}){ print "ERROR: No CHECKING option found in config files. \n"; $checkFailed = 1; }
 
     ### Module Settings / tools
@@ -624,35 +623,32 @@ sub checkConfig{
 	    if(! $opt{ANNOTATE_FREQINFO}){ print "ERROR: No ANNOTATE_FREQINFO option found in config files.\n"; $checkFailed = 1; }
 	}
 	if(! $opt{ANNOTATE_IDFIELD}){ print "ERROR: No ANNOTATE_IDFIELD option found in config files.\n"; $checkFailed = 1; }
-	if($opt{ANNOTATE_IDFIELD} eq "yes"){
+	    if($opt{ANNOTATE_IDFIELD} eq "yes"){
 	    if(! $opt{ANNOTATE_IDNAME}){ print "ERROR: No ANNOTATE_IDNAME option found in config files.\n"; $checkFailed = 1; }
 	    if(! $opt{ANNOTATE_IDDB}){ print "ERROR: No ANNOTATE_IDDB option found in config files.\n"; $checkFailed = 1; }
 	}
     }
-    ## VCF_UTILS
-    if($opt{VCF_UTILS} eq "yes"){
-	if(! $opt{VCFUTILS_QUEUE}){ print "ERROR: No VCFUTILS_QUEUE found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{VCFUTILS_THREADS}){ print "ERROR: No VCFUTILS_THREADS found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{VCFUTILS_MEM}){ print "ERROR: No VCFUTILS_MEM found in .ini file\n"; $checkFailed = 1; }
-	if(! $opt{VCFUTILS_TIME}){ print "ERROR: No VCFUTILS_TIME option found in config files.\n"; $checkFailed = 1; }
-	if(! $opt{VCFUTILS_KINSHIP}){ print "ERROR: No VCFUTILS_KINSHIP found in .ini file\n"; $checkFailed = 1; }
-	if ( $opt{VCFUTILS_KINSHIP} eq "yes" ) {
-	    if(! $opt{PLINK_PATH}){ print "ERROR: No PLINK_PATH found in .ini file\n"; $checkFailed = 1; }
-	    if(! $opt{KING_PATH}){ print "ERROR: No KING_PATH found in .ini file\n"; $checkFailed = 1; }
-	    if(! $opt{VCFTOOLS_PATH}){ print "ERROR: No VCFTOOLS_PATH found in .ini file\n"; $checkFailed = 1; }
-	}
+    if($opt{KINSHIP} eq "yes") {
+        if(! $opt{KINSHIP_QUEUE}){ print "ERROR: No KINSHIP_QUEUE found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{KINSHIP_THREADS}){ print "ERROR: No KINSHIP_THREADS found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{KINSHIP_MEM}){ print "ERROR: No KINSHIP_MEM found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{KINSHIP_TIME}){ print "ERROR: No KINSHIP_TIME option found in config files.\n"; $checkFailed = 1; }
+        if(! $opt{PLINK_PATH}){ print "ERROR: No PLINK_PATH found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{KING_PATH}){ print "ERROR: No KING_PATH found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{VCFTOOLS_PATH}){ print "ERROR: No VCFTOOLS_PATH found in .ini file\n"; $checkFailed = 1; }
+    }
 
     ## CHECKING
-    if($opt{CHECKING} eq "yes"){
-	if(! $opt{CHECKING_QUEUE}){ print "ERROR: No CHECKING_QUEUE found in .ini file\n"; $checkFailed = 1; }
+    if($opt{CHECKING} eq "yes") {
+	    if(! $opt{CHECKING_QUEUE}){ print "ERROR: No CHECKING_QUEUE found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{CHECKING_THREADS}){ print "ERROR: No CHECKING_THREADS found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{CHECKING_MEM}){ print "ERROR: No CHECKING_MEM found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{CHECKING_TIME}){ print "ERROR: No CHECKING_TIME found in .ini file\n"; $checkFailed = 1; }
     }
 
     if ($checkFailed) { 
-	print "One or more options not found in config files.";
-	die;
+        print "One or more options not found in config files.";
+        die;
     }
 }
 
