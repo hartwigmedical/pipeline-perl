@@ -38,10 +38,10 @@ else
     ulimit -n 16000
 
     ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
-    [% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.bam
-    [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.bam mapping/[% sample %]_dedup.bai
+    [% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.tmp.bam
+    [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bai
     ### compute resource efficient alternative
-    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.bam > mapping/[% sample %]_dedup.flagstat
+    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam > mapping/[% sample %]_dedup.flagstat
             echo "End markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
 	[% INCLUDE Status.tt step=sample status="finished" %]
@@ -62,6 +62,9 @@ if [ -s mapping/[% sample %]_dedup.flagstat ]; then
 	if [ $FS1 -eq $TOTALREADS ]; then
 		rm mapping/[% sample %].bam 2>/dev/null
 		rm mapping/[% sample %].bai 2>/dev/null
+		mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
+        mv mapping/[% sample %]_dedup.tmp.bai mapping/[% sample %]_dedup.bai
+        mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
 		for i in $( find $PWD/mapping -name '*sorted.bam'); do
 			rm $i
 		done
