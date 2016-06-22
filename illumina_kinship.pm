@@ -55,9 +55,9 @@ sub runKinship {
 
     my $qsub = &qsubJava(\%opt, "KINSHIP");
     if (@runningJobs){
-	    system "$qsub -o $logDir/KINSHIP_$runName.out -e $logDir/KINSHIP_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	    system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-	    system "$qsub -o $logDir/KINSHIP_$runName.out -e $logDir/KINSHIP_$runName.err -N $jobID $bashFile";
+	    system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID $bashFile";
     }
 
     return $jobID;
