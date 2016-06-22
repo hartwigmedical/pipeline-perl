@@ -16,7 +16,7 @@ sub runFinalize {
     my @runningJobs;
 
     my $jobID = $runName."_".get_job_id();
-    my $bashFile = "$opt{OUTPUT_DIR}/jobs/check_".$jobID.".sh";
+    my $bashFile = "$opt{OUTPUT_DIR}/jobs/Finalize_".$jobID.".sh";
     open (BASH,">$bashFile") or die "ERROR: Couldn't create $bashFile\n";
     print BASH "\#!/bin/sh\n . $opt{CLUSTER_PATH}/settings.sh\n\n";
 
@@ -228,9 +228,9 @@ sub runFinalize {
 
     my $qsub = &qsubTemplate(\%opt, "FINALIZE");
     if (@runningJobs){
-		system "$qsub -o /dev/null -e /dev/null -N check_$jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+		system "$qsub -o /dev/null -e /dev/null -N Finalize_$jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-		system "$qsub -o /dev/null -e /dev/null -N check_$jobID $bashFile";
+		system "$qsub -o /dev/null -e /dev/null -N Finalize_$jobID $bashFile";
     }
 }
 
