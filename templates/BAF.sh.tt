@@ -45,7 +45,7 @@ if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %
 		--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
 
     mv [% output_baf %] [% output_dir %]
-  	touch [% log_dir %]/BAF_FILE_$sample.done
+  	touch [% log_dir %]/BAF_FILE_[% sample %].done
   	echo "Finished Make BAF file    " `date` "   " `uname -n` >> [% log_dir %]/BAF_[% sample %].log
 
 	[% INCLUDE Status.tt step="BAF_FILE" status="finished" %]
@@ -61,7 +61,7 @@ echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample 
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="processing" %]
   
-	Rscript [% opt.PIPELINE_PATH %]/scripts/makeBAFPlot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
+	Rscript [% opt.PIPELINE_PATH %]/scripts/makeBAFplot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
 else
 	echo "ERROR: Sample BAF file and baf file done file do not exist." >&2
 fi
