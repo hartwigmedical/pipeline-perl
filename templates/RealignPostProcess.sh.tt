@@ -27,8 +27,12 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
 
         [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
         [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBamBai %]
+
         [% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
         [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBamBai %]
+        [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.REALIGNMENT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedFlagstat %]
+
+        [% opt.BAMUTIL_PATH %]/bam diff --in1 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] --in2 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %]
 
 		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 
