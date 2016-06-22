@@ -13,7 +13,7 @@ sub runFilterVariants {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "FV_".get_job_id();
+    my $jobID = "FilterVariants_".get_job_id();
 
     if (-e "$opt{OUTPUT_DIR}/logs/VariantFilter.done"){
 		print "WARNING: $opt{OUTPUT_DIR}/logs/VariantFilter.done exists, skipping \n";
