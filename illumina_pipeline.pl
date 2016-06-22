@@ -21,7 +21,7 @@ use illumina_copyNumber;
 use illumina_baf;
 use illumina_annotateVariants;
 use illumina_kinship;
-use illumina_check;
+use illumina_finalize;
 
 die usage() if @ARGV == 0;
 
@@ -153,9 +153,9 @@ if( $opt{FASTQ} ) {
         $opt{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
     }
 
-    if($opt{CHECKING} eq "yes"){
-        print "\n###SCHEDULING CHECK AND CLEAN####\n";
-        illumina_check::runCheck(\%opt);
+    if($opt{FINALIZE} eq "yes"){
+        print "\n###SCHEDULING PIPELINE FINALIZE####\n";
+        illumina_finalize::runFinalize(\%opt);
     }
 }
 
@@ -263,7 +263,7 @@ sub checkConfig{
     if(! $opt{BAF}){ print "ERROR: No BAF option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{ANNOTATE_VARIANTS}){ print "ERROR: No ANNOTATE_VARIANTS option found in config files. \n"; $checkFailed = 1; }
     if(! $opt{KINSHIP}){ print "ERROR: No KINSHIP option found in config files. \n"; $checkFailed = 1; }
-    if(! $opt{CHECKING}){ print "ERROR: No CHECKING option found in config files. \n"; $checkFailed = 1; }
+    if(! $opt{FINALIZE}){ print "ERROR: No FINALIZE option found in config files. \n"; $checkFailed = 1; }
 
     ### Module Settings / tools
     if(! $opt{GENOME}){ print "ERROR: No GENOME option found in config files.\n"; $checkFailed = 1; }
@@ -501,6 +501,7 @@ sub checkConfig{
         }
     }
 
+    ## KINSHIP
     if($opt{KINSHIP} eq "yes") {
         if(! $opt{KINSHIP_QUEUE}){ print "ERROR: No KINSHIP_QUEUE found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{KINSHIP_THREADS}){ print "ERROR: No KINSHIP_THREADS found in .ini file\n"; $checkFailed = 1; }
@@ -511,12 +512,12 @@ sub checkConfig{
         if(! $opt{VCFTOOLS_PATH}){ print "ERROR: No VCFTOOLS_PATH found in .ini file\n"; $checkFailed = 1; }
     }
 
-    ## CHECKING
-    if($opt{CHECKING} eq "yes") {
-	    if(! $opt{CHECKING_QUEUE}){ print "ERROR: No CHECKING_QUEUE found in .ini file\n"; $checkFailed = 1; }
-        if(! $opt{CHECKING_THREADS}){ print "ERROR: No CHECKING_THREADS found in .ini file\n"; $checkFailed = 1; }
-        if(! $opt{CHECKING_MEM}){ print "ERROR: No CHECKING_MEM found in .ini file\n"; $checkFailed = 1; }
-        if(! $opt{CHECKING_TIME}){ print "ERROR: No CHECKING_TIME found in .ini file\n"; $checkFailed = 1; }
+    ## FINALIZE
+    if($opt{FINALIZE} eq "yes") {
+	    if(! $opt{FINALIZE_QUEUE}){ print "ERROR: No FINALIZE_QUEUE found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{FINALIZE_THREADS}){ print "ERROR: No FINALIZE_THREADS found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{FINALIZE_MEM}){ print "ERROR: No FINALIZE_MEM found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{FINALIZE_TIME}){ print "ERROR: No FINALIZE_TIME found in .ini file\n"; $checkFailed = 1; }
     }
 
     if ($checkFailed) { 

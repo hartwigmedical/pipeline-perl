@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package illumina_check;
+package illumina_finalize;
 
 use strict;
 use POSIX qw(tmpnam);
@@ -8,7 +8,7 @@ use lib "$FindBin::Bin";
 use FindBin;
 use illumina_sge;
 
-sub runCheck {
+sub runFinalize {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
@@ -226,7 +226,7 @@ sub runCheck {
     #Sleep to ensure that email is send from cluster.
     print BASH "sleep 5s \n";
 
-    my $qsub = &qsubTemplate(\%opt,"CHECKING");
+    my $qsub = &qsubTemplate(\%opt, "FINALIZE");
     if (@runningJobs){
 		system "$qsub -o /dev/null -e /dev/null -N check_$jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
