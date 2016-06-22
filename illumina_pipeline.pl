@@ -270,6 +270,7 @@ sub checkConfig{
     elsif(! -e $opt{GENOME}){ print"ERROR: $opt{GENOME} does Not exist\n"}
     if(! $opt{SAMBAMBA_PATH}){ print "ERROR: No SAMBAMBA_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{QUEUE_PATH}){ print "ERROR: No QUEUE_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{BAMUTIL_PATH}){ print "ERROR: No BAMUTIL_PATH option found in config files.\n"; $checkFailed = 1; }
 
     ## PRESTATS
     if($opt{PRESTATS} eq "yes"){
