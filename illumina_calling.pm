@@ -14,7 +14,7 @@ sub runVariantCalling {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @sampleBams;
     my @runningJobs;
-    my $jobID = "VC_".get_job_id();
+    my $jobID = "VariantCalling_".get_job_id();
 
     if (-e "$opt{OUTPUT_DIR}/logs/VariantCaller.done"){
 	    print "WARNING: $opt{OUTPUT_DIR}/logs/VariantCaller.done exists, skipping \n";
@@ -47,7 +47,6 @@ sub runVariantCalling {
         }
     }
 
-    ### Optional settings
     if ( $opt{CALLING_DBSNP} ) {
         $command .= "-D $opt{CALLING_DBSNP} ";
     }
