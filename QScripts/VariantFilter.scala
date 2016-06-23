@@ -106,6 +106,8 @@ class VariantFilter extends QScript {
       CombineVars.out = qscript.out + ".filtered_variants.vcf"
       CombineVars.assumeIdenticalSamples = true
 
+      add(selectSNP, SNPfilter)
+      add(selectINDEL, INDELfilter)
       add(CombineVars)
     }
 }
