@@ -20,7 +20,7 @@ sub runAnnotateVariants {
         return $jobID;
     }
 
-    my $invcf = $runName.".filtered_snps.vcf";
+    my $invcf = $runName.".filtered_variants.vcf";
     my $preAnnotateVCF = $invcf;
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
