@@ -94,16 +94,36 @@ sub runFinalize {
     }
 
     if($opt{VARIANT_CALLING} eq "yes"){
-		$doneFile = $opt{OUTPUT_DIR}."/logs/VariantCaller.done";
+		$doneFile = $opt{OUTPUT_DIR}."/logs/GermlineCaller.done";
 		print BASH "if [ -f $doneFile ]; then\n";
-		print BASH "\techo \"Variant caller: done \" >>$logFile\n";
+		print BASH "\techo \"Germline caller: done \" >>$logFile\n";
 		print BASH "else\n";
-		print BASH "\techo \"Variant caller: failed \">>$logFile\n";
+		print BASH "\techo \"Germline caller: failed \">>$logFile\n";
 		print BASH "\tfailed=true\n";
 		print BASH "fi\n";
     }
 
-    if($opt{SOMATIC_VARIANTS} eq "yes"){
+	if ($opt{FILTER_VARIANTS} eq "yes") {
+		$doneFile = $opt{OUTPUT_DIR}."/logs/GermlineFilter.done";
+		print BASH "if [ -f $doneFile ]; then\n";
+		print BASH "\techo \"Germline filter: done \" >>$logFile\n";
+		print BASH "else\n";
+		print BASH "\techo \"Germline filter: failed \">>$logFile\n";
+		print BASH "\tfailed=true\n";
+		print BASH "fi\n";
+	}
+
+	if ($opt{ANNOTATE_VARIANTS} eq "yes") {
+		$doneFile = $opt{OUTPUT_DIR}."/logs/GermlineAnnotation.done";
+		print BASH "if [ -f $doneFile ]; then\n";
+		print BASH "\techo \"Germline annotation: done \" >>$logFile\n";
+		print BASH "else\n";
+		print BASH "\techo \"Germline annotation: failed \">>$logFile\n";
+		print BASH "\tfailed=true\n";
+		print BASH "fi\n";
+	}
+
+	if($opt{SOMATIC_VARIANTS} eq "yes"){
 		print BASH "echo \"Somatic variants:\" >>$logFile\n";
 		foreach my $sample (keys(%{$opt{SOMATIC_SAMPLES}})){
 			foreach my $sample_tumor (@{$opt{SOMATIC_SAMPLES}{$sample}{'tumor'}}){
@@ -155,26 +175,6 @@ sub runFinalize {
 		if ( $opt{RUNNING_JOBS}->{'CNV'} ){
 			push( @runningJobs, @{$opt{RUNNING_JOBS}->{'CNV'}} );
 		}
-    }
-
-	if ($opt{FILTER_VARIANTS} eq "yes") {
-		$doneFile = $opt{OUTPUT_DIR}."/logs/VariantFilter.done";
-		print BASH "if [ -f $doneFile ]; then\n";
-		print BASH "\techo \"Variant filter: done \" >>$logFile\n";
-		print BASH "else\n";
-		print BASH "\techo \"Variant filter: failed \">>$logFile\n";
-		print BASH "\tfailed=true\n";
-		print BASH "fi\n";
-    }
-
-    if ($opt{ANNOTATE_VARIANTS} eq "yes") {
-		$doneFile = $opt{OUTPUT_DIR}."/logs/VariantAnnotation.done";
-		print BASH "if [ -f $doneFile ]; then\n";
-		print BASH "\techo \"Variant annotation: done \" >>$logFile\n";
-		print BASH "else\n";
-		print BASH "\techo \"Variant annotation: failed \">>$logFile\n";
-		print BASH "\tfailed=true\n";
-		print BASH "fi\n";
     }
 
     if ($opt{KINSHIP} eq "yes") {

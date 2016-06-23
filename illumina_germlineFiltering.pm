@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package illumina_filterVariants;
+package illumina_germlineFiltering;
 
 use strict;
 use POSIX qw(tmpnam);
@@ -13,16 +13,16 @@ sub runFilterVariants {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "FilterVariants_".get_job_id();
+    my $jobID = "GermlineFilter_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/VariantFilter.done"){
-		print "WARNING: $opt{OUTPUT_DIR}/logs/VariantFilter.done exists, skipping \n";
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done"){
+		print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping \n";
 		return $jobID;
     }
 
     my $command = "java -Xmx".$opt{FILTER_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
     my $jobNative = &jobNative(\%opt,"FILTER");
-    $command .= "-jobQueue $opt{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/VariantFilter.jobReport.txt ";
+    $command .= "-jobQueue $opt{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
 
     $command .= "-S $opt{PIPELINE_PATH}/$opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} ";
 
@@ -66,7 +66,7 @@ sub runFilterVariants {
 
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
-    from_template("FilterVariants.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
+    from_template("GermlineFiltering.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
 
     foreach my $sample (@{$opt{SAMPLES}}) {
         if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
@@ -76,10 +76,10 @@ sub runFilterVariants {
 
     my $qsub = &qsubJava( \%opt, "FILTER_MASTER" );
     if (@runningJobs) {
-        system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID -hold_jid ".join(
+        system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID -hold_jid ".join(
                 ",", @runningJobs )." $bashFile";
     } else {
-        system "$qsub -o $logDir/VariantFilter_$runName.out -e $logDir/VariantFilter_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID $bashFile";
     }
 
     return $jobID;

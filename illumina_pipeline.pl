@@ -14,12 +14,12 @@ use illumina_prestats;
 use illumina_mapping;
 use illumina_poststats;
 use illumina_realign;
-use illumina_calling;
-use illumina_filterVariants;
+use illumina_germlineCalling;
+use illumina_germlineFiltering;
+use illumina_germlineAnnotation;
 use illumina_somaticVariants;
 use illumina_copyNumber;
 use illumina_baf;
-use illumina_annotateVariants;
 use illumina_kinship;
 use illumina_finalize;
 
@@ -76,30 +76,30 @@ my $opt_ref;
 
 if ( $opt{FASTQ} ) {
     if ($opt{PRESTATS} eq "yes") {
-        print "###SCHEDULING PRESTATS###\n";
+        print "### SCHEDULING PRESTATS ###\n";
         illumina_prestats::runPreStats(\%opt);
     }
 
     if ($opt{MAPPING} eq "yes") {
-        print "\n###SCHEDULING MAPPING###\n";
+        print "\n### SCHEDULING MAPPING ###\n";
         $opt_ref = illumina_mapping::runMapping(\%opt);
         %opt = %$opt_ref;
     }
 
     if ($opt{POSTSTATS} eq "yes") {
-        print "\n###SCHEDULING POSTSTATS###\n";
+        print "\n### SCHEDULING POSTSTATS ###\n";
         my $postStatsJob = illumina_poststats::runPostStats(\%opt);
         $opt{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
     }
 
     if ($opt{INDELREALIGNMENT} eq "yes") {
-        print "\n###SCHEDULING INDELREALIGNMENT###\n";
+        print "\n### SCHEDULING INDELREALIGNMENT ###\n";
         $opt_ref = illumina_realign::runRealignment(\%opt);
         %opt = %$opt_ref;
     }
 
     if ($opt{SOMATIC_VARIANTS} eq "yes") {
-        print "\n###SCHEDULING SOMATIC VARIANT CALLERS####\n";
+        print "\n### SCHEDULING SOMATIC VARIANT CALLERS ####\n";
         $opt_ref = illumina_somaticVariants::parseSamples(\%opt);
         %opt = %$opt_ref;
 
@@ -108,7 +108,7 @@ if ( $opt{FASTQ} ) {
     }
 
     if ($opt{COPY_NUMBER} eq "yes") {
-        print "\n###SCHEDULING COPY NUMBER TOOLS####\n";
+        print "\n### SCHEDULING COPY NUMBER TOOLS ####\n";
         if($opt{CNV_MODE} eq "sample_control"){
             $opt_ref = illumina_copyNumber::parseSamples(\%opt);
             %opt = %$opt_ref;
@@ -118,20 +118,20 @@ if ( $opt{FASTQ} ) {
     }
 
     if ($opt{BAF} eq "yes") {
-        print "\n###SCHEDULING BAF ANALYSIS###\n";
+        print "\n### SCHEDULING BAF ANALYSIS ###\n";
         my $baf_jobs = illumina_baf::runBAF(\%opt);
         $opt{RUNNING_JOBS}->{'baf'} = $baf_jobs;
     }
 
     if ($opt{VARIANT_CALLING} eq "yes") {
-        print "\n###SCHEDULING VARIANT CALLING####\n";
-        $opt_ref = illumina_calling::runVariantCalling(\%opt);
+        print "\n### SCHEDULING VARIANT CALLING ####\n";
+        $opt_ref = illumina_germlineCalling::runVariantCalling(\%opt);
         %opt = %$opt_ref;
     }
 
     if ($opt{FILTER_VARIANTS} eq "yes") {
-        print "\n###SCHEDULING VARIANT FILTRATION####\n";
-        my $FVJob = illumina_filterVariants::runFilterVariants(\%opt);
+        print "\n### SCHEDULING VARIANT FILTRATION ####\n";
+        my $FVJob = illumina_germlineFiltering::runFilterVariants(\%opt);
 
         foreach my $sample (@{$opt{SAMPLES}}){
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $FVJob);
@@ -139,8 +139,8 @@ if ( $opt{FASTQ} ) {
     }
 
     if ($opt{ANNOTATE_VARIANTS} eq "yes") {
-        print "\n###SCHEDULING VARIANT ANNOTATION####\n";
-        my $AVJob = illumina_annotateVariants::runAnnotateVariants(\%opt);
+        print "\n### SCHEDULING VARIANT ANNOTATION ####\n";
+        my $AVJob = illumina_germlineAnnotation::runAnnotateVariants(\%opt);
 
         foreach my $sample (@{$opt{SAMPLES}}){
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $AVJob);
@@ -148,13 +148,13 @@ if ( $opt{FASTQ} ) {
     }
 
     if ($opt{KINSHIP} eq "yes") {
-        print "\n###SCHEDULING Kinship Jobs####\n";
+        print "\n### SCHEDULING KINSHIP ####\n";
         my $kinship_job = illumina_kinship::runKinship(\%opt);
         $opt{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
     }
 
     if ($opt{FINALIZE} eq "yes") {
-        print "\n###SCHEDULING PIPELINE FINALIZE####\n";
+        print "\n### SCHEDULING PIPELINE FINALIZE ####\n";
         illumina_finalize::runFinalize(\%opt);
     }
 }
@@ -197,27 +197,27 @@ sub createOutputDirs{
     }
 
     foreach my $sample (@{$opt{SAMPLES}}) {
-        if(! -e "$opt{OUTPUT_DIR}/$sample"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample"){
             mkdir("$opt{OUTPUT_DIR}/$sample") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample\n";
         }
 
-        if(! -e "$opt{OUTPUT_DIR}/$sample/mapping"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample/mapping") {
             mkdir("$opt{OUTPUT_DIR}/$sample/mapping") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample/mapping\n";
         }
 
-        if(! -e "$opt{OUTPUT_DIR}/$sample/QCStats"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample/QCStats") {
             mkdir("$opt{OUTPUT_DIR}/$sample/QCStats") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample/QCStats\n";
         }
 
-        if(! -e "$opt{OUTPUT_DIR}/$sample/jobs"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample/jobs") {
             mkdir("$opt{OUTPUT_DIR}/$sample/jobs") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample/jobs\n";
         }
 
-        if(! -e "$opt{OUTPUT_DIR}/$sample/logs"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample/logs") {
             mkdir("$opt{OUTPUT_DIR}/$sample/logs") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample/logs\n";
         }
 
-        if(! -e "$opt{OUTPUT_DIR}/$sample/tmp"){
+        if (! -e "$opt{OUTPUT_DIR}/$sample/tmp") {
             mkdir("$opt{OUTPUT_DIR}/$sample/tmp") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample/tmp\n";
         }
     }
@@ -236,7 +236,7 @@ sub get_job_id {
     return $id;
 }
 
-sub checkConfig{
+sub checkConfig {
     my $checkFailed = 0;
     my $runName = "";
     ### Input and Output

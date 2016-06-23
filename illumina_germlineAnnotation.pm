@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package illumina_annotateVariants;
+package illumina_germlineAnnotation;
 
 use strict;
 use POSIX qw(tmpnam);
@@ -13,10 +13,10 @@ sub runAnnotateVariants {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "AnnotateVariants_".get_job_id();
+    my $jobID = "GermlineAnnotation_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done"){
-        print "WARNING: $opt{OUTPUT_DIR}/logs/VariantAnnotation.done exists, skipping \n";
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done"){
+        print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping \n";
         return $jobID;
     }
 
@@ -25,7 +25,7 @@ sub runAnnotateVariants {
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
 
-    from_template("AnnotateVariants.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
+    from_template("GermlineAnnotation.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
 
     foreach my $sample (@{$opt{SAMPLES}}){
         if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
@@ -35,9 +35,9 @@ sub runAnnotateVariants {
 
     my $qsub = &qsubJava(\%opt, "ANNOTATE");
     if (@runningJobs) {
-	    system "$qsub -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+	    system "$qsub -o $logDir/GermlineAnnotation_$runName.out -e $logDir/GermlineAnnotation_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-	    system "$qsub -o $logDir/VariantAnnotation_$runName.out -e $logDir/VariantAnnotation_$runName.err -N $jobID $bashFile";
+	    system "$qsub -o $logDir/GermlineAnnotation_$runName.out -e $logDir/GermlineAnnotation_$runName.err -N $jobID $bashFile";
     }
 
     return $jobID;

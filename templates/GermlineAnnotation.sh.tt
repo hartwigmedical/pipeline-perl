@@ -3,7 +3,7 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-export JOB_NAME="AnnotateVariants"
+export JOB_NAME="GermlineAnnotation"
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -11,7 +11,7 @@ bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]
 
-echo "Start variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Start germline variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
 
@@ -120,11 +120,11 @@ java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.PIPELINE_PAT
 
 ### Check final vcf, last chr and start position must be identical.
 if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$(tail -n 1 [% preAnnotateVCF %] | cut -f 1,2)" = "$(tail -n 1 [% outvcf %] | cut -f 1,2)" ]; then
-	touch [% opt.OUTPUT_DIR %]/logs/VariantAnnotation.done
+	touch [% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done
   
 	[% INCLUDE Status.tt step="" status="success" %]
 else
 	[% INCLUDE Status.tt step="" status="failed" %]
 fi
 
-echo "End variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "End germline variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

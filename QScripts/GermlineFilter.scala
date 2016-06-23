@@ -5,12 +5,9 @@ import org.broadinstitute.gatk.queue.extensions.gatk._
 import htsjdk.variant.variantcontext.VariantContext.Type
 import org.broadinstitute.gatk.utils.variant.GATKVariantContextUtils
 
-class VariantFilter extends QScript {
-    // Create an alias 'qscript' to be able to access variables in the HardFilter.
-    // 'qscript' is now the same as 'HardFilter.this'
+class GermlineFilter extends QScript {
     qscript =>
 
-    // Required arguments.  All initialized to empty values.
     @Input(doc="The reference file", shortName="R", required=true)
     var referenceFile: File = _
 

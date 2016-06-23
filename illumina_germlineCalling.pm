@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package illumina_calling;
+package illumina_germlineCalling;
 
 use strict;
 use POSIX qw(tmpnam);
@@ -14,10 +14,10 @@ sub runVariantCalling {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @sampleBams;
     my @runningJobs;
-    my $jobID = "VariantCalling_".get_job_id();
+    my $jobID = "GermlineCalling_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/VariantCaller.done"){
-	    print "WARNING: $opt{OUTPUT_DIR}/logs/VariantCaller.done exists, skipping \n";
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done"){
+	    print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping \n";
 	    return \%opt;
     }
 
@@ -27,7 +27,7 @@ sub runVariantCalling {
 
     my $jobNative = &jobNative(\%opt,"CALLING");
     my $command = "java -Xmx".$opt{CALLING_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
-    $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/VariantCaller.jobReport.txt -memLimit $opt{CALLING_MEM} "; #Queue options
+    $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineCaller.jobReport.txt -memLimit $opt{CALLING_MEM} ";
 
     $command .= "-S $opt{PIPELINE_PATH}/$opt{CALLING_SCALA} ";
     if ($opt{CALLING_UGMODE}) {
@@ -66,13 +66,13 @@ sub runVariantCalling {
 
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
-    from_template("VariantCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => \%opt);
+    from_template("GermlineCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => \%opt);
 
     my $qsub = &qsubJava(\%opt,"CALLING_MASTER");
     if (@runningJobs){
-        system "$qsub -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
+        system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
-        system "$qsub -o $logDir/VariantCaller_$runName.out -e $logDir/VariantCaller_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID $bashFile";
     }
 
     foreach my $sample (@{$opt{SAMPLES}}){

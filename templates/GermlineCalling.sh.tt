@@ -3,7 +3,7 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-export JOB_NAME=VariantCalling
+export JOB_NAME=GermlineCalling
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -11,7 +11,7 @@ bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]/tmp
 
-echo "Start variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Start germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 [% sampleBam = sampleBams.shift %]
 [% bamIfList = "-s " _ sampleBam  %]
@@ -37,11 +37,11 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz [% opt.OUTPUT_DIR %]/gvcf/
 		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% opt.OUTPUT_DIR %]/gvcf/
 	[% END %]
-	touch [% opt.OUTPUT_DIR %]/logs/VariantCaller.done
+	touch [% opt.OUTPUT_DIR %]/logs/GermlineCaller.done
 
 	[% INCLUDE Status.tt step="" status="success" %]
   
 fi
 
-echo "Finished variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Finished germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 

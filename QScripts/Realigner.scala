@@ -5,11 +5,8 @@ import org.broadinstitute.gatk.queue.extensions.gatk._
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
 
 class Realigner extends QScript {
-    // Create an alias 'qscript' to be able to access variables in the Realigner.
-    // 'qscript' is now the same as 'Realigner.this'
     qscript =>
 
-    // Required arguments.  All initialized to empty values.
     @Input(doc="The reference file for the bam files.", shortName="R", required=true)
     var referenceFile: File = _ 
 
@@ -28,60 +25,59 @@ class Realigner extends QScript {
     @Argument(doc="Realign mode: single or multi sample.", shortName="mode", required=true)
     var realignMode: String = _
     
-    // Optional arguments
     @Input(doc ="Input VCF file with known indels.", shortName="known", required=false)
     var knownIndelFiles: List[File] = Nil
     
     // This trait allows us set the variables below in one place,
     // and then reuse this trait on each CommandLineGATK function below.
     trait TCIR_Arguments extends CommandLineGATK {
-	this.reference_sequence = qscript.referenceFile
-	this.memoryLimit = maxMem
+			this.reference_sequence = qscript.referenceFile
+			this.memoryLimit = maxMem
     }
 
     def script() {
-	if (realignMode == "multi") {
-	    val targetCreator = new RealignerTargetCreator with TCIR_Arguments
-	    val indelRealigner = new IndelRealigner with TCIR_Arguments
+			if (realignMode == "multi") {
+					val targetCreator = new RealignerTargetCreator with TCIR_Arguments
+					val indelRealigner = new IndelRealigner with TCIR_Arguments
 
-	    //Target creator
-	    targetCreator.input_file = bamFiles
-	    if(knownIndelFiles != Nil){
-		targetCreator.known = knownIndelFiles
-	    }
-	    targetCreator.num_threads = numDataThreads
-	    targetCreator.scatterCount = numScatters
-	    targetCreator.out = new File("target.intervals.list")
+					//Target creator
+					targetCreator.input_file = bamFiles
+					if(knownIndelFiles != Nil){
+				targetCreator.known = knownIndelFiles
+					}
+					targetCreator.num_threads = numDataThreads
+					targetCreator.scatterCount = numScatters
+					targetCreator.out = new File("target.intervals.list")
 
-	    //Indel realigner
-	    indelRealigner.targetIntervals = targetCreator.out
-	    indelRealigner.input_file = bamFiles
-	    indelRealigner.scatterCount = numScatters
-	    indelRealigner.nWayOut = "_realigned.bam"
-	    add(targetCreator,indelRealigner)
-	
-	} else if (realignMode == "single") {
-	    for (bamFile <- bamFiles) {
-		val targetCreator = new RealignerTargetCreator with TCIR_Arguments
-		val indelRealigner = new IndelRealigner with TCIR_Arguments
+					//Indel realigner
+					indelRealigner.targetIntervals = targetCreator.out
+					indelRealigner.input_file = bamFiles
+					indelRealigner.scatterCount = numScatters
+					indelRealigner.nWayOut = "_realigned.bam"
+					add(targetCreator,indelRealigner)
 
-		//Target Creator
-		targetCreator.input_file :+= bamFile
-		if(knownIndelFiles != Nil){
-		    targetCreator.known = knownIndelFiles
-		}
-		targetCreator.num_threads = numDataThreads
-		targetCreator.scatterCount = numScatters
-		targetCreator.out = swapExt(bamFile, "bam", "target.intervals.list")
+			} else if (realignMode == "single") {
+					for (bamFile <- bamFiles) {
+				val targetCreator = new RealignerTargetCreator with TCIR_Arguments
+				val indelRealigner = new IndelRealigner with TCIR_Arguments
 
-		//Indel realigner
-		indelRealigner.targetIntervals = targetCreator.out
-		indelRealigner.input_file +:= bamFile
-		indelRealigner.scatterCount = numScatters
-		indelRealigner.out = swapExt(bamFile, "bam", "realigned.bam")
+				//Target Creator
+				targetCreator.input_file :+= bamFile
+				if(knownIndelFiles != Nil){
+						targetCreator.known = knownIndelFiles
+				}
+				targetCreator.num_threads = numDataThreads
+				targetCreator.scatterCount = numScatters
+				targetCreator.out = swapExt(bamFile, "bam", "target.intervals.list")
 
-		add(targetCreator, indelRealigner)
-	    }
-	}
+				//Indel realigner
+				indelRealigner.targetIntervals = targetCreator.out
+				indelRealigner.input_file +:= bamFile
+				indelRealigner.scatterCount = numScatters
+				indelRealigner.out = swapExt(bamFile, "bam", "realigned.bam")
+
+				add(targetCreator, indelRealigner)
+					}
+			}
     }
 }

@@ -3,7 +3,7 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-export JOB_NAME="VariantFilter"
+export JOB_NAME="GermlineFilter"
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -11,7 +11,7 @@ bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]/tmp
 
-echo "Start variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Start germline variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
 if [ -s [% opt.OUTPUT_DIR %]/[% runName %].raw_variants.vcf ]; then
 	[% INCLUDE Status.tt step="" status="processing" %]
@@ -26,10 +26,10 @@ fi
 if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; then
     mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf [% opt.OUTPUT_DIR %]/
     mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].filtered_variants.vcf.idx [% opt.OUTPUT_DIR %]/
-    touch [% opt.OUTPUT_DIR %]/logs/VariantFilter.done
+    touch [% opt.OUTPUT_DIR %]/logs/GermlineFilter.done
 
     [% INCLUDE Status.tt step="" status="success" %]
 fi
 
-echo "End variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "End germline variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
 
