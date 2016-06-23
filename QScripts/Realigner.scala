@@ -21,10 +21,7 @@ class Realigner extends QScript {
 
     @Argument(doc="Number of scatters", shortName="nsc", required=true)
     var numScatters: Int = _
-    
-    @Argument(doc="Realign mode: single or multi sample.", shortName="mode", required=true)
-    var realignMode: String = _
-    
+
     @Input(doc ="Input VCF file with known indels.", shortName="known", required=false)
     var knownIndelFiles: List[File] = Nil
     
@@ -36,32 +33,10 @@ class Realigner extends QScript {
     }
 
     def script() {
-			if (realignMode == "multi") {
-					val targetCreator = new RealignerTargetCreator with TCIR_Arguments
-					val indelRealigner = new IndelRealigner with TCIR_Arguments
-
-					//Target creator
-					targetCreator.input_file = bamFiles
-					if(knownIndelFiles != Nil){
-				targetCreator.known = knownIndelFiles
-					}
-					targetCreator.num_threads = numDataThreads
-					targetCreator.scatterCount = numScatters
-					targetCreator.out = new File("target.intervals.list")
-
-					//Indel realigner
-					indelRealigner.targetIntervals = targetCreator.out
-					indelRealigner.input_file = bamFiles
-					indelRealigner.scatterCount = numScatters
-					indelRealigner.nWayOut = "_realigned.bam"
-					add(targetCreator,indelRealigner)
-
-			} else if (realignMode == "single") {
-					for (bamFile <- bamFiles) {
+			for (bamFile <- bamFiles) {
 				val targetCreator = new RealignerTargetCreator with TCIR_Arguments
 				val indelRealigner = new IndelRealigner with TCIR_Arguments
 
-				//Target Creator
 				targetCreator.input_file :+= bamFile
 				if(knownIndelFiles != Nil){
 						targetCreator.known = knownIndelFiles
@@ -70,14 +45,13 @@ class Realigner extends QScript {
 				targetCreator.scatterCount = numScatters
 				targetCreator.out = swapExt(bamFile, "bam", "target.intervals.list")
 
-				//Indel realigner
 				indelRealigner.targetIntervals = targetCreator.out
 				indelRealigner.input_file +:= bamFile
 				indelRealigner.scatterCount = numScatters
 				indelRealigner.out = swapExt(bamFile, "bam", "realigned.bam")
 
 				add(targetCreator, indelRealigner)
-					}
 			}
+
     }
 }
