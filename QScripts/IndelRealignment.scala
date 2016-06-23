@@ -4,7 +4,7 @@ import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
 
-class IndelRealigner extends QScript {
+class IndelRealignment extends QScript {
     qscript =>
 
     @Input(doc="The reference file for the bam files.", shortName="R", required=true)
@@ -35,7 +35,7 @@ class IndelRealigner extends QScript {
     def script() {
 			for (bamFile <- bamFiles) {
 				val targetCreator = new RealignerTargetCreator with TCIR_Arguments
-				val indelRealigner = new IndelRealigner with TCIR_Arguments
+				val indelRealigner = new IndelRealignment with TCIR_Arguments
 
 				targetCreator.input_file :+= bamFile
 				if(knownIndelFiles != Nil){
