@@ -35,7 +35,7 @@ class IndelRealignment extends QScript {
     def script() {
 			for (bamFile <- bamFiles) {
 				val targetCreator = new RealignerTargetCreator with TCIR_Arguments
-				val indelRealigner = new IndelRealignment with TCIR_Arguments
+				val indelRealigner = new IndelRealigner with TCIR_Arguments
 
 				targetCreator.input_file :+= bamFile
 				if(knownIndelFiles != Nil){
