@@ -34,6 +34,7 @@ sub runRealignment {
         (my $healthCheckPostRealignSlicedBam = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam/;
         (my $healthCheckPostRealignSlicedBamBai = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam\.bai/;
 		(my $healthCheckPostRealignSlicedFlagstat = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.flagstat/;
+		(my $healthCheckPrePostRealignDiff = $bam) =~ s/\.bam/\.qc.prepostrealign.diff/;
         (my $cpctSlicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
 	    (my $cpctSlicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
 
@@ -78,7 +79,7 @@ sub runRealignment {
 		    realignedFlagstat => $realignedFlagstat, flagstat => $flagstat, sample => $sample, logDir => $logDir, cpctSlicedBam => $cpctSlicedBam, cpctSlicedBamBai => $cpctSlicedBamBai,
 			healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam, healthCheckPostRealignSlicedBam => $healthCheckPostRealignSlicedBam,
 			healthCheckPostRealignSlicedBamBai => $healthCheckPostRealignSlicedBamBai, healthCheckPostRealignSlicedFlagstat => $healthCheckPostRealignSlicedFlagstat,
-			opt => \%opt, runName => $runName);
+			healthCheckPrePostRealignDiff => $healthCheckPrePostRealignDiff, opt => \%opt, runName => $runName);
 
 	    $qsub = &qsubTemplate(\%opt, "FLAGSTAT");
 	    system $qsub." -o ".$logDir."/RealignmentPostProcess_".$sample.".out -e ".$logDir."/RealignmentPostProcess_".$sample.".err -N ".$jobIDPostProcess." -hold_jid ".$jobIDRealign." ".$realignPostProcessScript;

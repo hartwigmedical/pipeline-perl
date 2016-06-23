@@ -32,7 +32,7 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
         [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBamBai %]
         [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.REALIGNMENT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedFlagstat %]
 
-        [% opt.BAMUTIL_PATH %]/bam diff --in1 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] --in2 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %]
+        [% opt.BAMUTIL_PATH %]/bam diff --in1 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] --in2 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %] --noPos --onlyDiffs --out [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPrePostRealignDiff %]
 
 		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
 
