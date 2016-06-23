@@ -4,7 +4,7 @@ import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 import org.broadinstitute.gatk.queue.function.ListWriterFunction
 
-class Realigner extends QScript {
+class IndelRealigner extends QScript {
     qscript =>
 
     @Input(doc="The reference file for the bam files.", shortName="R", required=true)
