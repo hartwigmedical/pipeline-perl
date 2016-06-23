@@ -64,7 +64,7 @@ sub runFilterVariants {
 
     $command .= "-run";
 
-    my $bashFile = $opt{OUTPUT_DIR}."/jobs/FilterVariants_".$jobID.".sh";
+    my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("FilterVariants.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
 

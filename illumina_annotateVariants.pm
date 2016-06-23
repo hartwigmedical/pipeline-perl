@@ -22,7 +22,7 @@ sub runAnnotateVariants {
 
     my $invcf = $runName.".filtered_snps.vcf";
     my $preAnnotateVCF = $invcf;
-    my $bashFile = $opt{OUTPUT_DIR}."/jobs/AnnotateVariants_".$jobID.".sh";
+    my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
 
     from_template("AnnotateVariants.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
