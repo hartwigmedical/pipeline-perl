@@ -48,11 +48,9 @@ class GermlineCaller extends QScript {
     def script() {
 			var gvcfFiles : List[File] = Nil
 
-			// Make gvcf per bam file
 			for (bamFile <- bamFiles) {
 					val haplotypeCaller = new HaplotypeCaller
 
-					// All required input
 					haplotypeCaller.input_file :+= bamFile
 					haplotypeCaller.reference_sequence = referenceFile
 					haplotypeCaller.out = swapExt(bamFile, "bam", "g.vcf.gz")
@@ -64,12 +62,10 @@ class GermlineCaller extends QScript {
 					haplotypeCaller.stand_emit_conf = standEmitConf
 					haplotypeCaller.stand_call_conf = standCallConf
 
-					// gVCF settings
 					haplotypeCaller.emitRefConfidence = ReferenceConfidenceMode.GVCF
 					haplotypeCaller.variant_index_type = GATKVCFIndexType.LINEAR
 					haplotypeCaller.variant_index_parameter = 128000
 
-					// Optional input
 					if (targetFile != null) {
 						haplotypeCaller.L :+= targetFile
 						haplotypeCaller.ip = intervalPadding
@@ -77,12 +73,10 @@ class GermlineCaller extends QScript {
 
 					haplotypeCaller.sample_ploidy = samplePloidy
 
-					//add function to queue
 					gvcfFiles :+= haplotypeCaller.out
 					add(haplotypeCaller)
 			}
 
-			//Joint genotyping
 			val genotypeGVCFs = new GenotypeGVCFs
 
 			genotypeGVCFs.V = gvcfFiles
