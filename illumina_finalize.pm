@@ -21,6 +21,7 @@ sub runFinalize {
     print BASH "\#!/bin/sh\n . $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $logFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.log";
+    my $doneFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.done";
     print BASH "failed=false \n";
     print BASH "rm $logFile \n";
     print BASH "echo \"Check and cleanup for run: $runName \" >>$logFile\n";
@@ -220,6 +221,7 @@ sub runFinalize {
     }
 
     print BASH "\tmail -s \"Pipeline DONE $runName\" \"$opt{MAIL}\" < $logFile\n";
+    print BASH "\ttouch $doneFile\n";
 
     print BASH "fi\n";
 
