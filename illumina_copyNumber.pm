@@ -247,10 +247,7 @@ sub runFreec {
     print FREEC_SH "\tcat $opt{FREEC_PATH}/assess_significance.R | R --slave --args ".$sample_bam_name."_CNVs ".$sample_bam_name."_ratio.txt\n";
     print FREEC_SH "\tcat $opt{FREEC_PATH}/makeGraph.R | R --slave --args 2 ".$sample_bam_name."_ratio.txt\n";
     print FREEC_SH "\tcat $opt{PIPELINE_PATH}/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 ".$sample_bam_name."_ratio.txt\n";
-    print FREEC_SH "\tif [ -s ".$sample_bam_name."_ratio.txt ]\n";
-    print FREEC_SH "\tthen\n";
-    print FREEC_SH "\t\ttouch $log_dir/freec.done\n";
-    print FREEC_SH "\tfi\n";
+    print FREEC_SH "\ttouch $log_dir/freec.done\n";
     print FREEC_SH "\techo \"End FREEC\t\" `date` \"\t $sample_bam \t $control_bam\t\" `uname -n` >> $log_dir/freec.log\n\n";
     print FREEC_SH "else\n";
     print FREEC_SH "\techo \"ERROR: $sample_bam or $control_bam does not exist.\" >> $log_dir/freec.log\n";
