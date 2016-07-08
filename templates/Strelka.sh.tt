@@ -17,7 +17,7 @@ then
   [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.PIPELINE_PATH %]/[% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
 
   cd [% out_dir %]/strelka
-  make -j 8
+  make -j [% opt.STRELKA_THREADS %]
 
   # Check strelka completed
   if [ -f [% out_dir %]/strelka/task.complete ]
