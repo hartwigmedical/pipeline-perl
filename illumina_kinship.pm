@@ -15,8 +15,8 @@ sub runKinship {
     my @runningJobs;
     my $jobID = "Kinship_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/kinship.done") {
-		print "WARNING: $opt{OUTPUT_DIR}/logs/kinship.done exists, skipping \n";
+    if (-e "$opt{OUTPUT_DIR}/logs/Kinship.done") {
+		print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping \n";
 		return $jobID;
     }
 
