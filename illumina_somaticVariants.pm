@@ -433,7 +433,7 @@ sub runMutect {
       my $output_name = $sample_tumor_name."_".$chr;
 
       my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
-      $command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
+      $command .= "-R $opt{GENOME} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
       #if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
       $command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
       $command .= "--out $output_name\.out --vcf $output_name\_mutect.vcf";
