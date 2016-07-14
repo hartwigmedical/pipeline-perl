@@ -512,7 +512,7 @@ sub checkConfig {
 
     ## FINALIZE
     if($opt{FINALIZE} eq "yes") {
-	    if(! $opt{FINALIZE_QUEUE}){ print "ERROR: No FINALIZE_QUEUE found in .ini file\n"; $checkFailed = 1; }
+        if(! $opt{FINALIZE_QUEUE}){ print "ERROR: No FINALIZE_QUEUE found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{FINALIZE_THREADS}){ print "ERROR: No FINALIZE_THREADS found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{FINALIZE_MEM}){ print "ERROR: No FINALIZE_MEM found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{FINALIZE_TIME}){ print "ERROR: No FINALIZE_TIME found in .ini file\n"; $checkFailed = 1; }
