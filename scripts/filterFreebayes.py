@@ -20,17 +20,16 @@ NORMAL_THRESHOLD = 3.5
 
 # Code copied from BCBIO Freebayes pipeline.
 def customFilterFreebayes(vcf_file):
-    with open(vcf_file, 'r') as f:
-        for line in f:
-            line = line.strip('\n')
-            if line.startswith("#"):
-                print line
-            else:
-                parts = line.split("\t")
-                if _check_lods(parts, TUMOR_THRESHOLD, NORMAL_THRESHOLD) and _check_freqs(parts):
-                    print line
+    with open(vcf_file, "r") as f:
+        stripped_lines = (line.strip("\n") for line in f)
+        somatic_lines = (line for line in stripped_lines if _check_line(line))
+        print "\n".join(somatic_lines)
 
 ### Filtering
+
+def _check_line(line):
+    parts = line.split("\t")
+    return line.startswith("#") or (_check_lods(parts, TUMOR_THRESHOLD, NORMAL_THRESHOLD) and _check_freqs(parts))
 
 def _check_lods(parts, tumor_thresh, normal_thresh):
     """Ensure likelihoods for tumor and normal pass thresholds.
@@ -97,8 +96,8 @@ def _check_freqs(parts):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=100, width=200))
 
-    required_named = parser.add_argument_group('required named arguments')
-    required_named.add_argument('-v', '--vcf_file', help='path/to/file.vcf', required=True)
+    required_named = parser.add_argument_group("required named arguments")
+    required_named.add_argument("-v", "--vcf_file", help="path/to/file.vcf", required=True)
 
     args = parser.parse_args()
     customFilterFreebayes(args.vcf_file)
