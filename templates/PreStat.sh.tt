@@ -9,14 +9,14 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]
 
-echo "Start PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start PreStats	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
-[% INCLUDE Status.tt step=sampleName status="processing" %]
+[% INCLUDE Status.tt step=coreName status="processing" %]
 
 [% opt.FASTQC_PATH %]/fastqc [% input %] -o QCStats --noextract -t 1
 
-[% INCLUDE Status.tt step=sampleName status="finished" %]
+[% INCLUDE Status.tt step=coreName status="finished" %]
 
 touch logs/PreStats_[% sampleName %].done
 
-echo "End PreStats	" `date` "	[% scoreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End PreStats	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
