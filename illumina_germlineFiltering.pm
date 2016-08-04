@@ -15,7 +15,8 @@ sub runFilterVariants {
     my @runningJobs;
     my $jobID = "GermlineFilter_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done"){
+    # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done"){
 		print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping \n";
 		return $jobID;
     }

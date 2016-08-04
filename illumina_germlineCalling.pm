@@ -16,7 +16,8 @@ sub runVariantCalling {
     my @runningJobs;
     my $jobID = "GermlineCalling_".get_job_id();
 
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done"){
+    # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done" || -e "$opt{OUTPUT_DIR}/logs/VariantCaller.done"){
 	    print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping \n";
 	    return \%opt;
     }
