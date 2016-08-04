@@ -7,6 +7,7 @@ use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin";
 use illumina_sge;
+use illumina_metadataParser;
 
 sub parseSamples {
     my $configuration = shift;
@@ -19,14 +20,24 @@ sub parseSamples {
 			print "WARNING: $sample is not passing copy number samplename parsing, skipping \n\n";
 			next;
 		}
+		if($opt{SET_HAS_METADATA} eq "yes"){
+		    print "Reading Tumour/Reference names from metadata\n\n";
+		    my $metadata = metadataParse($opt{OUTPUT_DIR});
+		    # Reference sample
+		    push(@{$somatic_samples{$cpct_name}{"ref"}}, $metadata->{'ref_sample'});
+		    # Tumour sample
+		    push(@{$somatic_samples{$cpct_name}{"tumor"}}, $metadata->{'tumor_sample'});
+		 } else {
+			# Reference sample
+			if ($origin =~ m/R.*/){
+			    push(@{$somatic_samples{$cpct_name}{"ref"}},$sample);
+			}
 
-		if ($origin =~ m/R.*/){
-			push(@{$somatic_samples{$cpct_name}{"ref"}},$sample);
-		}
-
-		elsif ($origin =~ m/T.*/){
-			push(@{$somatic_samples{$cpct_name}{"tumor"}},$sample);
-		}
+			# Tumor samples
+			elsif ($origin =~ m/T.*/){
+			    push(@{$somatic_samples{$cpct_name}{"tumor"}},$sample);
+			}
+		 }
     }
 
     $opt{SOMATIC_SAMPLES} = {%somatic_samples};
