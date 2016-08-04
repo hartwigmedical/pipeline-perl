@@ -409,8 +409,10 @@ sub checkConfig {
             if(! $opt{VCFLIB_PATH}){ print "ERROR: No VCFLIB_PATH option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{FREEBAYES_QUEUE}){ print "ERROR: No FREEBAYES_QUEUE option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{FREEBAYES_THREADS}){ print "ERROR: No FREEBAYES_THREADS option found in config files.\n"; $checkFailed = 1; }
+            if(! $opt{FREEBAYES_MEM}){ print "ERROR: No FREEBAYES_MEM option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{FREEBAYES_TIME}){ print "ERROR: No FREEBAYES_TIME option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{FREEBAYES_SETTINGS}){ print "ERROR: No FREEBAYES_SETTINGS option found in config files.\n"; $checkFailed = 1; }
+            if(! $opt{FREEBAYES_SOMATICFILTER}){ print "ERROR: No FREEBAYES_SOMATICFILTER option found in config files.\n"; $checkFailed = 1; }
         }
         if(! $opt{SOMVAR_MUTECT}){ print "ERROR: No SOMVAR_MUTECT option found in config files.\n"; $checkFailed = 1; }
         if($opt{SOMVAR_MUTECT} eq "yes") {

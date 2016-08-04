@@ -22,7 +22,7 @@ then
   mv [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf [% freebayes_out_dir %]/[% sample_tumor_name %].vcf
 
   # Filter based on BCBIO filters
-  python [% opt.PIPELINE_PATH %]/scripts/filterFreebayes.py -v [% freebayes_out_dir %]/[% sample_tumor_name %].vcf > [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf
+  python [% opt.PIPELINE_PATH %]/scripts/filterFreebayes.py -v [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_SOMATICFILTER %]" > [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf
 
   # Check freebayes completed
   if [ -s [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf ]
