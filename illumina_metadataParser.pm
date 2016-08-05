@@ -12,7 +12,7 @@ BEGIN {
 
     our @ISA = ('Exporter');
 
-    our @EXPORT = qw (
+    our @EXPORT = qw(
         &metadataParse
    );
 }
