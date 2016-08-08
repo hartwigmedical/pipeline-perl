@@ -269,6 +269,7 @@ sub checkConfig {
     if(! $opt{GENOME}){ print "ERROR: No GENOME option found in config files.\n"; $checkFailed = 1; }
     elsif(! -e $opt{GENOME}){ print"ERROR: $opt{GENOME} does Not exist\n"}
     if(! $opt{SAMBAMBA_PATH}){ print "ERROR: No SAMBAMBA_PATH option found in config files.\n"; $checkFailed = 1; }
+    if(! $opt{PBGZIP_PATH}){ print "ERROR: No PBGZIP_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{QUEUE_PATH}){ print "ERROR: No QUEUE_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{SET_HAS_METADATA}){ print "ERROR: No SET_HAS_METADATA option found in config files.\n"; $checkFailed = 1; }
 
@@ -400,7 +401,9 @@ sub checkConfig {
             if(! $opt{VARSCAN_SETTINGS}){ print "ERROR: No VARSCAN_SETTINGS option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{VARSCAN_POSTSETTINGS}){ print "ERROR: No VARSCAN_POSTSETTINGS option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{PILEUP_QUEUE}){ print "ERROR: No PILEUP_QUEUE option found in config files.\n"; $checkFailed = 1; }
+            if(! $opt{PILEUP_DIVISOR}){ print "ERROR: No PILEUP_DIVISOR option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{PILEUP_THREADS}){ print "ERROR: No PILEUP_THREADS option found in config files.\n"; $checkFailed = 1; }
+            elsif( $opt{PILEUP_THREADS} < $opt{PILEUP_DIVISOR}){ print "ERROR: PILEUP_THREADS ($opt{PILEUP_THREADS}) must be at least PILEUP_DIVISOR ($opt{PILEUP_DIVISOR}).\n", $checkFailed = 1; }
             if(! $opt{PILEUP_MEM}){ print "ERROR: No PILEUP_MEM option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{PILEUP_TIME}){ print "ERROR: No PILEUP_TIME option found in config files.\n"; $checkFailed = 1; }
         }
