@@ -21,7 +21,7 @@ then
   # divide threads between sambamba/samtools and pbgzip conservatively (ensure zip can keep up)
   # worker threads are favoured over compression threads (PILEUP_DIVISOR - 1):1 => PILEUP_THREADS >= PILEUP_DIVISOR
   # this heurestic needs modifying if the sambamba log shows "[chunk waiting for dump queue]"
-  MPILEUP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %] * $(([% opt.PILEUP_DIVISOR %] - 1)) + [% opt.PILEUP_THREADS %] % [% opt.PILEUP_DIVISOR %]))
+  MPILEUP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %] * ([% opt.PILEUP_DIVISOR %] - 1) + [% opt.PILEUP_THREADS %] % [% opt.PILEUP_DIVISOR %]))
   PBGZIP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %]))
   echo "Using ${MPILEUP_THREADS} threads for mpileup and ${PBGZIP_THREADS} threads for compression" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
