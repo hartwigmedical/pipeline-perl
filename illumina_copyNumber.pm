@@ -23,8 +23,13 @@ sub parseSamples {
 		if($opt{SET_HAS_METADATA} eq "yes"){
 		    print "Reading Tumour/Reference names from metadata\n\n";
 		    my $metadata = metadataParse($opt{OUTPUT_DIR});
-		    push(@{$somatic_samples{$cpct_name}{"ref"}}, $metadata->{'ref_sample'});
-		    push(@{$somatic_samples{$cpct_name}{"tumor"}}, $metadata->{'tumor_sample'});
+		    if($sample =~ $metadata->{'ref_sample'}){
+		      push(@{$somatic_samples{$cpct_name}{"ref"}}, $metadata->{'ref_sample'});
+		    } elsif ($sample =~ $metadata->{'tumor_sample'}){
+		      push(@{$somatic_samples{$cpct_name}{"tumor"}}, $metadata->{'tumor_sample'});
+		    } else {
+                      print "WARNING: copynumber is set to yes but sample names do not match metadata";
+                    }
 		 } else {
 			if ($origin =~ m/R.*/){
 			    push(@{$somatic_samples{$cpct_name}{"ref"}},$sample);
