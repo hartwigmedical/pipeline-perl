@@ -9,120 +9,77 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_metadataParser;
 
-sub parseSamples {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my %somatic_samples;
-
-    foreach my $sample (@{$opt{SAMPLES}}) {
-        my ($cpct_name, $origin) = ($sample =~ /$opt{SOMATIC_REGEX}/);
-        if ((!$cpct_name) || (!$origin)) {
-            print "WARNING: $sample is not passing copy number samplename parsing, skipping \n\n";
-            next;
-        }
-        if ($opt{SET_HAS_METADATA} eq "yes") {
-            print "Reading Tumour/Reference names from metadata\n\n";
-            my $metadata = metadataParse($opt{OUTPUT_DIR});
-            if ($sample =~ $metadata->{'ref_sample'}) {
-                push(@{$somatic_samples{$cpct_name}{"ref"}}, $metadata->{'ref_sample'});
-            } elsif ($sample =~ $metadata->{'tumor_sample'}) {
-                push(@{$somatic_samples{$cpct_name}{"tumor"}}, $metadata->{'tumor_sample'});
-            } else {
-                print "WARNING: copynumber is set to yes but sample names do not match metadata";
-            }
-        } else {
-            if ($origin =~ m/R.*/) {
-                push(@{$somatic_samples{$cpct_name}{"ref"}}, $sample);
-            } elsif ($origin =~ m/T.*/) {
-                push(@{$somatic_samples{$cpct_name}{"tumor"}}, $sample);
-            }
-        }
-    }
-
-    $opt{SOMATIC_SAMPLES} = { %somatic_samples };
-    return \%opt;
-}
-
 sub runCopyNumberTools {
     my $configuration = shift;
     my %opt = %{$configuration};
     my @check_cnv_jobs;
 
     if ($opt{CNV_MODE} eq "sample_control") {
-        foreach my $sample (keys(%{$opt{SOMATIC_SAMPLES}})) {
-            if (!$opt{SOMATIC_SAMPLES}{$sample}{'ref'}) {
-                print "WARNING: No ref sample for $sample, skipping \n";
-                next;
-            }
+        my @cnv_jobs;
+        my $sample_ref = $metadata->{'ref_sample'};
+        my $sample_tumor = $metadata->{'tumor_sample'};
 
-            foreach my $sample_tumor (@{$opt{SOMATIC_SAMPLES}{$sample}{'tumor'}}) {
-                foreach my $sample_ref (@{$opt{SOMATIC_SAMPLES}{$sample}{'ref'}}) {
-                    my @cnv_jobs;
+        my $sample_tumor_name = "$sample_ref\_$sample_tumor";
+        my $sample_tumor_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample_tumor_name";
+        my $sample_tumor_log_dir = "$sample_tumor_out_dir/logs/";
+        my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
 
-                    my $sample_tumor_name = "$sample_ref\_$sample_tumor";
-                    my $sample_tumor_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample_tumor_name";
-                    my $sample_tumor_log_dir = "$sample_tumor_out_dir/logs/";
-                    my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
-
-                    if (!-e $sample_tumor_out_dir) {
-                        make_path($sample_tumor_out_dir) or die "Couldn't create directory:  $sample_tumor_out_dir\n";
-                    }
-                    if (!-e $sample_tumor_job_dir) {
-                        make_path($sample_tumor_job_dir) or die "Couldn't create directory: $sample_tumor_job_dir\n";
-                    }
-                    if (!-e $sample_tumor_log_dir) {
-                        make_path($sample_tumor_log_dir) or die "Couldn't create directory: $sample_tumor_log_dir\n";
-                    }
-
-                    my $sample_tumor_bam = "$opt{OUTPUT_DIR}/$sample_tumor/mapping/$opt{BAM_FILES}->{$sample_tumor}";
-                    my @running_jobs;
-                    if (@{$opt{RUNNING_JOBS}->{$sample_tumor}}) {
-                        push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_tumor}});
-                    }
-                    my $sample_ref_bam = "$opt{OUTPUT_DIR}/$sample_ref/mapping/$opt{BAM_FILES}->{$sample_ref}";
-                    if (@{$opt{RUNNING_JOBS}->{$sample_ref}}) {
-                        push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
-                    }
-
-                    print "\n$sample \t $sample_ref_bam \t $sample_tumor_bam \n";
-
-                    if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
-                        print "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping \n";
-                        next;
-                    }
-
-                    if ($opt{CNV_FREEC} eq "yes") {
-                        print "\n###SCHEDULING FREEC####\n";
-                        my $freec_job = runFreec($sample_tumor, $sample_tumor_out_dir, $sample_tumor_job_dir,
-                            $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
-                        if ($freec_job) {push(@cnv_jobs, $freec_job)};
-                    }
-
-                    my $job_id = "CHECK_".$sample_tumor."_".get_job_id();
-                    my $bash_file = $sample_tumor_job_dir."/".$job_id.".sh";
-
-                    open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
-                    print CHECK_SH "#!/bin/bash\n\n";
-                    print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n\n";
-                    print CHECK_SH "if [[ ";
-                    if ($opt{CNV_FREEC} eq "yes") {print CHECK_SH "-f $sample_tumor_log_dir/freec.done"}
-                    print CHECK_SH " ]]\n";
-                    print CHECK_SH "then\n";
-                    print CHECK_SH "\ttouch $sample_tumor_log_dir/$sample_tumor_name.done\n";
-                    print CHECK_SH "fi\n\n";
-                    print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n";
-                    close CHECK_SH;
-                    my $qsub = &qsubTemplate(\%opt, "CNVCHECK");
-                    if (@cnv_jobs) {
-                        system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id -hold_jid ".join(","
-                                , @cnv_jobs)." $bash_file";
-                    } else {
-                        system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id $bash_file";
-                    }
-                    push(@check_cnv_jobs, $job_id);
-                }
-            }
+        if (!-e $sample_tumor_out_dir) {
+            make_path($sample_tumor_out_dir) or die "Couldn't create directory:  $sample_tumor_out_dir\n";
         }
+        if (!-e $sample_tumor_job_dir) {
+            make_path($sample_tumor_job_dir) or die "Couldn't create directory: $sample_tumor_job_dir\n";
+        }
+        if (!-e $sample_tumor_log_dir) {
+            make_path($sample_tumor_log_dir) or die "Couldn't create directory: $sample_tumor_log_dir\n";
+        }
+
+        my $sample_tumor_bam = "$opt{OUTPUT_DIR}/$sample_tumor/mapping/$opt{BAM_FILES}->{$sample_tumor}";
+        my @running_jobs;
+        if (@{$opt{RUNNING_JOBS}->{$sample_tumor}}) {
+            push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_tumor}});
+        }
+        my $sample_ref_bam = "$opt{OUTPUT_DIR}/$sample_ref/mapping/$opt{BAM_FILES}->{$sample_ref}";
+        if (@{$opt{RUNNING_JOBS}->{$sample_ref}}) {
+            push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
+        }
+
+        print "\n$sample \t $sample_ref_bam \t $sample_tumor_bam \n";
+
+        if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
+            print "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping \n";
+            next;
+        }
+
+        if ($opt{CNV_FREEC} eq "yes") {
+            print "\n###SCHEDULING FREEC####\n";
+            my $freec_job = runFreec($sample_tumor, $sample_tumor_out_dir, $sample_tumor_job_dir,
+                $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
+            if ($freec_job) {push(@cnv_jobs, $freec_job)};
+        }
+
+        my $job_id = "CHECK_".$sample_tumor."_".get_job_id();
+        my $bash_file = $sample_tumor_job_dir."/".$job_id.".sh";
+
+        open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
+        print CHECK_SH "#!/bin/bash\n\n";
+        print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n\n";
+        print CHECK_SH "if [[ ";
+        if ($opt{CNV_FREEC} eq "yes") {print CHECK_SH "-f $sample_tumor_log_dir/freec.done"}
+        print CHECK_SH " ]]\n";
+        print CHECK_SH "then\n";
+        print CHECK_SH "\ttouch $sample_tumor_log_dir/$sample_tumor_name.done\n";
+        print CHECK_SH "fi\n\n";
+        print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n";
+        close CHECK_SH;
+        my $qsub = &qsubTemplate(\%opt, "CNVCHECK");
+        if (@cnv_jobs) {
+            system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id -hold_jid ".join(","
+                    , @cnv_jobs)." $bash_file";
+        } else {
+            system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id $bash_file";
+        }
+        push(@check_cnv_jobs, $job_id);
     } elsif ($opt{CNV_MODE} eq "sample") {
         foreach my $sample (@{$opt{SAMPLES}}) {
             my @cnv_jobs;

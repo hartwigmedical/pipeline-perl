@@ -109,10 +109,6 @@ if ( $opt{FASTQ} ) {
 
     if ($opt{COPY_NUMBER} eq "yes") {
         print "\n### SCHEDULING COPY NUMBER TOOLS ####\n";
-        if($opt{CNV_MODE} eq "sample_control"){
-            $opt_ref = illumina_copyNumber::parseSamples(\%opt);
-            %opt = %$opt_ref;
-        }
         my $cnv_jobs = illumina_copyNumber::runCopyNumberTools(\%opt);
         $opt{RUNNING_JOBS}->{'CNV'} = $cnv_jobs;
     }
@@ -380,7 +376,6 @@ sub checkConfig {
         if(! $opt{VCFTOOLS_PATH}){ print "ERROR: No VCFTOOLS_PATH found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{SAMTOOLS_PATH}){ print "ERROR: No SAMTOOLS_PATH option found in config files.\n"; $checkFailed = 1; }
         if( $opt{SOMVAR_TARGETS} && ! -e $opt{SOMVAR_TARGETS}) { print"ERROR: $opt{SOMVAR_TARGETS} does not exist\n"; $checkFailed = 1; }
-        if(! $opt{SOMATIC_REGEX}){ print "ERROR: No SOMATIC_REGEX option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{SOMVAR_STRELKA}){ print "ERROR: No SOMVAR_STRELKA option found in config files.\n"; $checkFailed = 1; }
         if($opt{SOMVAR_STRELKA} && $opt{SOMVAR_STRELKA} eq "yes") {
             if(! $opt{STRELKA_PATH}){ print "ERROR: No STRELKA_PATH option found in config files.\n"; $checkFailed = 1; }
