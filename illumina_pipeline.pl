@@ -264,7 +264,6 @@ sub checkConfig {
     if(! $opt{SAMBAMBA_PATH}){ print "ERROR: No SAMBAMBA_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{PBGZIP_PATH}){ print "ERROR: No PBGZIP_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{QUEUE_PATH}){ print "ERROR: No QUEUE_PATH option found in config files.\n"; $checkFailed = 1; }
-    if(! $opt{SET_HAS_METADATA}){ print "ERROR: No SET_HAS_METADATA option found in config files.\n"; $checkFailed = 1; }
 
     ## PRESTATS
     if($opt{PRESTATS} && $opt{PRESTATS} eq "yes"){
