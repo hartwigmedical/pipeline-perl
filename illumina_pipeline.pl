@@ -262,7 +262,6 @@ sub checkConfig {
     if(! $opt{GENOME}){ print "ERROR: No GENOME option found in config files.\n"; $checkFailed = 1; }
     elsif(! -e $opt{GENOME}){ print"ERROR: $opt{GENOME} does not exist\n"}
     if(! $opt{SAMBAMBA_PATH}){ print "ERROR: No SAMBAMBA_PATH option found in config files.\n"; $checkFailed = 1; }
-    if(! $opt{PBGZIP_PATH}){ print "ERROR: No PBGZIP_PATH option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{QUEUE_PATH}){ print "ERROR: No QUEUE_PATH option found in config files.\n"; $checkFailed = 1; }
 
     ## PRESTATS
@@ -384,6 +383,7 @@ sub checkConfig {
         if(! $opt{SOMVAR_VARSCAN}){ print "ERROR: No SOMVAR_VARSCAN option found in config files.\n"; $checkFailed = 1; }
         if($opt{SOMVAR_VARSCAN} && $opt{SOMVAR_VARSCAN} eq "yes") {
             if(! $opt{VARSCAN_PATH}){ print "ERROR: No VARSCAN_PATH option found in config files.\n"; $checkFailed = 1; }
+            if(! $opt{PBGZIP_PATH}){ print "ERROR: No PBGZIP_PATH option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{TABIX_PATH}){ print "ERROR: No TABIX_PATH option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{VARSCAN_QUEUE}){ print "ERROR: No VARSCAN_QUEUE option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{VARSCAN_THREADS}){ print "ERROR: No VARSCAN_THREADS option found in config files.\n"; $checkFailed = 1; }
