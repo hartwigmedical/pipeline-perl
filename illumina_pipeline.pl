@@ -100,9 +100,6 @@ if ( $opt{FASTQ} ) {
 
     if ($opt{SOMATIC_VARIANTS} eq "yes") {
         print "\n### SCHEDULING SOMATIC VARIANT CALLERS ####\n";
-        $opt_ref = illumina_somaticVariants::parseSamples(\%opt);
-        %opt = %$opt_ref;
-
         my $somVar_jobs = illumina_somaticVariants::runSomaticVariantCallers(\%opt);
         $opt{RUNNING_JOBS}->{'somVar'} = $somVar_jobs;
     }
