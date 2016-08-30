@@ -16,6 +16,7 @@ sub runCopyNumberTools {
 
     if ($opt{CNV_MODE} eq "sample_control") {
         my @cnv_jobs;
+        my $metadata = metadataParse($opt{OUTPUT_DIR});
         my $sample_ref = $metadata->{'ref_sample'};
         my $sample_tumor = $metadata->{'tumor_sample'};
 

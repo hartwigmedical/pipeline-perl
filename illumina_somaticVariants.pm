@@ -26,8 +26,9 @@ sub runSomaticVariantCallers {
 
     $opt{RUNNING_JOBS}->{'pileup'} = \@pileupJobs;
 
-    $sample_ref = $metadata->{'ref_sample'};
-    $sample_tumor = $metadata->{'tumor_sample'};
+    my $metadata = metadataParse($opt{OUTPUT_DIR});
+    my $sample_ref = $metadata->{'ref_sample'};
+    my $sample_tumor = $metadata->{'tumor_sample'};
 
     my @merge_somvar_jobs;
     my @somvar_jobs;
