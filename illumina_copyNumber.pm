@@ -45,7 +45,7 @@ sub runCopyNumberTools {
             push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
         }
 
-        print "\n$sample \t $sample_ref_bam \t $sample_tumor_bam \n";
+        print "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam \n";
 
         if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
             print "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping \n";
