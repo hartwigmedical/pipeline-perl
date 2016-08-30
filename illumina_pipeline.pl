@@ -397,6 +397,7 @@ sub checkConfig {
             elsif( $opt{PILEUP_THREADS} < $opt{PILEUP_DIVISOR}){ print "ERROR: PILEUP_THREADS ($opt{PILEUP_THREADS}) must be at least PILEUP_DIVISOR ($opt{PILEUP_DIVISOR}).\n", $checkFailed = 1; }
             if(! $opt{PILEUP_MEM}){ print "ERROR: No PILEUP_MEM option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{PILEUP_TIME}){ print "ERROR: No PILEUP_TIME option found in config files.\n"; $checkFailed = 1; }
+            if(! $opt{FINALIZE_KEEP_PILEUP}){ print "ERROR: No FINALIZE_KEEP_PILEUP found in .ini file\n"; $checkFailed = 1; }
         }
         if(! $opt{SOMVAR_FREEBAYES}){ print "ERROR: No SOMVAR_FREEBAYES option found in config files.\n"; $checkFailed = 1; }
         if($opt{SOMVAR_FREEBAYES} && $opt{SOMVAR_FREEBAYES} eq "yes") {
@@ -513,7 +514,6 @@ sub checkConfig {
         if(! $opt{FINALIZE_THREADS}){ print "ERROR: No FINALIZE_THREADS found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{FINALIZE_MEM}){ print "ERROR: No FINALIZE_MEM found in .ini file\n"; $checkFailed = 1; }
         if(! $opt{FINALIZE_TIME}){ print "ERROR: No FINALIZE_TIME found in .ini file\n"; $checkFailed = 1; }
-        if(! $opt{FINALIZE_KEEP_PILEUP}){ print "ERROR: No FINALIZE_KEEP_PILEUP found in .ini file\n"; $checkFailed = 1; }
     }
 
     if ($checkFailed) {
