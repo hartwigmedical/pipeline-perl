@@ -161,7 +161,7 @@ sub getSamples{
         foreach my $input (keys %{$opt{FASTQ}}){
             my $fastqFile = (split("/", $input))[-1];
             my $sampleName = (split("_", $fastqFile))[0];
-            $samples{$sampleName} ++;
+            $samples{$sampleName}++;
             @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }

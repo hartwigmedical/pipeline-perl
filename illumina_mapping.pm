@@ -4,14 +4,33 @@ use strict;
 use warnings;
 use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
+use File::Basename;
+
 use illumina_sge;
 use illumina_template;
+
+sub validateFastQName {
+	my ($input) = @_;
+	my ($name) = fileparse($input);
+	(my $R1 = $input) =~ s/_R2/_R1/;
+	(my $R2 = $input) =~ s/_R1/_R2/;
+
+	my $fastQPattern = qr/^(?<sampleName>[^_]+)_(?<flowcellID>[^_]+)_(?<index>[^_]+)_(?<lane>[^_]+)_(?<tag>R1|R2)_(?<suffix>[^\.]+)(?<ext>\.fastq\.gz)$/;
+	die "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n" unless $name =~ $fastQPattern;
+
+	return {
+			R1 => $R1,
+			R2 => $R2,
+			coreName => "$+{sampleName}_$+{flowcellID}_$+{index}_$+{lane}_$+{suffix}",
+			%+,
+	};
+}
 
 sub runMapping {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
-    
+
     my $FAI = "$opt{GENOME}\.fai";
     die "GENOME: $opt{GENOME} does not exists!\n" if !-e "$opt{GENOME}";
     die "GENOME BWT: $opt{GENOME}.bwt does not exists!\n" if !-e "$opt{GENOME}.bwt";
@@ -23,62 +42,18 @@ sub runMapping {
     print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $samples = {};
-    my $toMap = {};
 
-    ### Try to search for matching pairs in the input FASTQ files
-    foreach my $input (keys %{$opt{FASTQ}}) {
-		if($input =~ m/\_R1/) {
-			my $pairName = $input;
-			$pairName =~ s/\_R1/\_R2/;
-			if(exists ($opt{FASTQ}->{$pairName})) {
-				$toMap->{$input."#".$pairName} = 1;
-			} else {
-				$toMap->{$input} = 1;
-			}
-		} elsif ($input =~ m/\_R2/) {
-			my $pairName = $input;
-			$pairName =~ s/\_R2/\_R1/;
-			if (exists ($opt{FASTQ}->{$pairName})) {
-				$toMap->{$pairName."#".$input} = 1;
-			} else {
-				$toMap->{$input} = 1;
-			}
-		}
-    }
-
-    foreach my $input (keys %{$toMap}) {
-		my @files = split("#",$input);
-		my $R1 = undef;
-        my $R2 = undef;
-		my $coreName = undef;
-
-		if (scalar(@files) == 2) {
+	foreach my $input (keys %{$opt{FASTQ}}) {
+		my $metadata = validateFastQName($input);
+		print "Skipping R2 sample $input\n" and next if $input eq $metadata->{R2};
+		if (exists $opt{FASTQ}->{$metadata->{R2}}) {
 			print "Switching to paired end mode!\n";
-			$R1 = $files[0];
-			$R2 = $files[1];
-			if($R1 !~ m/fastq.gz$/ or $R2 !~ m/fastq.gz$/) {
-				die "ERROR: Invalid input files:\n\t$R1\n\t$R2\n";
-			}
-		} elsif (scalar(@files) == 1) {
-			print "Switching to fragment mode!\n";
-			$R1 = $files[0];
-			$opt{SINGLE_END} = 1;
-			if ($R1 !~ m/fastq.gz$/) {
-				die "ERROR: Invalid input file:\n\t$R1\n";
-			}
 		} else {
-			die "ERROR: Invalid input pair: $input\n";
+			print "Switching to fragment mode!\n";
+			$opt{SINGLE_END} = 1;
 		}
-
-		$coreName = (split("/", $R1))[-1];
-		my ($sampleName, $flowcellID, $index, $lane, $tag) =  split("_", $coreName);
-		$coreName =~ s/\.fastq.gz//;
-		$coreName =~ s/\_R1//;
-		$coreName =~ s/\_R2//;
-
-		print "Creating $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam with:\n";
-
-        createIndividualMappingJobs(\%opt, $QSUB, $samples, $sampleName, $coreName, $R1, $R2, $flowcellID);
+		print "Creating $opt{OUTPUT_DIR}/$metadata->{sampleName}/mapping/$metadata->{coreName}\_sorted.bam with:\n";
+        createIndividualMappingJobs(\%opt, $QSUB, $samples, $metadata->{sampleName}, $metadata->{coreName}, $metadata->{R1}, $metadata->{R2}, $metadata->{flowcellID});
     }
 
     print "\n";
@@ -116,8 +91,8 @@ sub runMapping {
     return \%opt;
 }
 
-sub createIndividualMappingJobs{
-    my ($opt,$QSUB ,$samples, $sampleName, $coreName, $R1, $R2, $flowcellID) = @_;
+sub createIndividualMappingJobs {
+    my ($opt, $QSUB, $samples, $sampleName, $coreName, $R1, $R2, $flowcellID) = @_;
     my %opt = %$opt;
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA', $coreName, $sampleName, $sampleName, $flowcellID);
