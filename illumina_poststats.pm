@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package illumina_poststats;
 
 use strict;

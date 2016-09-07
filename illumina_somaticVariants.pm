@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package illumina_somaticVariants;
 
 use strict;

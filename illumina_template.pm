@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package illumina_template;
 require Exporter;
 @ISA = qw(Exporter);
