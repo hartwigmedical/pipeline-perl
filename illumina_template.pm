@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 package illumina_template;
 require Exporter;
@@ -6,6 +6,7 @@ require Exporter;
 @EXPORT= qw(from_template);
 
 use strict;
+use warnings;
 use Template;
 use Env qw($TEMPLATES);
 use FindBin;

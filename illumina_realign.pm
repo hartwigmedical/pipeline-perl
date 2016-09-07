@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 package illumina_realign;
 
 use strict;
+use warnings;
 use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;

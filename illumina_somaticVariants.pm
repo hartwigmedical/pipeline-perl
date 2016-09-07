@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 package illumina_somaticVariants;
 
 use strict;
+use warnings;
 use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin";
