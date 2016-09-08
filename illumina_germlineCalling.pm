@@ -2,7 +2,6 @@ package illumina_germlineCalling;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -13,7 +12,7 @@ sub runVariantCalling {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @sampleBams;
     my @runningJobs;
-    my $jobID = "GermlineCalling_".get_job_id();
+    my $jobID = "GermlineCalling_".getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done" || -e "$opt{OUTPUT_DIR}/logs/VariantCaller.done"){
@@ -80,13 +79,5 @@ sub runVariantCalling {
     }
     return \%opt;
 }
-
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id=~s/\/tmp\/file//;
-    return $id;
-}
-############
 
 1;

@@ -2,7 +2,6 @@ package illumina_germlineAnnotation;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -12,7 +11,7 @@ sub runAnnotateVariants {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "GermlineAnnotation_".get_job_id();
+    my $jobID = "GermlineAnnotation_".getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done"){
@@ -43,11 +42,4 @@ sub runAnnotateVariants {
     return $jobID;
 }
 
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id=~s/\/tmp\/file//;
-    return $id;
-}
-############
 1;

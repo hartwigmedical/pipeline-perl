@@ -2,7 +2,6 @@ package illumina_mapping;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use File::Basename;
 use File::Spec::Functions;
@@ -37,7 +36,7 @@ sub runMapping {
     die "GENOME BWT: $opt{GENOME}.bwt does not exists!\n" if !-e "$opt{GENOME}.bwt";
     die "GENOME FAI: $FAI does not exists!\n" if !-e $FAI;
 
-    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/MapMainJob_".get_job_id().".sh";
+    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/MapMainJob_".getJobId().".sh";
 
     open (my $QSUB,">$mainJobID") or die "ERROR: Couldn't create $mainJobID\n";
     print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
@@ -75,7 +74,7 @@ sub runMapping {
             next;
         }
 
-        my $jobId = "Merge_$sample\_".get_job_id();
+        my $jobId = "Merge_$sample\_".getJobId();
         push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobId);
         my $bams = join(" ", @bamList);
 
@@ -98,12 +97,12 @@ sub createIndividualMappingJobs {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA', $coreName, $sampleName, $sampleName, $flowcellID);
 
-    my $mappingJobId = "Map_$coreName\_".get_job_id();
-    my $mappingFSJobId = "MapFS_$coreName\_".get_job_id();
-    my $sortJobId = "Sort_$coreName\_".get_job_id();
-    my $sortFSJobId = "SortFS_$coreName\_".get_job_id();
-    my $indexJobId = "Index_$coreName\_".get_job_id();
-    my $cleanAndCheckJobId = "CheckAndClean_$coreName\_".get_job_id();
+    my $mappingJobId = "Map_$coreName\_".getJobId();
+    my $mappingFSJobId = "MapFS_$coreName\_".getJobId();
+    my $sortJobId = "Sort_$coreName\_".getJobId();
+    my $sortFSJobId = "SortFS_$coreName\_".getJobId();
+    my $indexJobId = "Index_$coreName\_".getJobId();
+    my $cleanAndCheckJobId = "CheckAndClean_$coreName\_".getJobId();
 
     push(@{$samples->{$sampleName}}, {'jobId'=>$cleanAndCheckJobId, 'file'=>"$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam"});
 
@@ -194,7 +193,7 @@ sub runBamPrep {
 
         next if -e $sample_bai && -e $sample_flagstat;
 
-        my $job_id = "PrepBam_${sample}_" . get_job_id();
+        my $job_id = "PrepBam_${sample}_" . getJobId();
         my $log_dir = catfile($opt{OUTPUT_DIR}, $sample, "logs");
         my $bash_file = catfile($opt{OUTPUT_DIR}, $sample, "jobs", "$job_id.sh");
 
@@ -214,7 +213,7 @@ sub runBamPrep {
 }
 
 ############
-sub get_job_id {
+sub getJobId {
    my $id = tmpnam();
       $id=~s/\/tmp\/file//;
    return $id;

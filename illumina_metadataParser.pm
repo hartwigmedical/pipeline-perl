@@ -5,22 +5,20 @@ use strict;
 use warnings;
 
 BEGIN {
-
     use Exporter;
 
     our @ISA = ('Exporter');
 
     our @EXPORT = qw(
-        &metadataParse
-   );
+                        &metadataParse
+                   );
 }
 
-sub metadataParse(@){
+sub metadataParse(@) {
     my $outputdir_name = shift || return undef;
     my $metadata_file = "$outputdir_name/metadata";
     my $json_conf = do {
-        open ( my $json_fh, "<:encoding(UTF-8)", $metadata_file )
-            or die("Can't open $metadata_file\n");
+        open (my $json_fh, "<:encoding(UTF-8)", $metadata_file) or die("Can't open $metadata_file\n");
         local $/;
         <$json_fh>;
     };
@@ -28,4 +26,4 @@ sub metadataParse(@){
     return ($config);
 }
 
-1
+1;

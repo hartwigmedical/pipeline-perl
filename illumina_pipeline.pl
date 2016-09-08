@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use Getopt::Long;
 use FindBin;
 use File::Path qw(make_path);
@@ -240,7 +239,7 @@ END
     exit;
 }
 
-sub get_job_id {
+sub getJobId {
     my $id = tmpnam();
     $id =~ s/\/tmp\/file//;
     return $id;

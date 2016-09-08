@@ -2,7 +2,6 @@ package illumina_finalize;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use FindBin;
 use illumina_sge;
@@ -15,7 +14,7 @@ sub runFinalize {
     my $doneFile;
     my @runningJobs;
 
-    my $jobID = $runName."_".get_job_id();
+    my $jobID = $runName."_".getJobId();
     my $bashFile = "$opt{OUTPUT_DIR}/jobs/Finalize_".$jobID.".sh";
     open (BASH, ">$bashFile") or die "ERROR: Couldn't create $bashFile\n";
     print BASH "\#!/bin/sh\n . $opt{CLUSTER_PATH}/settings.sh\n\n";
@@ -233,13 +232,5 @@ sub runFinalize {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_$jobID $bashFile";
     }
 }
-
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id =~ s/\/tmp\/file//;
-    return $id;
-}
-############
 
 1;

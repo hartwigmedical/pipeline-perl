@@ -2,7 +2,6 @@ package illumina_germlineFiltering;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -12,7 +11,7 @@ sub runFilterVariants {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "GermlineFilter_".get_job_id();
+    my $jobID = "GermlineFilter_".getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done"){
@@ -84,13 +83,5 @@ sub runFilterVariants {
 
     return $jobID;
 }
-
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id=~s/\/tmp\/file//;
-    return $id;
-}
-############
 
 1;

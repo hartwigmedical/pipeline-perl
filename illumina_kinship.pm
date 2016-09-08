@@ -2,7 +2,6 @@ package illumina_kinship;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -12,7 +11,7 @@ sub runKinship {
     my %opt = %{$configuration};
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
     my @runningJobs;
-    my $jobID = "Kinship_".get_job_id();
+    my $jobID = "Kinship_".getJobId();
 
     if (-e "$opt{OUTPUT_DIR}/logs/Kinship.done") {
 		print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping \n";
@@ -62,11 +61,4 @@ sub runKinship {
     return $jobID;
 }
 
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id=~s/\/tmp\/file//;
-    return $id;
-}
-############
 1;

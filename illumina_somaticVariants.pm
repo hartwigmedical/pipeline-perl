@@ -2,7 +2,6 @@ package illumina_somaticVariants;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin";
 use illumina_sge;
@@ -98,7 +97,7 @@ sub runSomaticVariantCallers {
 
     print "\n###SCHEDULING MERGE SOMATIC VCFS####\n";
 
-    my $job_id = "MERGE_".$sample_tumor."_".get_job_id();
+    my $job_id = "MERGE_".$sample_tumor."_".getJobId();
     my $bash_file = $sample_tumor_job_dir."/".$job_id.".sh";
 
     open MERGE_SH, ">$bash_file" or die "cannot open file $bash_file \n";
@@ -182,7 +181,7 @@ sub runStrelka {
         return;
     }
 
-    my $job_id = "STR_".$sample_tumor."_".get_job_id();
+    my $job_id = "STR_".$sample_tumor."_".getJobId();
     my $bash_file = $job_dir."/".$job_id.".sh";
 
     from_template("Strelka.sh.tt", "$bash_file", runName => $runName, out_dir => $out_dir, sample_ref_bam =>
@@ -205,7 +204,7 @@ sub runPileup {
 
     my $bam = $opt{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
-    my $jobID = "PILEUP_$sample\_".get_job_id();
+    my $jobID = "PILEUP_$sample\_".getJobId();
 
     if (-e "$opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done") {
         print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Pileup_$sample.done exists, skipping\n";
@@ -253,7 +252,7 @@ sub runVarscan {
     my @varscan_jobs;
 
     foreach my $chr (@chrs) {
-        my $job_id = "VS_".$sample_tumor."_".$chr."_".get_job_id();
+        my $job_id = "VS_".$sample_tumor."_".$chr."_".getJobId();
         my $bash_file = $job_dir."/".$job_id.".sh";
         my $output_name = $sample_tumor_name."_".$chr;
 
@@ -271,7 +270,7 @@ sub runVarscan {
         push(@varscan_jobs, $job_id);
     }
 
-    my $job_id = "VS_".$sample_tumor."_".get_job_id();
+    my $job_id = "VS_".$sample_tumor."_".getJobId();
     my $bash_file = $job_dir."/".$job_id.".sh";
 
     my $file_test = "if [ -s $sample_ref_bam -a -s $sample_tumor_bam ";
@@ -333,7 +332,7 @@ sub runFreeBayes {
     my @freebayes_jobs;
 
     foreach my $chr (@chrs) {
-        my $job_id = "FB_".$sample_tumor."_".$chr."_".get_job_id();
+        my $job_id = "FB_".$sample_tumor."_".$chr."_".getJobId();
         my $bash_file = $job_dir."/".$job_id.".sh";
         my $output_name = $sample_tumor_name."_".$chr;
 
@@ -365,7 +364,7 @@ sub runFreeBayes {
         push(@freebayes_jobs, $job_id);
     }
 
-    my $job_id = "FB_".$sample_tumor."_".get_job_id();
+    my $job_id = "FB_".$sample_tumor."_".getJobId();
     my $bash_file = $job_dir."/".$job_id.".sh";
 
     my $file_test = "if [ -s $sample_ref_bam -a -s $sample_tumor_bam ";
@@ -421,7 +420,7 @@ sub runMutect {
     my @mutect_jobs;
 
     foreach my $chr (@chrs) {
-        my $job_id = "MUT_".$sample_tumor."_".$chr."_".get_job_id();
+        my $job_id = "MUT_".$sample_tumor."_".$chr."_".getJobId();
         my $bash_file = $job_dir."/".$job_id.".sh";
         my $output_name = $sample_tumor_name."_".$chr;
 
@@ -444,7 +443,7 @@ sub runMutect {
         push(@mutect_jobs, $job_id);
     }
 
-    my $job_id = "MUT_".$sample_tumor."_".get_job_id();
+    my $job_id = "MUT_".$sample_tumor."_".getJobId();
     my $bash_file = $job_dir."/".$job_id.".sh";
 
     my $file_test = "if [ -s $sample_ref_bam -a -s $sample_tumor_bam ";
@@ -476,12 +475,6 @@ sub runMutect {
 }
 
 ############
-sub get_job_id {
-    my $id = tmpnam();
-    $id =~ s/\/tmp\/file//;
-    return $id;
-}
-
 sub get_chrs_from_dict {
     my $dictFile = shift;
     #my %chrs;

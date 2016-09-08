@@ -2,7 +2,6 @@ package illumina_poststats;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -12,8 +11,8 @@ sub runPostStats {
     my %opt = %{$configuration};
     my @runningJobs;
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
-    my $jobID = "PostStats_".get_job_id();
-    my $jobIDCheck = "PostStats_Check_".get_job_id();
+    my $jobID = "PostStats_".getJobId();
+    my $jobIDCheck = "PostStats_Check_".getJobId();
 
     if(! -e "$opt{OUTPUT_DIR}/logs/PostStats.done") {
 		my $command = "perl $opt{BAMMETRICS_PATH}/bamMetrics.pl ";
@@ -69,13 +68,5 @@ sub runPostStats {
 		print "WARNING: $opt{OUTPUT_DIR}/logs/PostStats.done exists, skipping\n";
 	}
 }
-
-############
-sub get_job_id {
-   my $id = tmpnam();
-      $id=~s/\/tmp\/file//;
-   return $id;
-}
-############
 
 1;

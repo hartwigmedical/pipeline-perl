@@ -2,7 +2,6 @@ package illumina_baf;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -25,7 +24,7 @@ sub runBAF {
 		if (-e "$log_dir/BAF_$sample.done"){
 			print "WARNING: $log_dir/BAF_$sample.done exists, skipping BAF analysis for $sample \n";
 		} else {
-			my $jobID = "BAF_$sample\_".get_job_id();
+			my $jobID = "BAF_$sample\_".getJobId();
 			my $bashFile = $job_dir.$jobID.".sh";
 			my $output_vcf = $sample."_BAF_SNPS.vcf";
 			my $output_baf = $sample."_BAF.txt";
@@ -70,13 +69,5 @@ sub runBAF {
     }
     return \@baf_jobs;
 }
-
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id=~s/\/tmp\/file//;
-    return $id;
-}
-############
 
 1;

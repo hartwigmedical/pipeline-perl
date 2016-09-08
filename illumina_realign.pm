@@ -2,7 +2,6 @@ package illumina_realign;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -47,7 +46,7 @@ sub runRealignment {
 	    }
 
 	    my $logDir = $opt{OUTPUT_DIR}."/".$sample."/logs";
-	    my $jobIDRealign = "Realign_".$sample."_".get_job_id();
+	    my $jobIDRealign = "Realign_".$sample."_".getJobId();
 	    my $bashFile = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDRealign.".sh";
 	    my $jobNative = &jobNative(\%opt,"REALIGNMENT");
 
@@ -71,7 +70,7 @@ sub runRealignment {
 			system $qsub." -o ".$logDir."/Realignment_".$sample.".out -e ".$logDir."/Realignment_".$sample.".err -N ".$jobIDRealign." ".$bashFile;
 	    }
 
-	    my $jobIDPostProcess = "RealignPostProcess_".$sample."_".get_job_id();
+	    my $jobIDPostProcess = "RealignPostProcess_".$sample."_".getJobId();
 	    my $realignPostProcessScript = $opt{OUTPUT_DIR}."/".$sample."/jobs/".$jobIDPostProcess.".sh";
 
 	    from_template("RealignPostProcess.sh.tt", $realignPostProcessScript, realignedBam => $realignedBam, realignedBai => $realignedBai, realignedBamBai => $realignedBamBai,
@@ -89,13 +88,5 @@ sub runRealignment {
 
     return \%opt;
 }
-
-############
-sub get_job_id {
-   my $id = tmpnam();
-      $id=~s/\/tmp\/file//;
-   return $id;
-}
-############
 
 1;

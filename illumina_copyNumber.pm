@@ -2,7 +2,6 @@ package illumina_copyNumber;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use File::Path qw(make_path);
 use lib "$FindBin::Bin";
 use illumina_sge;
@@ -58,7 +57,7 @@ sub runCopyNumberTools {
             if ($freec_job) {push(@cnv_jobs, $freec_job)};
         }
 
-        my $job_id = "CHECK_".$sample_tumor."_".get_job_id();
+        my $job_id = "CHECK_".$sample_tumor."_".getJobId();
         my $bash_file = $sample_tumor_job_dir."/".$job_id.".sh";
 
         open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
@@ -117,7 +116,7 @@ sub runCopyNumberTools {
                 if ($freec_job) {push(@cnv_jobs, $freec_job)};
             }
 
-            my $job_id = "CHECK_".$sample."_".get_job_id();
+            my $job_id = "CHECK_".$sample."_".getJobId();
             my $bash_file = $sample_job_dir."/".$job_id.".sh";
 
             open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
@@ -198,7 +197,7 @@ sub runFreec {
 
     close FREEC_CONFIG;
 
-    my $job_id = "FREEC_".$sample_name."_".get_job_id();
+    my $job_id = "FREEC_".$sample_name."_".getJobId();
     my $bash_file = $job_dir."/".$job_id.".sh";
     my $sample_bam_name = (split('/', $sample_bam))[-1];
 
@@ -234,13 +233,5 @@ sub runFreec {
     }
     return $job_id;
 }
-
-############
-sub get_job_id {
-    my $id = tmpnam();
-    $id =~ s/\/tmp\/file//;
-    return $id;
-}
-############
 
 1;

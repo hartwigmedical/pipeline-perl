@@ -2,7 +2,6 @@ package illumina_prestats;
 
 use strict;
 use warnings;
-use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
@@ -12,7 +11,7 @@ sub runPreStats {
     my %opt = %{$configuration};
     my $jobIds = {};
     
-    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/PreStatsMainJob_".get_job_id().".sh";
+    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/PreStatsMainJob_".getJobId().".sh";
     print "Creating FASTQC report for the following fastq.gz files:\n";
 
     my @qsubOut = ();
@@ -25,7 +24,7 @@ sub runPreStats {
 		print "\t$input\n";
 
 		if (! -e "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
-			my $preStatsJobId = "PreStat_$coreName\_".get_job_id();
+			my $preStatsJobId = "PreStat_$coreName\_".getJobId();
 			my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 			push(@{$jobIds->{$sampleName}}, $preStatsJobId);
 			from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt, runName => $runName);
@@ -40,11 +39,4 @@ sub runPreStats {
     system("sh $mainJobID");
 }
 
-############
-sub get_job_id {
-   my $id = tmpnam(); 
-      $id=~s/\/tmp\/file//;
-   return $id;
-}
-############
 1;
