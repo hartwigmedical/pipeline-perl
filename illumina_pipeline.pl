@@ -57,7 +57,7 @@ while(<CONFIGURATION>) {
             $opt{$key} = $val;
         }
         close INI;
-    } elsif ($key eq 'FASTQ') {
+    } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
         $opt{$key}->{$val} = 1;
     } else {
         $opt{$key} = $val;
@@ -75,7 +75,7 @@ system "cp $opt{INIFILE} $opt{OUTPUT_DIR}/logs";
 
 my $opt_ref;
 
-if ( $opt{FASTQ} ) {
+if ($opt{FASTQ}) {
     if ($opt{PRESTATS} eq "yes") {
         print "### SCHEDULING PRESTATS ###\n";
         illumina_prestats::runPreStats(\%opt);
@@ -86,7 +86,13 @@ if ( $opt{FASTQ} ) {
         $opt_ref = illumina_mapping::runMapping(\%opt);
         %opt = %$opt_ref;
     }
+} elsif ($opt{BAM}) {
+    print "\n###SCHEDULING BAM PREP###\n";
+    $opt_ref = illumina_mapping::runBamPrep(\%opt);
+    %opt = %$opt_ref;
+}
 
+if ($opt{FASTQ} or $opt{BAM}) {
     if ($opt{POSTSTATS} eq "yes") {
         print "\n### SCHEDULING POSTSTATS ###\n";
         my $postStatsJob = illumina_poststats::runPostStats(\%opt);
@@ -157,10 +163,20 @@ if ( $opt{FASTQ} ) {
 sub getSamples{
     my %samples;
 
-    if ($opt{FASTQ}){
+    if ($opt{FASTQ}) {
         foreach my $input (keys %{$opt{FASTQ}}){
             my $fastqFile = (split("/", $input))[-1];
             my $sampleName = (split("_", $fastqFile))[0];
+            $samples{$sampleName}++;
+            @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
+        }
+    }
+
+    if ($opt{BAM}) {
+        foreach my $input (keys %{$opt{BAM}}){
+            my $bamFile = (split("/", $input))[-1];
+            my $sampleName = $bamFile;
+            $sampleName =~ s/\.bam//g;
             $samples{$sampleName}++;
             @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
         }
@@ -236,7 +252,7 @@ sub checkConfig {
     ### Input and Output
     if(! $opt{INIFILE}){ print "ERROR: No INIFILE option found in config files.\n"; $checkFailed = 1; }
     if(! $opt{OUTPUT_DIR}){ print "ERROR: No OUTPUT_DIR found in config files.\n"; $checkFailed = 1; } else { $runName = (split("/", $opt{OUTPUT_DIR}))[-1];}
-    if(! $opt{FASTQ}){ print "ERROR: No FASTQ files found in config files.\n"; $checkFailed = 1; }
+    if(! ($opt{FASTQ} || $opt{BAM})){ print "ERROR: No FASTQ or BAM files found in config files.\n"; $checkFailed = 1; }
     if(! $opt{MAIL}){ print "ERROR: No MAIL address specified in config files.\n"; $checkFailed = 1; }
 
     ### Cluster settings

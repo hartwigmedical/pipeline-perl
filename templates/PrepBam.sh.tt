@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+export JOB_NAME=PrepBam
+export JOB_SET="[% sample %]"
+export JOB_START=$(date +%s)
+
+cd [% opt.OUTPUT_DIR %]/[% sample %]
+
+if [ -s [% sample_bam  %] ]
+then
+    echo "Start ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% log_dir %]/[% sample %].log
+
+    if [ ! -s [% sample_bai %] ]
+    then
+        [% INCLUDE Status.tt step="PREPBAM_INDEX" status="processing" %]
+        [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] [% sample_bam %] [% sample_bai %]
+    fi
+
+    if [ ! -s [% sample_flagstat %] ]
+    then
+        [% INCLUDE Status.tt step="PREPBAM_FLAGSTAT" status="processing" %]
+        [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MAPPING_THREADS %] [% sample_bam %] > [% sample_flagstat %]
+    fi
+
+    if [ -s [% sample_bai %] ] && [ -s [% sample_flagstat %] ]
+    then
+        [% INCLUDE Status.tt step="" status="success" %]
+    else
+        echo "ERROR: [% sample_bai %] or [% sample_flagstat %] does not exist." >&2
+        [% INCLUDE Status.tt step="" status="failed" %]
+    fi
+
+    echo "End ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% log_dir %]/[% sample %].log
+else
+    echo "ERROR: [% sample_bam %] does not exist." >&2
+    [% INCLUDE Status.tt step="" status="failed" %]
+fi

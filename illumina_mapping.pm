@@ -5,6 +5,7 @@ use warnings;
 use POSIX qw(tmpnam);
 use lib "$FindBin::Bin";
 use File::Basename;
+use File::Spec::Functions;
 
 use illumina_sge;
 use illumina_template;
@@ -168,6 +169,48 @@ sub createIndividualMappingJobs {
     my $qsub = &qsubTemplate(\%opt,"MAPPING");
     print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$cleanAndCheckJobId,
     " -hold_jid ",$mappingFSJobId,",",$sortFSJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$cleanAndCheckJobId,".sh\n\n";
+}
+
+sub runBamPrep {
+    my $configuration = shift;
+    my %opt = %{$configuration};
+    my $jobIds = {};
+
+    foreach my $input (keys %{$opt{BAM}}) {
+        my $bam_file = fileparse($input);
+        (my $input_bai = $input) =~ s/\.bam/\.bai/g;
+        (my $input_flagstat = $input) =~ s/\.bam/\.flagstat/g;
+
+        (my $sample = $bam_file) =~ s/\.bam//g;
+        $opt{BAM_FILES}->{$sample} = $bam_file;
+        my $sample_bam = catfile($opt{OUTPUT_DIR}, $sample, "mapping", $bam_file);
+        my $sample_bai = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.bai");
+        my $sample_flagstat = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.flagstat");
+
+        -e $input or die "ERROR: $input does not exist.";
+        symlink($input, $sample_bam);
+        -e $input_bai and symlink($input_bai, $sample_bai);
+        -e $input_flagstat and symlink($input_flagstat, $sample_flagstat);
+
+        next if -e $sample_bai && -e $sample_flagstat;
+
+        my $job_id = "PrepBam_${sample}_" . get_job_id();
+        my $log_dir = catfile($opt{OUTPUT_DIR}, $sample, "logs");
+        my $bash_file = catfile($opt{OUTPUT_DIR}, $sample, "jobs", "$job_id.sh");
+
+        from_template("PrepBam.sh.tt", $bash_file,
+                      sample => $sample,
+                      sample_bam => $sample_bam,
+                      sample_bai => $sample_bai,
+                      sample_flagstat => $sample_flagstat,
+                      log_dir => $log_dir,
+                      opt => \%opt);
+
+        my $qsub = &qsubTemplate(\%opt, "MAPPING");
+        system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
+        push(@{$opt{RUNNING_JOBS}->{$sample}}, $job_id);
+    }
+    return \%opt;
 }
 
 ############
