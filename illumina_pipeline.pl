@@ -239,12 +239,6 @@ END
     exit;
 }
 
-sub getJobId {
-    my $id = tmpnam();
-    $id =~ s/\/tmp\/file//;
-    return $id;
-}
-
 sub checkConfig {
     my $checkFailed = 0;
     my $runName = "";

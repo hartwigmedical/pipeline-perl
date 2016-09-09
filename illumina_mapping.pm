@@ -212,12 +212,4 @@ sub runBamPrep {
     return \%opt;
 }
 
-############
-sub getJobId {
-   my $id = tmpnam();
-      $id=~s/\/tmp\/file//;
-   return $id;
-}
-############
-
 1;
