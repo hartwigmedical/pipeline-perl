@@ -13,11 +13,11 @@ Output:
     - Melted vcf to stdout:
         - Prints original header + extra header lines describing new CSA and CSP info fields.
         - New info fields:
-            - CSA: Number of callers suporting each allele -> [ref, alt:]
-            - CSP: Number of callers suporting the position
+            - CSA: Number of callers supporting each allele -> [ref, alt:]
+            - CSP: Number of callers supporting the position
         - Melted GT format:
-            - GT: Contains all suported allele calls, because of this the genotype can be 'non-diploid', for example 0/1/2
-            - AD: Contains ad values for all suported alleles.
+            - GT: Contains all supported allele calls, because of this the genotype can be 'non-diploid', for example 0/1/2
+            - AD: Contains ad values for all supported alleles.
                 - AD values are averages from callers with support for the allele.
                 - Ref ad is set to 0 if there is no support from the callers.
             - DP:
@@ -42,7 +42,6 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
         sys.exit("Error: Can't open vcf file: {0}".format(vcf_file))
     else:
         with f:
-            vcf_header = []
             for line in f:
                 line = line.strip('\n')
                 if line.startswith('##'):
