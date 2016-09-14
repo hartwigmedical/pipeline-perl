@@ -34,6 +34,8 @@ then
     
     [% INCLUDE Status.tt step="PostProcess" status="success" %]
   else
+    echo "ERROR: [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf does not exist." >&2
+
     [% INCLUDE Status.tt step="PostProcess" status="failed" %]
   fi
   
