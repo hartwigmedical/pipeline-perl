@@ -71,7 +71,7 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
         normal_lod = normal_threshold
     result = normal_lod >= normal_threshold and tumor_lod >= tumor_threshold
     if not result:
-        print('{} LOD filtered (normal: {}, tumor: {})'.format(_location(parts), normal_lod, tumor_lod))
+        print('{} LOD filtered (normal: {}, tumor: {})'.format(_location(parts), normal_lod, tumor_lod), file=sys.stderr)
     return result
 
 
@@ -110,7 +110,7 @@ def _check_freqs(parts, normal_threshold, ratio_threshold):
     tumor_freq, normal_freq = _calc_freq(parts[TUMOR_PARTS_INDEX]), _calc_freq(parts[NORMAL_PARTS_INDEX])
     result = normal_freq <= normal_threshold or normal_freq <= tumor_freq / ratio_threshold
     if not result:
-        print('{} FREQ filtered (normal: {}, tumor: {})'.format(_location(parts), normal_freq, tumor_freq))
+        print('{} FREQ filtered (normal: {}, tumor: {})'.format(_location(parts), normal_freq, tumor_freq), file=sys.stderr)
     return result
 
 
