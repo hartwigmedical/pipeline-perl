@@ -14,8 +14,8 @@ import argparse
 import re
 import sys
 
-CHROM_INDEX = 1
-POS_INDEX = 2
+CHROM_INDEX = 0
+POS_INDEX = 1
 FORMAT_PARTS_INDEX = 8
 NORMAL_PARTS_INDEX = 9
 TUMOR_PARTS_INDEX = 10
