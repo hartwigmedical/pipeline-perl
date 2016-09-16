@@ -50,6 +50,7 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
     try:
         gl_index = parts[FORMAT_PARTS_INDEX].split(":").index("GL")
     except ValueError:
+        print("skipping LOD check, no GL in '{}'".format(parts[FORMAT_PARTS_INDEX]), file=sys.stderr)
         return True
     try:
         tumor_gls = [float(x) for x in parts[TUMOR_PARTS_INDEX].split(":")[gl_index].split(",") if x != "."]
@@ -58,8 +59,9 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
         else:
             tumor_lod = -1.0
     # No GL information, no tumor call (so fail it)
-    except IndexError:
+    except IndexError as e:
         tumor_lod = -1.0
+        print("assigning {} to tumor LOD for '{}' due to {}".format(tumor_lod, parts[TUMOR_PARTS_INDEX], e), file=sys.stderr)
     try:
         normal_gls = [float(x) for x in parts[NORMAL_PARTS_INDEX].split(":")[gl_index].split(",") if x != "."]
         if normal_gls:
@@ -67,10 +69,11 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
         else:
             normal_lod = normal_threshold
     # No GL information, no normal call (so pass it)
-    except IndexError:
+    except IndexError as e:
         normal_lod = normal_threshold
+        print("assigning {} to normal LOD for '{}' due to {}".format(normal_lod, parts[NORMAL_PARTS_INDEX], e), file=sys.stderr)
     result = normal_lod >= normal_threshold and tumor_lod >= tumor_threshold
-    if not result:
+    if args.debug and not result:
         print('{} LOD filtered (normal: {}, tumor: {})'.format(_location(parts), normal_lod, tumor_lod), file=sys.stderr)
     return result
 
@@ -104,12 +107,12 @@ def _check_freqs(parts, normal_threshold, ratio_threshold):
             else:
                 print("failing to calculate frequency for {} due to missing AO/RO and AF".format(item), file=sys.stderr)
         except (IndexError, ValueError, ZeroDivisionError) as e:
-            print("assigning 0.0 to frequency for {} due to {}".format(item, e), file=sys.stderr)
             freq = 0.0
+            print("assigning {} to frequency for '{}' due to {}".format(freq, item, e), file=sys.stderr)
         return freq
     tumor_freq, normal_freq = _calc_freq(parts[TUMOR_PARTS_INDEX]), _calc_freq(parts[NORMAL_PARTS_INDEX])
     result = normal_freq <= normal_threshold or normal_freq <= tumor_freq / ratio_threshold
-    if not result:
+    if args.debug and not result:
         print('{} FREQ filtered (normal: {}, tumor: {})'.format(_location(parts), normal_freq, tumor_freq), file=sys.stderr)
     return result
 
@@ -123,6 +126,8 @@ if __name__ == "__main__":
 
     required_named = parser.add_argument_group("required named arguments")
     required_named.add_argument("-v", "--vcf_file", help="path/to/file.vcf", required=True)
+    optional_named = parser.add_argument_group("optional named arguments")
+    optional_named.add_argument("-d", "--debug", action="store_true", help="debug logging")
 
     args = parser.parse_args()
     customFilterFreebayes(args.vcf_file)
