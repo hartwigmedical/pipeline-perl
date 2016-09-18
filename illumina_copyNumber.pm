@@ -3,7 +3,10 @@ package illumina_copyNumber;
 use strict;
 use warnings;
 use File::Path qw(make_path);
+
+use FindBin;
 use lib "$FindBin::Bin";
+
 use illumina_sge;
 use illumina_metadataParser;
 

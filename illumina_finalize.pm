@@ -2,8 +2,10 @@ package illumina_finalize;
 
 use strict;
 use warnings;
-use lib "$FindBin::Bin";
+
 use FindBin;
+use lib "$FindBin::Bin";
+
 use illumina_sge;
 use illumina_metadataParser;
 

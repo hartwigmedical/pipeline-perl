@@ -3,13 +3,14 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use FindBin;
 use File::Path qw(make_path);
 use File::Copy qw(copy);
 use Cwd qw( abs_path );
 use File::Basename qw( dirname );
 
+use FindBin;
 use lib "$FindBin::Bin";
+
 use illumina_prestats;
 use illumina_mapping;
 use illumina_poststats;

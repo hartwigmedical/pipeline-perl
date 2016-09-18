@@ -1,8 +1,8 @@
 package illumina_metadataParser;
 
-use JSON;
 use strict;
 use warnings;
+use JSON;
 
 BEGIN {
     use Exporter;

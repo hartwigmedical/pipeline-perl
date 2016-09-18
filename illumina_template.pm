@@ -7,7 +7,6 @@ use strict;
 use warnings;
 use Template;
 use Env qw($TEMPLATES);
-use FindBin;
 
 my $template_dir = $TEMPLATES ? $TEMPLATES : "$FindBin::Bin/templates/";
 

@@ -2,9 +2,11 @@ package illumina_mapping;
 
 use strict;
 use warnings;
-use lib "$FindBin::Bin";
 use File::Basename;
 use File::Spec::Functions;
+
+use FindBin;
+use lib "$FindBin::Bin";
 
 use illumina_sge;
 use illumina_template;

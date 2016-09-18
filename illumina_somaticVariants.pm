@@ -3,7 +3,10 @@ package illumina_somaticVariants;
 use strict;
 use warnings;
 use File::Path qw(make_path);
+
+use FindBin;
 use lib "$FindBin::Bin";
+
 use illumina_sge;
 use illumina_template;
 use illumina_metadataParser;

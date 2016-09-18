@@ -2,7 +2,10 @@ package illumina_prestats;
 
 use strict;
 use warnings;
+
+use FindBin;
 use lib "$FindBin::Bin";
+
 use illumina_sge;
 use illumina_template;
 
@@ -10,7 +13,7 @@ sub runPreStats {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $jobIds = {};
-    
+
     my $mainJobID = "$opt{OUTPUT_DIR}/jobs/PreStatsMainJob_".getJobId().".sh";
     print "Creating FASTQC report for the following fastq.gz files:\n";
 

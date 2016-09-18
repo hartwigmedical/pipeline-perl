@@ -2,7 +2,10 @@ package illumina_germlineCalling;
 
 use strict;
 use warnings;
+
+use FindBin;
 use lib "$FindBin::Bin";
+
 use illumina_sge;
 use illumina_template;
 
