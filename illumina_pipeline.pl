@@ -86,6 +86,9 @@ if ($opt{FASTQ}) {
         %opt = %$opt_ref;
     }
 } elsif ($opt{BAM}) {
+    $opt{MAPPING} = "no";
+    $opt{PRESTATS} = "no";
+
     print "\n###SCHEDULING BAM PREP###\n";
     $opt_ref = illumina_mapping::runBamPrep(\%opt);
     %opt = %$opt_ref;
