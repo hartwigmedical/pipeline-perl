@@ -23,7 +23,7 @@ sub runFinalize {
 
     my $logFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.log";
     print BASH "failed=false \n";
-    print BASH "rm $logFile \n";
+    print BASH "rm -f $logFile \n";
     print BASH "echo \"Check and cleanup for run: $runName \" >>$logFile\n";
 
     my $version = `git --git-dir $opt{PIPELINE_PATH}/.git describe --tags`;
@@ -199,22 +199,22 @@ sub runFinalize {
     print BASH "else\n";
     print BASH "\techo \"The pipeline completed successfully.\">>$logFile\n";
 
-    print BASH "\trm -r $opt{OUTPUT_DIR}/tmp\n";
-    print BASH "\trm -r $opt{OUTPUT_DIR}/*/tmp\n";
+    print BASH "\trm -rf $opt{OUTPUT_DIR}/tmp\n";
+    print BASH "\trm -rf $opt{OUTPUT_DIR}/*/tmp\n";
     print BASH "\tfind $opt{OUTPUT_DIR}/logs -size 0 -not -name \"*.done\" -delete\n";
     print BASH "\tfind $opt{OUTPUT_DIR}/*/logs -size 0 -not -name \"*.done\" -delete\n";
     print BASH "\tfind $opt{OUTPUT_DIR}/somaticVariants/*/logs -size 0 -not -name \"*.done\" -delete\n";
 
     if ($opt{INDELREALIGNMENT} eq "yes") {
         foreach my $sample (@{$opt{SAMPLES}}) {
-            print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample\_dedup.ba*\n";
+            print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample\_dedup.ba*\n";
         }
     }
 
     if ($opt{SOMATIC_VARIANTS} eq "yes" && $opt{SOMVAR_VARSCAN} eq "yes" && $opt{FINALIZE_KEEP_PILEUP} eq "no") {
         foreach my $sample (@{$opt{SAMPLES}}) {
-            print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz\n";
-            print BASH "\trm $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz.tbi\n";
+            print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz\n";
+            print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz.tbi\n";
         }
     }
 
