@@ -219,11 +219,7 @@ sub runFinalize {
     $doneFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.done";
     print BASH "\tmail -s \"Pipeline DONE $runName\" \"$opt{MAIL}\" < $logFile\n";
     print BASH "\ttouch $doneFile\n";
-
     print BASH "fi\n";
-
-    #Sleep to ensure that email is send from cluster.
-    print BASH "sleep 5s \n";
 
     my $qsub = &qsubTemplate(\%opt, "FINALIZE");
     if (@runningJobs) {
