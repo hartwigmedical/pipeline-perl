@@ -66,10 +66,11 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                     # Check somatic samples
                     num_somatic_samples = len(samples) // 2
                     if num_somatic_samples != len(tumor_samples_index):
-                        sys.exit('Error: Found {0} sample somatic variant caller combinations in {2}, expected {1}. Please check tumor_sample name.'.format(
+                        sys.exit('Error: Found {0} sample somatic variant caller combinations in {2}, expected {1}. Samples found: {3}'.format(
                             len(tumor_samples_index),
                             num_somatic_samples,
                             vcf_file,
+                            samples,
                         ))
 
                     # print meta-information lines with melter info to vcf
