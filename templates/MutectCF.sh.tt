@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# -*- TT -*-
 #
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
