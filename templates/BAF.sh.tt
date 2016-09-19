@@ -19,7 +19,7 @@ if [ -s [% sample_bam %] ]; then
 	java -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp/ -Xmx[% opt.BAF_MEM %]G -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
 		-T UnifiedGenotyper -R [% opt.GENOME %] -L [% opt.BAF_SNPS %] -I [% sample_bam %] -o [% output_vcf %] --output_mode EMIT_ALL_SITES
 else
-	echo "ERROR: Sample bam file do not exist." >&2
+	echo "ERROR: Sample BAM file does not exist." >&2
 fi
                 
 if [ "$(tail -n 1 [% output_vcf %] | cut -f 1,2)" = "$(tail -n 1 [% opt.BAF_SNPS %]| cut -f 1,3)" ]; then
@@ -50,7 +50,7 @@ if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %
 
 	[% INCLUDE Status.tt step="BAF_FILE" status="finished" %]
 else
-	echo "ERROR: Sample BAF vcf and UG done file do not exist." >&2
+	echo "ERROR: Sample BAF VCF and UG done files do not exist." >&2
   
 	[% INCLUDE Status.tt step="BAF_FILE" status="failed" %]
 fi
@@ -63,7 +63,7 @@ if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample
   
 	Rscript [% opt.PIPELINE_PATH %]/scripts/makeBAFplot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
 else
-	echo "ERROR: Sample BAF file and baf file done file do not exist." >&2
+	echo "ERROR: Sample BAF file and BAF done files do not exist." >&2
 fi
 
 if [ -s [% output_bafplot %] ]; then
