@@ -1,5 +1,6 @@
 package illumina_kinship;
 
+use 5.16.0;
 use strict;
 use warnings;
 

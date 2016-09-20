@@ -1,7 +1,9 @@
 package illumina_copyNumber;
 
+use 5.16.0;
 use strict;
 use warnings;
+
 use File::Path qw(make_path);
 
 use FindBin;

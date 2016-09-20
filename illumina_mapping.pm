@@ -1,7 +1,9 @@
 package illumina_mapping;
 
+use 5.16.0;
 use strict;
 use warnings;
+
 use File::Basename;
 use File::Spec::Functions;
 

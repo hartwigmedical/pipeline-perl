@@ -3,6 +3,7 @@ require Exporter;
 @ISA = qw(Exporter);
 @EXPORT= qw(from_template);
 
+use 5.16.0;
 use strict;
 use warnings;
 
