@@ -2,7 +2,9 @@ package illumina_sge;
 
 use strict;
 use warnings;
+
 use POSIX qw(tmpnam);
+use File::Basename;
 
 BEGIN {
     use Exporter;
@@ -48,8 +50,8 @@ sub jobNative(@) {
 }
 
 sub getJobId {
-    my $id = tmpnam();
-    $id =~ s#/tmp/file##;
+    my $id = fileparse(tmpnam());
+    $id =~ s#(file|tmp\.[0-9]\.)##;
     return $id;
 }
 

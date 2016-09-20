@@ -7,10 +7,13 @@ use strict;
 use warnings;
 
 use Carp;
+use File::Spec::Functions;
 use Template;
 use Env qw($TEMPLATES);
 
-my $template_dir = $TEMPLATES ? $TEMPLATES : "$FindBin::Bin/templates/";
+use FindBin;
+
+my $template_dir = $TEMPLATES ? $TEMPLATES : catfile("$FindBin::Bin", "templates");
 
 sub from_template {
     my $tname = shift || return undef;
