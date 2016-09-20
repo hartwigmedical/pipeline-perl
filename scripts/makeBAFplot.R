@@ -18,7 +18,6 @@ f2 <- function(x) sum(unlist(x)[2:length(x)])
 f1 <- function(x) sum(unlist(x))
 
 determine_peaks <- function(region) {
-  # ADD CHECK FOR NUMBER OF ROWS >= 50?
   quant <- quantile(region$baf)
   if (quant[2] == quant[4]) {
     # LOW COMPLEXITY
@@ -35,6 +34,10 @@ determine_peaks <- function(region) {
   tp <-turnpoints(ts_y)
   peaks <- data.frame(baf=d$x[tp$tppos], dens=d$y[tp$tppos])
   df <- data.frame(subset(peaks, dens >= 2.0))
+  if (nrow(df) < 2) {
+    # complex region
+    df <- data.frame(subset(peaks, dens >= 1.0))
+  }
   df$CHROM <- region$CHROM[1]
   df$POS <- mean(region$POS)
   df$CALL <- NA
