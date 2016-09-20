@@ -3,10 +3,12 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Cwd qw(abs_path);
 use File::Path qw(make_path);
 use File::Copy qw(copy);
-use Cwd qw( abs_path );
-use File::Basename qw( dirname );
+use File::Basename qw(dirname);
+use File::Spec::Functions;
+use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -70,6 +72,8 @@ close CONFIGURATION;
 checkConfig();
 getSamples();
 createOutputDirs();
+
+die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)" unless lock_run($opt{OUTPUT_DIR});
 
 system "cp $opt{INIFILE} $opt{OUTPUT_DIR}/logs";
 
@@ -535,6 +539,14 @@ sub checkConfig {
     if ($checkFailed) {
         die "One or more options not found in config files";
     }
+}
+
+sub lock_run {
+    my ($dir) = @_;
+    my $lock_file = catfile($dir, "run.lock");
+    my $retval = sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL;
+    close $fh if $retval;
+    return $retval;
 }
 
 1;

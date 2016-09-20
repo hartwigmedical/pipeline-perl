@@ -223,6 +223,9 @@ sub runFinalize {
     print BASH "\ttouch $doneFile\n";
     print BASH "fi\n";
 
+    # regardless of success, remove the lock: we are done
+    print BASH "rm -f $opt{OUTPUT_DIR}/run.lock\n";
+
     my $qsub = &qsubTemplate(\%opt, "FINALIZE");
     if (@runningJobs) {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_$jobID -hold_jid ".join(",", @runningJobs)." $bashFile";
