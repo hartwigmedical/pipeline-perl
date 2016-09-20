@@ -509,6 +509,7 @@ sub checkConfig {
             if($opt{ANNOTATE_IDFIELD} eq "yes"){
             if(! $opt{ANNOTATE_IDNAME}){ print "ERROR: No ANNOTATE_IDNAME option found in config files.\n"; $checkFailed = 1; }
             if(! $opt{ANNOTATE_IDDB}){ print "ERROR: No ANNOTATE_IDDB option found in config files.\n"; $checkFailed = 1; }
+            elsif( $opt{ANNOTATE_IDDB} && ! -e $opt{ANNOTATE_IDDB}) { print"ERROR: $opt{ANNOTATE_IDDB} does not exist\n"; $checkFailed = 1; }
         }
     }
 
