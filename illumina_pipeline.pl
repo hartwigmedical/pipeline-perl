@@ -11,7 +11,6 @@ use File::Copy::Recursive qw(rcopy);
 use File::Basename qw(dirname);
 use File::Spec::Functions;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
-use List::Util qw(notall);
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -339,7 +338,7 @@ sub checkConfig {
         if(! $opt{REALIGNMENT_MERGETHREADS}){ print "ERROR: No REALIGNMENT_MERGETHREADS option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{REALIGNMENT_SCALA}){ print "ERROR: No REALIGNMENT_SCALA option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{REALIGNMENT_SCATTER}){ print "ERROR: No REALIGNMENT_SCATTER option found in config files.\n"; $checkFailed = 1; }
-        if($opt{REALIGNMENT_KNOWN} && notall { -e } split "\t", $opt{REALIGNMENT_KNOWN}) { print "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist.\n"; $checkFailed = 1; }
+        if($opt{REALIGNMENT_KNOWN} && grep { ! -e } split "\t", $opt{REALIGNMENT_KNOWN}) { print "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_QUEUE}){ print "ERROR: No FLAGSTAT_QUEUE option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_THREADS}){ print "ERROR: No FLAGSTAT_THREADS option found in config files.\n"; $checkFailed = 1; }
         if(! $opt{FLAGSTAT_MEM}){ print "ERROR: No FLAGSTAT_MEM option found in config files.\n"; $checkFailed = 1; }
