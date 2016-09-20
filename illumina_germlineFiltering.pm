@@ -26,7 +26,7 @@ sub runFilterVariants {
     my $jobNative = &jobNative(\%opt,"FILTER");
     $command .= "-jobQueue $opt{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
 
-    $command .= "-S $opt{PIPELINE_PATH}/$opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} ";
+    $command .= "-S $opt{OUTPUT_DIR}/QScripts/$opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} ";
 
 	my @SNPFilterNames = split("\t",$opt{FILTER_SNPNAME});
 	my @SNPFilterExprs = split("\t",$opt{FILTER_SNPEXPR});

@@ -31,7 +31,7 @@ sub runVariantCalling {
     my $command = "java -Xmx".$opt{CALLING_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
     $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineCaller.jobReport.txt -memLimit $opt{CALLING_MEM} ";
 
-    $command .= "-S $opt{PIPELINE_PATH}/$opt{CALLING_SCALA} ";
+    $command .= "-S $opt{OUTPUT_DIR}/QScripts/$opt{CALLING_SCALA} ";
     if ($opt{CALLING_UGMODE}) {
 	    $command .= " -glm $opt{CALLING_UGMODE} ";
     }

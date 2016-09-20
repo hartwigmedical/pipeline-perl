@@ -62,7 +62,7 @@ echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample 
 if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="processing" %]
   
-	Rscript [% opt.PIPELINE_PATH %]/scripts/makeBAFplot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
+	Rscript [% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
 else
 	echo "ERROR: Sample BAF file and BAF done files do not exist." >&2
 fi

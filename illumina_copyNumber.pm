@@ -219,7 +219,7 @@ sub runFreec {
     print FREEC_SH "\tcd $freec_out_dir\n";
     print FREEC_SH "\tcat $opt{FREEC_PATH}/assess_significance.R | R --slave --args ".$sample_bam_name."_CNVs ".$sample_bam_name."_ratio.txt\n";
     print FREEC_SH "\tcat $opt{FREEC_PATH}/makeGraph.R | R --slave --args 2 ".$sample_bam_name."_ratio.txt\n";
-    print FREEC_SH "\tcat $opt{PIPELINE_PATH}/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 ".$sample_bam_name."_ratio.txt\n";
+    print FREEC_SH "\tcat $opt{OUTPUT_DIR}/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 ".$sample_bam_name."_ratio.txt\n";
     print FREEC_SH "\ttouch $log_dir/freec.done\n";
     print FREEC_SH "\techo \"End FREEC\t\" `date` \"\t $sample_bam \t $control_bam\t\" `uname -n` >> $log_dir/freec.log\n\n";
     print FREEC_SH "else\n";

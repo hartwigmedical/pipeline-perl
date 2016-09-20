@@ -16,7 +16,7 @@ then
 
   # Run Strelka
   rm -rf [% out_dir %]/strelka
-  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.PIPELINE_PATH %]/[% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
+  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
 
   cd [% out_dir %]/strelka
   make -j [% opt.STRELKA_THREADS %]

@@ -115,7 +115,7 @@ echo "Start germline variant annotation	" `date` "	[% invcf %]	" `uname -n` >> [
 
 [% INCLUDE Status.tt step="ANNOTATE_SLICE" status="processing" %]
 
-java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.PIPELINE_PATH %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
+java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i [% invcf %] > [% slicedvcf %]
 
 [% INCLUDE Status.tt step="ANNOTATE_SLICE" status="finished" %]
 

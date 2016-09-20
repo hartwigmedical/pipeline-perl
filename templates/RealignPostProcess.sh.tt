@@ -26,10 +26,10 @@ if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% o
         mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealignment.jobreport.txt [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealignment.jobreport.txt
         mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealignment.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealignment.jobreport.pdf
 
-        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
         [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBamBai %]
 
-        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
         [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBamBai %]
         [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedFlagstat %]
 

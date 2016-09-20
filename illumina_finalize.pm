@@ -26,8 +26,7 @@ sub runFinalize {
     print BASH "rm -f $logFile \n";
     print BASH "echo \"Check and cleanup for run: $runName \" >>$logFile\n";
 
-    my $version = `git --git-dir $opt{PIPELINE_PATH}/.git describe --tags`;
-    print BASH "echo \"Pipeline version: $version \" >>$logFile\n\n";
+    print BASH "echo \"Pipeline version: $opt{VERSION} \" >>$logFile\n\n";
     print BASH "echo \"\">>$logFile\n\n";
 
     foreach my $sample (@{$opt{SAMPLES}}) {

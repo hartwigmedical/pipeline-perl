@@ -17,10 +17,10 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 echo "Start indel realignment	" `date` "	[% bam %] 	" `uname -n` >> [% logDir %]/[% sample %].log
 
 if [ -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]; then
-	[% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %] -L [% opt.PIPELINE_PATH %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %]
+	[% opt.SAMBAMBA_PATH %]/sambamba view -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %]
     [% opt.SAMBAMBA_PATH %]/sambamba index [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBamBai %]
 
-	java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp -jar [% opt.QUEUE_PATH %]/Queue.jar -R [% opt.GENOME %] -S [% opt.PIPELINE_PATH %]/[% opt.REALIGNMENT_SCALA %] -jobQueue [% opt.REALIGNMENT_QUEUE %] \
+	java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp -jar [% opt.QUEUE_PATH %]/Queue.jar -R [% opt.GENOME %] -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.REALIGNMENT_SCALA %] -jobQueue [% opt.REALIGNMENT_QUEUE %] \
 		-nt [% opt.REALIGNMENT_THREADS %] -mem [% opt.REALIGNMENT_MEM %] -nsc [% opt.REALIGNMENT_SCATTER %] -jobNative "[% jobNative %]" [% knownIndelFiles %] \
 		-run -I [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] -jobRunner GridEngine
   

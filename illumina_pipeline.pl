@@ -5,7 +5,7 @@ use warnings;
 use Getopt::Long;
 use Cwd qw(abs_path);
 use File::Path qw(make_path);
-use File::Copy qw(copy);
+use File::Copy::Recursive qw(rcopy);
 use File::Basename qw(dirname);
 use File::Spec::Functions;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
@@ -37,8 +37,7 @@ my $configurationFile;
     'RUNNING_JOBS'		=> {},
     'BAM_FILES'			=> {},
     'SAMPLES'			=> undef,
-    'PIPELINE_PATH'		=> dirname(abs_path($0)),
-    'SINGLE_END'        => undef
+    'SINGLE_END'        => undef,
 );
 
 ############ READ RUN SETTINGS FORM .conf FILE ############
@@ -73,10 +72,11 @@ close CONFIGURATION;
 checkConfig();
 getSamples();
 createOutputDirs();
+recordGitVersion(\%opt);
 
 die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)" unless lock_run($opt{OUTPUT_DIR});
 
-system "cp $opt{INIFILE} $opt{OUTPUT_DIR}/logs";
+copyConfigAndScripts(\%opt);
 
 my $opt_ref;
 
@@ -549,6 +549,30 @@ sub lock_run {
     my $retval = sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL;
     close $fh if $retval;
     return $retval;
+}
+
+sub recordGitVersion {
+    my ($opt) = (@_);
+
+    my $git_dir = catfile(dirname(abs_path($0)), ".git");
+    $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
+}
+
+sub copyConfigAndScripts {
+    my ($opt) = (@_);
+
+    my $pipeline_path = dirname(abs_path($0));
+    my $slice_dir = catfile($pipeline_path, "settings", "slicing");
+    my $strelka_dir = catfile($pipeline_path, "settings", "strelka");
+    my $script_dir = catfile($pipeline_path, "scripts");
+    my $qscript_dir = catfile($pipeline_path, "QScripts");
+
+    rcopy $slice_dir, catfile($opt->{OUTPUT_DIR}, "settings", "slicing") or die "Failed to copy slice settings $slice_dir: $!";
+    rcopy $strelka_dir, catfile($opt->{OUTPUT_DIR}, "settings", "strelka") or die "Failed to copy Strelka settings $strelka_dir: $!";
+    rcopy $script_dir, catfile($opt->{OUTPUT_DIR}, "scripts") or die "Failed to copy scripts $script_dir: $!";
+    rcopy $qscript_dir, catfile($opt->{OUTPUT_DIR}, "QScripts") or die "Failed to copy QScripts $qscript_dir: $!";
+    rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $opt->{INIFILE}: $!";
+    rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $opt->{INIFILE}: $!";
 }
 
 1;
