@@ -20,8 +20,12 @@ sub runCopyNumberTools {
     if ($opt{CNV_MODE} eq "sample_control") {
         my @cnv_jobs;
         my $metadata = metadataParse($opt{OUTPUT_DIR});
-        my $sample_ref = $metadata->{'ref_sample'};
-        my $sample_tumor = $metadata->{'tumor_sample'};
+
+        my $sample_ref = $metadata->{ref_sample} or die "metadata missing ref_sample";
+        my $sample_tumor = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+
+        $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM files";
+        $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM files";
 
         my $sample_tumor_name = "$sample_ref\_$sample_tumor";
         my $sample_tumor_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample_tumor_name";
@@ -29,7 +33,7 @@ sub runCopyNumberTools {
         my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
 
         if (!-e $sample_tumor_out_dir) {
-            make_path($sample_tumor_out_dir) or die "Couldn't create directory:  $sample_tumor_out_dir\n";
+            make_path($sample_tumor_out_dir) or die "Couldn't create directory: $sample_tumor_out_dir\n";
         }
         if (!-e $sample_tumor_job_dir) {
             make_path($sample_tumor_job_dir) or die "Couldn't create directory: $sample_tumor_job_dir\n";

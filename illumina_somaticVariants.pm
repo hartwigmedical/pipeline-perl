@@ -32,8 +32,12 @@ sub runSomaticVariantCallers {
     $opt{RUNNING_JOBS}->{'pileup'} = \@pileupJobs;
 
     my $metadata = metadataParse($opt{OUTPUT_DIR});
-    my $sample_ref = $metadata->{'ref_sample'};
-    my $sample_tumor = $metadata->{'tumor_sample'};
+
+    my $sample_ref = $metadata->{ref_sample} or die "metadata missing ref_sample";
+    my $sample_tumor = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+
+    $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM files";
+    $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM files";
 
     my @merge_somvar_jobs;
     my @somvar_jobs;
@@ -45,7 +49,7 @@ sub runSomaticVariantCallers {
     my $sample_tumor_job_dir = catfile($sample_tumor_out_dir, "jobs");
 
     if (!-e $sample_tumor_out_dir) {
-        make_path($sample_tumor_out_dir) or die "Couldn't create directory:  $sample_tumor_out_dir\n";
+        make_path($sample_tumor_out_dir) or die "Couldn't create directory: $sample_tumor_out_dir\n";
     }
     if (!-e $sample_tumor_tmp_dir) {
         make_path($sample_tumor_tmp_dir) or die "Couldn't create directory: $sample_tumor_tmp_dir\n";
