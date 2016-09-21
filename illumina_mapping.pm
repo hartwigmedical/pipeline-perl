@@ -180,7 +180,7 @@ sub runBamPrep {
     my $jobIds = {};
 
     foreach my $input (keys %{$opt{BAM}}) {
-        my $bam_file = fileparse($input);
+        my $bam_file = verifyBam($input, \%opt);
         (my $input_bai = $input) =~ s/\.bam/\.bai/g;
         (my $input_flagstat = $input) =~ s/\.bam/\.flagstat/g;
 
@@ -190,7 +190,6 @@ sub runBamPrep {
         my $sample_bai = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.bai");
         my $sample_flagstat = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.flagstat");
 
-        -e $input or die "ERROR: $input does not exist.";
         symlink($input, $sample_bam);
         -e $input_bai and symlink($input_bai, $sample_bai);
         -e $input_flagstat and symlink($input_flagstat, $sample_flagstat);
@@ -215,5 +214,63 @@ sub runBamPrep {
     }
     return \%opt;
 }
+
+sub verifyBam {
+    my ($input_file, $opt) = @_;
+
+    -e $input_file or die "ERROR: $input_file does not exist.";
+    my $bam_file = fileparse($input_file);
+
+    my $headers = bamHeaders($input_file, $opt);
+
+    my @sample_names = map $_->{tags}{SM}, grep $_->{type} eq "RG", @$headers;
+    die "too many samples in BAM $input_file: @sample_names" unless keys { map { $_, 1 } @sample_names } < 2;
+    warn "missing sample name in BAM $input_file, using file name" unless @sample_names;
+    # overwrite the name if we got a single sample name from the BAM
+    $bam_file = "$sample_names[0].bam" if @sample_names;
+
+    my %bam_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{type} eq "SQ", @$headers;
+    verifyContigs(\%bam_contigs, refGenomeContigs($opt));
+
+    return $bam_file;
+}
+
+sub bamHeaders {
+    my ($input_file, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+    my @lines = qx($samtools view -H $input_file);
+    chomp @lines;
+    my @fields = map [
+        splice [ split qr'[\t@:]' ], 1
+    ], @lines;
+    my @headers = map {
+        type => shift $_,
+        tags => { @$_ },
+    }, @fields;
+    return \@headers;
+}
+
+sub refGenomeContigs {
+    my ($opt) = @_;
+
+    my @fasta_index = qx(cat $opt->{GENOME}.fai);
+    chomp @fasta_index;
+    my %contigs = map { splice [ split "\t" ], 0, 2 } @fasta_index;
+    return \%contigs;
+}
+
+sub verifyContigs {
+    my ($bam_contigs, $ref_contigs) = @_;
+
+    my @warnings;
+    while (my ($key, $value) = each $bam_contigs) {
+        push @warnings, "BAM contig $key missing from reference genome" and next if not exists $ref_contigs->{$key};
+        push @warnings, "BAM contig $key length $value does not match reference genome length $ref_contigs->{$key}" if $value != $ref_contigs->{$key};
+    }
+    warn $_ foreach @warnings;
+    die "Reference genome does not match BAM" if @warnings;
+}
+
 
 1;
