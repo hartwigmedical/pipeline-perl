@@ -175,12 +175,12 @@ sub createIndividualMappingJobs {
 }
 
 sub runBamPrep {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my $jobIds = {};
+    my ($opt) = @_;
+    my %opt = %{$opt};
 
+    my $jobIds = {};
     foreach my $input (keys %{$opt{BAM}}) {
-        my $bam_file = verifyBam($input, \%opt);
+        my $bam_file = verifyBam($input, $opt);
         (my $input_bai = $input) =~ s/\.bam/\.bai/g;
         (my $input_flagstat = $input) =~ s/\.bam/\.flagstat/g;
 
@@ -206,13 +206,13 @@ sub runBamPrep {
                       sample_bai => $sample_bai,
                       sample_flagstat => $sample_flagstat,
                       log_dir => $log_dir,
-                      opt => \%opt);
+                      opt => $opt);
 
-        my $qsub = &qsubTemplate(\%opt, "MAPPING");
+        my $qsub = &qsubTemplate($opt, "MAPPING");
         system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
         push(@{$opt{RUNNING_JOBS}->{$sample}}, $job_id);
     }
-    return \%opt;
+    return $opt;
 }
 
 sub verifyBam {
