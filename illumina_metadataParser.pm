@@ -4,29 +4,26 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Spec::Functions;
 use JSON;
 use Carp;
 
 BEGIN {
-    use Exporter;
-
-    our @ISA = ('Exporter');
-
-    our @EXPORT = qw(
-                        &metadataParse
-                  );
+    require Exporter;
+    our @ISA = qw(Exporter);
+    our @EXPORT = qw(metadataParse);
 }
 
-sub metadataParse(@) {
-    my $outputdir_name = shift || return undef;
-    my $metadata_file = "$outputdir_name/metadata";
+sub metadataParse {
+    my $directory = shift || return;
+    my $metadata_file = catfile($directory, "metadata");
     my $json_conf = do {
-        open (my $json_fh, "<:encoding(UTF-8)", $metadata_file) or confess "Can't open $metadata_file";
+        open my $json_fh, "<:encoding(UTF-8)", $metadata_file or confess "Can't open $metadata_file";
         local $/;
         <$json_fh>;
     };
     my $config = decode_json($json_conf);
-    return ($config);
+    return $config;
 }
 
 1;

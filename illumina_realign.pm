@@ -70,7 +70,7 @@ sub runRealignment {
 		from_template("Realign.sh.tt", $bashFile, sample => $sample, bam => $bam, logDir => $logDir, jobNative => $jobNative, knownIndelFiles => $knownIndelFiles,
             healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam, healthCheckPreRealignSlicedBamBai => $healthCheckPreRealignSlicedBamBai, opt => \%opt, runName => $runName);
 
-	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
+	    my $qsub = qsubJava(\%opt, "REALIGNMENT_MASTER");
 	    if (@{$opt{RUNNING_JOBS}->{$sample}}) {
 			system $qsub." -o ".$logDir."/Realignment_".$sample.".out -e ".$logDir."/Realignment_".$sample.".err -N ".$jobIDRealign." -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample}})." ".$bashFile;
 	    } else {
@@ -86,7 +86,7 @@ sub runRealignment {
 			healthCheckPostRealignSlicedBamBai => $healthCheckPostRealignSlicedBamBai, healthCheckPostRealignSlicedFlagstat => $healthCheckPostRealignSlicedFlagstat,
 			healthCheckPrePostRealignDiff => $healthCheckPrePostRealignDiff, opt => \%opt, runName => $runName);
 
-	    $qsub = &qsubTemplate(\%opt, "FLAGSTAT");
+	    $qsub = qsubTemplate(\%opt, "FLAGSTAT");
 	    system $qsub." -o ".$logDir."/RealignmentPostProcess_".$sample.".out -e ".$logDir."/RealignmentPostProcess_".$sample.".err -N ".$jobIDPostProcess." -hold_jid ".$jobIDRealign." ".$realignPostProcessScript;
 
 	    push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobIDRealign);

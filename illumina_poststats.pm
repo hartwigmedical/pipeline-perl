@@ -57,7 +57,7 @@ sub runPostStats {
 
         from_template("PostStats.sh.tt", $bashFile, command => $command, runName => $runName, jobID => $jobID, jobIDCheck => $jobIDCheck, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt, "POSTSTATS");
+        my $qsub = qsubTemplate(\%opt, "POSTSTATS");
         if (@runningJobs) {
             system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobID." -hold_jid ".join(",",@runningJobs)." ".$bashFile;
         } else {

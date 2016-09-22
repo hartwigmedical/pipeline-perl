@@ -39,7 +39,7 @@ sub runAnnotateVariants {
         }
     }
 
-    my $qsub = &qsubJava(\%opt, "ANNOTATE");
+    my $qsub = qsubJava(\%opt, "ANNOTATE");
     if (@runningJobs) {
 	    system "$qsub -o $logDir/GermlineAnnotation_$runName.out -e $logDir/GermlineAnnotation_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {

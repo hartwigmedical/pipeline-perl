@@ -80,7 +80,7 @@ sub runFilterVariants {
         }
     }
 
-    my $qsub = &qsubJava(\%opt, "FILTER_MASTER");
+    my $qsub = qsubJava(\%opt, "FILTER_MASTER");
     if (@runningJobs) {
         system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID -hold_jid ".join(
                 ",", @runningJobs)." $bashFile";

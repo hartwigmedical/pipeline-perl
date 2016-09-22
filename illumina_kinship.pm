@@ -21,7 +21,7 @@ sub runKinship {
     my $jobID = "Kinship_".getJobId();
 
     if (-e "$opt{OUTPUT_DIR}/logs/Kinship.done") {
-		print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping \n";
+		print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping\n";
 		return $jobID;
     }
 
@@ -29,7 +29,7 @@ sub runKinship {
     my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
     my $logDir = $opt{OUTPUT_DIR}."/logs";
 
-    open KINSHIP_SH, ">$bashFile" or die "cannot open file $bashFile \n";
+    open KINSHIP_SH, ">", $bashFile or die "cannot open file $bashFile: $!";
     print KINSHIP_SH "#!/bin/bash\n\n";
     print KINSHIP_SH "bash $opt{CLUSTER_PATH}/settings.sh\n\n";
     print KINSHIP_SH "cd $opt{OUTPUT_DIR}/\n";
@@ -58,7 +58,7 @@ sub runKinship {
         }
     }
 
-    my $qsub = &qsubJava(\%opt, "KINSHIP");
+    my $qsub = qsubJava(\%opt, "KINSHIP");
     if (@runningJobs) {
 	    system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {

@@ -44,7 +44,7 @@ sub runMapping {
 
     my $mainJobID = "$opt{OUTPUT_DIR}/jobs/MapMainJob_".getJobId().".sh";
 
-    open (my $QSUB,">$mainJobID") or die "ERROR: Couldn't create $mainJobID: $!";
+    open (my $QSUB, ">", $mainJobID) or die "ERROR: Couldn't create $mainJobID: $!";
     print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $samples = {};
@@ -86,7 +86,7 @@ sub runMapping {
 
         from_template("Merge.sh.tt", "$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh", sample => $sample, bamList => \@bamList, bams => $bams, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt, "MARKDUP");
+        my $qsub = qsubTemplate(\%opt, "MARKDUP");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".out -e ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".err -N ",$jobId,
         " -hold_jid ",join(",",@jobIds)," ",$opt{OUTPUT_DIR},"/",$sample,"/jobs/",$jobId,".sh\n\n";
     }
@@ -122,7 +122,7 @@ sub createIndividualMappingJobs {
         from_template("PerLaneMap.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh", coreName => $coreName, sampleName => $sampleName, R1 => $R1, R2 => $R2,
             RG_ID => $RG_ID, RG_SM => $RG_SM, RG_PL => $RG_PL, RG_LB => $RG_LB, RG_PU => $RG_PU, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt,"MAPPING");
+        my $qsub = qsubTemplate(\%opt, "MAPPING");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$mappingJobId,".sh\n";
     } else {
@@ -132,7 +132,7 @@ sub createIndividualMappingJobs {
     if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat")) {
         from_template("PerLaneMapFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
+        my $qsub = qsubTemplate(\%opt, "FLAGSTAT");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",
         $coreName,".err -N ",$mappingFSJobId," -hold_jid ",$mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$mappingFSJobId,".sh\n";
     } else {
@@ -142,7 +142,7 @@ sub createIndividualMappingJobs {
     if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam")) {
         from_template("PerLaneSort.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh", coreName => $coreName, sampleName => $sampleName, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt,"MAPPING");
+        my $qsub = qsubTemplate(\%opt, "MAPPING");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$sortJobId,
         " -hold_jid ",$mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$sortJobId,".sh\n";
     } else {
@@ -152,7 +152,7 @@ sub createIndividualMappingJobs {
     if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat")) {
         from_template("PerLaneSortFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortFSJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubTemplate(\%opt,"FLAGSTAT");
+        my $qsub = qsubTemplate(\%opt, "FLAGSTAT");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $sortFSJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$sortFSJobId,".sh\n";
     } else {
@@ -161,7 +161,7 @@ sub createIndividualMappingJobs {
 
     if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai")) {
         from_template("PerLaneIndex.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
-        my $qsub = &qsubTemplate(\%opt,"MAPPING");
+        my $qsub = qsubTemplate(\%opt, "MAPPING");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $indexJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$indexJobId,".sh\n";
     } else {
@@ -171,7 +171,7 @@ sub createIndividualMappingJobs {
     my $checkAndCleanSh = "$opt{OUTPUT_DIR}/$sampleName/jobs/$cleanAndCheckJobId.sh";
     from_template("PerLaneCheckAndClean.sh.tt", $checkAndCleanSh, sampleName => $sampleName, coreName => $coreName, opt => \%opt);
 
-    my $qsub = &qsubTemplate(\%opt,"MAPPING");
+    my $qsub = qsubTemplate(\%opt, "MAPPING");
     print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$cleanAndCheckJobId,
     " -hold_jid ",$mappingFSJobId,",",$sortFSJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$cleanAndCheckJobId,".sh\n\n";
 }
@@ -211,7 +211,7 @@ sub runBamPrep {
                       log_dir => $log_dir,
                       opt => $opt);
 
-        my $qsub = &qsubTemplate($opt, "MAPPING");
+        my $qsub = qsubTemplate($opt, "MAPPING");
         system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
         push @{$opt{RUNNING_JOBS}->{$sample}}, $job_id;
     }

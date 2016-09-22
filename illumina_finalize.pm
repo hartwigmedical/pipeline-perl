@@ -22,7 +22,7 @@ sub runFinalize {
 
     my $jobID = $runName."_".getJobId();
     my $bashFile = "$opt{OUTPUT_DIR}/jobs/Finalize_".$jobID.".sh";
-    open (BASH, ">$bashFile") or die "ERROR: Couldn't create $bashFile\n";
+    open (BASH, ">", $bashFile) or die "ERROR: Couldn't create $bashFile: $!";
     print BASH "\#!/bin/sh\n . $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $logFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.log";
@@ -229,7 +229,7 @@ sub runFinalize {
     # regardless of success, remove the lock: we are done
     print BASH "rm -f $opt{OUTPUT_DIR}/run.lock\n";
 
-    my $qsub = &qsubTemplate(\%opt, "FINALIZE");
+    my $qsub = qsubTemplate(\%opt, "FINALIZE");
     if (@runningJobs) {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_$jobID -hold_jid ".join(",", @runningJobs)." $bashFile";
     } else {

@@ -41,29 +41,29 @@ my %opt = (
 ############ READ RUN SETTINGS FORM .conf FILE ############
 my $configurationFile = $ARGV[0];
 
-open (CONFIGURATION, "<$configurationFile") or die "Couldn't open .conf file: $configurationFile\n";
-while (<CONFIGURATION>) {
+open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
+while (<$fh>) {
     chomp;
     next if m/^#/ or !$_;
     my ($key, $val) = split("\t",$_,2);
 
     if ($key eq 'INIFILE') {
         $opt{$key} = $val;
-        open (INI, "<$val") or die "Couldn't open .ini file $val\n";
-        while (<INI>) {
+        open my $ini_fh, "<", $val or die "Couldn't open $val: $!";
+        while (<$ini_fh>) {
             chomp;
             next if m/^#/ or !$_;
             my ($key, $val) = split("\t",$_,2);
             $opt{$key} = $val;
         }
-        close INI;
+        close $ini_fh;
     } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
         $opt{$key}->{$val} = 1;
     } else {
         $opt{$key} = $val;
     }
 }
-close CONFIGURATION;
+close $fh;
 
 ############ START PIPELINE  ############
 

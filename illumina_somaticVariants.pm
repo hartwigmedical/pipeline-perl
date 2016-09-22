@@ -7,6 +7,7 @@ use warnings;
 use File::Path qw(make_path);
 use File::Basename;
 use File::Spec::Functions;
+use Carp;
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -112,7 +113,7 @@ sub runSomaticVariantCallers {
     my $job_id = "MERGE_${sample_tumor}_" . getJobId();
     my $bash_file = catfile($sample_tumor_job_dir, "${job_id}.sh");
 
-    open MERGE_SH, ">$bash_file" or die "cannot open file $bash_file \n";
+    open MERGE_SH, ">", $bash_file or die "cannot open file $bash_file";
     print MERGE_SH "#!/bin/bash\n\n";
     print MERGE_SH "echo \"Start Merge\t\" `date` `uname -n` >> $sample_tumor_log_dir/merge.log\n\n";
 
@@ -170,7 +171,7 @@ sub runSomaticVariantCallers {
     print MERGE_SH "echo \"END Merge\t\" `date` `uname -n` >> $sample_tumor_log_dir/merge.log\n\n";
     close MERGE_SH;
 
-    my $qsub = &qsubJava(\%opt, "SOMVARMERGE");
+    my $qsub = qsubJava(\%opt, "SOMVARMERGE");
     if (@somvar_jobs) {
         system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id -hold_jid ".join(",",
                 @somvar_jobs)." $bash_file";
@@ -200,7 +201,7 @@ sub runStrelka {
     from_template("Strelka.sh.tt", "$bash_file", runName => $runName, out_dir => $out_dir, sample_ref_bam =>
         $sample_ref_bam, sample_tumor_bam                => $sample_tumor_bam, log_dir => $log_dir, opt => \%opt);
 
-    my $qsub = &qsubJava(\%opt, "STRELKA");
+    my $qsub = qsubJava(\%opt, "STRELKA");
     if (@running_jobs) {
         system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
     } else {
@@ -231,7 +232,7 @@ sub runPileup {
     from_template("PileUp.sh.tt", "$bashFile", sample => $sample, bam => $bam, pileup => $pileup, runName => $runName,
         opt                                           => \%opt);
 
-    my $qsub = &qsubTemplate(\%opt, "PILEUP");
+    my $qsub = qsubTemplate(\%opt, "PILEUP");
     if (@{$opt{RUNNING_JOBS}->{$sample}}) {
         system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID -hold_jid ".join(",",
                 @{$opt{RUNNING_JOBS}->{$sample}})." $bashFile";
@@ -260,10 +261,8 @@ sub runVarscan {
         return;
     }
 
-    my $dictFile = $opt{GENOME};
     my $runName = fileparse($opt{OUTPUT_DIR});
-    $dictFile =~ s/\.fasta$/.dict/;
-    my @chrs = @{get_chrs_from_dict($dictFile)};
+    my @chrs = @{getChromosomes($opt)};
     my @varscan_jobs;
 
     foreach my $chr (@chrs) {
@@ -275,7 +274,7 @@ sub runVarscan {
             $varscan_out_dir, log_dir                    => $log_dir, sample_ref_pileup => $sample_ref_pileup,
             sample_tumor_pileup                          => $sample_tumor_pileup, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubJava(\%opt, "VARSCAN");
+        my $qsub = qsubJava(\%opt, "VARSCAN");
         if (@running_jobs) {
             system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
         } else {
@@ -312,7 +311,7 @@ sub runVarscan {
         snp_concat_command                                         => $snp_concat_command, indel_concat_command =>
         $indel_concat_command, log_dir                             => $log_dir, runName => $runName, opt => \%opt);
 
-    my $qsub = &qsubJava(\%opt, "VARSCAN");
+    my $qsub = qsubJava(\%opt, "VARSCAN");
     if (@varscan_jobs) {
         system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @varscan_jobs)." $bash_file";
     } else {
@@ -342,9 +341,7 @@ sub runFreeBayes {
         return;
     }
 
-    my $dictFile = $opt{GENOME};
-    $dictFile =~ s/\.fasta$/.dict/;
-    my @chrs = @{get_chrs_from_dict($dictFile)};
+    my @chrs = @{getChromosomes($opt)};
     my @freebayes_jobs;
 
     foreach my $chr (@chrs) {
@@ -370,7 +367,7 @@ sub runFreeBayes {
             , sample_ref_bam                               => $sample_ref_bam, log_dir => $log_dir, runName => $runName
             , opt                                          => \%opt);
 
-        my $qsub = &qsubJava(\%opt, "FREEBAYES");
+        my $qsub = qsubJava(\%opt, "FREEBAYES");
         if (@running_jobs) {
             system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
         } else {
@@ -401,7 +398,7 @@ sub runFreeBayes {
         $freebayes_out_dir, sample_tumor_name                           => $sample_tumor_name, log_dir => $log_dir,
         runName                                                         => $runName, opt => \%opt);
 
-    my $qsub = &qsubJava(\%opt, "FREEBAYES");
+    my $qsub = qsubJava(\%opt, "FREEBAYES");
     if (@freebayes_jobs) {
         system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @freebayes_jobs)." $bash_file";
     } else {
@@ -431,9 +428,7 @@ sub runMutect {
         return;
     }
 
-    my $dictFile = $opt{GENOME};
-    $dictFile =~ s/\.fasta$/.dict/;
-    my @chrs = @{get_chrs_from_dict($dictFile)};
+    my @chrs = @{getChromosomes($opt)};
     my @mutect_jobs;
 
     foreach my $chr (@chrs) {
@@ -451,7 +446,7 @@ sub runMutect {
             , sample_tumor_bam                              => $sample_tumor_bam, sample_ref_bam => $sample_ref_bam,
             log_dir                                         => $log_dir, runName => $runName, opt => \%opt);
 
-        my $qsub = &qsubJava(\%opt, "MUTECT");
+        my $qsub = qsubJava(\%opt, "MUTECT");
         if (@running_jobs) {
             system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
         } else {
@@ -481,7 +476,7 @@ sub runMutect {
         $concat_command, filter_command                          => $filter_command, mutect_out_dir => $mutect_out_dir,
         log_dir                                                  => $log_dir, runName => $runName, opt => \%opt);
 
-    my $qsub = &qsubJava(\%opt, "MUTECT");
+    my $qsub = qsubJava(\%opt, "MUTECT");
     if (@mutect_jobs) {
         system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @mutect_jobs)." $bash_file";
     } else {
@@ -492,18 +487,17 @@ sub runMutect {
 }
 
 ############
-sub get_chrs_from_dict {
-    my $dictFile = shift;
-    #my %chrs;
+sub getChromosomes {
+    my ($opt) = @_;
+
+    (my $dict_file = $opt->{GENOME}) =~ s/\.fasta$/.dict/;
     my @chrs;
-    open DICT, $dictFile;
-    while (<DICT>) {
+    open my $fh, "<", $dict_file or confess "could not open $dict_file: $!";
+    while (<$fh>) {
         chomp;
-        my ($chr, $length) = ($1, $2) if $_ =~ /SN:(\w+)\s*LN:(\d+)/;
-        #$chrs{$chr} = $length if $chr;
-        push(@chrs, $chr) if $chr;
+        push @chrs, $1 if /SN:(\w+)\s*LN:(\d+)/;
     }
-    close DICT;
+    close $fh;
 
     return \@chrs;
 }

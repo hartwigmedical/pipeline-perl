@@ -78,7 +78,7 @@ sub createConfig {
         make_path($outputDir) or die "Couldn't create directory $outputDir: $!";
     }
     # Create settings.config file in outputDir
-    open CONFIG, ">$configFile" or die "cannot open file $configFile \n";
+    open CONFIG, ">", $configFile or die "cannot open $configFile: $!";
     print CONFIG "### SETTINGS ###\n";
     print CONFIG "INIFILE\t$iniFile\n";
     print CONFIG "OUTPUT_DIR\t$outputDir\n";

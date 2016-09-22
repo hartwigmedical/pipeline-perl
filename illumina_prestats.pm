@@ -35,7 +35,7 @@ sub runPreStats {
 			my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 			push(@{$jobIds->{$sampleName}}, $preStatsJobId);
 			from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt, runName => $runName);
-			my $qsub = &qsubTemplate(\%opt,"PRESTATS");
+			my $qsub = qsubTemplate(\%opt, "PRESTATS");
 			push(@qsubOut, "$qsub -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh");
 		} else {
 			print "\t WARNING: FASTQC report for $input already exists, skipping.\n";

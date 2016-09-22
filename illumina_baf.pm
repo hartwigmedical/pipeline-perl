@@ -65,7 +65,7 @@ sub runBAF {
 				sample_bam => $sample_bam, output_vcf => $output_vcf, output_dir => $output_dir, create_baf_file => $create_baf_file, output_baf => $output_baf,
 				output_bafplot => $output_bafplot, create_baf_plots => $create_baf_plots, runName => $runName, opt => \%opt);
 
-			my $qsub = &qsubJava(\%opt,"BAF");
+			my $qsub = qsubJava(\%opt, "BAF");
 			if (@running_jobs) {
 				system "$qsub -o $log_dir/BAF_$sample.out -e $log_dir/BAF_$sample.err -N $jobID -hold_jid ".join(",",@running_jobs)." $bashFile";
 			} else {

@@ -74,7 +74,7 @@ sub runVariantCalling {
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("GermlineCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => \%opt);
 
-    my $qsub = &qsubJava(\%opt,"CALLING_MASTER");
+    my $qsub = qsubJava(\%opt, "CALLING_MASTER");
     if (@runningJobs) {
         system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {

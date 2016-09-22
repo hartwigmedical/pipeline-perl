@@ -71,7 +71,7 @@ sub runCopyNumberTools {
         my $job_id = "CHECK_${sample_tumor}_" . getJobId();
         my $bash_file = catfile($sample_tumor_job_dir, "${job_id}.sh");
 
-        open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
+        open CHECK_SH, ">", $bash_file or die "cannot open $bash_file: $!";
         print CHECK_SH "#!/bin/bash\n\n";
         print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n\n";
         print CHECK_SH "if [[ ";
@@ -82,7 +82,7 @@ sub runCopyNumberTools {
         print CHECK_SH "fi\n\n";
         print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n";
         close CHECK_SH;
-        my $qsub = &qsubTemplate(\%opt, "CNVCHECK");
+        my $qsub = qsubTemplate(\%opt, "CNVCHECK");
         if (@cnv_jobs) {
             system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id -hold_jid ".join(","
                     , @cnv_jobs)." $bash_file";
@@ -130,7 +130,7 @@ sub runCopyNumberTools {
             my $job_id = "CHECK_${sample}_" . getJobId();
             my $bash_file = catfile($sample_job_dir, "${job_id}.sh");
 
-            open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
+            open CHECK_SH, ">", $bash_file or die "cannot open file $bash_file: $!";
             print CHECK_SH "#!/bin/bash\n\n";
             print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_log_dir/check.log\n\n";
             print CHECK_SH "if [[ -f $sample_log_dir/freec.done ]]\n";
@@ -139,7 +139,7 @@ sub runCopyNumberTools {
             print CHECK_SH "fi\n\n";
             print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_log_dir/check.log\n";
             close CHECK_SH;
-            my $qsub = &qsubTemplate(\%opt, "CNVCHECK");
+            my $qsub = qsubTemplate(\%opt, "CNVCHECK");
             if (@cnv_jobs) {
                 system "$qsub -o $sample_log_dir -e $sample_log_dir -N $job_id -hold_jid ".join(",",
                         @cnv_jobs)." $bash_file";
@@ -173,7 +173,7 @@ sub runFreec {
     }
 
     my $freec_config = $freec_out_dir."/freec_config.txt";
-    open FREEC_CONFIG, ">$freec_config" or die "cannot open file $freec_config \n";
+    open FREEC_CONFIG, ">", $freec_config or die "cannot open $freec_config: $!";
 
     print FREEC_CONFIG "[general]\n";
     print FREEC_CONFIG "chrLenFile= $opt{FREEC_CHRLENFILE}\n";
@@ -212,7 +212,7 @@ sub runFreec {
     my $bash_file = catfile($job_dir, "${job_id}.sh");
     my $sample_bam_name = fileparse($sample_bam);
 
-    open FREEC_SH, ">$bash_file" or die "cannot open file $bash_file \n";
+    open FREEC_SH, ">", $bash_file or die "cannot open $bash_file: $!";
 
     print FREEC_SH "#!/bin/bash\n\n";
     if ($control_bam) {
@@ -235,7 +235,7 @@ sub runFreec {
     print FREEC_SH "fi\n";
 
     close FREEC_SH;
-    my $qsub = &qsubTemplate(\%opt, "FREEC");
+    my $qsub = qsubTemplate(\%opt, "FREEC");
 
     if (@running_jobs) {
         system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
