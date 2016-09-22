@@ -49,7 +49,7 @@ sub runKinship {
     print KINSHIP_SH "fi\n\n";
     print KINSHIP_SH "echo \"End Kinship\t\" `date` \"\t$vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
 
-    foreach my $sample (@{$opt{SAMPLES}}){
+    foreach my $sample (keys $opt{SAMPLES}){
         if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
             push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
         }

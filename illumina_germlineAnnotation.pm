@@ -30,7 +30,7 @@ sub runAnnotateVariants {
 
     from_template("GermlineAnnotation.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
 
-    foreach my $sample (@{$opt{SAMPLES}}){
+    foreach my $sample (keys $opt{SAMPLES}){
         if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
             push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
         }

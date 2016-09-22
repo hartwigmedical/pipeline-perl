@@ -8,7 +8,7 @@ use Getopt::Long;
 use Cwd qw(abs_path);
 use File::Path qw(make_path);
 use File::Copy::Recursive qw(rcopy);
-use File::Basename qw(dirname);
+use File::Basename qw(dirname fileparse);
 use File::Spec::Functions;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 
@@ -30,22 +30,19 @@ use illumina_finalize;
 
 die usage() if @ARGV == 0;
 
-my %opt;
-my $configurationFile;
-
 # KODU - Do not use in .conf or .ini
-%opt = (
+my %opt = (
     'RUNNING_JOBS'		=> {},
     'BAM_FILES'			=> {},
-    'SAMPLES'			=> undef,
+    'SAMPLES'			=> {},
     'SINGLE_END'        => undef,
 );
 
 ############ READ RUN SETTINGS FORM .conf FILE ############
-$configurationFile = $ARGV[0];
+my $configurationFile = $ARGV[0];
 
 open (CONFIGURATION, "<$configurationFile") or die "Couldn't open .conf file: $configurationFile\n";
-while(<CONFIGURATION>) {
+while (<CONFIGURATION>) {
     chomp;
     next if m/^#/ or ! $_;
     my ($key, $val) = split("\t",$_,2);
@@ -53,7 +50,7 @@ while(<CONFIGURATION>) {
     if($key eq 'INIFILE') {
         $opt{$key} = $val;
         open (INI, "<$val") or die "Couldn't open .ini file $val\n";
-        while(<INI>) {
+        while (<INI>) {
             chomp;
             next if m/^#/ or ! $_;
             my ($key, $val) = split("\t",$_,2);
@@ -142,7 +139,7 @@ if ($opt{FASTQ} or $opt{BAM}) {
         print "\n### SCHEDULING VARIANT FILTRATION ####\n";
         my $FVJob = illumina_germlineFiltering::runFilterVariants(\%opt);
 
-        foreach my $sample (@{$opt{SAMPLES}}){
+        foreach my $sample (keys $opt{SAMPLES}){
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $FVJob);
         }
     }
@@ -151,7 +148,7 @@ if ($opt{FASTQ} or $opt{BAM}) {
         print "\n### SCHEDULING VARIANT ANNOTATION ####\n";
         my $AVJob = illumina_germlineAnnotation::runAnnotateVariants(\%opt);
 
-        foreach my $sample (@{$opt{SAMPLES}}){
+        foreach my $sample (keys $opt{SAMPLES}){
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $AVJob);
         }
     }
@@ -169,29 +166,24 @@ if ($opt{FASTQ} or $opt{BAM}) {
 }
 
 ############ SUBROUTINES  ############
-sub getSamples{
-    my %samples;
-
+sub getSamples {
     if ($opt{FASTQ}) {
-        foreach my $input (keys %{$opt{FASTQ}}){
-            my $fastqFile = (split("/", $input))[-1];
-            my $sampleName = (split("_", $fastqFile))[0];
-            $samples{$sampleName}++;
+        foreach my $input (keys %{$opt{FASTQ}}) {
+            my $fastqFile = fileparse($input);
+            my ($sampleName) = split "_", $fastqFile;
+            $opt{SAMPLES}{$sampleName} = $input;
             @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
 
     if ($opt{BAM}) {
-        foreach my $input (keys %{$opt{BAM}}){
-            my $bamFile = (split("/", $input))[-1];
-            my $sampleName = $bamFile;
-            $sampleName =~ s/\.bam//g;
-            $samples{$sampleName}++;
+        foreach my $input (keys %{$opt{BAM}}) {
+            my $sampleName = illumina_mapping::verifyBam($input, \%opt);
+            not exists $opt{SAMPLES}{$sampleName} or die "sample $sampleName from $input already used by $opt{SAMPLES}{$sampleName}";
+            $opt{SAMPLES}{$sampleName} = $input;
             @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
-
-    @{$opt{SAMPLES}} = keys(%samples);
 }
 
 sub createOutputDirs{
@@ -215,7 +207,7 @@ sub createOutputDirs{
 	    mkdir("$opt{OUTPUT_DIR}/tmp") or die "Couldn't create directory: $opt{OUTPUT_DIR}/tmp\n";
     }
 
-    foreach my $sample (@{$opt{SAMPLES}}) {
+    foreach my $sample (keys $opt{SAMPLES}) {
         if (! -e "$opt{OUTPUT_DIR}/$sample"){
             mkdir("$opt{OUTPUT_DIR}/$sample") or die "Couldn't create directory: $opt{OUTPUT_DIR}/$sample\n";
         }

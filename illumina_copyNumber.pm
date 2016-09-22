@@ -24,8 +24,8 @@ sub runCopyNumberTools {
         my $sample_ref = $metadata->{ref_sample} or die "metadata missing ref_sample";
         my $sample_tumor = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
-        $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM files";
-        $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM files";
+        $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM file list";
+        $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM file list";
 
         my $sample_tumor_name = "$sample_ref\_$sample_tumor";
         my $sample_tumor_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample_tumor_name";
@@ -89,7 +89,7 @@ sub runCopyNumberTools {
         }
         push(@check_cnv_jobs, $job_id);
     } elsif ($opt{CNV_MODE} eq "sample") {
-        foreach my $sample (@{$opt{SAMPLES}}) {
+        foreach my $sample (keys $opt{SAMPLES}) {
             my @cnv_jobs;
 
             my $sample_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample";

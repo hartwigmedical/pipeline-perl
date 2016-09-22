@@ -28,7 +28,17 @@ then
 
     if [ -s [% sample_bai %] ] && [ -s [% sample_flagstat %] ]
     then
-        [% INCLUDE Status.tt step="" status="success" %]
+        header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H [% sample_bam %] | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
+        read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% sample_bam %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
+        contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
+
+        if [ -n "$contig_diff" ]; then
+            echo "ERROR: [% sample_bam %] header contigs do not match read contigs:" >&2
+            echo "$contig_diff" >&2
+            [% INCLUDE Status.tt step="" status="failed" %]
+        else
+            [% INCLUDE Status.tt step="" status="success" %]
+        fi
     else
         echo "ERROR: [% sample_bai %] or [% sample_flagstat %] does not exist." >&2
         [% INCLUDE Status.tt step="" status="failed" %]

@@ -6,6 +6,8 @@ use warnings;
 
 use File::Basename;
 use File::Spec::Functions;
+use Carp;
+use List::MoreUtils qw(zip);
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -20,7 +22,7 @@ sub validateFastQName {
     (my $R2 = $input) =~ s/_R1/_R2/;
 
     my $fastQPattern = qr/^(?<sampleName>[^_]+)_(?<flowcellID>[^_]+)_(?<index>[^_]+)_(?<lane>[^_]+)_(?<tag>R1|R2)_(?<suffix>[^\.]+)(?<ext>\.fastq\.gz)$/;
-    $name =~ $fastQPattern or die "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
+    $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
 
     return {
         R1 => $R1,
@@ -178,23 +180,24 @@ sub runBamPrep {
     my ($opt) = @_;
     my %opt = %{$opt};
 
-    my $jobIds = {};
-    foreach my $input (keys %{$opt{BAM}}) {
-        my $bam_file = verifyBam($input, $opt);
-        (my $input_bai = $input) =~ s/\.bam/\.bai/g;
-        (my $input_flagstat = $input) =~ s/\.bam/\.flagstat/g;
+    while (my ($sample, $input_bam) = each $opt{SAMPLES}) {
+        (my $input_bai = $input_bam) =~ s/\.bam$/\.bai/;
+        (my $input_flagstat = $input_bam) =~ s/\.bam$/\.flagstat/;
 
-        (my $sample = $bam_file) =~ s/\.bam//g;
+        my $bam_file = "${sample}.bam";
         $opt{BAM_FILES}->{$sample} = $bam_file;
         my $sample_bam = catfile($opt{OUTPUT_DIR}, $sample, "mapping", $bam_file);
         my $sample_bai = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.bai");
         my $sample_flagstat = catfile($opt{OUTPUT_DIR}, $sample, "mapping", "${sample}.flagstat");
 
-        symlink($input, $sample_bam);
-        -e $input_bai and symlink($input_bai, $sample_bai);
-        -e $input_flagstat and symlink($input_flagstat, $sample_flagstat);
+        my $bai_good = verifyBai($input_bai, $input_bam, $opt);
+        my $flagstat_good = verifyFlagstat($input_flagstat, $input_bam);
 
-        next if -e $sample_bai && -e $sample_flagstat;
+        symlink($input_bam, $sample_bam);
+        $bai_good and symlink($input_bai, $sample_bai);
+        $flagstat_good and symlink($input_flagstat, $sample_flagstat);
+
+        next if $bai_good and $flagstat_good;
 
         my $job_id = "PrepBam_${sample}_" . getJobId();
         my $log_dir = catfile($opt{OUTPUT_DIR}, $sample, "logs");
@@ -210,67 +213,141 @@ sub runBamPrep {
 
         my $qsub = &qsubTemplate($opt, "MAPPING");
         system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
-        push(@{$opt{RUNNING_JOBS}->{$sample}}, $job_id);
+        push @{$opt{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return $opt;
 }
 
 sub verifyBam {
-    my ($input_file, $opt) = @_;
+    my ($bam_file, $opt) = @_;
 
-    -e $input_file or die "ERROR: $input_file does not exist.";
-    my $bam_file = fileparse($input_file);
+    -e $bam_file or confess "ERROR: $bam_file does not exist";
+    (my $sample = fileparse($bam_file)) =~ s/\.bam$//;
 
-    my $headers = bamHeaders($input_file, $opt);
+    my $headers = bamHeaders($bam_file, $opt);
+    my @read_groups = grep $_->{name} eq '@RG', @$headers;
 
-    my @sample_names = map $_->{tags}{SM}, grep $_->{type} eq "RG", @$headers;
-    die "too many samples in BAM $input_file: @sample_names" unless keys { map { $_, 1 } @sample_names } < 2;
-    warn "missing sample name in BAM $input_file, using file name" unless @sample_names;
-    # overwrite the name if we got a single sample name from the BAM
-    $bam_file = "$sample_names[0].bam" if @sample_names;
+    my @sample_names = map $_->{tags}{SM}, @read_groups;
+    confess "too many samples in BAM $bam_file: @sample_names" unless keys { map { $_, 1 } @sample_names } < 2;
+    warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
+    $sample = $sample_names[0] if @sample_names;
 
-    my %bam_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{type} eq "SQ", @$headers;
-    verifyContigs(\%bam_contigs, refGenomeContigs($opt));
+    my %header_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{name} eq '@SQ', @$headers;
+    verifyContigs(\%header_contigs, refGenomeContigs($opt));
+    verifyReadGroups(\@read_groups, bamReads($bam_file, 1000, $opt));
 
-    return $bam_file;
+    return $sample;
+}
+
+sub verifyBai {
+    my ($bai_file, $bam_file, $opt) = @_;
+
+    -e $bai_file && -M $bam_file > -M $bai_file or return 0;
+
+    # this check does not happen if the .bai is missing/old, so re-implemented in the job :(
+    my $headers = bamHeaders($bam_file, $opt);
+    my %header_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{name} eq '@SQ', @$headers;
+    verifyContigs(indexContigs($bam_file, $opt), \%header_contigs);
+    return 1;
+}
+
+sub verifyFlagstat {
+    my ($flagstat_file, $bam_file) = @_;
+
+    return -e $flagstat_file && -M $bam_file > -M $flagstat_file;
 }
 
 sub bamHeaders {
-    my ($input_file, $opt) = @_;
+    my ($bam_file, $opt) = @_;
 
     my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
-    my @lines = qx($samtools view -H $input_file);
+
+    my @lines = qx($samtools view -H $bam_file);
+    $? == 0 or confess "could not read BAM headers from $bam_file";
+
     chomp @lines;
-    my @fields = map [
-        splice [ split qr'[\t@:]' ], 1
-    ], @lines;
+    my @fields = map [ split qr/[\t:]/ ], @lines;
     my @headers = map {
-        type => shift $_,
+        name => shift $_,
         tags => { @$_ },
     }, @fields;
     return \@headers;
 }
 
+sub bamReads {
+    my ($bam_file, $num_lines, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+
+    my @lines = qx($samtools view $bam_file | head -$num_lines);
+    chomp @lines;
+
+    my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
+    my @fields = map [ split "\t", $_, @field_names ], @lines;
+    my @reads = map +{ zip @field_names, @$_ }, @fields;
+    map { $_->{tags} =
+          {
+           map {
+               shift @$_,
+               {
+                type => shift @$_,
+                value => shift @$_,
+               },
+           } map [ split ":" ], split "\t", $_->{tags}
+          },
+      } @reads;
+    return \@reads;
+}
+
 sub refGenomeContigs {
     my ($opt) = @_;
 
-    my @fasta_index = qx(cat $opt->{GENOME}.fai);
-    chomp @fasta_index;
-    my %contigs = map { splice [ split "\t" ], 0, 2 } @fasta_index;
+    my $fasta_file = "$opt->{GENOME}.fai";
+    my @lines = qx(cat $fasta_file);
+    $? == 0 or confess "could not read from $fasta_file";
+
+    return contigLengths(\@lines);
+}
+
+sub indexContigs {
+    my ($bam_file, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+    my @lines = qx($samtools idxstats $bam_file);
+    $? == 0 or confess "could not read index stats from $bam_file";
+
+    my $contigs = contigLengths(\@lines);
+    delete $contigs->{'*'};
+    return $contigs;
+}
+
+sub contigLengths {
+    my ($lines) = @_;
+
+    chomp @$lines;
+    my %contigs = map { splice [ split "\t" ], 0, 2 } @$lines;
     return \%contigs;
 }
 
 sub verifyContigs {
-    my ($bam_contigs, $ref_contigs) = @_;
+    my ($contigs, $ref_contigs) = @_;
 
     my @warnings;
-    while (my ($key, $value) = each $bam_contigs) {
-        push @warnings, "BAM contig $key missing from reference genome" and next if not exists $ref_contigs->{$key};
-        push @warnings, "BAM contig $key length $value does not match reference genome length $ref_contigs->{$key}" if $value != $ref_contigs->{$key};
+    while (my ($key, $value) = each $contigs) {
+        push @warnings, "contig $key missing" and next if not exists $ref_contigs->{$key};
+        push @warnings, "contig $key length $value does not match $ref_contigs->{$key}" if $value != $ref_contigs->{$key};
     }
     warn $_ foreach @warnings;
-    die "Reference genome does not match BAM" if @warnings;
+    confess "contigs do not match" if @warnings;
 }
 
+sub verifyReadGroups {
+    my ($read_groups, $bam_reads) = @_;
+
+    my %header_rgids = map { $_->{tags}{ID} => 1 } @$read_groups;
+    my %reads_rgids = map { $_->{tags}{RG}{value} => 1 } @$bam_reads;
+    my @unknown_rgids = grep { not exists $header_rgids{$_} } keys %reads_rgids;
+    confess "read group IDs from read tags not in BAM header:\n\t" . join "\n\t", @unknown_rgids if @unknown_rgids;
+}
 
 1;

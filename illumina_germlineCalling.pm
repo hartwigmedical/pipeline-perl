@@ -39,7 +39,7 @@ sub runVariantCalling {
 
     $command .= "-R $opt{GENOME} -O $runName -mem $opt{CALLING_MEM} -nct $opt{CALLING_THREADS} -nsc $opt{CALLING_SCATTER} -stand_call_conf $opt{CALLING_STANDCALLCONF} -stand_emit_conf $opt{CALLING_STANDEMITCONF} ";
 
-    foreach my $sample (@{$opt{SAMPLES}}) {
+    foreach my $sample (keys $opt{SAMPLES}) {
         my $sampleBam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
 
         $command .= "-I $sampleBam ";
@@ -78,7 +78,7 @@ sub runVariantCalling {
         system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID $bashFile";
     }
 
-    foreach my $sample (@{$opt{SAMPLES}}){
+    foreach my $sample (keys $opt{SAMPLES}){
         push (@{$opt{RUNNING_JOBS}->{$sample}} , $jobID);
     }
     return \%opt;

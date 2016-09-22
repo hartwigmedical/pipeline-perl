@@ -20,7 +20,7 @@ sub runPostStats {
 
     if(! -e "$opt{OUTPUT_DIR}/logs/PostStats.done") {
         my $command = "perl $opt{BAMMETRICS_PATH}/bamMetrics.pl ";
-        foreach my $sample (@{$opt{SAMPLES}}) {
+        foreach my $sample (keys $opt{SAMPLES}) {
             my $sampleBam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
             $command .= "-bam $sampleBam ";
             if (@{$opt{RUNNING_JOBS}->{$sample}}) {

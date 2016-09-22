@@ -30,7 +30,7 @@ sub runFinalize {
     print BASH "echo \"Pipeline version: $opt{VERSION} \" >>$logFile\n\n";
     print BASH "echo \"\">>$logFile\n\n";
 
-    foreach my $sample (@{$opt{SAMPLES}}) {
+    foreach my $sample (keys $opt{SAMPLES}) {
         print BASH "echo \"Sample: $sample\" >>$logFile\n";
         if ($opt{PRESTATS} eq "yes") {
             $doneFile = $opt{OUTPUT_DIR}."/$sample/logs/PreStats_$sample.done";
@@ -160,7 +160,7 @@ sub runFinalize {
             print BASH "\tfailed=true\n";
             print BASH "fi\n";
         } elsif ($opt{CNV_MODE} eq "sample") {
-            foreach my $sample (@{$opt{SAMPLES}}) {
+            foreach my $sample (keys $opt{SAMPLES}) {
                 my $done_file = "$opt{OUTPUT_DIR}/copyNumber/$sample/logs/$sample.done";
                 print BASH "if [ -f $done_file ]; then\n";
                 print BASH "\techo \"\t $sample: done \" >>$logFile\n";
@@ -206,13 +206,13 @@ sub runFinalize {
     print BASH "\tfind $opt{OUTPUT_DIR}/somaticVariants/*/logs -size 0 -not -name \"*.done\" -delete\n";
 
     if ($opt{INDELREALIGNMENT} eq "yes") {
-        foreach my $sample (@{$opt{SAMPLES}}) {
+        foreach my $sample (keys $opt{SAMPLES}) {
             print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample\_dedup.ba*\n";
         }
     }
 
     if ($opt{SOMATIC_VARIANTS} eq "yes" && $opt{SOMVAR_VARSCAN} eq "yes" && $opt{FINALIZE_KEEP_PILEUP} eq "no") {
-        foreach my $sample (@{$opt{SAMPLES}}) {
+        foreach my $sample (keys $opt{SAMPLES}) {
             print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz\n";
             print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample*.pileup.gz.tbi\n";
         }

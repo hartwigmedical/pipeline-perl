@@ -1,5 +1,2 @@
-#!/usr/bin/env bash
-# -*- TT -*-
-
 export JOB_STATUS="[% status %]"
 [% opt.REPORT_STATUS %]

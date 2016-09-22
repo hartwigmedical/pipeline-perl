@@ -17,13 +17,13 @@ sub runRealignment {
     my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
 
     print "Running single sample indel realignment for the following BAM-files:\n";
-    
+
     my @knownIndelFiles;
     if($opt{REALIGNMENT_KNOWN}) {
 		@knownIndelFiles = split('\t', $opt{REALIGNMENT_KNOWN});
     }
 
-    foreach my $sample (@{$opt{SAMPLES}}){
+    foreach my $sample (keys $opt{SAMPLES}){
 	    my $bam = $opt{BAM_FILES}->{$sample};
 	    (my $flagstat = $bam) =~ s/\.bam/.flagstat/;
 	    (my $realignedBam = $bam) =~ s/\.bam/\.realigned\.bam/;

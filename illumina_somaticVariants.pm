@@ -21,7 +21,7 @@ sub runSomaticVariantCallers {
 
     my @pileupJobs;
 
-    foreach my $sample (@{$opt{SAMPLES}}) {
+    foreach my $sample (keys $opt{SAMPLES}) {
         if ($opt{SOMVAR_VARSCAN} eq "yes") {
             print "Creating pileup for: $sample\n";
             my $pileup_job = runPileup($sample, \%opt);
@@ -36,8 +36,8 @@ sub runSomaticVariantCallers {
     my $sample_ref = $metadata->{ref_sample} or die "metadata missing ref_sample";
     my $sample_tumor = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
-    $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM files";
-    $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM files";
+    $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM file list";
+    $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM file list";
 
     my @merge_somvar_jobs;
     my @somvar_jobs;
@@ -497,7 +497,7 @@ sub get_chrs_from_dict {
     #my %chrs;
     my @chrs;
     open DICT, $dictFile;
-    while(<DICT>) {
+    while (<DICT>) {
         chomp;
         my ($chr, $length) = ($1, $2) if $_ =~ /SN:(\w+)\s*LN:(\d+)/;
         #$chrs{$chr} = $length if $chr;
