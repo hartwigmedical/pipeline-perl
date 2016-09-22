@@ -23,7 +23,7 @@ sub from_template {
     my $t = Template->new(INCLUDE_PATH => $template_dir);
 
     my $tout;
-    open $tout, ">$outname" or confess "Unable to open $tout for writing";
+    open $tout, ">$outname" or confess "Unable to open $outname for writing";
     $t->process($tname, \%data, \*$tout) or confess $t->error();
     close $tout;
 };
