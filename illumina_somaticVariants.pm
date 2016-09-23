@@ -187,7 +187,7 @@ sub runStrelka {
     my ($sample_tumor, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
-    my $runName = fileparse($opt{OUTPUT_DIR});
+    my $runName = basename($opt{OUTPUT_DIR});
 
     my $done_file = catfile($log_dir, "strelka.done");
     if (-e $done_file) {
@@ -214,7 +214,7 @@ sub runStrelka {
 sub runPileup {
     my ($sample, $configuration) = (@_);
     my %opt = %{$configuration};
-    my $runName = fileparse($opt{OUTPUT_DIR});
+    my $runName = basename($opt{OUTPUT_DIR});
 
     my $bam = $opt{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
@@ -261,7 +261,7 @@ sub runVarscan {
         return;
     }
 
-    my $runName = fileparse($opt{OUTPUT_DIR});
+    my $runName = basename($opt{OUTPUT_DIR});
     my @chrs = @{getChromosomes($opt)};
     my @varscan_jobs;
 
@@ -324,7 +324,7 @@ sub runFreeBayes {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
-    my $runName = fileparse($opt{OUTPUT_DIR});
+    my $runName = basename($opt{OUTPUT_DIR});
     my $freebayes_out_dir = catfile($out_dir, "freebayes");
     my $freebayes_tmp_dir = catfile($freebayes_out_dir, "tmp");
 
@@ -411,7 +411,7 @@ sub runMutect {
     my ($sample_tumor, $sample_tumor_name, $out_dir, $job_dir, $log_dir, $sample_tumor_bam, $sample_ref_bam, $running_jobs, $opt) = (@_);
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
-    my $runName = fileparse($opt{OUTPUT_DIR});
+    my $runName = basename($opt{OUTPUT_DIR});
     my $mutect_out_dir = catfile($out_dir, "mutect");
     my $mutect_tmp_dir = catfile($mutect_out_dir, "tmp");
 

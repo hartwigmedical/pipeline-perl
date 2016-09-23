@@ -16,10 +16,10 @@ use illumina_sge;
 use illumina_template;
 
 sub validateFastQName {
-    my ($input) = @_;
-    my $name = fileparse($input);
-    (my $R1 = $input) =~ s/_R2/_R1/;
-    (my $R2 = $input) =~ s/_R1/_R2/;
+    my ($input_file) = @_;
+    my $name = fileparse($input_file);
+    (my $R1 = $input_file) =~ s/_R2/_R1/;
+    (my $R2 = $input_file) =~ s/_R1/_R2/;
 
     my $fastQPattern = qr/^(?<sampleName>[^_]+)_(?<flowcellID>[^_]+)_(?<index>[^_]+)_(?<lane>[^_]+)_(?<tag>R1|R2)_(?<suffix>[^\.]+)(?<ext>\.fastq\.gz)$/;
     $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
