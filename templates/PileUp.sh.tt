@@ -30,8 +30,8 @@ then
   [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
 
   if [ "$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)" = "MT" ]
-  #lastScaffold=`tail -n1 [% opt.SOMVAR_TARGETS %] |cut -f 1`;
-  #if [ "$(gunzip -c [% pileup %] |tail -n 1 | cut -f 1)" = "$lastScaffold" ]
+  #lastScaffold=`tail -n1 [% opt.SOMVAR_TARGETS %] | cut -f 1`;
+  #if [ "$(gunzip -c [% pileup %] | tail -n 1 | cut -f 1)" = "$lastScaffold" ]
   then
     mv [% pileup %].gz* [% opt.OUTPUT_DIR %]/[% sample %]/mapping/
     touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Pileup_[% sample %].done
