@@ -77,7 +77,7 @@ sub runSomaticVariantCallers {
     my $done_file = catfile($sample_tumor_log_dir, "${sample_tumor_name}.done");
     if (-e $done_file) {
         say "WARNING: $done_file exists, skipping";
-        next;
+        return;
     }
 
     if ($opt{SOMVAR_STRELKA} eq "yes") {
