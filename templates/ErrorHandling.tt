@@ -1,0 +1,28 @@
+set -o errtrace
+if [[ "[% mode %]" == "strict" ]]; then
+    set -o pipefail
+    set -o nounset
+    set -o errexit
+elif [[ "[% mode %]" == "harsh" ]]; then
+    set -o pipefail
+    set -o nounset
+fi
+
+function handle_error() {
+    local ret=$1 && shift
+    local lineno=$1 && shift
+    local command=$1 && shift
+
+    echo "$0: line $lineno: $command: exit code $ret" >> "[% opt.OUTPUT_DIR %]/logs/unhandled_job_errors"
+
+    if [[ "[% mode %]" == "strict" ]]; then
+        exit 100
+    fi
+}
+
+function fail() {
+    echo "ERROR: $*" >&2
+    exit 100
+}
+
+trap 'handle_error $? $LINENO $BASH_COMMAND' ERR

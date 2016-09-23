@@ -4,6 +4,8 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
 echo "Start cleanup	" `date` "	 [% coreName %] 	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

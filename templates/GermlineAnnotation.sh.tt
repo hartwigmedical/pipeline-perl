@@ -4,6 +4,8 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
 export JOB_NAME="GermlineAnnotation"
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
