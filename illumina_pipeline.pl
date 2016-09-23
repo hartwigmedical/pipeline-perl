@@ -407,7 +407,7 @@ sub checkConfig {
             if (!$opt{PILEUP_QUEUE}) { print "ERROR: No PILEUP_QUEUE option found in config files.\n"; $checkFailed = 1; }
             if (!$opt{PILEUP_DIVISOR}) { print "ERROR: No PILEUP_DIVISOR option found in config files.\n"; $checkFailed = 1; }
             if (!$opt{PILEUP_THREADS}) { print "ERROR: No PILEUP_THREADS option found in config files.\n"; $checkFailed = 1; }
-            elsif ($opt{PILEUP_THREADS} < $opt{PILEUP_DIVISOR}) { print "ERROR: PILEUP_THREADS ($opt{PILEUP_THREADS}) must be at least PILEUP_DIVISOR ($opt{PILEUP_DIVISOR}).\n", $checkFailed = 1; }
+            elsif ($opt{PILEUP_THREADS} < $opt{PILEUP_DIVISOR}) { print "ERROR: PILEUP_THREADS ($opt{PILEUP_THREADS}) must be at least PILEUP_DIVISOR ($opt{PILEUP_DIVISOR}).\n"; $checkFailed = 1; }
             if (!$opt{PILEUP_MEM}) { print "ERROR: No PILEUP_MEM option found in config files.\n"; $checkFailed = 1; }
             if (!$opt{PILEUP_TIME}) { print "ERROR: No PILEUP_TIME option found in config files.\n"; $checkFailed = 1; }
             if (!$opt{FINALIZE_KEEP_PILEUP}) { print "ERROR: No FINALIZE_KEEP_PILEUP found in .ini file\n"; $checkFailed = 1; }
