@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -13,12 +16,12 @@ use illumina_template;
 sub runAnnotateVariants {
     my $configuration = shift;
     my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     my @runningJobs;
     my $jobID = "GermlineAnnotation_".getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done"){
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done") {
         print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping \n";
         return $jobID;
     }
@@ -30,8 +33,8 @@ sub runAnnotateVariants {
 
     from_template("GermlineAnnotation.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => \%opt);
 
-    foreach my $sample (keys $opt{SAMPLES}){
-        if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
+    foreach my $sample (keys $opt{SAMPLES}) {
+        if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
             push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
         }
     }

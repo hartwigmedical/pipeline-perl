@@ -14,7 +14,7 @@ BEGIN {
 
     our @EXPORT = qw(
                         &metadataParse
-                   );
+                  );
 }
 
 sub metadataParse(@) {

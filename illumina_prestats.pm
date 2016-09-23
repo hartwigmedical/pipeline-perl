@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -19,15 +22,15 @@ sub runPreStats {
     print "Creating FASTQC report for the following fastq.gz files:\n";
 
     my @qsubOut = ();
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     foreach my $input (keys %{$opt{FASTQ}}) {
 		my $coreName = undef;
-		$coreName = (split("/", $input))[-1];
-		$coreName =~ s/\.fastq.gz//;
-		my ($sampleName) =  split("_", $coreName);
+		$coreName = fileparse($input);
+		$coreName =~ s/\.fastq.gz$//;
+		my ($sampleName) = split("_", $coreName);
 		print "\t$input\n";
 
-		if (! -e "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
+		if (!-e "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
 			my $preStatsJobId = "PreStat_$coreName\_".getJobId();
 			my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 			push(@{$jobIds->{$sampleName}}, $preStatsJobId);

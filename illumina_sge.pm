@@ -17,7 +17,7 @@ BEGIN {
                         &qsubJava
                         &jobNative
                         &getJobId
-                   );
+                  );
 }
 
 sub generic(@) {

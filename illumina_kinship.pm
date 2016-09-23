@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -13,7 +16,7 @@ use illumina_template;
 sub runKinship {
     my $configuration = shift;
     my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     my @runningJobs;
     my $jobID = "Kinship_".getJobId();
 
@@ -49,14 +52,14 @@ sub runKinship {
     print KINSHIP_SH "fi\n\n";
     print KINSHIP_SH "echo \"End Kinship\t\" `date` \"\t$vcf\t\" `uname -n` >> $opt{OUTPUT_DIR}/logs/$runName.log\n";
 
-    foreach my $sample (keys $opt{SAMPLES}){
-        if( exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}} ) {
+    foreach my $sample (keys $opt{SAMPLES}) {
+        if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
             push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
         }
     }
 
     my $qsub = &qsubJava(\%opt, "KINSHIP");
-    if (@runningJobs){
+    if (@runningJobs) {
 	    system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID -hold_jid ".join(",",@runningJobs)." $bashFile";
     } else {
 	    system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID $bashFile";

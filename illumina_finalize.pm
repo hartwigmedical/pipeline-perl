@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -13,7 +16,7 @@ use illumina_metadataParser;
 sub runFinalize {
     my $configuration = shift;
     my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     my $doneFile;
     my @runningJobs;
 
@@ -71,13 +74,13 @@ sub runFinalize {
             print BASH "\tfailed=true\n";
             print BASH "fi\n";
             if ($opt{RUNNING_JOBS}->{'baf'}) {
-                push( @runningJobs, @{$opt{RUNNING_JOBS}->{'baf'}} );
+                push(@runningJobs, @{$opt{RUNNING_JOBS}->{'baf'}});
             }
         }
         print BASH "echo \"\">>$logFile\n\n";
 
         if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-            push( @runningJobs, @{$opt{RUNNING_JOBS}->{$sample}} );
+            push(@runningJobs, @{$opt{RUNNING_JOBS}->{$sample}});
         }
     }
 
@@ -90,7 +93,7 @@ sub runFinalize {
         print BASH "\tfailed=true\n";
         print BASH "fi\n";
         if ($opt{RUNNING_JOBS}->{'postStats'}) {
-            push( @runningJobs, $opt{RUNNING_JOBS}->{'postStats'} );
+            push(@runningJobs, $opt{RUNNING_JOBS}->{'postStats'});
         }
     }
 
@@ -141,7 +144,7 @@ sub runFinalize {
         print BASH "fi\n";
 
         if ($opt{RUNNING_JOBS}->{'somVar'}) {
-            push( @runningJobs, @{$opt{RUNNING_JOBS}->{'somVar'}} );
+            push(@runningJobs, @{$opt{RUNNING_JOBS}->{'somVar'}});
         }
     }
     if ($opt{COPY_NUMBER} eq "yes") {
@@ -172,7 +175,7 @@ sub runFinalize {
         }
 
         if ($opt{RUNNING_JOBS}->{'CNV'}) {
-            push( @runningJobs, @{$opt{RUNNING_JOBS}->{'CNV'}} );
+            push(@runningJobs, @{$opt{RUNNING_JOBS}->{'CNV'}});
         }
     }
 
@@ -185,7 +188,7 @@ sub runFinalize {
         print BASH "\tfailed=true\n";
         print BASH "fi\n";
         if ($opt{RUNNING_JOBS}->{'Kinship'}) {
-            push( @runningJobs, $opt{RUNNING_JOBS}->{'Kinship'} );
+            push(@runningJobs, $opt{RUNNING_JOBS}->{'Kinship'});
         }
     }
 

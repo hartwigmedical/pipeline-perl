@@ -20,7 +20,7 @@ f1 <- function(x) sum(unlist(x))
 determine_peaks <- function(region) {
   # ADD CHECK FOR NUMBER OF ROWS >= 50?
   quant <- quantile(region$baf)
-  if(quant[2]==quant[4]) {
+  if (quant[2] == quant[4]) {
     # LOW COMPLEXITY
     df <- data.frame(baf=quant[2], dens=99.99)
     df$CHROM <- region$CHROM[1]
@@ -31,10 +31,10 @@ determine_peaks <- function(region) {
 
   d <- density(region$baf, bw="sj")
 
-  ts_y<-ts(d$y)
-  tp<-turnpoints(ts_y)
+  ts_y <-ts(d$y)
+  tp <-turnpoints(ts_y)
   peaks <- data.frame(baf=d$x[tp$tppos], dens=d$y[tp$tppos])
-  df <- data.frame(subset(peaks, dens>=2.0))
+  df <- data.frame(subset(peaks, dens >= 2.0))
   df$CHROM <- region$CHROM[1]
   df$POS <- mean(region$POS)
   df$CALL <- NA
@@ -58,12 +58,12 @@ for (i in c(1:length(chromosomes))) {
   chrom <- chromosomes[i]
   #print(chrom)
 
-  tmp <- subset(rowdat, CHROM==chrom)
+  tmp <- subset(rowdat, CHROM == chrom)
 
   for (j in seq(1, nrow(tmp), by=binsize/2)) {
     maxy <- j+binsize
 
-    if (maxy>nrow(tmp)) {maxy<-nrow(tmp)}
+    if (maxy > nrow(tmp)) { maxy <- nrow(tmp) }
 
     region <- tmp[j:maxy,]
     if (nrow(region) >= 100) {
@@ -73,9 +73,9 @@ for (i in c(1:length(chromosomes))) {
     }
 
     # check if HETRO / HOMOZYGOUS calls present
-    if (peaks$baf[1]<=0.1 || peaks$baf[1]>=0.9) {
+    if (peaks$baf[1] <= 0.1 || peaks$baf[1] >= 0.9) {
       # RE-RUN for intermediate BAFs
-      region <- subset(region, baf>0.1 & baf<0.9)
+      region <- subset(region, baf > 0.1 & baf < 0.9)
       if (nrow(region) >= 100) {
         peaks <- determine_peaks(region)
         #print(nrow(peaks))

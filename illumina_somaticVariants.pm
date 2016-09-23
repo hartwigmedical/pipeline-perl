@@ -49,16 +49,16 @@ sub runSomaticVariantCallers {
     my $sample_tumor_job_dir = catfile($sample_tumor_out_dir, "jobs");
 
     if (!-e $sample_tumor_out_dir) {
-        make_path($sample_tumor_out_dir) or die "Couldn't create directory: $sample_tumor_out_dir\n";
+        make_path($sample_tumor_out_dir) or die "Couldn't create directory $sample_tumor_out_dir: $!";
     }
     if (!-e $sample_tumor_tmp_dir) {
-        make_path($sample_tumor_tmp_dir) or die "Couldn't create directory: $sample_tumor_tmp_dir\n";
+        make_path($sample_tumor_tmp_dir) or die "Couldn't create directory $sample_tumor_tmp_dir: $!";
     }
     if (!-e $sample_tumor_job_dir) {
-        make_path($sample_tumor_job_dir) or die "Couldn't create directory: $sample_tumor_job_dir\n";
+        make_path($sample_tumor_job_dir) or die "Couldn't create directory $sample_tumor_job_dir: $!";
     }
     if (!-e $sample_tumor_log_dir) {
-        make_path($sample_tumor_log_dir) or die "Couldn't create directory: $sample_tumor_log_dir\n";
+        make_path($sample_tumor_log_dir) or die "Couldn't create directory $sample_tumor_log_dir: $!";
     }
 
     my $sample_tumor_bam = catfile($opt{OUTPUT_DIR}, $sample_tumor, "mapping", $opt{BAM_FILES}->{$sample_tumor});
@@ -122,7 +122,7 @@ sub runSomaticVariantCallers {
     if ($opt{SOMVAR_STRELKA} eq "yes") { print MERGE_SH "-V:strelka $sample_tumor_out_dir/strelka/passed.somatic.merged.vcf "; }
     if ($opt{SOMVAR_VARSCAN} eq "yes") { print MERGE_SH "-V:varscan $sample_tumor_out_dir/varscan/$sample_tumor_name.merged.Somatic.hc.vcf "; }
     if ($opt{SOMVAR_FREEBAYES} eq "yes") { print MERGE_SH "-V:freebayes $sample_tumor_out_dir/freebayes/${sample_tumor_name}_somatic_filtered.vcf "; }
-    if ($opt{SOMVAR_MUTECT} eq "yes") { print MERGE_SH "-V:mutect $sample_tumor_out_dir/mutect/${sample_tumor_name}_mutect_passed.vcf ";}
+    if ($opt{SOMVAR_MUTECT} eq "yes") { print MERGE_SH "-V:mutect $sample_tumor_out_dir/mutect/${sample_tumor_name}_mutect_passed.vcf "; }
     print MERGE_SH "\n\n";
 
     if ($opt{SOMVAR_TARGETS}) {
@@ -251,7 +251,7 @@ sub runVarscan {
     (my $sample_ref_pileup = $sample_ref_bam) =~ s/\.bam/\.pileup\.gz/;
 
     if (!-e $varscan_out_dir) {
-        make_path($varscan_out_dir) or die "Couldn't create directory: $varscan_out_dir\n";
+        make_path($varscan_out_dir) or die "Couldn't create directory $varscan_out_dir: $!";
     }
 
     my $done_file = catfile($log_dir, "varscan.done");
@@ -330,10 +330,10 @@ sub runFreeBayes {
     my $freebayes_tmp_dir = catfile($freebayes_out_dir, "tmp");
 
     if (!-e $freebayes_out_dir) {
-        make_path($freebayes_out_dir) or die "Couldn't create directory: $freebayes_out_dir\n";
+        make_path($freebayes_out_dir) or die "Couldn't create directory $freebayes_out_dir: $!";
     }
     if (!-e $freebayes_tmp_dir) {
-        make_path($freebayes_tmp_dir) or die "Couldn't create directory: $freebayes_tmp_dir\n";
+        make_path($freebayes_tmp_dir) or die "Couldn't create directory $freebayes_tmp_dir: $!";
     }
 
     my $done_file = catfile($log_dir, "freebayes.done");
@@ -419,10 +419,10 @@ sub runMutect {
     my $mutect_tmp_dir = catfile($mutect_out_dir, "tmp");
 
     if (!-e $mutect_out_dir) {
-        make_path($mutect_out_dir) or die "Couldn't create directory: $mutect_out_dir\n";
+        make_path($mutect_out_dir) or die "Couldn't create directory $mutect_out_dir: $!";
     }
     if (!-e $mutect_tmp_dir) {
-        make_path($mutect_tmp_dir) or die "Couldn't create directory: $mutect_tmp_dir\n";
+        make_path($mutect_tmp_dir) or die "Couldn't create directory $mutect_tmp_dir: $!";
     }
 
     my $done_file = catfile($log_dir, "mutect.done");
@@ -443,7 +443,7 @@ sub runMutect {
 
         my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
         $command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
-        #if ( $opt{SOMVAR_TARGETS} ) {$command .= "--intervals $opt{SOMVAR_TARGETS} ";}
+        #if ($opt{SOMVAR_TARGETS}) { $command .= "--intervals $opt{SOMVAR_TARGETS} "; }
         $command .= "--input_file:normal $sample_ref_bam --input_file:tumor $sample_tumor_bam ";
         $command .= "--out ${output_name}.out --vcf ${output_name}_mutect.vcf";
 
@@ -465,7 +465,7 @@ sub runMutect {
 
     my $file_test = "if [ -s $sample_ref_bam -a -s $sample_tumor_bam ";
     my $concat_command = catfile($opt{VCFTOOLS_PATH}, "vcf-concat");
-    my $filter_command = "cat ${sample_tumor_name}_mutect.vcf | java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"( na FILTER ) | (FILTER = 'PASS')\" > ${sample_tumor_name}_mutect_passed.vcf \n";
+    my $filter_command = "cat ${sample_tumor_name}_mutect.vcf | java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"(na FILTER ) | (FILTER = 'PASS')\" > ${sample_tumor_name}_mutect_passed.vcf \n";
 
     foreach my $chr (@chrs) {
         my $output = "${sample_tumor_name}_${chr}_mutect.vcf";

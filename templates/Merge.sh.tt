@@ -48,7 +48,7 @@ else
 fi
 
 TOTALREADS=0
-for i in $( find $PWD/mapping -name '*sorted.flagstat'); do
+for i in $(find $PWD/mapping -name '*sorted.flagstat'); do
 	VAL=`grep -m 1 -P "\d+" $i | awk '{{split($0,columns , "+")} print columns[1]}'`
 	TOTALREADS=$(($TOTALREADS + $VAL))
 done
@@ -65,7 +65,7 @@ if [ -s mapping/[% sample %]_dedup.flagstat ]; then
 		mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
         mv mapping/[% sample %]_dedup.tmp.bai mapping/[% sample %]_dedup.bai
         mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
-		for i in $( find $PWD/mapping -name '*sorted.bam'); do
+		for i in $(find $PWD/mapping -name '*sorted.bam'); do
 			rm $i
 		done
 	else

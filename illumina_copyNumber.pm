@@ -4,6 +4,8 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
 use File::Path qw(make_path);
 
 use FindBin;
@@ -33,13 +35,13 @@ sub runCopyNumberTools {
         my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
 
         if (!-e $sample_tumor_out_dir) {
-            make_path($sample_tumor_out_dir) or die "Couldn't create directory: $sample_tumor_out_dir\n";
+            make_path($sample_tumor_out_dir) or die "Couldn't create directory $sample_tumor_out_dir: $!";
         }
         if (!-e $sample_tumor_job_dir) {
-            make_path($sample_tumor_job_dir) or die "Couldn't create directory: $sample_tumor_job_dir\n";
+            make_path($sample_tumor_job_dir) or die "Couldn't create directory $sample_tumor_job_dir: $!";
         }
         if (!-e $sample_tumor_log_dir) {
-            make_path($sample_tumor_log_dir) or die "Couldn't create directory: $sample_tumor_log_dir\n";
+            make_path($sample_tumor_log_dir) or die "Couldn't create directory $sample_tumor_log_dir: $!";
         }
 
         my $sample_tumor_bam = "$opt{OUTPUT_DIR}/$sample_tumor/mapping/$opt{BAM_FILES}->{$sample_tumor}";
@@ -66,8 +68,8 @@ sub runCopyNumberTools {
             if ($freec_job) {push(@cnv_jobs, $freec_job)};
         }
 
-        my $job_id = "CHECK_".$sample_tumor."_".getJobId();
-        my $bash_file = $sample_tumor_job_dir."/".$job_id.".sh";
+        my $job_id = "CHECK_${sample_tumor}_" . getJobId();
+        my $bash_file = catfile($sample_tumor_job_dir, "${job_id}.sh");
 
         open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
         print CHECK_SH "#!/bin/bash\n\n";
@@ -97,13 +99,13 @@ sub runCopyNumberTools {
             my $sample_job_dir = "$sample_out_dir/jobs/";
 
             if (!-e $sample_out_dir) {
-                make_path($sample_out_dir) or die "Couldn't create directory:  $sample_out_dir\n";
+                make_path($sample_out_dir) or die "Couldn't create directory $sample_out_dir: $!";
             }
             if (!-e $sample_job_dir) {
-                make_path($sample_job_dir) or die "Couldn't create directory: $sample_job_dir\n";
+                make_path($sample_job_dir) or die "Couldn't create directory $sample_job_dir: $!";
             }
             if (!-e $sample_log_dir) {
-                make_path($sample_log_dir) or die "Couldn't create directory: $sample_log_dir\n";
+                make_path($sample_log_dir) or die "Couldn't create directory $sample_log_dir: $!";
             }
 
             my $sample_bam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
@@ -125,8 +127,8 @@ sub runCopyNumberTools {
                 if ($freec_job) {push(@cnv_jobs, $freec_job)};
             }
 
-            my $job_id = "CHECK_".$sample."_".getJobId();
-            my $bash_file = $sample_job_dir."/".$job_id.".sh";
+            my $job_id = "CHECK_${sample}_" . getJobId();
+            my $bash_file = catfile($sample_job_dir, "${job_id}.sh");
 
             open CHECK_SH, ">$bash_file" or die "cannot open file $bash_file \n";
             print CHECK_SH "#!/bin/bash\n\n";
@@ -162,7 +164,7 @@ sub runFreec {
 
     my $freec_out_dir = "$out_dir/freec";
     if (!-e $freec_out_dir) {
-        make_path($freec_out_dir) or die "Couldn't create directory: $freec_out_dir\n";
+        make_path($freec_out_dir) or die "Couldn't create directory $freec_out_dir: $!";
     }
 
     my @mappabilityTracks;
@@ -206,9 +208,9 @@ sub runFreec {
 
     close FREEC_CONFIG;
 
-    my $job_id = "FREEC_".$sample_name."_".getJobId();
-    my $bash_file = $job_dir."/".$job_id.".sh";
-    my $sample_bam_name = (split('/', $sample_bam))[-1];
+    my $job_id = "FREEC_${sample_name}_" . getJobId();
+    my $bash_file = catfile($job_dir, "${job_id}.sh");
+    my $sample_bam_name = fileparse($sample_bam);
 
     open FREEC_SH, ">$bash_file" or die "cannot open file $bash_file \n";
 

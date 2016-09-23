@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -14,16 +17,16 @@ sub runRealignment {
 
     my $configuration = shift;
     my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
 
     print "Running single sample indel realignment for the following BAM-files:\n";
 
     my @knownIndelFiles;
-    if($opt{REALIGNMENT_KNOWN}) {
+    if ($opt{REALIGNMENT_KNOWN}) {
 		@knownIndelFiles = split('\t', $opt{REALIGNMENT_KNOWN});
     }
 
-    foreach my $sample (keys $opt{SAMPLES}){
+    foreach my $sample (keys $opt{SAMPLES}) {
 	    my $bam = $opt{BAM_FILES}->{$sample};
 	    (my $flagstat = $bam) =~ s/\.bam/.flagstat/;
 	    (my $realignedBam = $bam) =~ s/\.bam/\.realigned\.bam/;
@@ -44,7 +47,7 @@ sub runRealignment {
 
 	    print "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam\n";
 
-	    if (-e "$opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done"){
+	    if (-e "$opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done") {
 			print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done exists, skipping\n";
 			next;
 	    }
@@ -56,10 +59,10 @@ sub runRealignment {
 
 	    my $knownIndelFiles = "";
 	    my @knownIndelFilesA = ();
-	    if($opt{REALIGNMENT_KNOWN}) {
+	    if ($opt{REALIGNMENT_KNOWN}) {
 			foreach my $knownIndelFile (@knownIndelFiles) {
-				if(! -e $knownIndelFile){ die"ERROR: $knownIndelFile does not exist\n" }
-				else { push(@knownIndelFilesA, "-known $knownIndelFile"); }
+				die "ERROR: $knownIndelFile does not exist" if !-e $knownIndelFile;
+				push @knownIndelFilesA, "-known $knownIndelFile";
 			}
 			$knownIndelFiles = join(" ", @knownIndelFilesA);
 	    }
@@ -68,7 +71,7 @@ sub runRealignment {
             healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam, healthCheckPreRealignSlicedBamBai => $healthCheckPreRealignSlicedBamBai, opt => \%opt, runName => $runName);
 
 	    my $qsub = &qsubJava(\%opt,"REALIGNMENT_MASTER");
-	    if ( @{$opt{RUNNING_JOBS}->{$sample}} ){
+	    if (@{$opt{RUNNING_JOBS}->{$sample}}) {
 			system $qsub." -o ".$logDir."/Realignment_".$sample.".out -e ".$logDir."/Realignment_".$sample.".err -N ".$jobIDRealign." -hold_jid ".join(",",@{$opt{RUNNING_JOBS}->{$sample}})." ".$bashFile;
 	    } else {
 			system $qsub." -o ".$logDir."/Realignment_".$sample.".out -e ".$logDir."/Realignment_".$sample.".err -N ".$jobIDRealign." ".$bashFile;

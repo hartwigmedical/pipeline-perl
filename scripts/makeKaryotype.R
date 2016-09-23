@@ -1,8 +1,8 @@
 library("ggplot2")
 library("gtools")
 
-myCols <- c("darkgray","steelblue3","red3","lightgray")
-names(myCols) <- c("neutral1","gain","loss","neutral2")
+myCols <- c("darkgray", "steelblue3", "red3", "lightgray")
+names(myCols) <- c("neutral1", "gain", "loss", "neutral2")
 
 
 # cat makeKaryotype.R | R --slave --args 2 24 4 500000 ".$sample_bam_name."_ratio.txt\n";
@@ -21,10 +21,10 @@ ratiofile <- args[8]
 make_plot <- function(filename) {
 	df <- data.frame()
 
-	ratio<-data.frame(read.table(filename, sep='\t', header=TRUE))
+	ratio <- data.frame(read.table(filename, sep='\t', header=TRUE))
 
 	# Clean up ratio data
-	ratio <- subset(ratio, Ratio!=-1)
+	ratio <- subset(ratio, Ratio != -1)
 	ratio <- ratio[!is.na(ratio$Ratio),]
 
 	chromosomes <- mixedsort(as.character(unique((ratio$Chromosome))))
@@ -32,10 +32,10 @@ make_plot <- function(filename) {
 		chrom <- chromosomes[i]
 
 		# Select chromosome
-		tmp <- subset( ratio, Chromosome==chrom)
+		tmp <- subset(ratio, Chromosome == chrom)
 
 		# Binning of positions
-		grouping <- cut(tmp$Start, c(seq(0,max(tmp$Start),binsize), max(tmp$Start)), labels=seq(binsize/2, (max(tmp$Start)+(binsize/2)), binsize))
+		grouping <- cut(tmp$Start, c(seq(0, max(tmp$Start), binsize), max(tmp$Start)), labels=seq(binsize / 2, (max(tmp$Start) + (binsize / 2)), binsize))
 
 		# Calculate median ratio
 		medians <- data.frame(tapply(tmp$Ratio, grouping, median))
@@ -43,7 +43,7 @@ make_plot <- function(filename) {
 
 		colnames(medians) <- "Ratio"
 		# Alternate chromosome banding
-		if ((i%%2) == 0) {
+		if ((i %% 2) == 0) {
 			medians$Cols <- 'neutral1'
 		} else {
 			medians$Cols <- 'neutral2'
@@ -53,11 +53,11 @@ make_plot <- function(filename) {
 		medians <- medians[!is.na(medians$Ratio),]
 		medians$Chromosome <- chrom
 		medians$GenomicPosition <- as.numeric(as.character(rownames(medians)))
-		medians$CopyNumber <- medians$Ratio*ploidy
+		medians$CopyNumber <- medians$Ratio * ploidy
 
 		# Add event coloring
-		medians$Cols[medians$CopyNumber>=ploidy+0.8] <- "gain"
-		medians$Cols[medians$CopyNumber<=ploidy-0.8] <- "loss"
+		medians$Cols[medians$CopyNumber >= ploidy+0.8] <- "gain"
+		medians$Cols[medians$CopyNumber <= ploidy-0.8] <- "loss"
 
 		# Merge data
 		df <- rbind(df, medians)
@@ -69,9 +69,9 @@ make_plot <- function(filename) {
 
 	#
 	# PLot the data
-	pdf(file=gsub(".txt","_karyotype.pdf",filename), width=10, height=2, pointsize=6, useDingbats=FALSE)
+	pdf(file=gsub(".txt", "_karyotype.pdf", filename), width=10, height=2, pointsize=6, useDingbats=FALSE)
 
-  	p <- ggplot(df, aes(GenomicPosition, CopyNumber, group=Chromosome)) + geom_point(aes(colour=Cols), shape=20, size=0.2, alpha=0.5) + ylim(0,maxLevelToPlot) + facet_wrap(~Chromosome, nrow=1, scales="free_x") + scale_colour_manual(name="event", values=myCols)
+  	p <- ggplot(df, aes(GenomicPosition, CopyNumber, group=Chromosome)) + geom_point(aes(colour=Cols), shape=20, size=0.2, alpha=0.5) + ylim(0, maxLevelToPlot) + facet_wrap(~Chromosome, nrow=1, scales="free_x") + scale_colour_manual(name="event", values=myCols)
 
   	# Make it look clean
   	p <- p + theme(

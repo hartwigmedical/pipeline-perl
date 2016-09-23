@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -14,11 +17,11 @@ sub runPostStats {
     my $configuration = shift;
     my %opt = %{$configuration};
     my @runningJobs;
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     my $jobID = "PostStats_".getJobId();
     my $jobIDCheck = "PostStats_Check_".getJobId();
 
-    if(! -e "$opt{OUTPUT_DIR}/logs/PostStats.done") {
+    if (!-e "$opt{OUTPUT_DIR}/logs/PostStats.done") {
         my $command = "perl $opt{BAMMETRICS_PATH}/bamMetrics.pl ";
         foreach my $sample (keys $opt{SAMPLES}) {
             my $sampleBam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";

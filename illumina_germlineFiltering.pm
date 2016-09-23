@@ -4,6 +4,9 @@ use 5.16.0;
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Spec::Functions;
+
 use FindBin;
 use lib "$FindBin::Bin";
 
@@ -13,12 +16,12 @@ use illumina_template;
 sub runFilterVariants {
     my $configuration = shift;
     my %opt = %{$configuration};
-    my $runName = (split("/", $opt{OUTPUT_DIR}))[-1];
+    my $runName = basename($opt{OUTPUT_DIR});
     my @runningJobs;
     my $jobID = "GermlineFilter_".getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done"){
+    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done") {
 		print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping \n";
 		return $jobID;
     }
@@ -38,14 +41,14 @@ sub runFilterVariants {
 	}
 
 	if (scalar(@SNPFilterNames) ne scalar(@SNPFilterExprs)) {
-		die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length.";
+		die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length";
 	}
 
-	foreach my $i (0 .. scalar(@SNPFilterNames)-1 ){
+	foreach my $i (0 .. scalar(@SNPFilterNames)-1) {
 		$command .= "-snpFilterName $SNPFilterNames[$i] -snpFilterExpression \"$SNPFilterExprs[$i]\" ";
 	}
 
-	if ($opt{FILTER_CLUSTERSIZE} and $opt{FILTER_CLUSTERWINDOWSIZE}){
+	if ($opt{FILTER_CLUSTERSIZE} and $opt{FILTER_CLUSTERWINDOWSIZE}) {
 		$command .= "-cluster $opt{FILTER_CLUSTERSIZE} -window $opt{FILTER_CLUSTERWINDOWSIZE} ";
 	}
 
@@ -58,10 +61,10 @@ sub runFilterVariants {
 	}
 
 	if (scalar(@INDELFilterNames) ne scalar(@INDELFilterExprs)) {
-		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length.";
+		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
 	}
 
-	foreach my $i (0 .. scalar(@INDELFilterNames)-1 ) {
+	foreach my $i (0 .. scalar(@INDELFilterNames)-1) {
 		$command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
 	}
 
@@ -73,14 +76,14 @@ sub runFilterVariants {
 
     foreach my $sample (keys $opt{SAMPLES}) {
         if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
-            push( @runningJobs, join( ",", @{$opt{RUNNING_JOBS}->{$sample}} ) );
+            push(@runningJobs, join(",", @{$opt{RUNNING_JOBS}->{$sample}}));
         }
     }
 
-    my $qsub = &qsubJava( \%opt, "FILTER_MASTER" );
+    my $qsub = &qsubJava(\%opt, "FILTER_MASTER");
     if (@runningJobs) {
         system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID -hold_jid ".join(
-                ",", @runningJobs )." $bashFile";
+                ",", @runningJobs)." $bashFile";
     } else {
         system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID $bashFile";
     }

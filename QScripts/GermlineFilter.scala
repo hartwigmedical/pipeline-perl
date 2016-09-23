@@ -57,11 +57,11 @@ class GermlineFilter extends QScript {
 			val selectSNP = new SelectVariants with HF_Arguments
 			selectSNP.V = rawVCF
 			for (snpType <- snpFilterTypes) {
-        if(snpType == "SNP") {
+        if (snpType == "SNP") {
             selectSNP.selectType :+= Type.SNP
-        } else if(snpType == "MNP") {
+        } else if (snpType == "MNP") {
             selectSNP.selectType :+= Type.MNP
-        } else if(snpType == "NO_VARIATION") {
+        } else if (snpType == "NO_VARIATION") {
             selectSNP.selectType :+= Type.NO_VARIATION
         }
 	    }
@@ -74,7 +74,7 @@ class GermlineFilter extends QScript {
       SNPfilter.filterExpression = snpFilterExp
       SNPfilter.filterName = snpFilterNames
 
-      if( clusterSize != 0 && clusterWindowSize != 0 ){
+      if (clusterSize != 0 && clusterWindowSize != 0) {
           SNPfilter.clusterSize = clusterSize
           SNPfilter.clusterWindowSize = clusterWindowSize
       }
@@ -84,7 +84,7 @@ class GermlineFilter extends QScript {
       for (indelType <- indelFilterTypes) {
         if (indelType == "INDEL") {
           selectINDEL.selectType :+= Type.INDEL
-        } else if(indelType == "MIXED") {
+        } else if (indelType == "MIXED") {
           selectINDEL.selectType :+= Type.MIXED
         }
       }

@@ -38,7 +38,7 @@ class IndelRealignment extends QScript {
 				val indelRealigner = new IndelRealigner with TCIR_Arguments
 
 				targetCreator.input_file :+= bamFile
-				if(knownIndelFiles != Nil){
+				if (knownIndelFiles != Nil) {
 						targetCreator.known = knownIndelFiles
 				}
 				targetCreator.num_threads = numDataThreads
