@@ -29,7 +29,7 @@ sub runBAF {
 		my @running_jobs;
 
 		if (-e "$log_dir/BAF_$sample.done") {
-			print "WARNING: $log_dir/BAF_$sample.done exists, skipping BAF analysis for $sample \n";
+			say "WARNING: $log_dir/BAF_$sample.done exists, skipping BAF analysis for $sample";
 		} else {
 			my $jobID = "BAF_$sample\_".getJobId();
 			my $bashFile = $job_dir.$jobID.".sh";
@@ -43,20 +43,20 @@ sub runBAF {
 
 			my $run_unified_genotyper = 0;
 			if (-e "$log_dir/BAF_UG_$sample.done") {
-				print "WARNING: $log_dir/BAF_UG_$sample.done exists, skipping Unified Genotyper for $sample \n";
+				say "WARNING: $log_dir/BAF_UG_$sample.done exists, skipping Unified Genotyper for $sample";
 			} else {
 				$run_unified_genotyper = 1;
 			}
 
 			my $create_baf_file = 0;
 			if (-e "$log_dir/BAF_FILE_$sample.done") {
-				print "WARNING: $log_dir/BAF_FILE_$sample.done exists, skipping BAF file for $sample \n";
+				say "WARNING: $log_dir/BAF_FILE_$sample.done exists, skipping BAF file for $sample";
 			} else {
 				$create_baf_file = 1;
 			}
 			my $create_baf_plots = 0;
 			if (-e "$log_dir/BAF_PLOT_$sample.done") {
-				print "WARNING: $log_dir/BAF_PLOT._$sample done exists, skipping BAF plot for $sample \n";
+				say "WARNING: $log_dir/BAF_PLOT._$sample done exists, skipping BAF plot for $sample";
 			} else {
 				$create_baf_plots = 1;
 			}

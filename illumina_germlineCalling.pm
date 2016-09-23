@@ -23,7 +23,7 @@ sub runVariantCalling {
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done" || -e "$opt{OUTPUT_DIR}/logs/VariantCaller.done") {
-	    print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping \n";
+	    say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping";
 	    return \%opt;
     }
 

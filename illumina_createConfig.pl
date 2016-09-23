@@ -42,7 +42,7 @@ if ($iniFile) {
 }
 
 if (!-e $ini) {
-    print "ERROR: $ini does not exist.\n";
+    say "ERROR: $ini does not exist.";
 }
 createConfig($ini,$outputDir,\@fastqDirs,\@bamDirs,$vcfFile,$mail,$run);
 
@@ -56,7 +56,7 @@ sub getIniFiles {
         next unless ($iniFile =~ /\.ini$/); #skip non .ini files
         push(@iniFiles, $iniFile);
         $iniIndex ++;
-        print "\t$iniIndex: \t $iniFile\n";
+        say "\t$iniIndex: \t $iniFile";
     }
     closedir(INIDIR);
 
@@ -129,17 +129,19 @@ sub createConfig {
 }
 
 sub usage {
-    print "Usage: perl illumina_createConfig.pl\n\n";
-    print "Advanced usage: \n";
-    print "illumina_createConfig.pl (-i|-iniFile settings.ini OR -ip|-iniPath /path/to/settings.ini) -o|-outputDir /path/to/outputDir (-f|-fastqDir /fastqFolder OR -b|-bamDir /bamFolder OR -v|-vcfFile vcfFile.vcf) -m|-mail example\@mail.nl [-run]\n\n";
-    print "Available ini files: (use -i)\n";
+    say "Usage: perl illumina_createConfig.pl";
+    say;
+    say "Advanced usage:";
+    say "illumina_createConfig.pl (-i|-iniFile settings.ini OR -ip|-iniPath /path/to/settings.ini) -o|-outputDir /path/to/outputDir (-f|-fastqDir /fastqFolder OR -b|-bamDir /bamFolder OR -v|-vcfFile vcfFile.vcf) -m|-mail example\@mail.nl [-run]";
+    say;
+    say "Available ini files: (use -i)";
     getIniFiles($settingsDir);
     exit;
 }
 
 sub interactive {
-    print "Using interactive mode \n";
-    print "Avaible setting files:\n";
+    say "Using interactive mode";
+    say "Avaible setting files:";
     my @iniFiles = getIniFiles($settingsDir);
 
     # Settings file

@@ -70,7 +70,7 @@ sub runPostStats {
         system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck." -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;
         return $jobIDCheck;
     } else {
-        print "WARNING: $opt{OUTPUT_DIR}/logs/PostStats.done exists, skipping\n";
+        say "WARNING: $opt{OUTPUT_DIR}/logs/PostStats.done exists, skipping";
     }
 }
 

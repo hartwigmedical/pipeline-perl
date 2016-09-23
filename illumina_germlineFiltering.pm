@@ -22,7 +22,7 @@ sub runFilterVariants {
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done") {
-		print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping \n";
+		say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping";
 		return $jobID;
     }
 

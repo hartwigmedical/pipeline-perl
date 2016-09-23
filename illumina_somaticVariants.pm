@@ -24,7 +24,7 @@ sub runSomaticVariantCallers {
 
     foreach my $sample (keys $opt{SAMPLES}) {
         if ($opt{SOMVAR_VARSCAN} eq "yes") {
-            print "Creating pileup for: $sample\n";
+            say "Creating pileup for: $sample";
             my $pileup_job = runPileup($sample, \%opt);
             push(@pileupJobs, $pileup_job);
         }
@@ -72,43 +72,43 @@ sub runSomaticVariantCallers {
         push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
     }
 
-    print "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam \n";
+    say "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam";
 
     my $done_file = catfile($sample_tumor_log_dir, "${sample_tumor_name}.done");
     if (-e $done_file) {
-        print "WARNING: $done_file exists, skipping\n";
+        say "WARNING: $done_file exists, skipping";
         next;
     }
 
     if ($opt{SOMVAR_STRELKA} eq "yes") {
-        print "\n###SCHEDULING STRELKA####\n";
+        say "\n###SCHEDULING STRELKA####";
         my $strelka_job = runStrelka($sample_tumor, $sample_tumor_out_dir, $sample_tumor_job_dir, $sample_tumor_log_dir
             , $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
         if ($strelka_job) {push(@somvar_jobs, $strelka_job)};
     }
 
     if ($opt{SOMVAR_VARSCAN} eq "yes") {
-        print "\n###SCHEDULING VARSCAN####\n";
+        say "\n###SCHEDULING VARSCAN####";
         my $varscan_job = runVarscan($sample_tumor, $sample_tumor_name, $sample_tumor_out_dir, $sample_tumor_job_dir,
             $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
         if ($varscan_job) {push(@somvar_jobs, $varscan_job)};
     }
 
     if ($opt{SOMVAR_FREEBAYES} eq "yes") {
-        print "\n###SCHEDULING FREEBAYES####\n";
+        say "\n###SCHEDULING FREEBAYES####";
         my $freebayes_job = runFreeBayes($sample_tumor, $sample_tumor_name, $sample_tumor_out_dir,
             $sample_tumor_job_dir, $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
         if ($freebayes_job) {push(@somvar_jobs, $freebayes_job)};
     }
 
     if ($opt{SOMVAR_MUTECT} eq "yes") {
-        print "\n###SCHEDULING MUTECT####\n";
+        say "\n###SCHEDULING MUTECT####";
         my $mutect_job = runMutect($sample_tumor, $sample_tumor_name, $sample_tumor_out_dir, $sample_tumor_job_dir,
             $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
         if ($mutect_job) {push(@somvar_jobs, $mutect_job)};
     }
 
-    print "\n###SCHEDULING MERGE SOMATIC VCFS####\n";
+    say "\n###SCHEDULING MERGE SOMATIC VCFS####";
 
     my $job_id = "MERGE_${sample_tumor}_" . getJobId();
     my $bash_file = catfile($sample_tumor_job_dir, "${job_id}.sh");
@@ -191,7 +191,7 @@ sub runStrelka {
 
     my $done_file = catfile($log_dir, "strelka.done");
     if (-e $done_file) {
-        print "WARNING: $done_file, skipping\n";
+        say "WARNING: $done_file, skipping";
         return;
     }
 
@@ -222,7 +222,7 @@ sub runPileup {
 
     my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
     if (-e $done_file) {
-        print "\t WARNING: $done_file exists, skipping\n";
+        say "\t WARNING: $done_file exists, skipping";
         return $jobID;
     }
 
@@ -257,7 +257,7 @@ sub runVarscan {
 
     my $done_file = catfile($log_dir, "varscan.done");
     if (-e $done_file) {
-        print "WARNING: $done_file exists, skipping\n";
+        say "WARNING: $done_file exists, skipping";
         return;
     }
 
@@ -337,7 +337,7 @@ sub runFreeBayes {
 
     my $done_file = catfile($log_dir, "freebayes.done");
     if (-e $done_file) {
-        print "WARNING: $done_file exists, skipping\n";
+        say "WARNING: $done_file exists, skipping";
         return;
     }
 
@@ -424,7 +424,7 @@ sub runMutect {
 
     my $done_file = catfile($log_dir, "mutect.done");
     if (-e $done_file) {
-        print "WARNING: $done_file exists, skipping\n";
+        say "WARNING: $done_file exists, skipping";
         return;
     }
 

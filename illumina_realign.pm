@@ -19,7 +19,7 @@ sub runRealignment {
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
 
-    print "Running single sample indel realignment for the following BAM-files:\n";
+    say "Running single sample indel realignment for the following BAM-files:";
 
     my @knownIndelFiles;
     if ($opt{REALIGNMENT_KNOWN}) {
@@ -45,10 +45,10 @@ sub runRealignment {
 
         $opt{BAM_FILES}->{$sample} = $realignedBam;
 
-	    print "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam\n";
+	    say "\t$opt{OUTPUT_DIR}/$sample/mapping/$bam";
 
 	    if (-e "$opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done") {
-			print "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done exists, skipping\n";
+			say "\t WARNING: $opt{OUTPUT_DIR}/$sample/logs/Realignment_$sample.done exists, skipping";
 			next;
 	    }
 

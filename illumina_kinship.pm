@@ -21,7 +21,7 @@ sub runKinship {
     my $jobID = "Kinship_".getJobId();
 
     if (-e "$opt{OUTPUT_DIR}/logs/Kinship.done") {
-		print "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping\n";
+		say "WARNING: $opt{OUTPUT_DIR}/logs/Kinship.done exists, skipping";
 		return $jobID;
     }
 

@@ -54,15 +54,15 @@ sub runCopyNumberTools {
             push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
         }
 
-        print "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam \n";
+        say "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam";
 
         if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
-            print "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping \n";
+            say "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping";
             next;
         }
 
         if ($opt{CNV_FREEC} eq "yes") {
-            print "\n###SCHEDULING FREEC####\n";
+            say "\n###SCHEDULING FREEC####";
             my $freec_job = runFreec($sample_tumor, $sample_tumor_out_dir, $sample_tumor_job_dir,
                 $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
             if ($freec_job) {push(@cnv_jobs, $freec_job)};
@@ -113,15 +113,15 @@ sub runCopyNumberTools {
             if (@{$opt{RUNNING_JOBS}->{$sample}}) {
                 push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample}});
             }
-            print "\n$sample \t $sample_bam \n";
+            say "\n$sample \t $sample_bam";
 
             if (-e "$sample_log_dir/$sample.done") {
-                print "WARNING: $sample_log_dir/$sample.done exists, skipping \n";
+                say "WARNING: $sample_log_dir/$sample.done exists, skipping";
                 next;
             }
 
             if ($opt{CNV_FREEC} eq "yes") {
-                print "\n###SCHEDULING FREEC####\n";
+                say "\n###SCHEDULING FREEC####";
                 my $freec_job = runFreec($sample, $sample_out_dir, $sample_job_dir, $sample_log_dir, $sample_bam, "",
                     \@running_jobs, \%opt);
                 if ($freec_job) {push(@cnv_jobs, $freec_job)};
@@ -158,7 +158,7 @@ sub runFreec {
     my %opt = %{$opt};
 
     if (-e "$log_dir/freec.done") {
-        print "WARNING: $log_dir/freec.done exists, skipping \n";
+        say "WARNING: $log_dir/freec.done exists, skipping";
         return;
     }
 

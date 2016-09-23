@@ -22,7 +22,7 @@ sub runAnnotateVariants {
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done") {
-        print "WARNING: $opt{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping \n";
+        say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping";
         return $jobID;
     }
 

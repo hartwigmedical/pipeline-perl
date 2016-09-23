@@ -19,7 +19,7 @@ sub runPreStats {
     my $jobIds = {};
 
     my $mainJobID = "$opt{OUTPUT_DIR}/jobs/PreStatsMainJob_".getJobId().".sh";
-    print "Creating FASTQC report for the following fastq.gz files:\n";
+    say "Creating FASTQC report for the following fastq.gz files:";
 
     my @qsubOut = ();
     my $runName = basename($opt{OUTPUT_DIR});
@@ -28,7 +28,7 @@ sub runPreStats {
 		$coreName = fileparse($input);
 		$coreName =~ s/\.fastq.gz$//;
 		my ($sampleName) = split("_", $coreName);
-		print "\t$input\n";
+		say "\t$input";
 
 		if (!-e "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
 			my $preStatsJobId = "PreStat_$coreName\_".getJobId();
@@ -38,7 +38,7 @@ sub runPreStats {
 			my $qsub = qsubTemplate(\%opt, "PRESTATS");
 			push(@qsubOut, "$qsub -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh");
 		} else {
-			print "\t WARNING: FASTQC report for $input already exists, skipping.\n";
+			say "\t WARNING: FASTQC report for $input already exists, skipping.";
 		}
     }
 
