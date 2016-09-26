@@ -22,20 +22,19 @@ rm -f [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %]_cleanup.err
 BAMS=([% bams %])
 PASS=0
 for i in "${BAMS[@]}"; do
-	DONEFILE=`echo $i | sed -r 's/(_sorted)*(_dedup)*\.bam/\.done/'`
-
-        if [ ! -f $DONEFILE ]; then
-        	echo "ERROR: $i is probably incomplete, no .done file found for it" >> logs/merge.err
-		PASS=1
-	fi
+    DONEFILE=`echo $i | sed -r 's/(_sorted)*(_dedup)*\.bam/\.done/'`
+    if [ ! -f $DONEFILE ]; then
+        echo "ERROR: $i is probably incomplete, no .done file found for it" >> logs/merge.err
+        PASS=1
+    fi
 done
 
 if [ $PASS -eq 1 ]; then
-	echo "ERROR: merging failed due to incomplete BAM-file(s)" >> logs/merge.err
+    echo "ERROR: merging failed due to incomplete BAM-file(s)" >> logs/merge.err
   
-	[% INCLUDE Status.tt step=sample status="failed" %]
+    [% INCLUDE Status.tt step=sample status="failed" %]
 else
-	[% INCLUDE Status.tt step=sample status="processing" %]
+    [% INCLUDE Status.tt step=sample status="processing" %]
   
     echo "Start markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
@@ -44,15 +43,15 @@ else
     [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bai
     ### compute resource efficient alternative
     [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam > mapping/[% sample %]_dedup.flagstat
-            echo "End markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+    echo "End markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
-	[% INCLUDE Status.tt step=sample status="finished" %]
+    [% INCLUDE Status.tt step=sample status="finished" %]
 fi
 
 TOTALREADS=0
 for i in $(find $PWD/mapping -name '*sorted.flagstat'); do
-	VAL=`grep -m 1 -P "\d+" $i | awk '{{split($0,columns , "+")} print columns[1]}'`
-	TOTALREADS=$(($TOTALREADS + $VAL))
+    VAL=`grep -m 1 -P "\d+" $i | awk '{{split($0,columns , "+")} print columns[1]}'`
+    TOTALREADS=$(($TOTALREADS + $VAL))
 done
 
 export JOB_NAME=Markdup
@@ -60,29 +59,29 @@ export JOB_NAME=Markdup
 [% INCLUDE Status.tt step=sample status="processing" %]
 
 if [ -s mapping/[% sample %]_dedup.flagstat ]; then
-	FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
-	if [ $FS1 -eq $TOTALREADS ]; then
-		rm mapping/[% sample %].bam 2>/dev/null
-		rm mapping/[% sample %].bai 2>/dev/null
-		mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
+    FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
+    if [ $FS1 -eq $TOTALREADS ]; then
+        rm mapping/[% sample %].bam 2>/dev/null
+        rm mapping/[% sample %].bai 2>/dev/null
+        mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
         mv mapping/[% sample %]_dedup.tmp.bai mapping/[% sample %]_dedup.bai
         mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
-		for i in $(find $PWD/mapping -name '*sorted.bam'); do
-			rm $i
-		done
-	else
-		echo "ERROR: read counts from *sorted_dedup.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
-	fi
+        for i in $(find $PWD/mapping -name '*sorted.bam'); do
+            rm $i
+        done
+    else
+        echo "ERROR: read counts from *sorted_dedup.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
+    fi
 else
-	echo "ERROR: mapping/[% sample %]_dedup.flagstat is empty." >> logs/[% sample %]_cleanup.err
+    echo "ERROR: mapping/[% sample %]_dedup.flagstat is empty." >> logs/[% sample %]_cleanup.err
 fi
 
 if [ ! -s logs/[% sample %]_cleanup.err ]; then
-	touch logs/Mapping_[% sample %].done
+    touch logs/Mapping_[% sample %].done
   
-	[% INCLUDE Status.tt step=sample status="success" %]
+    [% INCLUDE Status.tt step=sample status="success" %]
 else
-	[% INCLUDE Status.tt step=sample status="failed" %]
+    [% INCLUDE Status.tt step=sample status="failed" %]
 fi
 
 echo "End merge 	" `date` "	[% sample %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
