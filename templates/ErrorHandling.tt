@@ -1,3 +1,5 @@
+# note: http://mywiki.wooledge.org/BashFAQ/105
+
 set -o errtrace
 if [[ "[% mode %]" == "strict" ]]; then
     set -o pipefail
