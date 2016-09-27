@@ -25,9 +25,7 @@ then
   if [ -s [% sample_tumor_name %]_mutect.vcf -a -s [% sample_tumor_name %]_mutect_passed.vcf ]
   then
     mv [% sample_tumor_name %]_mutect.vcf [% mutect_out_dir %]/
-    mv [% sample_tumor_name %]_mutect.vcf.idx [% mutect_out_dir %]/
     mv [% sample_tumor_name %]_mutect_passed.vcf [% mutect_out_dir %]/
-    mv [% sample_tumor_name %]_mutect_passed.vcf.idx [% mutect_out_dir %]/
     cd [% mutect_out_dir %]/
     rm -r tmp/
     touch [% log_dir %]/mutect.done

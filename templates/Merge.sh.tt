@@ -6,7 +6,7 @@
 
 [% INCLUDE ErrorHandling.tt mode="harsh" %]
 
-export JOB_NAME=Merge
+export JOB_NAME=MergeMarkdup
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -34,8 +34,6 @@ if [ $PASS -eq 1 ]; then
   
     [% INCLUDE Status.tt step=sample status="failed" %]
 else
-    [% INCLUDE Status.tt step=sample status="processing" %]
-  
     echo "Start markdup	" `date` "	[% sample %].bam	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
     ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
@@ -49,28 +47,27 @@ else
 fi
 
 TOTALREADS=0
-for i in $(find $PWD/mapping -name '*sorted.flagstat'); do
+for i in $(find mapping -name '*_sorted.flagstat'); do
     VAL=`grep -m 1 -P "\d+" $i | awk '{{split($0,columns , "+")} print columns[1]}'`
     TOTALREADS=$(($TOTALREADS + $VAL))
 done
 
-export JOB_NAME=Markdup
+export JOB_NAME=MergeMarkdupCleanup
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 
 if [ -s mapping/[% sample %]_dedup.flagstat ]; then
     FS1=`grep -m 1 -P "\d+" mapping/[% sample %]_dedup.flagstat | awk '{{split($0,columns , "+")} print columns[1]}'`
     if [ $FS1 -eq $TOTALREADS ]; then
-        rm mapping/[% sample %].bam 2>/dev/null
-        rm mapping/[% sample %].bai 2>/dev/null
+        rm -f mapping/[% sample %].bam
+        rm -f mapping/[% sample %].bai
         mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
         mv mapping/[% sample %]_dedup.tmp.bai mapping/[% sample %]_dedup.bai
-        mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
-        for i in $(find $PWD/mapping -name '*sorted.bam'); do
+        for i in $(find mapping -name '*_sorted.bam'); do
             rm $i
         done
     else
-        echo "ERROR: read counts from *sorted_dedup.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
+        echo "ERROR: read counts from *_sorted.flagstat files and mapping/[% sample %]_dedup.flagstat do not match" >> logs/[% sample %]_cleanup.err
     fi
 else
     echo "ERROR: mapping/[% sample %]_dedup.flagstat is empty." >> logs/[% sample %]_cleanup.err
