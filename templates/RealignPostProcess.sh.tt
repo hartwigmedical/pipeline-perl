@@ -51,4 +51,4 @@ else
 	[% INCLUDE Status.tt step=sample status="failed" %]
 fi
 
-echo "End indel realignment	" `date` "	[% sample %]_dedup.bam	" `uname -n` >> [% logDir %]/[% sample %].log
+echo "End indel realignment	" `date` "	[% bam %]	" `uname -n` >> [% logDir %]/[% sample %].log

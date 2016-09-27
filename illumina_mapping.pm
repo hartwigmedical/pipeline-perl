@@ -37,28 +37,26 @@ sub runMapping {
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
 
-    my $FAI = "$opt{GENOME}\.fai";
-    die "GENOME: $opt{GENOME} does not exist!" if !-e "$opt{GENOME}";
+    my $FAI = "$opt{GENOME}.fai";
+    die "GENOME: $opt{GENOME} does not exist!" if !-e $opt{GENOME};
     die "GENOME BWT: $opt{GENOME}.bwt does not exist!" if !-e "$opt{GENOME}.bwt";
     die "GENOME FAI: $FAI does not exist!" if !-e $FAI;
 
-    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/MapMainJob_".getJobId().".sh";
-
+    my $mainJobID = catfile($opt{OUTPUT_DIR}, "jobs", "MapMainJob_" . getJobId() . ".sh");
     open (my $QSUB, ">", $mainJobID) or die "ERROR: Couldn't create $mainJobID: $!";
     print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $samples = {};
-
-    foreach my $input (keys %{$opt{FASTQ}}) {
-        my $metadata = validateFastQName($input);
-        say "Skipping R2 sample $input" and next if $input eq $metadata->{R2};
+    foreach my $input_fastq (keys %{$opt{FASTQ}}) {
+        my $metadata = validateFastQName($input_fastq);
+        say "Skipping R2 sample $input_fastq" and next if $input_fastq eq $metadata->{R2};
         if (exists $opt{FASTQ}->{$metadata->{R2}}) {
             say "Switching to paired end mode!";
         } else {
             say "Switching to fragment mode!";
             $opt{SINGLE_END} = 1;
         }
-        say "Creating $opt{OUTPUT_DIR}/$metadata->{sampleName}/mapping/$metadata->{coreName}\_sorted.bam with:";
+        say "Creating $opt{OUTPUT_DIR}/$metadata->{sampleName}/mapping/$metadata->{coreName}_sorted.bam with:";
         createIndividualMappingJobs(\%opt, $QSUB, $samples, $metadata->{sampleName}, $metadata->{coreName}, $metadata->{R1}, $metadata->{R2}, $metadata->{flowcellID});
     }
 
@@ -68,27 +66,31 @@ sub runMapping {
         my @jobIds = ();
 
         foreach my $chunk (@{$samples->{$sample}}) {
-            push(@bamList, $chunk->{'file'});
-            push(@jobIds, $chunk->{'jobId'});
+            push @bamList, $chunk->{'file'};
+            push @jobIds, $chunk->{'jobId'};
         }
 
-        $opt{BAM_FILES}->{$sample} = "$sample\_dedup.bam";
+        $opt{BAM_FILES}->{$sample} = "${sample}_dedup.bam";
         say "Creating $opt{BAM_FILES}->{$sample}";
 
-        if (-e "$opt{OUTPUT_DIR}/$sample/logs/Mapping_$sample.done") {
-            say "\tWARNING: $opt{OUTPUT_DIR}/$sample/logs/Mapping_$sample.done exists, skipping";
+        my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Mapping_${sample}.done");
+        if (-e $done_file) {
+            say "WARNING: $done_file exists, skipping";
             next;
         }
 
-        my $jobId = "Merge_$sample\_".getJobId();
-        push(@{$opt{RUNNING_JOBS}->{$sample}}, $jobId);
-        my $bams = join(" ", @bamList);
+        my $jobId = "Merge_${sample}_" . getJobId();
+        my $bash_file = catfile($opt{OUTPUT_DIR}, $sample, "jobs", "${jobId}.sh");
+        push @{$opt{RUNNING_JOBS}->{$sample}}, $jobId;
+        my $bams = join " ", @bamList;
 
-        from_template("Merge.sh.tt", "$opt{OUTPUT_DIR}/$sample/jobs/$jobId.sh", sample => $sample, bamList => \@bamList, bams => $bams, runName => $runName, opt => \%opt);
+        from_template("Merge.sh.tt", $bash_file, sample => $sample, bams => $bams, runName => $runName, opt => \%opt);
 
         my $qsub = qsubTemplate(\%opt, "MARKDUP");
-        print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".out -e ",$opt{OUTPUT_DIR},"/",$sample,"/logs/Merge_",$sample,".err -N ",$jobId,
-        " -hold_jid ",join(",",@jobIds)," ",$opt{OUTPUT_DIR},"/",$sample,"/jobs/",$jobId,".sh\n\n";
+        my $stdout = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Merge_${sample}.out");
+        my $stderr = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Merge_${sample}.err");
+        my $hold_jids = join ",", @jobIds;
+        print $QSUB "$qsub -o $stdout -e $stderr -N $jobId -hold_jid $hold_jids $bash_file\n\n";
     }
 
     close $QSUB;
@@ -103,21 +105,26 @@ sub createIndividualMappingJobs {
     my $runName = basename($opt{OUTPUT_DIR});
     my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA', $coreName, $sampleName, $sampleName, $flowcellID);
 
-    my $mappingJobId = "Map_$coreName\_".getJobId();
-    my $mappingFSJobId = "MapFS_$coreName\_".getJobId();
-    my $sortJobId = "Sort_$coreName\_".getJobId();
-    my $sortFSJobId = "SortFS_$coreName\_".getJobId();
-    my $indexJobId = "Index_$coreName\_".getJobId();
-    my $cleanAndCheckJobId = "CheckAndClean_$coreName\_".getJobId();
+    my $mappingJobId = "Map_${coreName}_" . getJobId();
+    my $mappingFSJobId = "MapFS_${coreName}_" . getJobId();
+    my $sortJobId = "Sort_${coreName}_" . getJobId();
+    my $sortFSJobId = "SortFS_${coreName}_" . getJobId();
+    my $indexJobId = "Index_${coreName}_" . getJobId();
+    my $cleanAndCheckJobId = "CheckAndClean_${coreName}_" . getJobId();
 
-    push(@{$samples->{$sampleName}}, {'jobId'=>$cleanAndCheckJobId, 'file'=>"$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam"});
+    push @{$samples->{$sampleName}}, {
+                                      'jobId' => $cleanAndCheckJobId,
+                                      'file' => catfile($opt{OUTPUT_DIR}, $sampleName, "mapping", "${coreName}_sorted.bam")
+                                     };
 
-    if (-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.done") {
-        say "\tWARNING: $opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.done exists, skipping";
+    my $done_file = catfile($opt{OUTPUT_DIR}, $sampleName, "mapping", "${coreName}.done");
+    if (-e $done_file) {
+        say "WARNING: $done_file exists, skipping";
         return;
     }
 
-    if (!-e "$opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa.done") {
+    $done_file = catfile($opt{OUTPUT_DIR}, $sampleName, "logs", "${coreName}_bwa.done");
+    if (!-e $done_file) {
         print $R2 ? "\t$R1\n\t$R2\n" : "\t$R1\n";
         from_template("PerLaneMap.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh", coreName => $coreName, sampleName => $sampleName, R1 => $R1, R2 => $R2,
             RG_ID => $RG_ID, RG_SM => $RG_SM, RG_PL => $RG_PL, RG_LB => $RG_LB, RG_PU => $RG_PU, runName => $runName, opt => \%opt);
@@ -126,10 +133,10 @@ sub createIndividualMappingJobs {
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$mappingJobId,".sh\n";
     } else {
-        say "\t$opt{OUTPUT_DIR}/$sampleName/logs/$coreName\_bwa.done exists, skipping bwa";
+        say "WARNING: $done_file exists, skipping BWA";
     }
 
-    if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat")) {
+    if (!-s "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat") {
         from_template("PerLaneMapFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingFSJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
 
         my $qsub = qsubTemplate(\%opt, "FLAGSTAT");
@@ -139,33 +146,33 @@ sub createIndividualMappingJobs {
         say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName.flagstat exist and is not empty, skipping bwa flagstat";
     }
 
-    if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam")) {
+    if (!-s "$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sorted.bam") {
         from_template("PerLaneSort.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortJobId.sh", coreName => $coreName, sampleName => $sampleName, runName => $runName, opt => \%opt);
 
         my $qsub = qsubTemplate(\%opt, "MAPPING");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",$sortJobId,
         " -hold_jid ",$mappingJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$sortJobId,".sh\n";
     } else {
-        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bam exist and is not empty, skipping sort";
+        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sorted.bam exist and is not empty, skipping sort";
     }
 
-    if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat")) {
+    if (!-s "$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sorted.flagstat") {
         from_template("PerLaneSortFS.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$sortFSJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
 
         my $qsub = qsubTemplate(\%opt, "FLAGSTAT");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $sortFSJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$sortFSJobId,".sh\n";
     } else {
-        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.flagstat exist and is not empty, skipping sorted bam flagstat";
+        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sortedlagstat exist and is not empty, skipping sorted bam flagstat";
     }
 
-    if ((!-e "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai") || (-z "$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai")) {
+    if (!-s "$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sorted.bai") {
         from_template("PerLaneIndex.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$indexJobId.sh", sampleName => $sampleName, coreName => $coreName, runName => $runName, opt => \%opt);
         my $qsub = qsubTemplate(\%opt, "MAPPING");
         print $QSUB $qsub," -o ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".out -e ",$opt{OUTPUT_DIR},"/",$sampleName,"/logs/Mapping_",$coreName,".err -N ",
         $indexJobId," -hold_jid ",$sortJobId," ",$opt{OUTPUT_DIR},"/",$sampleName,"/jobs/",$indexJobId,".sh\n";
     } else {
-        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/$coreName\_sorted.bai exist and is not empty, skipping sorted bam index";
+        say "\t$opt{OUTPUT_DIR}/$sampleName/mapping/${coreName}_sorted.bai exist and is not empty, skipping sorted bam index";
     }
 
     my $checkAndCleanSh = "$opt{OUTPUT_DIR}/$sampleName/jobs/$cleanAndCheckJobId.sh";

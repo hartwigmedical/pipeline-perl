@@ -210,7 +210,7 @@ sub runFinalize {
 
     if ($opt{INDELREALIGNMENT} eq "yes") {
         foreach my $sample (keys $opt{SAMPLES}) {
-            print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/$sample\_dedup.ba*\n";
+            print BASH "\trm -f $opt{OUTPUT_DIR}/$sample/mapping/${sample}_dedup.ba*\n";
         }
     }
 
