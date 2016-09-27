@@ -24,7 +24,9 @@ function handle_error() {
 
 function fail() {
     echo "ERROR: $*" >&2
-    exit 100
+    if [[ "[% mode %]" == "strict" ]]; then
+        exit 100
+    fi
 }
 
 trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
