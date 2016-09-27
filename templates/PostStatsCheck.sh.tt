@@ -6,7 +6,7 @@
 
 [% INCLUDE ErrorHandling.tt mode="harsh" %]
 
-export JOB_NAME=PostStats_Check
+export JOB_NAME=PostStatsCheck
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -14,14 +14,12 @@ cd [% opt.OUTPUT_DIR %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-[% ifmcd = '-s QCStats/*.bamMetrics.pdf -a ' %]
-
-if [ [% ifcmd %] -s QCStats/*.bamMetrics.html ]; then
-	touch logs/PostStats.done
-  
-	[% INCLUDE Status.tt step="" status="success" %]
+if [ -s QCStats/*.bamMetrics.pdf -a -s QCStats/*.bamMetrics.html ]; then
+    touch logs/PostStats.done
+    [% INCLUDE Status.tt step="" status="success" %]
 else
-	[% INCLUDE Status.tt step="" status="failed" %]
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "bamMetrics reports missing"
 fi
 
 echo "Finished poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

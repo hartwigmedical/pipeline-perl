@@ -35,19 +35,18 @@ then
         contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
 
         if [ -n "$contig_diff" ]; then
-            echo "ERROR: [% sample_bam %] header contigs do not match read contigs:" >&2
-            echo "$contig_diff" >&2
             [% INCLUDE Status.tt step="" status="failed" %]
+            fail "[% sample_bam %] header contigs do not match read contigs:\n\n${contig_diff}"
         else
             [% INCLUDE Status.tt step="" status="success" %]
         fi
     else
-        echo "ERROR: [% sample_bai %] or [% sample_flagstat %] does not exist." >&2
         [% INCLUDE Status.tt step="" status="failed" %]
+        fail "[% sample_bai %] or [% sample_flagstat %] does not exist."
     fi
 
     echo "End ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% log_dir %]/[% sample %].log
 else
-    echo "ERROR: [% sample_bam %] does not exist." >&2
     [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% sample_bam %] does not exist."
 fi

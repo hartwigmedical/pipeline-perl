@@ -44,7 +44,7 @@ sub runMapping {
 
     my $mainJobID = catfile($opt{OUTPUT_DIR}, "jobs", "MapMainJob_" . getJobId() . ".sh");
     open (my $QSUB, ">", $mainJobID) or die "ERROR: Couldn't create $mainJobID: $!";
-    print $QSUB "\#!/bin/sh\n\n. $opt{CLUSTER_PATH}/settings.sh\n\n";
+    print $QSUB "\#!/usr/bin/env bash\n\nsource $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $samples = {};
     foreach my $input_fastq (keys %{$opt{FASTQ}}) {

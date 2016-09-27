@@ -24,7 +24,6 @@ then
   
   echo "End Mutect  " `date` "   [% chr %]    [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
 else
-  echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
-  
   [% INCLUDE Status.tt step=chr status="failed" %]
+  fail "[% sample_tumor_bam %] or [% sample_ref_bam %] does not exist."
 fi

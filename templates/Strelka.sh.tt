@@ -35,11 +35,11 @@ then
     [% INCLUDE Status.tt step="" status="success" %]
   else
     [% INCLUDE Status.tt step="" status="failed" %]
+    fail "Strelka did not complete successfully"
   fi
 else
-  echo "ERROR: [% sample_tumor_bam %] or [% sample_ref_bam %] does not exist." >&2
   [% INCLUDE Status.tt step="" status="failed" %]
+  fail "[% sample_tumor_bam %] or [% sample_ref_bam %] does not exist."
 fi
 
 echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
-

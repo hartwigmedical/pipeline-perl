@@ -6,49 +6,47 @@
 
 [% INCLUDE ErrorHandling.tt mode="harsh" %]
 
-export JOB_NAME=RealignFS
+export JOB_NAME=RealignPostProcess
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
-cd  [% opt.OUTPUT_DIR %]/[% sample %]/tmp
+cd [% opt.OUTPUT_DIR %]/[% sample %]
 
-if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] ]; then
+if [ -s "tmp/[% realignedBam %]" ]; then
 	[% INCLUDE Status.tt step=sample status="processing" %]
   
-	[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %]
+	[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "tmp/[% realignedBam %]" > "mapping/[% realignedFlagstat %]"
 fi
 
-if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %]  ] && [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] ]; then
-	FS1=`grep -m 1 -P "\d+ " [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] | awk '{{split($0,columns , "+")} print columns[1]}'`
-	FS2=`grep -m 1 -P "\d+ " [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] | awk '{{split($0,columns , "+")} print columns[1]}'`
-	if [ $FS1 -eq $FS2 ]; then
-        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
-        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %]
-        cp [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBai %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBamBai %]
-        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealignment.jobreport.txt [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealignment.jobreport.txt
-        mv [% opt.OUTPUT_DIR %]/[% sample %]/tmp/IndelRealignment.jobreport.pdf [% opt.OUTPUT_DIR %]/[% sample %]/logs/IndelRealignment.jobreport.pdf
+if [ -s "mapping/[% flagstat %]" ] && [ -s "mapping/[% realignedFlagstat %]" ]; then
+	flagstat_orig=$(awk '/d+/ { print $1; exit }' "mapping/[% flagstat %]")
+	flagstat_realigned=$(awk '/d+/ { print $1; exit }' "mapping/[% realignedFlagstat %]")
+	if [ $flagstat_orig -eq $flagstat_realigned ]; then
+        mv tmp/[% realignedBam %] mapping/[% realignedBam %]
+        mv tmp/[% realignedBai %] mapping/[% realignedBai %]
+        cp mapping/[% realignedBai %] mapping/[% realignedBamBai %]
+        mv tmp/IndelRealignment.jobreport.txt logs/IndelRealignment.jobreport.txt
+        mv tmp/IndelRealignment.jobreport.pdf logs/IndelRealignment.jobreport.pdf
 
-        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
-        [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% cpctSlicedBamBai %]
+        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o mapping/[% cpctSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] mapping/[% cpctSlicedBam %] mapping/[% cpctSlicedBamBai %]
 
-        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/HealthCheck_Slicing.bed [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedBam %]
-        [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBamBai %]
-        [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] > [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedFlagstat %]
+        [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.FLAGSTAT_THREADS %] -f bam -o mapping/[% healthCheckPostRealignSlicedBam %] -L [% opt.OUTPUT_DIR %]/settings/slicing/HealthCheck_Slicing.bed mapping/[% realignedBam %]
+        [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.FLAGSTAT_THREADS %] mapping/[% healthCheckPostRealignSlicedBam %] mapping/[% healthCheckPostRealignSlicedBamBai %]
+        [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] mapping/[% healthCheckPostRealignSlicedBam %] > mapping/[% healthCheckPostRealignSlicedFlagstat %]
 
-        [% opt.BAMUTIL_PATH %]/bam diff --in1 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPostRealignSlicedBam %] --in2 [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPreRealignSlicedBam %] --noPos --onlyDiffs --out [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% healthCheckPrePostRealignDiff %]
+        [% opt.BAMUTIL_PATH %]/bam diff --in1 mapping/[% healthCheckPostRealignSlicedBam %] --in2 mapping/[% healthCheckPreRealignSlicedBam %] --noPos --onlyDiffs --out mapping/[% healthCheckPrePostRealignDiff %]
 
-		touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done
+		touch logs/Realignment_[% sample %].done
 
   	    [% INCLUDE Status.tt step=sample status="success" %]
 	else
-		echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] and [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] do not have the same read counts" >>../logs/Realignment_[% sample %].err
-
   	    [% INCLUDE Status.tt step=sample status="failed" %]
+		fail "${PWD}/mapping/[% flagstat %] and ${PWD}/mapping/[% realignedFlagstat %] do not have the same read counts"
 	fi
 else
-	echo "ERROR: Either [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% flagstat %] or [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% realignedFlagstat %] is empty." >> ../logs/Realignment_[% sample %].err
-
 	[% INCLUDE Status.tt step=sample status="failed" %]
+	fail "Either ${PWD}/mapping/[% flagstat %] or ${PWD}/mapping/[% realignedFlagstat %] is empty."
 fi
 
 echo "End indel realignment	" `date` "	[% bam %]	" `uname -n` >> [% logDir %]/[% sample %].log

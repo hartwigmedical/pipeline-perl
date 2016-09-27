@@ -41,9 +41,10 @@ then
     [% INCLUDE Status.tt step="processSomatic" status="success" %]
   else
     [% INCLUDE Status.tt step="processSomatic" status="failed" %]
+    fail "VarScan VCFs not present" 
   fi
   echo "END concat and postprocess Varscan  " `date` "   [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
 else
-  echo "ERROR: [% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist." >&2
   [% INCLUDE Status.tt step="processSomatic" status="failed" %]
+  fail "[% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist."
 fi

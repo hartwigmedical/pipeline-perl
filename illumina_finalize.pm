@@ -23,7 +23,7 @@ sub runFinalize {
     my $jobID = $runName."_".getJobId();
     my $bashFile = "$opt{OUTPUT_DIR}/jobs/Finalize_".$jobID.".sh";
     open (BASH, ">", $bashFile) or die "ERROR: Couldn't create $bashFile: $!";
-    print BASH "\#!/bin/sh\n . $opt{CLUSTER_PATH}/settings.sh\n\n";
+    print BASH "\#!/usr/bin/env bash\n\nsource $opt{CLUSTER_PATH}/settings.sh\n\n";
 
     my $logFile = "$opt{OUTPUT_DIR}/logs/PipelineCheck.log";
     print BASH "failed=false \n";

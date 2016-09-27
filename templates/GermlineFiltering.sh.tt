@@ -21,9 +21,8 @@ if [ -s [% opt.OUTPUT_DIR %]/[% runName %].raw_variants.vcf ]; then
   
 	[% command %]
 else
-	echo "ERROR: [% runName %].raw_variants.vcf does not exist." >&2
-  
 	[% INCLUDE Status.tt step="" status="failed" %]
+	fail "[% runName %].raw_variants.vcf does not exist."
 fi
 
 if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; then
@@ -33,9 +32,8 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].filtered_variants.vcf.done ]; th
 
     [% INCLUDE Status.tt step="" status="success" %]
 else
-	echo "ERROR: [% runName %].filtered_variants.vcf does not exist." >&2
-
 	[% INCLUDE Status.tt step="" status="failed" %]
+	fail "[% runName %].filtered_variants.vcf does not exist."
 fi
 
 echo "End germline variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

@@ -27,9 +27,8 @@ if [ [% bamIfList %] ]; then
 
 	[% command %]
 else
-	echo "ERROR: One or more input bam files do not exist." >&2
-
 	[% INCLUDE Status.tt step="" status="failed" %]
+	fail "One or more input bam files do not exist."
 fi
 
 if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
@@ -43,9 +42,8 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 
 	[% INCLUDE Status.tt step="" status="success" %]
 else
-	echo "ERROR: [% runName %].raw_variants.vcf.done does not exist." >&2
-
 	[% INCLUDE Status.tt step="" status="failed" %]
+	fail "[% runName %].raw_variants.vcf.done does not exist."
 fi
 
 echo "Finished germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log

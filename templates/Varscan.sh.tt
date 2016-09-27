@@ -22,7 +22,6 @@ then
 
   [% INCLUDE Status.tt step=chr status="finished" %]
 else
-  echo "ERROR: [% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist." >&2
-
   [% INCLUDE Status.tt step=chr status="failed" %]
+  fail "[% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist."
 fi

@@ -40,14 +40,12 @@ then
     
     [% INCLUDE Status.tt step=sample status="success" %]
   else
-    echo "ERROR: [% pileup %].gz seems incomplete, it does not end with MT" >&2
-    
     [% INCLUDE Status.tt step=sample status="failed" %]
+    fail "[% pileup %].gz seems incomplete, it does not end with MT"
   fi
 else
-  echo "ERROR: [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist." >&2
-  
   [% INCLUDE Status.tt step=sample status="failed" %]
+  fail "[% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist."
 fi
 
 echo "END pileup 	" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

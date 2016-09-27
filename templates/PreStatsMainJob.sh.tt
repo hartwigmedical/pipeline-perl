@@ -6,7 +6,7 @@
 
 [% INCLUDE ErrorHandling.tt mode="harsh" %]
 
-. [% opt.CLUSTER_PATH %]/settings.sh
+source [% opt.CLUSTER_PATH %]/settings.sh
 
 [% FOREACH qsub IN qsubOut %]
     [% qsub %]
