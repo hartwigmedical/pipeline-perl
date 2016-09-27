@@ -27,4 +27,4 @@ function fail() {
     exit 100
 }
 
-trap 'handle_error $? $LINENO $BASH_COMMAND' ERR
+trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
