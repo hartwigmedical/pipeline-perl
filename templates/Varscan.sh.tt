@@ -14,14 +14,24 @@ cd [% varscan_out_dir %]
 
 if [ -s [% sample_ref_pileup %] -a -s [% sample_tumor_pileup %] ]
 then
-  [% INCLUDE Status.tt step=chr status="processing" %]
-  
-  echo "Start Varscan  " `date` "   [% chr %]    [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
-  java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] somatic <([% opt.TABIX_PATH %]/tabix [% sample_ref_pileup %] [% chr %]) <([% opt.TABIX_PATH %]/tabix [% sample_tumor_pileup %] [% chr %]) [% output_name %]  [% opt.VARSCAN_SETTINGS %] --output-vcf 1
-  echo "End Varscan " `date` "   [% chr %] [% sample_ref_pileup %]   [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+    [% INCLUDE Status.tt step=chr status="processing" %]
+    echo "Start Varscan  " `date` "   [% chr %]    [% sample_ref_pileup %]    [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
 
-  [% INCLUDE Status.tt step=chr status="finished" %]
+    ref_pipe=$(pipe)
+    tumor_pipe=$(pipe)
+    [% opt.TABIX_PATH %]/tabix [% sample_ref_pileup %] [% chr %] > "$ref_pipe" &
+    tabix_ref_pid=$!
+    [% opt.TABIX_PATH %]/tabix [% sample_tumor_pileup %] [% chr %] > "$tumor_pipe" &
+    tabix_tumor_pid=$!
+
+    java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] somatic "$ref_pipe" "$tumor_pipe" [% output_name %] [% opt.VARSCAN_SETTINGS %] --output-vcf 1
+
+    wait $tabix_ref_pid
+    wait $tabix_tumor_pid
+
+    echo "End Varscan " `date` "   [% chr %] [% sample_ref_pileup %]   [% sample_tumor_pileup %] " `uname -n` >> [% log_dir %]/varscan.log
+    [% INCLUDE Status.tt step=chr status="finished" %]
 else
-  [% INCLUDE Status.tt step=chr status="failed" %]
-  fail "[% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist."
+    [% INCLUDE Status.tt step=chr status="failed" %]
+    fail "[% sample_tumor_pileup %] or [% sample_ref_pileup %] does not exist."
 fi

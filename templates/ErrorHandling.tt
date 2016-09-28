@@ -22,11 +22,25 @@ function handle_error() {
     fi
 }
 
+trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
+
+PIPE_DIR="$(mktemp -d)"
+function pipe() {
+    local pipe_file
+    pipe_file="$PIPE_DIR/$(basename "$(mktemp -u)")"
+    mkfifo -m 600 "$pipe_file"
+    echo "$pipe_file"
+}
+
+function cleanup() {
+    rm -rf "$PIPE_DIR"
+}
+
+trap 'cleanup' EXIT
+
 function fail() {
     echo -e "ERROR: $*" >&2
     if [[ "[% mode %]" == "strict" ]]; then
         exit 100
     fi
 }
-
-trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
