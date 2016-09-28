@@ -61,7 +61,7 @@ sub runRealignment {
         my $knownIndelFiles;
         if ($opt{REALIGNMENT_KNOWN}) {
             grep { die "ERROR: $_ does not exist" if ! -e } @knownIndelFiles;
-            $knownIndelFiles = join " ", @knownIndelFiles;
+            $knownIndelFiles = join " ", map "-known $_", @knownIndelFiles;
         }
 
         from_template("Realign.sh.tt", $bashFile,
