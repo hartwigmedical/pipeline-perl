@@ -50,7 +50,7 @@ sub jobNative {
 
 sub getJobId {
     my $id = fileparse(tmpnam());
-    $id =~ s#(file|tmp\.[0-9]\.)##;
+    $id =~ s#(file|tmp\.[0-9]+\.)##;
     return $id;
 }
 
