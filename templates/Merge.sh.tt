@@ -18,7 +18,7 @@ echo "Start merge 	" `date` "	[% sample %]	" `uname -n` >> logs/[% sample %].log
 
 bam_errors=""
 for bam_file in [% bams %]; do
-    done_file=$(echo $bam_file | sed -r 's/(_sorted)?(_dedup)?\.bam$/\.done/'`
+    done_file=$(echo $bam_file | sed -r 's/(_sorted)?(_dedup)?\.bam$/\.done/')
     if [ ! -f $done_file ]; then
         bam_errors+="$bam_file is probably incomplete, no $done_file found\n"
     fi
