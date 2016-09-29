@@ -13,6 +13,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runPostStats {
     my $configuration = shift;
     my %opt = %{$configuration};
@@ -21,7 +22,7 @@ sub runPostStats {
     my $jobID = "PostStats_".getJobId();
     my $jobIDCheck = "PostStats_Check_".getJobId();
 
-    if (!-e "$opt{OUTPUT_DIR}/logs/PostStats.done") {
+    if (!-f "$opt{OUTPUT_DIR}/logs/PostStats.done") {
         my $command = "perl $opt{BAMMETRICS_PATH}/bamMetrics.pl ";
         foreach my $sample (keys $opt{SAMPLES}) {
             my $sampleBam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";

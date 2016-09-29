@@ -13,6 +13,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_metadataParser;
 
+
 sub runFinalize {
     my $configuration = shift;
     my %opt = %{$configuration};

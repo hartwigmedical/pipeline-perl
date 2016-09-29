@@ -15,6 +15,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub validateFastQName {
     my ($input_file) = @_;
     my $name = fileparse($input_file);
@@ -38,9 +39,9 @@ sub runMapping {
     my $runName = basename($opt{OUTPUT_DIR});
 
     my $FAI = "$opt{GENOME}.fai";
-    die "GENOME: $opt{GENOME} does not exist!" if !-e $opt{GENOME};
-    die "GENOME BWT: $opt{GENOME}.bwt does not exist!" if !-e "$opt{GENOME}.bwt";
-    die "GENOME FAI: $FAI does not exist!" if !-e $FAI;
+    die "GENOME: $opt{GENOME} does not exist!" if !-f $opt{GENOME};
+    die "GENOME BWT: $opt{GENOME}.bwt does not exist!" if !-f "$opt{GENOME}.bwt";
+    die "GENOME FAI: $FAI does not exist!" if !-f $FAI;
 
     my $mainJobID = catfile($opt{OUTPUT_DIR}, "jobs", "MapMainJob_" . getJobId() . ".sh");
     open (my $QSUB, ">", $mainJobID) or die "ERROR: Couldn't create $mainJobID: $!";
@@ -74,7 +75,7 @@ sub runMapping {
         say "Creating $opt{BAM_FILES}->{$sample}";
 
         my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Mapping_${sample}.done");
-        if (-e $done_file) {
+        if (-f $done_file) {
             say "WARNING: $done_file exists, skipping";
             next;
         }
@@ -118,13 +119,13 @@ sub createIndividualMappingJobs {
                                      };
 
     my $done_file = catfile($opt{OUTPUT_DIR}, $sampleName, "mapping", "${coreName}.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
 
     $done_file = catfile($opt{OUTPUT_DIR}, $sampleName, "logs", "${coreName}_bwa.done");
-    if (!-e $done_file) {
+    if (!-f $done_file) {
         print $R2 ? "\t$R1\n\t$R2\n" : "\t$R1\n";
         from_template("PerLaneMap.sh.tt", "$opt{OUTPUT_DIR}/$sampleName/jobs/$mappingJobId.sh", coreName => $coreName, sampleName => $sampleName, R1 => $R1, R2 => $R2,
             RG_ID => $RG_ID, RG_SM => $RG_SM, RG_PL => $RG_PL, RG_LB => $RG_LB, RG_PU => $RG_PU, runName => $runName, opt => \%opt);
@@ -228,7 +229,7 @@ sub runBamPrep {
 sub verifyBam {
     my ($bam_file, $opt) = @_;
 
-    -e $bam_file or confess "ERROR: $bam_file does not exist";
+    -f $bam_file or confess "ERROR: $bam_file does not exist";
     (my $sample = fileparse($bam_file)) =~ s/\.bam$//;
 
     my $headers = bamHeaders($bam_file, $opt);
@@ -249,7 +250,7 @@ sub verifyBam {
 sub verifyBai {
     my ($bai_file, $bam_file, $opt) = @_;
 
-    -e $bai_file && -M $bam_file > -M $bai_file or return 0;
+    -f $bai_file && -M $bam_file > -M $bai_file or return 0;
 
     # this check does not happen if the .bai is missing/old, so re-implemented in the job :(
     my $headers = bamHeaders($bam_file, $opt);
@@ -261,7 +262,7 @@ sub verifyBai {
 sub verifyFlagstat {
     my ($flagstat_file, $bam_file) = @_;
 
-    return -e $flagstat_file && -M $bam_file > -M $flagstat_file;
+    return -f $flagstat_file && -M $bam_file > -M $flagstat_file;
 }
 
 sub bamHeaders {
@@ -275,9 +276,9 @@ sub bamHeaders {
     chomp @lines;
     my @fields = map [ split qr/[\t:]/ ], @lines;
     my @headers = map {
-        name => shift $_,
-        tags => { @$_ },
-    }, @fields;
+            name => shift $_,
+            tags => { @$_ },
+        }, @fields;
     return \@headers;
 }
 
@@ -292,17 +293,17 @@ sub bamReads {
     my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
     my @fields = map [ split "\t", $_, @field_names ], @lines;
     my @reads = map +{ zip @field_names, @$_ }, @fields;
-    map { $_->{tags} =
-          {
-           map {
-               shift @$_,
-               {
-                type => shift @$_,
-                value => shift @$_,
-               },
-           } map [ split ":" ], split "\t", $_->{tags}
-          },
-      } @reads;
+    map {
+        $_->{tags} = {
+            map {
+                shift @$_,
+                {
+                    type => shift @$_,
+                    value => shift @$_,
+                },
+            } map [ split ":" ], split "\t", $_->{tags}
+        },
+    } @reads;
     return \@reads;
 }
 

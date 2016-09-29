@@ -13,6 +13,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runPreStats {
     my $configuration = shift;
     my %opt = %{$configuration};
@@ -30,7 +31,7 @@ sub runPreStats {
 		my ($sampleName) = split("_", $coreName);
 		say "\t$input";
 
-		if (!-e "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
+		if (!-f "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
 			my $preStatsJobId = "PreStat_$coreName\_".getJobId();
 			my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
 			push(@{$jobIds->{$sampleName}}, $preStatsJobId);

@@ -8,11 +8,13 @@ use File::Spec::Functions;
 use JSON;
 use Carp;
 
+
 BEGIN {
     require Exporter;
     our @ISA = qw(Exporter);
     our @EXPORT = qw(metadataParse);
 }
+
 
 sub metadataParse {
     my $directory = shift || return;

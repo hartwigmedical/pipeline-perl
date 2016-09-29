@@ -13,15 +13,16 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runAnnotateVariants {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
     my @runningJobs;
-    my $jobID = "GermlineAnnotation_".getJobId();
+    my $jobID = "GermlineAnnotation_" . getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -e "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done") {
+    if (-f "$opt{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -f "$opt{OUTPUT_DIR}/logs/VariantAnnotation.done") {
         say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping";
         return $jobID;
     }

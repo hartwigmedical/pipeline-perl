@@ -13,8 +13,8 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
-sub runRealignment {
 
+sub runRealignment {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
@@ -48,7 +48,7 @@ sub runRealignment {
         say "\t$opt{OUTPUT_DIR}/${sample}/mapping/${bam}";
 
         my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Realignment_${sample}.done");
-        if (-e $done_file) {
+        if (-f $done_file) {
             say "WARNING: $done_file exists, skipping";
             next;
         }
@@ -60,7 +60,7 @@ sub runRealignment {
 
         my $knownIndelFiles;
         if ($opt{REALIGNMENT_KNOWN}) {
-            grep { die "ERROR: $_ does not exist" if ! -e } @knownIndelFiles;
+            map { die "ERROR: $_ does not exist" if !-f } @knownIndelFiles;
             $knownIndelFiles = join " ", map "-known $_", @knownIndelFiles;
         }
 

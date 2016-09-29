@@ -13,25 +13,26 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runVariantCalling {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
     my @sampleBams;
     my @runningJobs;
-    my $jobID = "GermlineCalling_".getJobId();
+    my $jobID = "GermlineCalling_" . getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineCaller.done" || -e "$opt{OUTPUT_DIR}/logs/VariantCaller.done") {
+    if (-f "$opt{OUTPUT_DIR}/logs/GermlineCaller.done" || -f "$opt{OUTPUT_DIR}/logs/VariantCaller.done") {
 	    say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping";
 	    return \%opt;
     }
 
-    if ((!-e "$opt{OUTPUT_DIR}/gvcf" && $opt{CALLING_GVCF} eq 'yes')) {
+    if ((!-d "$opt{OUTPUT_DIR}/gvcf" && $opt{CALLING_GVCF} eq 'yes')) {
 	    mkdir("$opt{OUTPUT_DIR}/gvcf") or die "Couldn't create directory $opt{OUTPUT_DIR}/gvcf: $!";
     }
 
-    my $jobNative = &jobNative(\%opt,"CALLING");
+    my $jobNative = jobNative(\%opt, "CALLING");
     my $command = "java -Xmx".$opt{CALLING_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
     $command .= "-jobQueue $opt{CALLING_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineCaller.jobReport.txt -memLimit $opt{CALLING_MEM} ";
 

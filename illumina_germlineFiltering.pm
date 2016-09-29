@@ -13,21 +13,22 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runFilterVariants {
     my $configuration = shift;
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
     my @runningJobs;
-    my $jobID = "GermlineFilter_".getJobId();
+    my $jobID = "GermlineFilter_" . getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-e "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -e "$opt{OUTPUT_DIR}/logs/VariantFilter.done") {
+    if (-f "$opt{OUTPUT_DIR}/logs/GermlineFilter.done" || -f "$opt{OUTPUT_DIR}/logs/VariantFilter.done") {
 		say "WARNING: $opt{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping";
 		return $jobID;
     }
 
     my $command = "java -Xmx".$opt{FILTER_MASTER_MEM}."G -Djava.io.tmpdir=$opt{OUTPUT_DIR}/tmp -jar $opt{QUEUE_PATH}/Queue.jar ";
-    my $jobNative = &jobNative(\%opt,"FILTER");
+    my $jobNative = jobNative(\%opt, "FILTER");
     $command .= "-jobQueue $opt{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
 
     $command .= "-S $opt{OUTPUT_DIR}/QScripts/$opt{FILTER_SCALA} -R $opt{GENOME} -V $opt{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt{FILTER_MEM} -nsc $opt{FILTER_SCATTER} ";

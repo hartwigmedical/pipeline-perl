@@ -13,6 +13,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_template;
 
+
 sub runKinship {
     my $configuration = shift;
     my %opt = %{$configuration};
@@ -20,7 +21,7 @@ sub runKinship {
     my $jobID = "Kinship_" . getJobId();
 
     my $done_file = catfile($opt{OUTPUT_DIR}, "logs", "Kinship.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return $jobID;
     }

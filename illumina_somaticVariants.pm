@@ -27,7 +27,7 @@ sub runSomaticVariantCallers {
         if ($opt{SOMVAR_VARSCAN} eq "yes") {
             say "Creating pileup for: $sample";
             my $pileup_job = runPileup($sample, \%opt);
-            push(@pileupJobs, $pileup_job);
+            push @pileupJobs, $pileup_job;
         }
     }
 
@@ -55,15 +55,15 @@ sub runSomaticVariantCallers {
     die "Couldn't create somatic output directories: $messages" if $messages;
 
     my @running_jobs;
-    push @running_jobs, @{$opt{RUNNING_JOBS}->{$tumor_sample}} if (@{$opt{RUNNING_JOBS}->{$tumor_sample}});
-    push @running_jobs, @{$opt{RUNNING_JOBS}->{$ref_sample}} if (@{$opt{RUNNING_JOBS}->{$ref_sample}});
+    push @running_jobs, @{$opt{RUNNING_JOBS}->{$tumor_sample}} if @{$opt{RUNNING_JOBS}->{$tumor_sample}};
+    push @running_jobs, @{$opt{RUNNING_JOBS}->{$ref_sample}} if @{$opt{RUNNING_JOBS}->{$ref_sample}};
     my $tumor_sample_bam = catfile($opt{OUTPUT_DIR}, $tumor_sample, "mapping", $opt{BAM_FILES}->{$tumor_sample});
     my $ref_sample_bam = catfile($opt{OUTPUT_DIR}, $ref_sample, "mapping", $opt{BAM_FILES}->{$ref_sample});
 
     say "\n$somatic_name \t $ref_sample_bam \t $tumor_sample_bam";
 
     my $done_file = catfile($somatic_dirs{log}, "${somatic_name}.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
@@ -198,7 +198,7 @@ sub runStrelka {
     my $runName = basename($opt{OUTPUT_DIR});
 
     my $done_file = catfile($somatic_dirs->{log}, "strelka.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file, skipping";
         return;
     }
@@ -215,7 +215,7 @@ sub runStrelka {
 
     my $qsub = qsubJava(\%opt, "STRELKA");
     if (@running_jobs) {
-        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
+        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
     }
@@ -230,10 +230,10 @@ sub runPileup {
 
     my $bam = $opt{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
-    my $jobID = "PILEUP_${sample}_" . getJobId();
+    my $jobID = "PileUp_${sample}_" . getJobId();
 
     my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return $jobID;
     }
@@ -250,8 +250,7 @@ sub runPileup {
 
     my $qsub = qsubTemplate(\%opt, "PILEUP");
     if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-        system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID -hold_jid ".join(",",
-                @{$opt{RUNNING_JOBS}->{$sample}})." $bashFile";
+        system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID -hold_jid " . join(",", @{$opt{RUNNING_JOBS}->{$sample}}) . " $bashFile";
     } else {
         system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID $bashFile";
     }
@@ -268,12 +267,12 @@ sub runVarscan {
     (my $tumor_sample_pileup = $tumor_sample_bam) =~ s/\.bam$/\.pileup\.gz/;
     (my $ref_sample_pileup = $ref_sample_bam) =~ s/\.bam$/\.pileup\.gz/;
 
-    if (!-e $varscan_out_dir) {
+    if (!-d $varscan_out_dir) {
         make_path($varscan_out_dir) or die "Couldn't create directory $varscan_out_dir: $!";
     }
 
     my $done_file = catfile($somatic_dirs->{log}, "varscan.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
@@ -299,12 +298,12 @@ sub runVarscan {
 
         my $qsub = qsubJava(\%opt, "VARSCAN");
         if (@running_jobs) {
-            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
+            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
         }
 
-        push(@varscan_jobs, $job_id);
+        push @varscan_jobs, $job_id;
     }
 
     my $job_id = "VS_${tumor_sample}_" . getJobId();
@@ -343,7 +342,7 @@ sub runVarscan {
 
     my $qsub = qsubJava(\%opt, "VARSCAN");
     if (@varscan_jobs) {
-        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @varscan_jobs)." $bash_file";
+        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @varscan_jobs) . " $bash_file";
     } else {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
     }
@@ -358,15 +357,15 @@ sub runFreeBayes {
     my $freebayes_out_dir = catfile($somatic_dirs->{out}, "freebayes");
     my $freebayes_tmp_dir = catfile($freebayes_out_dir, "tmp");
 
-    if (!-e $freebayes_out_dir) {
+    if (!-d $freebayes_out_dir) {
         make_path($freebayes_out_dir) or die "Couldn't create directory $freebayes_out_dir: $!";
     }
-    if (!-e $freebayes_tmp_dir) {
+    if (!-d $freebayes_tmp_dir) {
         make_path($freebayes_tmp_dir) or die "Couldn't create directory $freebayes_tmp_dir: $!";
     }
 
     my $done_file = catfile($somatic_dirs->{log}, "freebayes.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
@@ -405,12 +404,12 @@ sub runFreeBayes {
 
         my $qsub = qsubJava(\%opt, "FREEBAYES");
         if (@running_jobs) {
-            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
+            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
         }
 
-        push(@freebayes_jobs, $job_id);
+        push @freebayes_jobs, $job_id;
     }
 
     my $job_id = "FB_${tumor_sample}_" . getJobId();
@@ -442,7 +441,7 @@ sub runFreeBayes {
 
     my $qsub = qsubJava(\%opt, "FREEBAYES");
     if (@freebayes_jobs) {
-        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @freebayes_jobs)." $bash_file";
+        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @freebayes_jobs) . " $bash_file";
     } else {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
     }
@@ -457,15 +456,15 @@ sub runMutect {
     my $mutect_out_dir = catfile($somatic_dirs->{out}, "mutect");
     my $mutect_tmp_dir = catfile($mutect_out_dir, "tmp");
 
-    if (!-e $mutect_out_dir) {
+    if (!-d $mutect_out_dir) {
         make_path($mutect_out_dir) or die "Couldn't create directory $mutect_out_dir: $!";
     }
-    if (!-e $mutect_tmp_dir) {
+    if (!-d $mutect_tmp_dir) {
         make_path($mutect_tmp_dir) or die "Couldn't create directory $mutect_tmp_dir: $!";
     }
 
     my $done_file = catfile($somatic_dirs->{log}, "mutect.done");
-    if (-e $done_file) {
+    if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
@@ -496,11 +495,11 @@ sub runMutect {
 
         my $qsub = qsubJava(\%opt, "MUTECT");
         if (@running_jobs) {
-            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
+            system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
         }
-        push(@mutect_jobs, $job_id);
+        push @mutect_jobs, $job_id;
     }
 
     my $job_id = "MUT_${tumor_sample}_" . getJobId();
@@ -533,7 +532,7 @@ sub runMutect {
 
     my $qsub = qsubJava(\%opt, "MUTECT");
     if (@mutect_jobs) {
-        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid ".join(",", @mutect_jobs)." $bash_file";
+        system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @mutect_jobs) . " $bash_file";
     } else {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id $bash_file";
     }

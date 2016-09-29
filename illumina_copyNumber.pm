@@ -14,6 +14,7 @@ use lib "$FindBin::Bin";
 use illumina_sge;
 use illumina_metadataParser;
 
+
 sub runCopyNumberTools {
     my $configuration = shift;
     my %opt = %{$configuration};
@@ -34,13 +35,13 @@ sub runCopyNumberTools {
         my $sample_tumor_log_dir = "$sample_tumor_out_dir/logs/";
         my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
 
-        if (!-e $sample_tumor_out_dir) {
+        if (!-d $sample_tumor_out_dir) {
             make_path($sample_tumor_out_dir) or die "Couldn't create directory $sample_tumor_out_dir: $!";
         }
-        if (!-e $sample_tumor_job_dir) {
+        if (!-d $sample_tumor_job_dir) {
             make_path($sample_tumor_job_dir) or die "Couldn't create directory $sample_tumor_job_dir: $!";
         }
-        if (!-e $sample_tumor_log_dir) {
+        if (!-d $sample_tumor_log_dir) {
             make_path($sample_tumor_log_dir) or die "Couldn't create directory $sample_tumor_log_dir: $!";
         }
 
@@ -56,7 +57,7 @@ sub runCopyNumberTools {
 
         say "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam";
 
-        if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
+        if (-f "$sample_tumor_log_dir/$sample_tumor_name.done") {
             say "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping";
             return;
         }
@@ -98,13 +99,13 @@ sub runCopyNumberTools {
             my $sample_log_dir = "$sample_out_dir/logs/";
             my $sample_job_dir = "$sample_out_dir/jobs/";
 
-            if (!-e $sample_out_dir) {
+            if (!-d $sample_out_dir) {
                 make_path($sample_out_dir) or die "Couldn't create directory $sample_out_dir: $!";
             }
-            if (!-e $sample_job_dir) {
+            if (!-d $sample_job_dir) {
                 make_path($sample_job_dir) or die "Couldn't create directory $sample_job_dir: $!";
             }
-            if (!-e $sample_log_dir) {
+            if (!-d $sample_log_dir) {
                 make_path($sample_log_dir) or die "Couldn't create directory $sample_log_dir: $!";
             }
 
@@ -115,7 +116,7 @@ sub runCopyNumberTools {
             }
             say "\n$sample \t $sample_bam";
 
-            if (-e "$sample_log_dir/$sample.done") {
+            if (-f "$sample_log_dir/$sample.done") {
                 say "WARNING: $sample_log_dir/$sample.done exists, skipping";
                 next;
             }
@@ -157,13 +158,13 @@ sub runFreec {
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
 
-    if (-e "$log_dir/freec.done") {
+    if (-f "$log_dir/freec.done") {
         say "WARNING: $log_dir/freec.done exists, skipping";
         return;
     }
 
     my $freec_out_dir = "$out_dir/freec";
-    if (!-e $freec_out_dir) {
+    if (!-d $freec_out_dir) {
         make_path($freec_out_dir) or die "Couldn't create directory $freec_out_dir: $!";
     }
 

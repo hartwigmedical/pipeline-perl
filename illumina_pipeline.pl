@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use 5.16.0;
 use strict;
@@ -187,48 +187,48 @@ sub getSamples {
 }
 
 sub createOutputDirs{
-    if (!-e $opt{OUTPUT_DIR}) {
+    if (!-d $opt{OUTPUT_DIR}) {
 	    make_path($opt{OUTPUT_DIR}) or die "Couldn't create directory $opt{OUTPUT_DIR}: $!";
     }
 
-    if (!-e "$opt{OUTPUT_DIR}/QCStats") {
+    if (!-d "$opt{OUTPUT_DIR}/QCStats") {
 	    mkdir("$opt{OUTPUT_DIR}/QCStats") or die "Couldn't create directory $opt{OUTPUT_DIR}/QCStats: $!";
     }
 
-    if (!-e "$opt{OUTPUT_DIR}/jobs") {
+    if (!-d "$opt{OUTPUT_DIR}/jobs") {
 	    mkdir("$opt{OUTPUT_DIR}/jobs") or die "Couldn't create directory $opt{OUTPUT_DIR}/jobs: $!";
     }
 
-    if (!-e "$opt{OUTPUT_DIR}/logs") {
+    if (!-d "$opt{OUTPUT_DIR}/logs") {
 	    mkdir("$opt{OUTPUT_DIR}/logs") or die "Couldn't create directory $opt{OUTPUT_DIR}/logs: $!";
     }
 
-    if (!-e "$opt{OUTPUT_DIR}/tmp") {
+    if (!-d "$opt{OUTPUT_DIR}/tmp") {
 	    mkdir("$opt{OUTPUT_DIR}/tmp") or die "Couldn't create directory $opt{OUTPUT_DIR}/tmp: $!";
     }
 
     foreach my $sample (keys $opt{SAMPLES}) {
-        if (!-e "$opt{OUTPUT_DIR}/$sample") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample") {
             mkdir("$opt{OUTPUT_DIR}/$sample") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample: $!";
         }
 
-        if (!-e "$opt{OUTPUT_DIR}/$sample/mapping") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample/mapping") {
             mkdir("$opt{OUTPUT_DIR}/$sample/mapping") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/mapping: $!";
         }
 
-        if (!-e "$opt{OUTPUT_DIR}/$sample/QCStats") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample/QCStats") {
             mkdir("$opt{OUTPUT_DIR}/$sample/QCStats") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/QCStats: $!";
         }
 
-        if (!-e "$opt{OUTPUT_DIR}/$sample/jobs") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample/jobs") {
             mkdir("$opt{OUTPUT_DIR}/$sample/jobs") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/jobs: $!";
         }
 
-        if (!-e "$opt{OUTPUT_DIR}/$sample/logs") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample/logs") {
             mkdir("$opt{OUTPUT_DIR}/$sample/logs") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/logs: $!";
         }
 
-        if (!-e "$opt{OUTPUT_DIR}/$sample/tmp") {
+        if (!-d "$opt{OUTPUT_DIR}/$sample/tmp") {
             mkdir("$opt{OUTPUT_DIR}/$sample/tmp") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/tmp: $!";
         }
     }
@@ -272,7 +272,7 @@ sub checkConfig {
 
     ### Module Settings / tools
     if (!$opt{GENOME}) { say "ERROR: No GENOME option found in config files."; $checkFailed = 1; }
-    elsif (!-e $opt{GENOME}) { print "ERROR: $opt{GENOME} does not exist\n"}
+    elsif (!-f $opt{GENOME}) { say "ERROR: $opt{GENOME} does not exist"}
     if (!$opt{SAMBAMBA_PATH}) { say "ERROR: No SAMBAMBA_PATH option found in config files."; $checkFailed = 1; }
     if (!$opt{QUEUE_PATH}) { say "ERROR: No QUEUE_PATH option found in config files."; $checkFailed = 1; }
 
@@ -330,7 +330,7 @@ sub checkConfig {
         if (!$opt{REALIGNMENT_MERGETHREADS}) { say "ERROR: No REALIGNMENT_MERGETHREADS option found in config files."; $checkFailed = 1; }
         if (!$opt{REALIGNMENT_SCALA}) { say "ERROR: No REALIGNMENT_SCALA option found in config files."; $checkFailed = 1; }
         if (!$opt{REALIGNMENT_SCATTER}) { say "ERROR: No REALIGNMENT_SCATTER option found in config files."; $checkFailed = 1; }
-        if ($opt{REALIGNMENT_KNOWN} && grep { !-e } split "\t", $opt{REALIGNMENT_KNOWN}) { say "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist."; $checkFailed = 1; }
+        if ($opt{REALIGNMENT_KNOWN} && grep { !-f } split "\t", $opt{REALIGNMENT_KNOWN}) { say "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
@@ -355,8 +355,8 @@ sub checkConfig {
         }
         if (!$opt{CALLING_STANDCALLCONF}) { say "ERROR: No CALLING_STANDCALLCONF option found in config files."; $checkFailed = 1; }
         if (!$opt{CALLING_STANDEMITCONF}) { say "ERROR: No CALLING_STANDEMITCONF option found in config files."; $checkFailed = 1; }
-        if ($opt{CALLING_TARGETS} && !-e $opt{CALLING_TARGETS}) { say "ERROR: $opt{CALLING_TARGETS} does not exist"; $checkFailed = 1; }
-        if ($opt{CALLING_DBSNP} && !-e $opt{CALLING_DBSNP}) { say "ERROR: $opt{CALLING_DBSNP} does not exist"; $checkFailed = 1; }
+        if ($opt{CALLING_TARGETS} && !-f $opt{CALLING_TARGETS}) { say "ERROR: $opt{CALLING_TARGETS} does not exist"; $checkFailed = 1; }
+        if ($opt{CALLING_DBSNP} && !-f $opt{CALLING_DBSNP}) { say "ERROR: $opt{CALLING_DBSNP} does not exist"; $checkFailed = 1; }
     }
 
     ## FILTER_VARIANTS
@@ -383,7 +383,7 @@ sub checkConfig {
     if ($opt{SOMATIC_VARIANTS} && $opt{SOMATIC_VARIANTS} eq "yes") {
         if (!$opt{VCFTOOLS_PATH}) { say "ERROR: No VCFTOOLS_PATH found in .ini file"; $checkFailed = 1; }
         if (!$opt{SAMTOOLS_PATH}) { say "ERROR: No SAMTOOLS_PATH option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_TARGETS} && !-e $opt{SOMVAR_TARGETS}) { say "ERROR: $opt{SOMVAR_TARGETS} does not exist"; $checkFailed = 1; }
+        if ($opt{SOMVAR_TARGETS} && !-f $opt{SOMVAR_TARGETS}) { say "ERROR: $opt{SOMVAR_TARGETS} does not exist"; $checkFailed = 1; }
         if (!$opt{SOMVAR_STRELKA}) { say "ERROR: No SOMVAR_STRELKA option found in config files."; $checkFailed = 1; }
         if ($opt{SOMVAR_STRELKA} && $opt{SOMVAR_STRELKA} eq "yes") {
             if (!$opt{STRELKA_PATH}) { say "ERROR: No STRELKA_PATH option found in config files."; $checkFailed = 1; }
@@ -494,21 +494,21 @@ sub checkConfig {
         if (!$opt{ANNOTATE_SNPSIFT}) { say "ERROR: No ANNOTATE_SNPSIFT option found in config files."; $checkFailed = 1; }
         if ($opt{ANNOTATE_SNPSIFT} eq "yes") {
             if (!$opt{ANNOTATE_DBNSFP}) { say "ERROR: No ANNOTATE_DBNSFP option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_DBNSFP} && !-e $opt{ANNOTATE_DBNSFP}) { say "ERROR: $opt{ANNOTATE_DBNSFP} does not exist"; $checkFailed = 1; }
+            elsif ($opt{ANNOTATE_DBNSFP} && !-f $opt{ANNOTATE_DBNSFP}) { say "ERROR: $opt{ANNOTATE_DBNSFP} does not exist"; $checkFailed = 1; }
             if (!$opt{ANNOTATE_FIELDS}) { say "ERROR: No ANNOTATE_FIELDS option found in config files."; $checkFailed = 1; }
         }
         if (!$opt{ANNOTATE_FREQUENCIES}) { say "ERROR: No ANNOTATE_FREQUENCIES option found in config files."; $checkFailed = 1; }
         if ($opt{ANNOTATE_FREQUENCIES} eq "yes") {
             if (!$opt{ANNOTATE_FREQNAME}) { say "ERROR: No ANNOTATE_FREQNAME option found in config files."; $checkFailed = 1; }
             if (!$opt{ANNOTATE_FREQDB}) { say "ERROR: No ANNOTATE_FREQDB option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_FREQDB} && !-e $opt{ANNOTATE_FREQDB}) { say "ERROR: $opt{ANNOTATE_FREQDB} does not exist"; $checkFailed = 1; }
+            elsif ($opt{ANNOTATE_FREQDB} && !-f $opt{ANNOTATE_FREQDB}) { say "ERROR: $opt{ANNOTATE_FREQDB} does not exist"; $checkFailed = 1; }
             if (!$opt{ANNOTATE_FREQINFO}) { say "ERROR: No ANNOTATE_FREQINFO option found in config files."; $checkFailed = 1; }
         }
         if (!$opt{ANNOTATE_IDFIELD}) { say "ERROR: No ANNOTATE_IDFIELD option found in config files."; $checkFailed = 1; }
             if ($opt{ANNOTATE_IDFIELD} eq "yes") {
             if (!$opt{ANNOTATE_IDNAME}) { say "ERROR: No ANNOTATE_IDNAME option found in config files."; $checkFailed = 1; }
             if (!$opt{ANNOTATE_IDDB}) { say "ERROR: No ANNOTATE_IDDB option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_IDDB} && !-e $opt{ANNOTATE_IDDB}) { say "ERROR: $opt{ANNOTATE_IDDB} does not exist"; $checkFailed = 1; }
+            elsif ($opt{ANNOTATE_IDDB} && !-f $opt{ANNOTATE_IDDB}) { say "ERROR: $opt{ANNOTATE_IDDB} does not exist"; $checkFailed = 1; }
         }
     }
 
@@ -567,5 +567,3 @@ sub copyConfigAndScripts {
     rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $opt->{INIFILE}: $!";
     rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $opt->{INIFILE}: $!";
 }
-
-1;

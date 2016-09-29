@@ -20,14 +20,12 @@ then
   
   [% concat_command %]
   
-  # Uniqify freebayes output
   uniq [% freebayes_out_dir %]/[% somatic_name %].vcf > [% freebayes_out_dir %]/[% somatic_name %].uniq.vcf
   mv [% freebayes_out_dir %]/[% somatic_name %].uniq.vcf [% freebayes_out_dir %]/[% somatic_name %].vcf
 
   # Filter based on BCBIO filters
   [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py -v [% freebayes_out_dir %]/[% somatic_name %].vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_SOMATICFILTER %]" > [% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf
 
-  # Check freebayes completed
   if [ -s [% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf ]
   then
     [% rm_command %]
