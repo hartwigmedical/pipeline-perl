@@ -1,0 +1,26 @@
+### SETTINGS ###
+INIFILE	[% iniFile %]
+OUTPUT_DIR	[% outputDir %]
+MAIL	[% mail %]
+
+[%- IF fastqFiles.size -%]
+
+### FASTQ FILES ###
+[% FOREACH fastqFile IN fastqFiles -%]
+FASTQ	[% fastqFile %]
+[% END -%]
+[% END -%]
+
+[%- IF bamFiles.size -%]
+
+### BAM FILES###
+[% FOREACH bamFile IN bamFiles -%]
+BAM	[% bamFile %]
+[% END -%]
+[% END -%]
+
+[%- IF vcfFile -%]
+
+### VCF FILE###
+VCF	[% vcfFile %]
+[% END -%]
