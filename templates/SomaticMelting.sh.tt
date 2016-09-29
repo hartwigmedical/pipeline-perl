@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
+export JOB_NAME=SomaticMelt
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step="" status="processing" %]
+
+cd "[% dirs.out %]"
+echo "Start Melt	" `date` "	[% invcf %]	" `uname -n` >> [% dirs.log %]/merge.log
+
+[% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t [% tumor_sample %] -v [% invcf %] > [% outvcf %]
+
+if [ "$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)" == "$(tail -n 1 [% outvcf %] | cut -f 1,2)" -a -s [% pre_annotate_vcf %] -a -s [% outvcf %] ]
+then
+    touch [% dirs.log %]/[% somatic_name %].done
+    [% INCLUDE Status.tt step="" status="success" %]
+else
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% outvcf %] was not created or last position does not match [% pre_annotate_vcf %]"
+fi
+
+echo "End Melt	" `date` "	[% invcf %]	" `uname -n` >> [% dirs.log %]/merge.log

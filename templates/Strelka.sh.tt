@@ -10,27 +10,27 @@ export JOB_NAME=Strelka
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
-if [ -s [% sample_tumor_bam %] -a -s [% sample_ref_bam %] ]
+if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
 then
-  echo "Start Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
+  echo "Start Strelka " `date` "  [% ref_sample_bam %]  [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/strelka.log
   
   [% INCLUDE Status.tt step="" status="processing" %]
 
   # Run Strelka
-  rm -rf [% out_dir %]/strelka
-  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% sample_tumor_bam %] --normal [% sample_ref_bam %] --ref [% opt.GENOME %] --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] --output-dir [% out_dir %]/strelka
+  rm -rf [% dirs.out %]/strelka
+  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% tumor_sample_bam %] --normal [% ref_sample_bam %] --ref [% opt.GENOME %] --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] --output-dir [% dirs.out %]/strelka
 
-  cd [% out_dir %]/strelka
+  cd [% dirs.out %]/strelka
   make -j [% opt.STRELKA_THREADS %]
 
   # Check strelka completed
-  if [ -f [% out_dir %]/strelka/task.complete ]
+  if [ -f [% dirs.out %]/strelka/task.complete ]
   then
     java -Xmx[% opt.STRELKA_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] --genotypemergeoption unsorted -o passed.somatic.merged.vcf -V results/passed.somatic.snvs.vcf -V results/passed.somatic.indels.vcf 
     perl -p -e 's/\t([A-Z][A-Z]:)/\tGT:$1/g' passed.somatic.merged.vcf | perl -p -e 's/(:T[UO]R?)\t/$1\t0\/0:/g' | perl -p -e 's/(:\d+,\d+)\t/$1\t0\/1:/g' | perl -p -e 's/(#CHROM.*)/##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility.\n$1/g' > temp.vcf
     mv temp.vcf passed.somatic.merged.vcf
     rm -r chromosomes/
-    touch [% log_dir %]/strelka.done
+    touch [% dirs.log %]/strelka.done
     
     [% INCLUDE Status.tt step="" status="success" %]
   else
@@ -39,7 +39,7 @@ then
   fi
 else
   [% INCLUDE Status.tt step="" status="failed" %]
-  fail "[% sample_tumor_bam %] or [% sample_ref_bam %] does not exist."
+  fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
 fi
 
-echo "End Strelka " `date` "  [% sample_ref_bam %]  [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/strelka.log
+echo "End Strelka " `date` "  [% ref_sample_bam %]  [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/strelka.log

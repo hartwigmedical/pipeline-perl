@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
+export JOB_NAME=SomaticAnnotate
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step="" status="processing" %]
+
+invcf="[% basename %].vcf"
+basename="[% basename %]_snpEff"
+outvcf="$basename.vcf"
+
+cd "[% dirs.out %]"
+echo "Start Annotate	" `date` "	$invcf	" `uname -n` >> [% dirs.log %]/merge.log
+
+java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config [% opt.ANNOTATE_DB %] -v "$invcf" [% opt.ANNOTATE_FLAGS %] > "$outvcf"
+
+if [ -s "$outvcf" ]
+then
+    invcf="$outvcf"
+    basename+="_dbSNP"
+    outvcf="$basename.vcf"
+
+    java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.SOMVARMERGE_THREADS %] -R [% opt.GENOME %] -o "$outvcf" --variant "$invcf" --dbsnp [% opt.CALLING_DBSNP %] --alwaysAppendDbsnpId
+
+    if [ -s "$outvcf" ]
+    then
+        rm "$invcf" "$invcf.idx"
+        invcf="$outvcf"
+        basename+="_[% opt.ANNOTATE_IDNAME %]"
+        outvcf="$basename.vcf"
+
+        java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T VariantAnnotator -nt [% opt.SOMVARMERGE_THREADS %] -R [% opt.GENOME %] -o "$outvcf" --variant "$invcf" --dbsnp [% opt.ANNOTATE_IDDB %] --alwaysAppendDbsnpId
+
+        if [ -s "$outvcf" ]
+        then
+            rm "$invcf" "$invcf.idx"
+            ln -rs "$outvcf" "[% finalvcf %]"
+            [% INCLUDE Status.tt step="" status="success" %]
+        else
+            [% INCLUDE Status.tt step="" status="failed" %]
+            fail "$outvcf was not created by VariantAnnotator"
+        fi
+    else
+        [% INCLUDE Status.tt step="" status="failed" %]
+        fail "$outvcf was not created by VariantAnnotator"
+    fi
+else
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "$outvcf was not created by SnpEff"
+fi
+
+echo "End Annotate	" `date` "	$invcf	" `uname -n` >> [% dirs.log %]/merge.log

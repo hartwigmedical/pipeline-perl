@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
+export JOB_NAME=SomaticMerge
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step="" status="processing" %]
+
+cd "[% dirs.out %]"
+
+echo "Start Merge	" `date` "	[% runName %]	" `uname -n` >> [% dirs.log %]/merge.log
+
+java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] -o [% outvcf %] --genotypemergeoption uniquify [% inputs %]
+
+if [ -s "[% outvcf %]" ]
+then
+    [% INCLUDE Status.tt step="" status="success" %]
+else
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% outvcf %] was not created by CombineVariants"
+fi
+
+echo "End Merge	" `date` "	[% runName %]	" `uname -n` >> [% dirs.log %]/merge.log

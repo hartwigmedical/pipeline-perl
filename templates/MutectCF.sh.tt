@@ -14,7 +14,7 @@ cd [% mutect_tmp_dir %]
 
 [% file_test %]
 then
-  echo "Start concat and filter Mutect  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
+  echo "Start concat and filter Mutect  " `date` "   [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/mutect.log
 
   [% INCLUDE Status.tt step="CF" status="processing" %]
 
@@ -22,21 +22,21 @@ then
   [% filter_command %]
 
   # Check Mutect completed
-  if [ -s [% sample_tumor_name %]_mutect.vcf -a -s [% sample_tumor_name %]_mutect_passed.vcf ]
+  if [ -s [% somatic_name %]_mutect.vcf -a -s [% somatic_name %]_mutect_passed.vcf ]
   then
-    mv [% sample_tumor_name %]_mutect.vcf [% mutect_out_dir %]/
-    mv [% sample_tumor_name %]_mutect_passed.vcf [% mutect_out_dir %]/
+    mv [% somatic_name %]_mutect.vcf [% mutect_out_dir %]/
+    mv [% somatic_name %]_mutect_passed.vcf [% mutect_out_dir %]/
     cd [% mutect_out_dir %]/
     rm -r tmp/
-    touch [% log_dir %]/mutect.done
+    touch [% dirs.log %]/mutect.done
     
     [% INCLUDE Status.tt step="CF" status="success" %]
   else
     [% INCLUDE Status.tt step="CF" status="failed" %]
     fail "Mutect VCFs not present"
   fi
-  echo "End concat and filter Mutect  " `date` "   [% sample_ref_bam %]   [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/mutect.log
+  echo "End concat and filter Mutect  " `date` "   [% ref_sample_bam %]   [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/mutect.log
 else
   [% INCLUDE Status.tt step="CF" status="failed" %]
-  fail "[% sample_tumor_bam %], [% sample_ref_bam %] or a chromosome chunk VCF does not exist."
+  fail "[% tumor_sample_bam %], [% ref_sample_bam %] or a chromosome chunk VCF does not exist."
 fi

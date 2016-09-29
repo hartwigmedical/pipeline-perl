@@ -15,34 +15,34 @@ cd [% freebayes_out_dir %]
 
 [% file_test %]
 then
-  echo "Start concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+  echo "Start concat and postprocess Freebayes  " `date` "   [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/freebayes.log
   [% INCLUDE Status.tt step="PostProcess" status="processing" %]
   
   [% concat_command %]
   
   # Uniqify freebayes output
-  uniq [% freebayes_out_dir %]/[% sample_tumor_name %].vcf > [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf
-  mv [% freebayes_out_dir %]/[% sample_tumor_name %].uniq.vcf [% freebayes_out_dir %]/[% sample_tumor_name %].vcf
+  uniq [% freebayes_out_dir %]/[% somatic_name %].vcf > [% freebayes_out_dir %]/[% somatic_name %].uniq.vcf
+  mv [% freebayes_out_dir %]/[% somatic_name %].uniq.vcf [% freebayes_out_dir %]/[% somatic_name %].vcf
 
   # Filter based on BCBIO filters
-  [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py -v [% freebayes_out_dir %]/[% sample_tumor_name %].vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_SOMATICFILTER %]" > [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf
+  [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py -v [% freebayes_out_dir %]/[% somatic_name %].vcf | java -Xmx[% opt.FREEBAYES_MEM %]G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar filter "[% opt.FREEBAYES_SOMATICFILTER %]" > [% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf
 
   # Check freebayes completed
-  if [ -s [% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf ]
+  if [ -s [% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf ]
   then
     [% rm_command %]
     
     ## Check on complete output!!!
-    touch [% log_dir %]/freebayes.done
+    touch [% dirs.log %]/freebayes.done
     
     [% INCLUDE Status.tt step="PostProcess" status="success" %]
   else
     [% INCLUDE Status.tt step="PostProcess" status="failed" %]
-    fail "[% freebayes_out_dir %]/[% sample_tumor_name %]_somatic_filtered.vcf does not exist."
+    fail "[% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf does not exist."
   fi
   
-  echo "End concat and postprocess Freebayes  " `date` "   [% sample_ref_bam %]    [% sample_tumor_bam %]  " `uname -n` >> [% log_dir %]/freebayes.log
+  echo "End concat and postprocess Freebayes  " `date` "   [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/freebayes.log
 else
   [% INCLUDE Status.tt step="PostProcess" status="failed" %]
-  fail "[% sample_tumor_bam %] or [% sample_ref_bam %] does not exist."
+  fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
 fi

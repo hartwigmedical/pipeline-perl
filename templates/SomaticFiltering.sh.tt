@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode="harsh" %]
+
+export JOB_NAME=SomaticFilter
+export JOB_SET="[% runName %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step="" status="processing" %]
+
+cd "[% dirs.out %]"
+
+echo "Start Filter	" `date` "	[% invcf %]	" `uname -n` >> [% dirs.log %]/merge.log
+
+if [ -s [% invcf %] ]
+then
+    java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T SelectVariants -R "[% opt.GENOME %]" -L "[% opt.SOMVAR_TARGETS %]" -V "[% invcf %]" -o "[% outvcf %]"
+    if [ -s "[% outvcf %]" ]
+    then
+        rm [% invcf %]*
+        [% INCLUDE Status.tt step="" status="success" %]
+    else
+        [% INCLUDE Status.tt step="" status="failed" %]
+        fail "[% outvcf %] was not created by SelectVariants"
+    fi
+else
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% invcf %] not present"
+fi
+
+echo "End Filter	" `date` "	[% invcf %]	" `uname -n` >> [% dirs.log %]/merge.log
