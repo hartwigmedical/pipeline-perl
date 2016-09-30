@@ -58,7 +58,7 @@ sub runCopyNumberTools {
 
         if (-e "$sample_tumor_log_dir/$sample_tumor_name.done") {
             say "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping";
-            next;
+            return;
         }
 
         if ($opt{CNV_FREEC} eq "yes") {
