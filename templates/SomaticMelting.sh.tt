@@ -17,7 +17,9 @@ echo "Start Melt	" `date` "	[% invcf %]	" `uname -n` >> [% dirs.log %]/merge.log
 
 [% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t [% tumor_sample %] -v [% invcf %] > [% outvcf %]
 
-if [ "$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)" == "$(tail -n 1 [% outvcf %] | cut -f 1,2)" -a -s [% pre_annotate_vcf %] -a -s [% outvcf %] ]
+tail_input="$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)"
+tail_output="$(tail -n 1 [% outvcf %] | cut -f 1,2)"
+if [ -s [% pre_annotate_vcf %] -a -s [% outvcf %] -a "$tail_input" == "$tail_output" ]
 then
     touch [% dirs.log %]/[% somatic_name %].done
     [% INCLUDE Status.tt step="" status="success" %]

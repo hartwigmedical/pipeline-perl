@@ -31,9 +31,8 @@ then
   [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t ${MPILEUP_THREADS} --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.SOMVAR_TARGETS %]-L [% opt.SOMVAR_TARGETS %][% END %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] --samtools "-q 1 -f [% opt.GENOME %]" | [% opt.PBGZIP_PATH %]/pbgzip -n ${PBGZIP_THREADS} -c > [% pileup %].gz
   [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
 
-  if [ "$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)" = "MT" ]
-  #lastScaffold=`tail -n1 [% opt.SOMVAR_TARGETS %] | cut -f 1`;
-  #if [ "$(gunzip -c [% pileup %] | tail -n 1 | cut -f 1)" = "$lastScaffold" ]
+  tail_pileup="$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)"
+  if [ "$tail_pileup" == "MT" ]
   then
     mv [% pileup %].gz* [% opt.OUTPUT_DIR %]/[% sample %]/mapping/
     touch [% opt.OUTPUT_DIR %]/[% sample %]/logs/Pileup_[% sample %].done

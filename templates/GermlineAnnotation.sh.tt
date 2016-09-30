@@ -118,7 +118,9 @@ java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %
 [% INCLUDE Status.tt step="ANNOTATE_SLICE" status="finished" %]
 
 ### Check final vcf, last chr and start position must be identical.
-if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$(tail -n 1 [% preAnnotateVCF %] | cut -f 1,2)" = "$(tail -n 1 [% outvcf %] | cut -f 1,2)" ]; then
+tail_input="$(tail -n 1 [% preAnnotateVCF %] | cut -f 1,2)"
+tail_output="$(tail -n 1 [% outvcf %] | cut -f 1,2)"
+if [ -s [% preAnnotateVCF %] -a -s [% outvcf %] -a "$tail_input" == "$tail_output" ]; then
     touch [% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done
   
     [% INCLUDE Status.tt step="" status="success" %]

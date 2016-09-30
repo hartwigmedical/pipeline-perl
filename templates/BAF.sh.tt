@@ -24,8 +24,10 @@ if [ -s [% sample_bam %] ]; then
 else
 	fail "Sample BAM file does not exist."
 fi
-                
-if [ "$(tail -n 1 [% output_vcf %] | cut -f 1,2)" = "$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)" ]; then
+
+tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
+tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
+if [ "$tail_output" == "$tail_input" ]; then
 	mv [% output_vcf %] [% output_dir %]
 	mv [% output_vcf %].idx [% output_dir %]
 	touch [% log_dir %]/BAF_UG_[% sample %].done
