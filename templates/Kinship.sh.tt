@@ -23,7 +23,6 @@ echo "Start Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% runName %].log
 [% opt.KING_PATH %]/king -b tmp/plink.bed --kinship --prefix tmp/king
 cp tmp/king.kin0 [% runName %].kinship
 mv tmp/plink.log logs/
-mv tmp/out.log logs/
 
 if [ -s [% runName %].kinship ]; then
     touch logs/Kinship.done
