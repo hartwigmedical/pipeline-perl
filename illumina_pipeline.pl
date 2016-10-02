@@ -28,48 +28,14 @@ use illumina_baf;
 use illumina_kinship;
 use illumina_finalize;
 
-die usage() if @ARGV == 0;
-
-# KODU - Do not use in .conf or .ini
-my %opt = (
-    'RUNNING_JOBS'		=> {},
-    'BAM_FILES'			=> {},
-    'SAMPLES'			=> {},
-    'SINGLE_END'        => undef,
-);
-
-############ READ RUN SETTINGS FORM .conf FILE ############
-my $configurationFile = $ARGV[0];
-
-open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
-while (<$fh>) {
-    chomp;
-    next if m/^#/ or !$_;
-    my ($key, $val) = split("\t",$_,2);
-
-    if ($key eq 'INIFILE') {
-        $opt{$key} = $val;
-        open my $ini_fh, "<", $val or die "Couldn't open $val: $!";
-        while (<$ini_fh>) {
-            chomp;
-            next if m/^#/ or !$_;
-            my ($key, $val) = split("\t",$_,2);
-            $opt{$key} = $val;
-        }
-        close $ini_fh;
-    } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
-        $opt{$key}->{$val} = 1;
-    } else {
-        $opt{$key} = $val;
-    }
-}
-close $fh;
-
 ############ START PIPELINE  ############
 
-checkConfig();
-getSamples();
-createOutputDirs();
+my %opt;
+die usage() if @ARGV == 0;
+readConfig($ARGV[0], \%opt);
+checkConfig(\%opt);
+getSamples(\%opt);
+createOutputDirs($opt{OUTPUT_DIR}, $opt{SAMPLES});
 recordGitVersion(\%opt);
 
 die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)" unless lock_run($opt{OUTPUT_DIR});
@@ -139,7 +105,7 @@ if ($opt{FASTQ} or $opt{BAM}) {
         say "\n### SCHEDULING VARIANT FILTRATION ####";
         my $FVJob = illumina_germlineFiltering::runFilterVariants(\%opt);
 
-        foreach my $sample (keys $opt{SAMPLES}) {
+        foreach my $sample (keys %{$opt{SAMPLES}}) {
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $FVJob);
         }
     }
@@ -148,7 +114,7 @@ if ($opt{FASTQ} or $opt{BAM}) {
         say "\n### SCHEDULING VARIANT ANNOTATION ####";
         my $AVJob = illumina_germlineAnnotation::runAnnotateVariants(\%opt);
 
-        foreach my $sample (keys $opt{SAMPLES}) {
+        foreach my $sample (keys %{$opt{SAMPLES}}) {
             push (@{$opt{RUNNING_JOBS}->{$sample}} , $AVJob);
         }
     }
@@ -167,83 +133,113 @@ if ($opt{FASTQ} or $opt{BAM}) {
 
 ############ SUBROUTINES  ############
 sub getSamples {
-    if ($opt{FASTQ}) {
-        foreach my $input (keys %{$opt{FASTQ}}) {
-            my $fastqFile = fileparse($input);
+    my ($opt) = @_;
+
+    if ($opt->{FASTQ}) {
+        foreach my $input_file (keys %{$opt->{FASTQ}}) {
+            my $fastqFile = fileparse($input_file);
             my ($sampleName) = split "_", $fastqFile;
-            $opt{SAMPLES}{$sampleName} = $input;
-            @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
+            $opt->{SAMPLES}->{$sampleName} = $input_file;
+            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
 
-    if ($opt{BAM}) {
-        foreach my $input (keys %{$opt{BAM}}) {
-            my $sampleName = illumina_mapping::verifyBam($input, \%opt);
-            not exists $opt{SAMPLES}{$sampleName} or die "sample $sampleName from $input already used by $opt{SAMPLES}{$sampleName}";
-            $opt{SAMPLES}{$sampleName} = $input;
-            @{$opt{RUNNING_JOBS}->{$sampleName}} = ();
-        }
-    }
-}
-
-sub createOutputDirs{
-    if (!-d $opt{OUTPUT_DIR}) {
-	    make_path($opt{OUTPUT_DIR}) or die "Couldn't create directory $opt{OUTPUT_DIR}: $!";
-    }
-
-    if (!-d "$opt{OUTPUT_DIR}/QCStats") {
-	    mkdir("$opt{OUTPUT_DIR}/QCStats") or die "Couldn't create directory $opt{OUTPUT_DIR}/QCStats: $!";
-    }
-
-    if (!-d "$opt{OUTPUT_DIR}/jobs") {
-	    mkdir("$opt{OUTPUT_DIR}/jobs") or die "Couldn't create directory $opt{OUTPUT_DIR}/jobs: $!";
-    }
-
-    if (!-d "$opt{OUTPUT_DIR}/logs") {
-	    mkdir("$opt{OUTPUT_DIR}/logs") or die "Couldn't create directory $opt{OUTPUT_DIR}/logs: $!";
-    }
-
-    if (!-d "$opt{OUTPUT_DIR}/tmp") {
-	    mkdir("$opt{OUTPUT_DIR}/tmp") or die "Couldn't create directory $opt{OUTPUT_DIR}/tmp: $!";
-    }
-
-    foreach my $sample (keys $opt{SAMPLES}) {
-        if (!-d "$opt{OUTPUT_DIR}/$sample") {
-            mkdir("$opt{OUTPUT_DIR}/$sample") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample: $!";
-        }
-
-        if (!-d "$opt{OUTPUT_DIR}/$sample/mapping") {
-            mkdir("$opt{OUTPUT_DIR}/$sample/mapping") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/mapping: $!";
-        }
-
-        if (!-d "$opt{OUTPUT_DIR}/$sample/QCStats") {
-            mkdir("$opt{OUTPUT_DIR}/$sample/QCStats") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/QCStats: $!";
-        }
-
-        if (!-d "$opt{OUTPUT_DIR}/$sample/jobs") {
-            mkdir("$opt{OUTPUT_DIR}/$sample/jobs") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/jobs: $!";
-        }
-
-        if (!-d "$opt{OUTPUT_DIR}/$sample/logs") {
-            mkdir("$opt{OUTPUT_DIR}/$sample/logs") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/logs: $!";
-        }
-
-        if (!-d "$opt{OUTPUT_DIR}/$sample/tmp") {
-            mkdir("$opt{OUTPUT_DIR}/$sample/tmp") or die "Couldn't create directory $opt{OUTPUT_DIR}/$sample/tmp: $!";
+    if ($opt->{BAM}) {
+        foreach my $input_file (keys %{$opt->{BAM}}) {
+            my $sampleName = illumina_mapping::verifyBam($input_file, $opt);
+            not exists $opt->{SAMPLES}->{$sampleName} or die "sample $sampleName from $input_file already used by $opt->{SAMPLES}->{$sampleName}";
+            $opt->{SAMPLES}->{$sampleName} = $input_file;
+            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
 }
 
-sub usage{
+sub createOutputDirs {
+    my ($output_dir, $samples) = @_;
+
+    if (!-d $output_dir) {
+	    make_path($output_dir) or die "Couldn't create directory ${output_dir}: $!";
+    }
+
+    if (!-d "${output_dir}/QCStats") {
+	    mkdir("${output_dir}/QCStats") or die "Couldn't create directory ${output_dir}/QCStats: $!";
+    }
+
+    if (!-d "${output_dir}/jobs") {
+	    mkdir("${output_dir}/jobs") or die "Couldn't create directory ${output_dir}/jobs: $!";
+    }
+
+    if (!-d "${output_dir}/logs") {
+	    mkdir("${output_dir}/logs") or die "Couldn't create directory ${output_dir}/logs: $!";
+    }
+
+    if (!-d "${output_dir}/tmp") {
+	    mkdir("${output_dir}/tmp") or die "Couldn't create directory ${output_dir}/tmp: $!";
+    }
+
+    foreach my $sample (keys %{$samples}) {
+        if (!-d "${output_dir}/$sample") {
+            mkdir("${output_dir}/$sample") or die "Couldn't create directory ${output_dir}/$sample: $!";
+        }
+
+        if (!-d "${output_dir}/$sample/mapping") {
+            mkdir("${output_dir}/$sample/mapping") or die "Couldn't create directory ${output_dir}/$sample/mapping: $!";
+        }
+
+        if (!-d "${output_dir}/$sample/QCStats") {
+            mkdir("${output_dir}/$sample/QCStats") or die "Couldn't create directory ${output_dir}/$sample/QCStats: $!";
+        }
+
+        if (!-d "${output_dir}/$sample/jobs") {
+            mkdir("${output_dir}/$sample/jobs") or die "Couldn't create directory ${output_dir}/$sample/jobs: $!";
+        }
+
+        if (!-d "${output_dir}/$sample/logs") {
+            mkdir("${output_dir}/$sample/logs") or die "Couldn't create directory ${output_dir}/$sample/logs: $!";
+        }
+
+        if (!-d "${output_dir}/$sample/tmp") {
+            mkdir("${output_dir}/$sample/tmp") or die "Couldn't create directory ${output_dir}/$sample/tmp: $!";
+        }
+    }
+}
+
+sub usage {
     warn <<END;
     Usage: perl illumina_pipeline.pl configurationFile.conf
 END
     exit;
 }
 
+sub readConfig {
+    my ($configurationFile, $opt) = @_;
+
+    open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
+    while (<$fh>) {
+        chomp;
+        next if m/^#/ or !$_;
+        my ($key, $val) = split("\t", $_, 2);
+
+        if ($key eq 'INIFILE') {
+            $val = catfile(dirname(abs_path($0)), $val) unless file_name_is_absolute($val);
+            push @{$opt->{$key}}, $val;
+            readConfig($val, $opt);
+        } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
+            $opt->{$key}->{$val} = 1;
+        } else {
+            $opt->{$key} = $val;
+        }
+    }
+    close $fh;
+}
+
 sub checkConfig {
+    my ($opt) = @_;
+    my %opt = %{$opt};
+
     my $checkFailed = 0;
     my $runName = "";
+
     ### Input and Output
     if (!$opt{INIFILE}) { say "ERROR: No INIFILE option found in config files."; $checkFailed = 1; }
     if (!$opt{OUTPUT_DIR}) { say "ERROR: No OUTPUT_DIR found in config files."; $checkFailed = 1; } else { $runName = basename($opt{OUTPUT_DIR}); }
@@ -564,6 +560,8 @@ sub copyConfigAndScripts {
     rcopy $strelka_dir, catfile($opt->{OUTPUT_DIR}, "settings", "strelka") or die "Failed to copy Strelka settings $strelka_dir: $!";
     rcopy $script_dir, catfile($opt->{OUTPUT_DIR}, "scripts") or die "Failed to copy scripts $script_dir: $!";
     rcopy $qscript_dir, catfile($opt->{OUTPUT_DIR}, "QScripts") or die "Failed to copy QScripts $qscript_dir: $!";
-    rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $opt->{INIFILE}: $!";
-    rcopy $opt->{INIFILE}, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $opt->{INIFILE}: $!";
+    foreach my $ini_file (@{$opt->{INIFILE}}) {
+        rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
+        rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $ini_file: $!";
+    }
 }
