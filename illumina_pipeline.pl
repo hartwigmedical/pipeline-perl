@@ -30,104 +30,96 @@ use illumina_finalize;
 
 ############ START PIPELINE  ############
 
-my %opt;
+my $opt = {};
 die usage() if @ARGV == 0;
-readConfig($ARGV[0], \%opt);
-checkConfig(\%opt);
-getSamples(\%opt);
-createOutputDirs($opt{OUTPUT_DIR}, $opt{SAMPLES});
-recordGitVersion(\%opt);
+readConfig($ARGV[0], $opt);
+checkConfig($opt);
+getSamples($opt);
+createOutputDirs($opt->{OUTPUT_DIR}, $opt->{SAMPLES});
+lockRun($opt->{OUTPUT_DIR}) or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
+recordGitVersion($opt);
+copyConfigAndScripts($opt);
 
-die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)" unless lock_run($opt{OUTPUT_DIR});
-
-copyConfigAndScripts(\%opt);
-
-my $opt_ref;
-
-if ($opt{FASTQ}) {
-    if ($opt{PRESTATS} eq "yes") {
+if ($opt->{FASTQ}) {
+    if ($opt->{PRESTATS} eq "yes") {
         say "### SCHEDULING PRESTATS ###";
-        illumina_prestats::runPreStats(\%opt);
+        illumina_prestats::runPreStats($opt);
     }
 
-    if ($opt{MAPPING} eq "yes") {
+    if ($opt->{MAPPING} eq "yes") {
         say "\n### SCHEDULING MAPPING ###";
-        $opt_ref = illumina_mapping::runMapping(\%opt);
-        %opt = %$opt_ref;
+        $opt = illumina_mapping::runMapping($opt);
     }
-} elsif ($opt{BAM}) {
-    $opt{MAPPING} = "no";
-    $opt{PRESTATS} = "no";
+} elsif ($opt->{BAM}) {
+    $opt->{MAPPING} = "no";
+    $opt->{PRESTATS} = "no";
 
     say "\n###SCHEDULING BAM PREP###";
-    $opt_ref = illumina_mapping::runBamPrep(\%opt);
-    %opt = %$opt_ref;
+    $opt = illumina_mapping::runBamPrep($opt);
 }
 
-if ($opt{FASTQ} or $opt{BAM}) {
-    if ($opt{POSTSTATS} eq "yes") {
+if ($opt->{FASTQ} or $opt->{BAM}) {
+    if ($opt->{POSTSTATS} eq "yes") {
         say "\n### SCHEDULING POSTSTATS ###";
-        my $postStatsJob = illumina_poststats::runPostStats(\%opt);
-        $opt{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
+        my $postStatsJob = illumina_poststats::runPostStats($opt);
+        $opt->{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
     }
 
-    if ($opt{INDELREALIGNMENT} eq "yes") {
+    if ($opt->{INDELREALIGNMENT} eq "yes") {
         say "\n### SCHEDULING INDELREALIGNMENT ###";
-        $opt_ref = illumina_realign::runRealignment(\%opt);
-        %opt = %$opt_ref;
+        $opt = illumina_realign::runRealignment($opt);
     }
 
-    if ($opt{SOMATIC_VARIANTS} eq "yes") {
+    if ($opt->{SOMATIC_VARIANTS} eq "yes") {
         say "\n### SCHEDULING SOMATIC VARIANT CALLERS ####";
-        my $somVar_jobs = illumina_somaticVariants::runSomaticVariantCallers(\%opt);
-        $opt{RUNNING_JOBS}->{'somVar'} = $somVar_jobs;
+        my $somVar_jobs = illumina_somaticVariants::runSomaticVariantCallers($opt);
+        $opt->{RUNNING_JOBS}->{'somVar'} = $somVar_jobs;
     }
 
-    if ($opt{COPY_NUMBER} eq "yes") {
+    if ($opt->{COPY_NUMBER} eq "yes") {
         say "\n### SCHEDULING COPY NUMBER TOOLS ####";
-        my $cnv_jobs = illumina_copyNumber::runCopyNumberTools(\%opt);
-        $opt{RUNNING_JOBS}->{'CNV'} = $cnv_jobs;
+        my $cnv_jobs = illumina_copyNumber::runCopyNumberTools($opt);
+        $opt->{RUNNING_JOBS}->{'CNV'} = $cnv_jobs;
     }
 
-    if ($opt{BAF} eq "yes") {
+    if ($opt->{BAF} eq "yes") {
         say "\n### SCHEDULING BAF ANALYSIS ###";
-        my $baf_jobs = illumina_baf::runBAF(\%opt);
-        $opt{RUNNING_JOBS}->{'baf'} = $baf_jobs;
+        my $baf_jobs = illumina_baf::runBAF($opt);
+        $opt->{RUNNING_JOBS}->{'baf'} = $baf_jobs;
     }
 
-    if ($opt{VARIANT_CALLING} eq "yes") {
+    if ($opt->{VARIANT_CALLING} eq "yes") {
         say "\n### SCHEDULING VARIANT CALLING ####";
-        $opt_ref = illumina_germlineCalling::runVariantCalling(\%opt);
-        %opt = %$opt_ref;
+        $opt = illumina_germlineCalling::runVariantCalling($opt);
     }
 
-    if ($opt{FILTER_VARIANTS} eq "yes") {
+    if ($opt->{FILTER_VARIANTS} eq "yes") {
         say "\n### SCHEDULING VARIANT FILTRATION ####";
-        my $FVJob = illumina_germlineFiltering::runFilterVariants(\%opt);
+        my $FVJob = illumina_germlineFiltering::runFilterVariants($opt);
 
-        foreach my $sample (keys %{$opt{SAMPLES}}) {
-            push (@{$opt{RUNNING_JOBS}->{$sample}} , $FVJob);
+        foreach my $sample (keys %{$opt->{SAMPLES}}) {
+            push @{$opt->{RUNNING_JOBS}->{$sample}}, $FVJob;
         }
     }
 
-    if ($opt{ANNOTATE_VARIANTS} eq "yes") {
+    if ($opt->{ANNOTATE_VARIANTS} eq "yes") {
         say "\n### SCHEDULING VARIANT ANNOTATION ####";
-        my $AVJob = illumina_germlineAnnotation::runAnnotateVariants(\%opt);
+        my $AVJob = illumina_germlineAnnotation::runAnnotateVariants($opt);
 
-        foreach my $sample (keys %{$opt{SAMPLES}}) {
-            push (@{$opt{RUNNING_JOBS}->{$sample}} , $AVJob);
+        foreach my $sample (keys %{$opt->{SAMPLES}}) {
+            push @{$opt->{RUNNING_JOBS}->{$sample}}, $AVJob;
         }
     }
 
-    if ($opt{KINSHIP} eq "yes") {
+    if ($opt->{KINSHIP} eq "yes") {
         say "\n### SCHEDULING KINSHIP ####";
-        my $kinship_job = illumina_kinship::runKinship(\%opt);
-        $opt{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
+        my $kinship_job = illumina_kinship::runKinship($opt);
+        $opt->{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
     }
 
-    if ($opt{FINALIZE} eq "yes") {
+    if ($opt->{FINALIZE} eq "yes") {
         say "\n### SCHEDULING PIPELINE FINALIZE ####";
-        illumina_finalize::runFinalize(\%opt);
+        illumina_finalize::runFinalize($opt);
     }
 }
 
@@ -532,7 +524,7 @@ sub checkConfig {
     }
 }
 
-sub lock_run {
+sub lockRun {
     my ($dir) = @_;
     my $lock_file = catfile($dir, "run.lock");
     my $retval = sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL;
