@@ -69,7 +69,7 @@ sub runPostStats {
         from_template("PostStatsCheck.sh.tt", $bashFileCheck, runName => $runName, opt => \%opt);
 
         system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck." -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;
-        return $jobIDCheck;
+        return [$jobIDCheck];
     } else {
         say "WARNING: $opt{OUTPUT_DIR}/logs/PostStats.done exists, skipping";
     }

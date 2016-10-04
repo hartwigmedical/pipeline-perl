@@ -61,8 +61,8 @@ if ($opt->{FASTQ}) {
 if ($opt->{FASTQ} or $opt->{BAM}) {
     if ($opt->{POSTSTATS} eq "yes") {
         say "\n### SCHEDULING POSTSTATS ###";
-        my $postStatsJob = illumina_poststats::runPostStats($opt);
-        $opt->{RUNNING_JOBS}->{'postStats'} = $postStatsJob;
+        my $postStatsJobs = illumina_poststats::runPostStats($opt);
+        $opt->{RUNNING_JOBS}->{'postStats'} = $postStatsJobs;
     }
 
     if ($opt->{INDELREALIGNMENT} eq "yes") {
@@ -113,8 +113,8 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{KINSHIP} eq "yes") {
         say "\n### SCHEDULING KINSHIP ####";
-        my $kinship_job = illumina_kinship::runKinship($opt);
-        $opt->{RUNNING_JOBS}->{'Kinship'} = $kinship_job;
+        my $kinship_jobs = illumina_kinship::runKinship($opt);
+        $opt->{RUNNING_JOBS}->{'Kinship'} = $kinship_jobs;
     }
 
     if ($opt->{FINALIZE} eq "yes") {
@@ -537,6 +537,7 @@ sub recordGitVersion {
 
     my $git_dir = catfile(dirname(abs_path($0)), ".git");
     $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
+    chomp $opt->{VERSION};
 }
 
 sub copyConfigAndScripts {

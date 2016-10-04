@@ -49,7 +49,7 @@ sub runKinship {
         system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID $bashFile";
     }
 
-    return $jobID;
+    return [$jobID];
 }
 
 1;
