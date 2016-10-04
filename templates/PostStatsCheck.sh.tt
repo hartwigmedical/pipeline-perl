@@ -4,7 +4,7 @@
 # Template used by the Template Toolkit. See: http://template-toolkit.org/
 #
 
-[% INCLUDE ErrorHandling.tt mode="harsh" %]
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=PostStatsCheck
 export JOB_SET="[% runName %]"
