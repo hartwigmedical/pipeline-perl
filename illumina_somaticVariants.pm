@@ -23,7 +23,7 @@ sub runSomaticVariantCallers {
 
     my @pileupJobs;
 
-    foreach my $sample (keys $opt{SAMPLES}) {
+    foreach my $sample (keys %{$opt{SAMPLES}}) {
         if ($opt{SOMVAR_VARSCAN} eq "yes") {
             say "Creating pileup for: $sample";
             my $pileup_job = runPileup($sample, \%opt);

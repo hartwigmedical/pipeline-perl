@@ -36,7 +36,7 @@ sub runKinship {
                   runName => $runName);
 
     my @runningJobs;
-    foreach my $sample (keys $opt{SAMPLES}) {
+    foreach my $sample (keys %{$opt{SAMPLES}}) {
         if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
             push @runningJobs, join(",", @{$opt{RUNNING_JOBS}->{$sample}});
         }

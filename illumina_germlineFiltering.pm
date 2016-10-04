@@ -75,7 +75,7 @@ sub runFilterVariants {
     my $logDir = $opt{OUTPUT_DIR}."/logs";
     from_template("GermlineFiltering.sh.tt", $bashFile, runName => $runName, command => $command, opt => \%opt);
 
-    foreach my $sample (keys $opt{SAMPLES}) {
+    foreach my $sample (keys %{$opt{SAMPLES}}) {
         if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
             push(@runningJobs, join(",", @{$opt{RUNNING_JOBS}->{$sample}}));
         }

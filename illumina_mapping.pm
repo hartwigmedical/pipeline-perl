@@ -188,7 +188,7 @@ sub runBamPrep {
     my ($opt) = @_;
     my %opt = %{$opt};
 
-    while (my ($sample, $input_bam) = each $opt{SAMPLES}) {
+    while (my ($sample, $input_bam) = each %{$opt{SAMPLES}}) {
         (my $input_bai = $input_bam) =~ s/\.bam$/\.bai/;
         (my $input_flagstat = $input_bam) =~ s/\.bam$/\.flagstat/;
 

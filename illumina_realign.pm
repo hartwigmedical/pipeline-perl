@@ -26,7 +26,7 @@ sub runRealignment {
         @knownIndelFiles = split '\t', $opt{REALIGNMENT_KNOWN};
     }
 
-    foreach my $sample (keys $opt{SAMPLES}) {
+    foreach my $sample (keys %{$opt{SAMPLES}}) {
         my $bam = $opt{BAM_FILES}->{$sample};
         (my $flagstat = $bam) =~ s/\.bam/.flagstat/;
         (my $realignedBam = $bam) =~ s/\.bam/\.realigned\.bam/;

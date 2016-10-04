@@ -92,7 +92,7 @@ sub runCopyNumberTools {
         }
         push(@check_cnv_jobs, $job_id);
     } elsif ($opt{CNV_MODE} eq "sample") {
-        foreach my $sample (keys $opt{SAMPLES}) {
+        foreach my $sample (keys %{$opt{SAMPLES}}) {
             my @cnv_jobs;
 
             my $sample_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample";

@@ -19,7 +19,7 @@ sub runBAF {
     my %opt = %{$configuration};
     my @baf_jobs;
 
-    foreach my $sample (keys $opt{SAMPLES}) {
+    foreach my $sample (keys %{$opt{SAMPLES}}) {
 		my $sample_bam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
 		my $log_dir = $opt{OUTPUT_DIR}."/".$sample."/logs/";
 		my $tmp_dir = $opt{OUTPUT_DIR}."/".$sample."/tmp/";
