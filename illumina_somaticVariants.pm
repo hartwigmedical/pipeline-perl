@@ -18,31 +18,29 @@ use illumina_metadataParser;
 
 
 sub runSomaticVariantCallers {
-    my $configuration = shift;
-    my %opt = %{$configuration};
+    my ($opt) = @_;
 
     my @pileupJobs;
-
-    foreach my $sample (keys %{$opt{SAMPLES}}) {
-        if ($opt{SOMVAR_VARSCAN} eq "yes") {
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        if ($opt->{SOMVAR_VARSCAN} eq "yes") {
             say "Creating pileup for: $sample";
-            my $pileup_job = runPileup($sample, \%opt);
+            my $pileup_job = runPileup($sample, $opt);
             push @pileupJobs, $pileup_job;
         }
     }
 
-    $opt{RUNNING_JOBS}->{'pileup'} = \@pileupJobs;
+    $opt->{RUNNING_JOBS}->{'pileup'} = \@pileupJobs;
 
-    my $metadata = metadataParse($opt{OUTPUT_DIR});
+    my $metadata = metadataParse($opt->{OUTPUT_DIR});
 
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
     my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
-    $opt{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list";
-    $opt{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list";
+    $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list";
+    $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list";
 
     my $somatic_name = "${ref_sample}_${tumor_sample}";
-    my $out_dir = catfile($opt{OUTPUT_DIR}, "somaticVariants", $somatic_name);
+    my $out_dir = catfile($opt->{OUTPUT_DIR}, "somaticVariants", $somatic_name);
     my %somatic_dirs = (
         out => $out_dir,
         tmp => catfile($out_dir, "tmp"),
@@ -55,10 +53,10 @@ sub runSomaticVariantCallers {
     die "Couldn't create somatic output directories: $messages" if $messages;
 
     my @running_jobs;
-    push @running_jobs, @{$opt{RUNNING_JOBS}->{$tumor_sample}} if @{$opt{RUNNING_JOBS}->{$tumor_sample}};
-    push @running_jobs, @{$opt{RUNNING_JOBS}->{$ref_sample}} if @{$opt{RUNNING_JOBS}->{$ref_sample}};
-    my $tumor_sample_bam = catfile($opt{OUTPUT_DIR}, $tumor_sample, "mapping", $opt{BAM_FILES}->{$tumor_sample});
-    my $ref_sample_bam = catfile($opt{OUTPUT_DIR}, $ref_sample, "mapping", $opt{BAM_FILES}->{$ref_sample});
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$tumor_sample}} if @{$opt->{RUNNING_JOBS}->{$tumor_sample}};
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$ref_sample}} if @{$opt->{RUNNING_JOBS}->{$ref_sample}};
+    my $tumor_sample_bam = catfile($opt->{OUTPUT_DIR}, $tumor_sample, "mapping", $opt->{BAM_FILES}->{$tumor_sample});
+    my $ref_sample_bam = catfile($opt->{OUTPUT_DIR}, $ref_sample, "mapping", $opt->{BAM_FILES}->{$ref_sample});
 
     say "\n$somatic_name \t $ref_sample_bam \t $tumor_sample_bam";
 
@@ -69,31 +67,31 @@ sub runSomaticVariantCallers {
     }
 
     my @somvar_jobs;
-    if ($opt{SOMVAR_STRELKA} eq "yes") {
+    if ($opt->{SOMVAR_STRELKA} eq "yes") {
         say "\n###SCHEDULING STRELKA####";
-        my $strelka_job = runStrelka($tumor_sample, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, \%opt);
+        my $strelka_job = runStrelka($tumor_sample, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, $opt);
         push @somvar_jobs, $strelka_job if $strelka_job;
     }
 
-    if ($opt{SOMVAR_VARSCAN} eq "yes") {
+    if ($opt->{SOMVAR_VARSCAN} eq "yes") {
         say "\n###SCHEDULING VARSCAN####";
-        my $varscan_job = runVarscan($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, \%opt);
+        my $varscan_job = runVarscan($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, $opt);
         push @somvar_jobs, $varscan_job if $varscan_job;
     }
 
-    if ($opt{SOMVAR_FREEBAYES} eq "yes") {
+    if ($opt->{SOMVAR_FREEBAYES} eq "yes") {
         say "\n###SCHEDULING FREEBAYES####";
-        my $freebayes_job = runFreeBayes($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, \%opt);
+        my $freebayes_job = runFreeBayes($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, $opt);
         push @somvar_jobs, $freebayes_job if $freebayes_job;
     }
 
-    if ($opt{SOMVAR_MUTECT} eq "yes") {
+    if ($opt->{SOMVAR_MUTECT} eq "yes") {
         say "\n###SCHEDULING MUTECT####";
-        my $mutect_job = runMutect($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, \%opt);
+        my $mutect_job = runMutect($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%somatic_dirs, $opt);
         push @somvar_jobs, $mutect_job if $mutect_job;
     }
 
-    my $job_id = mergeSomatics($tumor_sample, $somatic_name, \@somvar_jobs, \%somatic_dirs, \%opt);
+    my $job_id = mergeSomatics($tumor_sample, $somatic_name, \@somvar_jobs, \%somatic_dirs, $opt);
     return [$job_id];
 }
 
@@ -188,7 +186,7 @@ sub mergeSomatics {
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
-    return $job_id;
+    $opt->{RUNNING_JOBS}->{'somVar'} = [$job_id];
 }
 
 sub runStrelka {

@@ -72,8 +72,7 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{SOMATIC_VARIANTS} eq "yes") {
         say "\n### SCHEDULING SOMATIC VARIANT CALLERS ####";
-        my $somVar_jobs = illumina_somaticVariants::runSomaticVariantCallers($opt);
-        $opt->{RUNNING_JOBS}->{'somVar'} = $somVar_jobs;
+        illumina_somaticVariants::runSomaticVariantCallers($opt);
     }
 
     if ($opt->{COPY_NUMBER} eq "yes") {
