@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=Kinship
-export JOB_SET="[% runName %]"
+export JOB_SET="[% run_name %]"
 export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
@@ -16,15 +16,15 @@ cd [% opt.OUTPUT_DIR %]/
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-echo "Start Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% runName %].log
+echo "Start Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% run_name %].log
 
 [% opt.VCFTOOLS_PATH %]/vcftools --temp tmp --out tmp/out --vcf [% vcf %] --plink
 [% opt.PLINK_PATH %]/plink --file tmp/out --out tmp/plink --make-bed --noweb
 [% opt.KING_PATH %]/king -b tmp/plink.bed --kinship --prefix tmp/king
-cp tmp/king.kin0 [% runName %].kinship
+cp tmp/king.kin0 [% run_name %].kinship
 mv tmp/plink.log logs/
 
-if [ -s [% runName %].kinship ]; then
+if [ -s [% run_name %].kinship ]; then
     touch logs/Kinship.done
     [% INCLUDE Status.tt step="" status="success" %]
 else
@@ -32,4 +32,4 @@ else
     fail "kinship file missing"
 fi
 
-echo "End Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% runName %].log
+echo "End Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% run_name %].log

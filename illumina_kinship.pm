@@ -15,41 +15,40 @@ use illumina_template;
 
 
 sub runKinship {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my $runName = basename($opt{OUTPUT_DIR});
-    my $jobID = "Kinship_" . getJobId();
+    my ($opt) = @_;
+    my $run_name = basename($opt->{OUTPUT_DIR});
 
-    my $done_file = catfile($opt{OUTPUT_DIR}, "logs", "Kinship.done");
+    my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
+    my $done_file = catfile($log_dir, "Kinship.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
-        return $jobID;
+        return;
     }
 
-    my $vcf = "${runName}.filtered_variants.vcf";
-    my $bashFile = catfile($opt{OUTPUT_DIR}, "jobs", "${jobID}.sh");
-    my $logDir = catfile($opt{OUTPUT_DIR}, "logs");
+    my $vcf = "${run_name}.filtered_variants.vcf";
+    my $job_id = "Kinship_" . getJobId();
+    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
 
-    from_template("Kinship.sh.tt", $bashFile,
+    from_template("Kinship.sh.tt", $bash_file,
                   vcf => $vcf,
-                  opt => \%opt,
-                  runName => $runName);
+                  opt => $opt,
+                  run_name => $run_name);
 
     my @runningJobs;
-    foreach my $sample (keys %{$opt{SAMPLES}}) {
-        if (exists $opt{RUNNING_JOBS}->{$sample} && @{$opt{RUNNING_JOBS}->{$sample}}) {
-            push @runningJobs, join(",", @{$opt{RUNNING_JOBS}->{$sample}});
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {
+            push @runningJobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
         }
     }
 
-    my $qsub = qsubJava(\%opt, "KINSHIP");
+    my $qsub = qsubJava($opt, "KINSHIP");
     if (@runningJobs) {
-        system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+        system "$qsub -o $log_dir/Kinship_${run_name}.out -e $log_dir/Kinship_${run_name}.err -N $job_id -hold_jid " . join(",", @runningJobs) . " $bash_file";
     } else {
-        system "$qsub -o $logDir/Kinship_$runName.out -e $logDir/Kinship_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $log_dir/Kinship_${run_name}.out -e $log_dir/Kinship_${run_name}.err -N $job_id $bash_file";
     }
 
-    return [$jobID];
+    $opt->{RUNNING_JOBS}->{'Kinship'} = [$job_id];
 }
 
 1;

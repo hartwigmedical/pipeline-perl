@@ -111,8 +111,7 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{KINSHIP} eq "yes") {
         say "\n### SCHEDULING KINSHIP ####";
-        my $kinship_jobs = illumina_kinship::runKinship($opt);
-        $opt->{RUNNING_JOBS}->{'Kinship'} = $kinship_jobs;
+        illumina_kinship::runKinship($opt);
     }
 
     if ($opt->{FINALIZE} eq "yes") {
