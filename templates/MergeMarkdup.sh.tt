@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=MergeMarkdup
-export JOB_SET="[% runName %]"
+export JOB_SET="[% run_name %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sample %]

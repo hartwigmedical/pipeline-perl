@@ -48,14 +48,14 @@ if ($opt->{FASTQ}) {
 
     if ($opt->{MAPPING} eq "yes") {
         say "\n### SCHEDULING MAPPING ###";
-        $opt = illumina_mapping::runMapping($opt);
+        illumina_mapping::runMapping($opt);
     }
 } elsif ($opt->{BAM}) {
     $opt->{MAPPING} = "no";
     $opt->{PRESTATS} = "no";
 
     say "\n###SCHEDULING BAM PREP###";
-    $opt = illumina_mapping::runBamPrep($opt);
+    illumina_mapping::runBamPrep($opt);
 }
 
 if ($opt->{FASTQ} or $opt->{BAM}) {
