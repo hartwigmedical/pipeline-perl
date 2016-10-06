@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=PreStat
+export JOB_SET="[% run_name %]"
+export JOB_START=$(date +%s)
+
+cd [% opt.OUTPUT_DIR %]/[% sample_name %]
+
+echo "Start PreStats	" `date` "	[% core_name %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample_name %]/logs/[% sample_name %].log
+
+[% INCLUDE Status.tt step=core_name status="processing" %]
+
+[% opt.FASTQC_PATH %]/fastqc [% input %] -o QCStats --noextract -t 1
+
+[% INCLUDE Status.tt step=core_name status="finished" %]
+
+touch logs/PreStats_[% sample_name %].done
+
+echo "End PreStats	" `date` "	[% core_name %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample_name %]/logs/[% sample_name %].log

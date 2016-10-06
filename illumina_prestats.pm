@@ -15,36 +15,36 @@ use illumina_template;
 
 
 sub runPreStats {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my $jobIds = {};
+    my ($opt) = @_;
+    my $run_name = basename($opt->{OUTPUT_DIR});
 
-    my $mainJobID = "$opt{OUTPUT_DIR}/jobs/PreStatsMainJob_".getJobId().".sh";
     say "Creating FASTQC report for the following fastq.gz files:";
+    my $job_ids = {};
+    foreach my $input_file (keys %{$opt->{FASTQ}}) {
+		my $core_name = fileparse($input_file);
+		$core_name =~ s/\.fastq.gz$//;
+		my ($sample_name) = split "_", $core_name;
+		say "\t$input_file";
 
-    my @qsubOut = ();
-    my $runName = basename($opt{OUTPUT_DIR});
-    foreach my $input (keys %{$opt{FASTQ}}) {
-		my $coreName = undef;
-		$coreName = fileparse($input);
-		$coreName =~ s/\.fastq.gz$//;
-		my ($sampleName) = split("_", $coreName);
-		say "\t$input";
-
-		if (!-f "$opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$sampleName.done") {
-			my $preStatsJobId = "PreStat_$coreName\_".getJobId();
-			my $preStatsFile = "$opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh";
-			push(@{$jobIds->{$sampleName}}, $preStatsJobId);
-			from_template("PreStat.sh.tt", $preStatsFile, sampleName => $sampleName, coreName => $coreName, input => $input, opt => \%opt, runName => $runName);
-			my $qsub = qsubTemplate(\%opt, "PRESTATS");
-			push(@qsubOut, "$qsub -o $opt{OUTPUT_DIR}/$sampleName/logs/PreStat_$coreName.out -e $opt{OUTPUT_DIR}/$sampleName/logs/PreStats_$coreName.err -N $preStatsJobId $opt{OUTPUT_DIR}/$sampleName/jobs/$preStatsJobId.sh");
+        my $sample_dir= catfile($opt->{OUTPUT_DIR}, $sample_name);
+        my $log_dir = catfile($sample_dir, "logs");
+        my $done_file = catfile($log_dir, "PreStats_${sample_name}.done");
+		if (!-f $done_file) {
+			my $job_id = "PreStats_${core_name}_" . getJobId();
+			my $bash_file = catfile($sample_dir, "jobs", "${job_id}.sh");
+			from_template("PreStats.sh.tt", $bash_file,
+                          sample_name => $sample_name,
+                          core_name => $core_name,
+                          input => $input_file,
+                          run_name => $run_name,
+                          opt => $opt);
+			my $qsub = qsubTemplate($opt, "PRESTATS");
+			system("$qsub -o $log_dir/PreStat_${core_name}.out -e $log_dir/PreStats_${core_name}.err -N $job_id $bash_file");
+			push @{$job_ids->{$sample_name}}, $job_id;
 		} else {
-			say "\t WARNING: FASTQC report for $input already exists, skipping.";
+			say "\tWARNING: $done_file exists, skipping";
 		}
     }
-
-    from_template("PreStatsMainJob.sh.tt", $mainJobID, qsubOut => \@qsubOut, opt => \%opt);
-    system("sh $mainJobID");
 }
 
 1;
