@@ -34,6 +34,7 @@ sub runFinalize {
 
     my @runningJobs = map { @$_ }
         grep { defined } @{$opt{RUNNING_JOBS}}{"baf",
+                                               "prestats",
                                                keys %{$opt{SAMPLES}},
                                                "postStats",
                                                "somVar",
