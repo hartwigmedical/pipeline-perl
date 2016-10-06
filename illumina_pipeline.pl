@@ -83,8 +83,7 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{BAF} eq "yes") {
         say "\n### SCHEDULING BAF ANALYSIS ###";
-        my $baf_jobs = illumina_baf::runBAF($opt);
-        $opt->{RUNNING_JOBS}->{'baf'} = $baf_jobs;
+        illumina_baf::runBAF($opt);
     }
 
     if ($opt->{VARIANT_CALLING} eq "yes") {

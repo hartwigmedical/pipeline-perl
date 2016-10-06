@@ -15,67 +15,79 @@ use illumina_template;
 
 
 sub runBAF {
-    my $configuration = shift;
-    my %opt = %{$configuration};
+    my ($opt) = @_;
+    my $run_name = basename($opt->{OUTPUT_DIR});
     my @baf_jobs;
 
-    foreach my $sample (keys %{$opt{SAMPLES}}) {
-		my $sample_bam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
-		my $log_dir = $opt{OUTPUT_DIR}."/".$sample."/logs/";
-		my $tmp_dir = $opt{OUTPUT_DIR}."/".$sample."/tmp/";
-		my $job_dir = $opt{OUTPUT_DIR}."/".$sample."/jobs/";
-		my $output_dir = $opt{OUTPUT_DIR}."/".$sample."/";
-		my $runName = basename($opt{OUTPUT_DIR});
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+		my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
+        my $baf_dirs = {
+            out => $out_dir,
+            log => catfile($out_dir, "logs"),
+            tmp => catfile($out_dir, "tmp"),
+            job => catfile($out_dir, "jobs"),
+        };
+		my $sample_bam = catfile($baf_dirs->{out}, "mapping", $opt->{BAM_FILES}->{$sample});
 
-		my @running_jobs;
-
-		if (-f "$log_dir/BAF_$sample.done") {
-			say "WARNING: $log_dir/BAF_$sample.done exists, skipping BAF analysis for $sample";
+        my $done_file = catfile($baf_dirs->{log}, "BAF_${sample}.done");
+		if (-f $done_file) {
+			say "WARNING: $done_file exists, skipping BAF analysis for $sample";
 		} else {
-			my $jobID = "BAF_$sample\_".getJobId();
-			my $bashFile = $job_dir.$jobID.".sh";
-			my $output_vcf = $sample."_BAF_SNPS.vcf";
-			my $output_baf = $sample."_BAF.txt";
-			my $output_bafplot = $sample."_BAF.pdf";
+			my $job_id = "BAF_$sample\_".getJobId();
+			my $bash_file = catfile($baf_dirs->{job}, "${job_id}.sh");
+			my $output_vcf = "${sample}_BAF_SNPS.vcf";
+			my $output_baf = "${sample}_BAF.txt";
+			my $output_bafplot = "${sample}_BAF.pdf";
 
-			if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-				push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample}});
-			}
+            my @running_jobs;
+			push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
 
 			my $run_unified_genotyper = 0;
-			if (-f "$log_dir/BAF_UG_$sample.done") {
-				say "WARNING: $log_dir/BAF_UG_$sample.done exists, skipping Unified Genotyper for $sample";
+            my $done_file = catfile($baf_dirs->{log}, "BAF_UG_${sample}.done");
+			if (-f $done_file) {
+				say "WARNING: $done_file exists, skipping Unified Genotyper for $sample";
 			} else {
 				$run_unified_genotyper = 1;
 			}
 
 			my $create_baf_file = 0;
-			if (-f "$log_dir/BAF_FILE_$sample.done") {
-				say "WARNING: $log_dir/BAF_FILE_$sample.done exists, skipping BAF file for $sample";
+            $done_file = catfile($baf_dirs->{log}, "BAF_FILE_${sample}.done");
+			if (-f $done_file) {
+				say "WARNING: $done_file exists, skipping BAF file for $sample";
 			} else {
 				$create_baf_file = 1;
 			}
 			my $create_baf_plots = 0;
-			if (-f "$log_dir/BAF_PLOT_$sample.done") {
-				say "WARNING: $log_dir/BAF_PLOT._$sample done exists, skipping BAF plot for $sample";
+            $done_file = catfile($baf_dirs->{log}, "BAF_PLOT_${sample}.done");
+			if (-f $done_file) {
+				say "WARNING: $done_file exists, skipping BAF plot for $sample";
 			} else {
 				$create_baf_plots = 1;
 			}
 
-			from_template("BAF.sh.tt", $bashFile, tmp_dir => $tmp_dir, run_unified_genotyper => $run_unified_genotyper, log_dir => $log_dir, sample => $sample,
-				sample_bam => $sample_bam, output_vcf => $output_vcf, output_dir => $output_dir, create_baf_file => $create_baf_file, output_baf => $output_baf,
-				output_bafplot => $output_bafplot, create_baf_plots => $create_baf_plots, runName => $runName, opt => \%opt);
+			from_template("BAF.sh.tt", $bash_file,
+                          sample => $sample,
+                          sample_bam => $sample_bam,
+                          output_vcf => $output_vcf,
+                          output_baf => $output_baf,
+                          output_bafplot => $output_bafplot,
+                          run_unified_genotyper => $run_unified_genotyper,
+                          create_baf_file => $create_baf_file,
+                          create_baf_plots => $create_baf_plots,
+                          run_name => $run_name,
+                          dirs => $baf_dirs,
+                          opt => $opt);
 
-			my $qsub = qsubJava(\%opt, "BAF");
+			my $qsub = qsubJava($opt, "BAF");
 			if (@running_jobs) {
-				system "$qsub -o $log_dir/BAF_$sample.out -e $log_dir/BAF_$sample.err -N $jobID -hold_jid ".join(",",@running_jobs)." $bashFile";
+				system "$qsub -o $baf_dirs->{log}/BAF_${sample}.out -e $baf_dirs->{log}/BAF_${sample}.err -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
 			} else {
-				system "$qsub -o $log_dir/BAF_$sample.out -e $log_dir/BAF_$sample.err -N $jobID $bashFile";
+				system "$qsub -o $baf_dirs->{log}/BAF_${sample}.out -e $baf_dirs->{log}/BAF_${sample}.err -N $job_id $bash_file";
 			}
-			push(@baf_jobs, $jobID);
+			push @baf_jobs, $job_id;
 		}
     }
-    return \@baf_jobs;
+    $opt->{RUNNING_JOBS}->{'baf'} = \@baf_jobs;
 }
 
 1;

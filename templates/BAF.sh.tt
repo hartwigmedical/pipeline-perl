@@ -7,14 +7,14 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME="BAF"
-export JOB_SET="[% runName %]"
+export JOB_SET="[% run_name %]"
 export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
-cd [% tmp_dir %]
+cd [% dirs.tmp %]
 
 [% IF run_unified_genotyper == 1 %]
-echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+echo "Start Unified Genotyper	" `date` "	" `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
 
 if [ -s [% sample_bam %] ]; then
 	[% INCLUDE Status.tt step="UNIFIED_GENOTYPER" status="processing" %]
@@ -28,31 +28,31 @@ fi
 tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
 tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
 if [ "$tail_output" == "$tail_input" ]; then
-	mv [% output_vcf %] [% output_dir %]
-	mv [% output_vcf %].idx [% output_dir %]
-	touch [% log_dir %]/BAF_UG_[% sample %].done
+	mv [% output_vcf %] [% dirs.out %]
+	mv [% output_vcf %].idx [% dirs.out %]
+	touch [% dirs.log %]/BAF_UG_[% sample %].done
   
 	[% INCLUDE Status.tt step="UNIFIED_GENOTYPER" status="finished" %]
 else
 	[% INCLUDE Status.tt step="UNIFIED_GENOTYPER" status="failed" %]
     fail "UnifiedGenotyper output does not end at the same location as input"
 fi
-echo "Finished Unified Genotyper	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+echo "Finished Unified Genotyper	" `date` "	" `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
 [% END %]
 
 [% IF create_baf_file == 1 %]
-echo "Start Make BAF file	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+echo "Start Make BAF file	" `date` "	" `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
 
-if [ -s [% output_dir %]/[% output_vcf %] -a -e [% log_dir %]/BAF_UG_[% sample %].done ]; then
+if [ -s [% dirs.out %]/[% output_vcf %] -a -e [% dirs.log %]/BAF_UG_[% sample %].done ]; then
 	[% INCLUDE Status.tt step="BAF_FILE" status="processing" %]
   
-	cat [% output_dir %]/[% output_vcf %] | [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
+	cat [% dirs.out %]/[% output_vcf %] | [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
 		--sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]'  \
 		--seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
 
-    mv [% output_baf %] [% output_dir %]
-  	touch [% log_dir %]/BAF_FILE_[% sample %].done
-  	echo "Finished Make BAF file    " `date` "   " `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+    mv [% output_baf %] [% dirs.out %]
+  	touch [% dirs.log %]/BAF_FILE_[% sample %].done
+  	echo "Finished Make BAF file    " `date` "   " `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
 
 	[% INCLUDE Status.tt step="BAF_FILE" status="finished" %]
 else
@@ -62,29 +62,29 @@ fi
 [% END %]
 
 [% IF create_baf_plots == 1 %]
-echo "Start BAF plotting	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
-if [ -s [% output_dir %]/[% output_baf %] -a -e [% log_dir %]/BAF_FILE_[% sample %].done ]; then
+echo "Start BAF plotting	" `date` "	" `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
+if [ -s [% dirs.out %]/[% output_baf %] -a -e [% dirs.log %]/BAF_FILE_[% sample %].done ]; then
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="processing" %]
   
-	Rscript [% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R [% tmp_dir %] [% output_dir %]/[% output_baf %]
+	Rscript [% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R [% dirs.tmp %] [% dirs.out %]/[% output_baf %]
 else
 	fail "Sample BAF file and BAF done files do not exist."
 fi
 
 if [ -s [% output_bafplot %] ]; then
-	mv [% output_bafplot %] [% output_dir %]
-	touch [% log_dir %]/BAF_PLOT_[% sample %].done
+	mv [% output_bafplot %] [% dirs.out %]
+	touch [% dirs.log %]/BAF_PLOT_[% sample %].done
   
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="finished" %]
 else
 	[% INCLUDE Status.tt step="BAF_PLOTS" status="failed" %]
     fail "BAF plot not created"
 fi
-echo "Finished Make BAF plot	" `date` "	" `uname -n` >> [% log_dir %]/BAF_[% sample %].log
+echo "Finished Make BAF plot	" `date` "	" `uname -n` >> [% dirs.log %]/BAF_[% sample %].log
 [% END %]
 
-if [ -e [% log_dir %]/BAF_UG_[% sample %].done -a -e [% log_dir %]/BAF_FILE_[% sample %].done -a -e [% log_dir %]/BAF_PLOT_[% sample %].done ]; then
-	touch [% log_dir %]/BAF_[% sample %].done
+if [ -e [% dirs.log %]/BAF_UG_[% sample %].done -a -e [% dirs.log %]/BAF_FILE_[% sample %].done -a -e [% dirs.log %]/BAF_PLOT_[% sample %].done ]; then
+	touch [% dirs.log %]/BAF_[% sample %].done
   
 	[% INCLUDE Status.tt step="" status="success" %]
 else
