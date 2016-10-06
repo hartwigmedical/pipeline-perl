@@ -19,8 +19,8 @@ BAM	[% bamFile %]
 [% END -%]
 [% END -%]
 
-[%- IF vcfFile -%]
+[%- IF vcfFiles.defined(0) -%]
 
 ### VCF FILE###
-VCF	[% vcfFile %]
+VCF	[% vcfFiles.0 %]
 [% END -%]

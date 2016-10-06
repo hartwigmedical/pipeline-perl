@@ -432,7 +432,7 @@ sub runFreeBayes {
                   concat_command => $concat_command,
                   rm_command => $rm_command,
                   ref_sample_bam => $ref_sample_bam,
-                  tumor_ref_bam => $tumor_sample_bam,
+                  tumor_sample_bam => $tumor_sample_bam,
                   freebayes_out_dir => $freebayes_out_dir,
                   somatic_name => $somatic_name,
                   dirs => $somatic_dirs,

@@ -82,7 +82,7 @@ sub createConfig {
                   mail => $mail,
                   fastqFiles => \@fastqFiles,
                   bamFiles => \@bamFiles,
-                  vcfFile => $vcfFile);
+                  vcfFiles => [$vcfFile]);
 
     if ($run) {
         my $pipeline = catfile(dirname(abs_path($0)), "illumina_pipeline.pl");

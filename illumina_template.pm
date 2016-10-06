@@ -26,7 +26,7 @@ sub from_template {
     my $output_file = shift || return;
     my %data = @_;
 
-    my $t = Template->new(INCLUDE_PATH => $template_dir);
+    my $t = Template->new(INCLUDE_PATH => $template_dir, STRICT => 1);
     open my $tout, ">", $output_file or confess "Unable to open $output_file for writing";
     $t->process($name, \%data, \*$tout) or confess $t->error();
     close $tout;

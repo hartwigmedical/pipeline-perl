@@ -28,7 +28,7 @@ then
   PBGZIP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %]))
   echo "Using ${MPILEUP_THREADS} threads for mpileup and ${PBGZIP_THREADS} threads for compression" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
-  [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t ${MPILEUP_THREADS} --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.SOMVAR_TARGETS %]-L [% opt.SOMVAR_TARGETS %][% END %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] --samtools "-q 1 -f [% opt.GENOME %]" | [% opt.PBGZIP_PATH %]/pbgzip -n ${PBGZIP_THREADS} -c > [% pileup %].gz
+  [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t ${MPILEUP_THREADS} --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.exists('SOMVAR_TARGETS') %]-L [% opt.SOMVAR_TARGETS %][% END %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] --samtools "-q 1 -f [% opt.GENOME %]" | [% opt.PBGZIP_PATH %]/pbgzip -n ${PBGZIP_THREADS} -c > [% pileup %].gz
   [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
 
   tail_pileup="$([% opt.TABIX_PATH %]/tabix [% pileup %].gz MT | tail -n 1 | cut -f 1)"

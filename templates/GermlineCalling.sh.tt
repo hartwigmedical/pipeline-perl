@@ -19,7 +19,7 @@ echo "Start germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR
 [% sampleBam = sampleBams.shift %]
 [% bamIfList = "-s " _ sampleBam  %]
 [% FOREACH sampleBam in sampleBams %]
-	[% bamIfList = bamList _ "-a -s " _ sampleBam %]
+	[% bamIfList = bamIfList _ "-a -s " _ sampleBam %]
 [% END %]
 
 if [ [% bamIfList %] ]; then
