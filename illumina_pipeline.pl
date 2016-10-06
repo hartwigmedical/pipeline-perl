@@ -67,7 +67,7 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{INDELREALIGNMENT} eq "yes") {
         say "\n### SCHEDULING INDELREALIGNMENT ###";
-        $opt = illumina_realign::runRealignment($opt);
+        illumina_realign::runRealignment($opt);
     }
 
     if ($opt->{SOMATIC_VARIANTS} eq "yes") {
