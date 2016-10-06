@@ -12,236 +12,131 @@ use FindBin;
 use lib "$FindBin::Bin";
 
 use illumina_sge;
+use illumina_template;
 use illumina_metadataParser;
 
 
 sub runCopyNumberTools {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my @check_cnv_jobs;
+    my ($opt) = @_;
 
-    if ($opt{CNV_MODE} eq "sample_control") {
-        my @cnv_jobs;
-        my $metadata = metadataParse($opt{OUTPUT_DIR});
+    my $check_cnv_jobs = [];
+    if ($opt->{CNV_MODE} eq "sample_control") {
+        my $metadata = metadataParse($opt->{OUTPUT_DIR});
+        my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
+        my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
-        my $sample_ref = $metadata->{ref_sample} or die "metadata missing ref_sample";
-        my $sample_tumor = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+        $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list";
+        $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list";
 
-        $opt{BAM_FILES}->{$sample_ref} or die "metadata ref_sample $sample_ref not in BAM file list";
-        $opt{BAM_FILES}->{$sample_tumor} or die "metadata tumor_sample $sample_tumor not in BAM file list";
-
-        my $sample_tumor_name = "$sample_ref\_$sample_tumor";
-        my $sample_tumor_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample_tumor_name";
-        my $sample_tumor_log_dir = "$sample_tumor_out_dir/logs/";
-        my $sample_tumor_job_dir = "$sample_tumor_out_dir/jobs/";
-
-        if (!-d $sample_tumor_out_dir) {
-            make_path($sample_tumor_out_dir) or die "Couldn't create directory $sample_tumor_out_dir: $!";
-        }
-        if (!-d $sample_tumor_job_dir) {
-            make_path($sample_tumor_job_dir) or die "Couldn't create directory $sample_tumor_job_dir: $!";
-        }
-        if (!-d $sample_tumor_log_dir) {
-            make_path($sample_tumor_log_dir) or die "Couldn't create directory $sample_tumor_log_dir: $!";
-        }
-
-        my $sample_tumor_bam = "$opt{OUTPUT_DIR}/$sample_tumor/mapping/$opt{BAM_FILES}->{$sample_tumor}";
-        my @running_jobs;
-        if (@{$opt{RUNNING_JOBS}->{$sample_tumor}}) {
-            push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_tumor}});
-        }
-        my $sample_ref_bam = "$opt{OUTPUT_DIR}/$sample_ref/mapping/$opt{BAM_FILES}->{$sample_ref}";
-        if (@{$opt{RUNNING_JOBS}->{$sample_ref}}) {
-            push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample_ref}});
-        }
-
-        say "\n$sample_tumor_name \t $sample_ref_bam \t $sample_tumor_bam";
-
-        if (-f "$sample_tumor_log_dir/$sample_tumor_name.done") {
-            say "WARNING: $sample_tumor_log_dir/$sample_tumor_name.done exists, skipping";
-            return;
-        }
-
-        if ($opt{CNV_FREEC} eq "yes") {
-            say "\n###SCHEDULING FREEC####";
-            my $freec_job = runFreec($sample_tumor, $sample_tumor_out_dir, $sample_tumor_job_dir,
-                $sample_tumor_log_dir, $sample_tumor_bam, $sample_ref_bam, \@running_jobs, \%opt);
-            if ($freec_job) {push(@cnv_jobs, $freec_job)};
-        }
-
-        my $job_id = "CHECK_${sample_tumor}_" . getJobId();
-        my $bash_file = catfile($sample_tumor_job_dir, "${job_id}.sh");
-
-        open CHECK_SH, ">", $bash_file or die "cannot open $bash_file: $!";
-        print CHECK_SH "#!/bin/bash\n\n";
-        print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n\n";
-        print CHECK_SH "if [[ ";
-        if ($opt{CNV_FREEC} eq "yes") {print CHECK_SH "-f $sample_tumor_log_dir/freec.done"}
-        print CHECK_SH " ]]\n";
-        print CHECK_SH "then\n";
-        print CHECK_SH "\ttouch $sample_tumor_log_dir/$sample_tumor_name.done\n";
-        print CHECK_SH "fi\n\n";
-        print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_tumor_log_dir/check.log\n";
-        close CHECK_SH;
-        my $qsub = qsubTemplate(\%opt, "CNVCHECK");
-        if (@cnv_jobs) {
-            system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id -hold_jid ".join(","
-                    , @cnv_jobs)." $bash_file";
-        } else {
-            system "$qsub -o $sample_tumor_log_dir -e $sample_tumor_log_dir -N $job_id $bash_file";
-        }
-        push(@check_cnv_jobs, $job_id);
-    } elsif ($opt{CNV_MODE} eq "sample") {
-        foreach my $sample (keys %{$opt{SAMPLES}}) {
-            my @cnv_jobs;
-
-            my $sample_out_dir = "$opt{OUTPUT_DIR}/copyNumber/$sample";
-            my $sample_log_dir = "$sample_out_dir/logs/";
-            my $sample_job_dir = "$sample_out_dir/jobs/";
-
-            if (!-d $sample_out_dir) {
-                make_path($sample_out_dir) or die "Couldn't create directory $sample_out_dir: $!";
-            }
-            if (!-d $sample_job_dir) {
-                make_path($sample_job_dir) or die "Couldn't create directory $sample_job_dir: $!";
-            }
-            if (!-d $sample_log_dir) {
-                make_path($sample_log_dir) or die "Couldn't create directory $sample_log_dir: $!";
-            }
-
-            my $sample_bam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
-            my @running_jobs;
-            if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-                push(@running_jobs, @{$opt{RUNNING_JOBS}->{$sample}});
-            }
-            say "\n$sample \t $sample_bam";
-
-            if (-f "$sample_log_dir/$sample.done") {
-                say "WARNING: $sample_log_dir/$sample.done exists, skipping";
-                next;
-            }
-
-            if ($opt{CNV_FREEC} eq "yes") {
-                say "\n###SCHEDULING FREEC####";
-                my $freec_job = runFreec($sample, $sample_out_dir, $sample_job_dir, $sample_log_dir, $sample_bam, "",
-                    \@running_jobs, \%opt);
-                if ($freec_job) {push(@cnv_jobs, $freec_job)};
-            }
-
-            my $job_id = "CHECK_${sample}_" . getJobId();
-            my $bash_file = catfile($sample_job_dir, "${job_id}.sh");
-
-            open CHECK_SH, ">", $bash_file or die "cannot open file $bash_file: $!";
-            print CHECK_SH "#!/bin/bash\n\n";
-            print CHECK_SH "echo \"Start Check\t\" `date` `uname -n` >> $sample_log_dir/check.log\n\n";
-            print CHECK_SH "if [[ -f $sample_log_dir/freec.done ]]\n";
-            print CHECK_SH "then\n";
-            print CHECK_SH "\ttouch $sample_log_dir/$sample.done\n";
-            print CHECK_SH "fi\n\n";
-            print CHECK_SH "echo \"End Check\t\" `date` `uname -n` >> $sample_log_dir/check.log\n";
-            close CHECK_SH;
-            my $qsub = qsubTemplate(\%opt, "CNVCHECK");
-            if (@cnv_jobs) {
-                system "$qsub -o $sample_log_dir -e $sample_log_dir -N $job_id -hold_jid ".join(",",
-                        @cnv_jobs)." $bash_file";
-            } else {
-                system "$qsub -o $sample_log_dir -e $sample_log_dir -N $job_id $bash_file";
-            }
-            push(@check_cnv_jobs, $job_id);
+        my $cnv_name = "${ref_sample}_${tumor_sample}";
+        runSampleCnv($tumor_sample, $ref_sample, $cnv_name, $check_cnv_jobs, $opt);
+    } elsif ($opt->{CNV_MODE} eq "sample") {
+        foreach my $sample (keys %{$opt->{SAMPLES}}) {
+            runSampleCnv($sample, undef, $sample, $check_cnv_jobs, $opt);
         }
     }
-    return \@check_cnv_jobs;
+    $opt->{RUNNING_JOBS}->{'CNV'} = $check_cnv_jobs;
 }
 
-sub runFreec {
-    my ($sample_name, $out_dir, $job_dir, $log_dir, $sample_bam, $control_bam, $running_jobs, $opt) = (@_);
-    my @running_jobs = @{$running_jobs};
-    my %opt = %{$opt};
+sub runSampleCnv {
+    my ($sample, $control, $cnv_name, $check_cnv_jobs, $opt) = @_;
+    my $run_name = basename($opt->{OUTPUT_DIR});
 
-    if (-f "$log_dir/freec.done") {
-        say "WARNING: $log_dir/freec.done exists, skipping";
+    my $out_dir = catfile($opt->{OUTPUT_DIR}, "copyNumber", $cnv_name);
+    my %freec_dirs = (
+        out => $out_dir,
+        log => catfile($out_dir, "logs"),
+        job => catfile($out_dir, "jobs"),
+    );
+
+    make_path(values %freec_dirs, { error => \my $errors });
+    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
+    die "Couldn't create copy number output directories: $messages" if $messages;
+
+    my @running_jobs;
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$control}} if @{$opt->{RUNNING_JOBS}->{$control}};
+    my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+    my $control_bam = catfile($opt->{OUTPUT_DIR}, $control, "mapping", $opt->{BAM_FILES}->{$control});
+    $control_bam = undef unless $control;
+
+    say "\n$cnv_name \t $control_bam \t $sample_bam";
+
+    my $done_file = catfile($freec_dirs{log}, "${cnv_name}.done");
+    if (-f $done_file) {
+        say "WARNING: $done_file exists, skipping";
         return;
     }
 
-    my $freec_out_dir = "$out_dir/freec";
-    if (!-d $freec_out_dir) {
-        make_path($freec_out_dir) or die "Couldn't create directory $freec_out_dir: $!";
+    my @cnv_jobs;
+    if ($opt->{CNV_FREEC} eq "yes") {
+        say "\n###SCHEDULING FREEC####";
+        my $freec_job = runFreec($sample, $sample_bam, $control_bam, $run_name, \@running_jobs, \%freec_dirs, $opt);
+        push @cnv_jobs, $freec_job if $freec_job;
+    }
+
+    # check is separated from run, could have more/different CNV tools
+    my $job_id = "CnvCheck_${sample}_" . getJobId();
+    my $bash_file = catfile($freec_dirs{job}, "${job_id}.sh");
+
+    from_template("CnvCheck.sh.tt", $bash_file,
+                  cnv_name => $cnv_name,
+                  run_name => $run_name,
+                  dirs => \%freec_dirs,
+                  opt => $opt);
+
+    my $qsub = qsubTemplate($opt, "CNVCHECK");
+    if (@cnv_jobs) {
+        system "$qsub -o $freec_dirs{log} -e $freec_dirs{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) ." $bash_file";
+    } else {
+        system "$qsub -o $freec_dirs{log} -e $freec_dirs{log} -N $job_id $bash_file";
+    }
+    push @{$check_cnv_jobs}, $job_id;
+}
+
+sub runFreec {
+    my ($sample_name, $sample_bam, $control_bam, $run_name, $running_jobs, $dirs, $opt) = (@_);
+
+    my $done_file = catfile($dirs->{log}, "freec.done");
+    if (-f $done_file) {
+        say "WARNING: $done_file exists, skipping";
+        return;
+    }
+
+    $dirs->{freec}{out} = catfile($dirs->{out}, "freec");
+    if (!-d $dirs->{freec}{out}) {
+        make_path($dirs->{freec}{out}) or die "Couldn't create directory $dirs->{freec}{out}: $!";
     }
 
     my @mappabilityTracks;
-    if ($opt{FREEC_MAPPABILITY_TRACKS}) {
-        @mappabilityTracks = split('\t', $opt{FREEC_MAPPABILITY_TRACKS});
-    }
+    @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
+    my $config_file = catfile($dirs->{freec}{out}, "freec_config.txt");
+    from_template("FreecConfig.tt", $config_file,
+                  sample_bam => $sample_bam,
+                  control_bam => $control_bam,
+                  mappabilityTracks => \@mappabilityTracks,
+                  dirs => $dirs,
+                  opt => $opt);
 
-    my $freec_config = $freec_out_dir."/freec_config.txt";
-    open FREEC_CONFIG, ">", $freec_config or die "cannot open $freec_config: $!";
-
-    print FREEC_CONFIG "[general]\n";
-    print FREEC_CONFIG "chrLenFile= $opt{FREEC_CHRLENFILE}\n";
-    print FREEC_CONFIG "ploidy=2\n";
-    print FREEC_CONFIG "samtools=$opt{SAMTOOLS_PATH}/samtools\n";
-    print FREEC_CONFIG "chrFiles= $opt{FREEC_CHRFILES}\n";
-    print FREEC_CONFIG "window=$opt{FREEC_WINDOW}\n";
-    print FREEC_CONFIG "maxThreads=$opt{FREEC_THREADS}\n";
-    print FREEC_CONFIG "telocentromeric=$opt{FREEC_TELOCENTROMERIC}\n";
-    print FREEC_CONFIG "BedGraphOutput=TRUE\n";
-    print FREEC_CONFIG "outputDir=$freec_out_dir\n";
-
-    foreach my $mappabilityTrack (@mappabilityTracks) {
-        print FREEC_CONFIG "gemMappabilityFile=$mappabilityTrack\n";
-    }
-
-    print FREEC_CONFIG "[sample]\n";
-    print FREEC_CONFIG "mateFile=$sample_bam\n";
-    print FREEC_CONFIG "inputFormat=BAM\n";
-    print FREEC_CONFIG "mateOrientation=FR\n";
-    if ($control_bam) {
-        print FREEC_CONFIG "[control]\n";
-        print FREEC_CONFIG "mateFile=$control_bam\n";
-        print FREEC_CONFIG "inputFormat=BAM\n";
-        print FREEC_CONFIG "mateOrientation=FR\n";
-    }
-
-    if ($opt{CNV_TARGETS}) {
-        print FREEC_CONFIG "[target]\n";
-        print FREEC_CONFIG "captureRegions=$opt{CNV_TARGETS}\n";
-    }
-
-    close FREEC_CONFIG;
-
-    my $job_id = "FREEC_${sample_name}_" . getJobId();
-    my $bash_file = catfile($job_dir, "${job_id}.sh");
+    my $job_id = "Freec_${sample_name}_" . getJobId();
+    my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $sample_bam_name = fileparse($sample_bam);
 
-    open FREEC_SH, ">", $bash_file or die "cannot open $bash_file: $!";
+    from_template("Freec.sh.tt", $bash_file,
+                  sample_name => $sample_name,
+                  sample_bam => $sample_bam,
+                  control_bam => $control_bam,
+                  sample_bam_name => $sample_bam_name,
+                  config_file => $config_file,
+                  run_name => $run_name,
+                  dirs => $dirs,
+                  opt => $opt);
 
-    print FREEC_SH "#!/bin/bash\n\n";
-    if ($control_bam) {
-        print FREEC_SH "if [ -s $sample_bam -a -s $control_bam ]\n";
+    my $qsub = qsubTemplate($opt, "FREEC");
+    if (@{$running_jobs}) {
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid " . join(",", @{$running_jobs}) . " $bash_file";
     } else {
-        print FREEC_SH "if [ -s $sample_bam ]\n";
-    }
-    print FREEC_SH "then\n";
-    print FREEC_SH "\techo \"Start FREEC\t\" `date` \"\t $sample_bam \t $control_bam\t\" `uname -n` >> $log_dir/freec.log\n\n";
-
-    print FREEC_SH "\t$opt{FREEC_PATH}/freec -conf $freec_config\n";
-    print FREEC_SH "\tcd $freec_out_dir\n";
-    print FREEC_SH "\tcat $opt{FREEC_PATH}/assess_significance.R | R --slave --args ".$sample_bam_name."_CNVs ".$sample_bam_name."_ratio.txt\n";
-    print FREEC_SH "\tcat $opt{FREEC_PATH}/makeGraph.R | R --slave --args 2 ".$sample_bam_name."_ratio.txt\n";
-    print FREEC_SH "\tcat $opt{OUTPUT_DIR}/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 ".$sample_bam_name."_ratio.txt\n";
-    print FREEC_SH "\ttouch $log_dir/freec.done\n";
-    print FREEC_SH "\techo \"End FREEC\t\" `date` \"\t $sample_bam \t $control_bam\t\" `uname -n` >> $log_dir/freec.log\n\n";
-    print FREEC_SH "else\n";
-    print FREEC_SH "\techo \"ERROR: $sample_bam or $control_bam does not exist.\" >> $log_dir/freec.log\n";
-    print FREEC_SH "fi\n";
-
-    close FREEC_SH;
-    my $qsub = qsubTemplate(\%opt, "FREEC");
-
-    if (@running_jobs) {
-        system "$qsub -o $log_dir -e $log_dir -N $job_id -hold_jid ".join(",", @running_jobs)." $bash_file";
-    } else {
-        system "$qsub -o $log_dir -e $log_dir -N $job_id $bash_file";
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id $bash_file";
     }
     return $job_id;
 }

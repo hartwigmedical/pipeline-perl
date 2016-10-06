@@ -1,0 +1,32 @@
+[general]
+chrLenFile=[% opt.FREEC_CHRLENFILE %]
+ploidy=2
+samtools=[% opt.SAMTOOLS_PATH %]/samtools
+chrFiles=[% opt.FREEC_CHRFILES %]
+window=[% opt.FREEC_WINDOW %]
+maxThreads=[% opt.FREEC_THREADS %]
+telocentromeric=[% opt.FREEC_TELOCENTROMERIC %]
+BedGraphOutput=TRUE
+outputDir=[% dirs.freec.out %]
+[% FOREACH mappabilityTrack IN mappabilityTracks -%]
+gemMappabilityFile=[% mappabilityTrack %]
+[% END -%]
+
+[sample]
+mateFile=[% sample_bam %]
+inputFormat=BAM
+mateOrientation=FR
+
+[%- IF control_bam -%]
+
+[control]
+mateFile=[% control_bam %]
+inputFormat=BAM
+mateOrientation=FR
+[% END -%]
+
+[%- IF opt.exists('CNV_TARGETS') -%]
+
+[target]
+captureRegions=[% opt.CNV_TARGETS %]
+[% END -%]

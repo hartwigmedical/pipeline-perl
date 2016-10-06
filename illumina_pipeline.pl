@@ -78,8 +78,7 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{COPY_NUMBER} eq "yes") {
         say "\n### SCHEDULING COPY NUMBER TOOLS ####";
-        my $cnv_jobs = illumina_copyNumber::runCopyNumberTools($opt);
-        $opt->{RUNNING_JOBS}->{'CNV'} = $cnv_jobs;
+        illumina_copyNumber::runCopyNumberTools($opt);
     }
 
     if ($opt->{BAF} eq "yes") {
