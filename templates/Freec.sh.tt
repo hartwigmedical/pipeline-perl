@@ -17,13 +17,34 @@ then
     echo "Start ${JOB_NAME}	" `date` "	 [% sample_name %] 	 [% control_bam %]	" `uname -n` >> [% dirs.log %]/freec.log
 
     [% opt.FREEC_PATH %]/freec -conf [% config_file %]
-    cd [% dirs.freec.out %]
-    cat [% opt.FREEC_PATH %]/assess_significance.R | R --slave --args [% sample_bam_name %]_CNVs [% sample_bam_name %]_ratio.txt
-    cat [% opt.FREEC_PATH %]/makeGraph.R | R --slave --args 2 [% sample_bam_name %]_ratio.txt
-    cat [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 [% sample_bam_name %]_ratio.txt
 
-    touch [% dirs.log %]/freec.done
-    [% INCLUDE Status.tt step=sample_name status="success" %]
+    cd [% dirs.freec.out %]
+    cnv_file="[% sample_bam_name %]_CNVs"
+    ratio_file="[% sample_bam_name %]_ratio.txt"
+    if [ -s "$ratio_file" ]
+    then
+        cat [% opt.FREEC_PATH %]/makeGraph.R | R --slave --args 2 $ratio_file
+        if [ -s "$cnv_file" ]
+        then
+            cat [% opt.FREEC_PATH %]/assess_significance.R | R --slave --args $cnv_file $ratio_file
+            cat [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 $ratio_file
+        else
+            echo "No copy number variants found, skipping post-processing"
+        fi
+    fi
+
+    if [ -s "$cnv_file" ] && [ -s "$ratio_file" ] \
+           && [ -s "[% sample_bam_name %]_CNVs.p.value.txt" ] \
+           && [ -s "[% sample_bam_name %]_ratio.txt.png" ] \
+           && [ -s "[% sample_bam_name %]_ratio_karyotype.pdf" ] \
+           || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
+    then
+        touch [% dirs.log %]/freec.done
+        [% INCLUDE Status.tt step=sample_name status="success" %]
+    else
+        [% INCLUDE Status.tt step=sample_name status="failed" %]
+        fail "$ratio_file does not exist or is empty, or $cnv_file exists but analysis files do not"
+    fi
 else
     [% INCLUDE Status.tt step=sample_name status="failed" %]
     fail "[% sample_bam %] or [% control_bam %] does not exist."
