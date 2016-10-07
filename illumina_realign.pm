@@ -27,20 +27,20 @@ sub runRealignment {
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $bam = $opt->{BAM_FILES}->{$sample};
-        (my $flagstat = $bam) =~ s/\.bam/.flagstat/;
-        (my $realignedBam = $bam) =~ s/\.bam/\.realigned\.bam/;
-        (my $realignedBai = $bam) =~ s/\.bam/\.realigned\.bai/;
-        (my $realignedBamBai = $bam) =~ s/\.bam/\.realigned\.bam\.bai/;
-        (my $realignedFlagstat = $bam) =~ s/\.bam/\.realigned\.flagstat/;
+        (my $flagstat = $bam) =~ s/\.bam$/.flagstat/;
+        (my $realignedBam = $bam) =~ s/\.bam$/.realigned.bam/;
+        (my $realignedBai = $bam) =~ s/\.bam$/.realigned.bai/;
+        (my $realignedBamBai = $bam) =~ s/\.bam$/.realigned.bam.bai/;
+        (my $realignedFlagstat = $bam) =~ s/\.bam$/.realigned.flagstat/;
 
-        (my $healthCheckPreRealignSlicedBam = $bam) =~ s/\.bam/\.qc.prerealign.sliced\.bam/;
-        (my $healthCheckPreRealignSlicedBamBai = $bam) =~ s/\.bam/\.qc.prerealign.sliced\.bam\.bai/;
-        (my $healthCheckPostRealignSlicedBam = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam/;
-        (my $healthCheckPostRealignSlicedBamBai = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.bam\.bai/;
-        (my $healthCheckPostRealignSlicedFlagstat = $bam) =~ s/\.bam/\.qc.postrealign.sliced\.flagstat/;
-        (my $healthCheckPrePostRealignDiff = $bam) =~ s/\.bam/\.qc.prepostrealign.diff/;
-        (my $cpctSlicedBam = $bam) =~ s/\.bam/\.realigned.sliced\.bam/;
-        (my $cpctSlicedBamBai = $bam) =~ s/\.bam/\.realigned.sliced\.bam\.bai/;
+        (my $healthCheckPreRealignSlicedBam = $bam) =~ s/\.bam$/.qc.prerealign.sliced.bam/;
+        (my $healthCheckPreRealignSlicedBamBai = $bam) =~ s/\.bam$/.qc.prerealign.sliced.bam.bai/;
+        (my $healthCheckPostRealignSlicedBam = $bam) =~ s/\.bam$/.qc.postrealign.sliced.bam/;
+        (my $healthCheckPostRealignSlicedBamBai = $bam) =~ s/\.bam$/.qc.postrealign.sliced.bam.bai/;
+        (my $healthCheckPostRealignSlicedFlagstat = $bam) =~ s/\.bam$/.qc.postrealign.sliced.flagstat/;
+        (my $healthCheckPrePostRealignDiff = $bam) =~ s/\.bam$/.qc.prepostrealign.diff/;
+        (my $cpctSlicedBam = $bam) =~ s/\.bam$/.realigned.sliced.bam/;
+        (my $cpctSlicedBamBai = $bam) =~ s/\.bam$/.realigned.sliced.bam.bai/;
 
         $opt->{BAM_FILES}->{$sample} = $realignedBam;
 

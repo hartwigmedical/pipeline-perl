@@ -195,19 +195,6 @@ sub createIndividualMappingJobs {
         say "\t${core_file}_sorted.flagstat exists and is not empty, skipping sorted BAM flagstat";
     }
 
-    if (!-s "${core_file}_sorted.bai") {
-        my $bash_file = catfile($dirs->{job}, "$jid{index}.sh");
-        from_template("PerLaneIndex.sh.tt", $bash_file,
-                      sampleName => $metadata->{sampleName},
-                      coreName => $metadata->{coreName},
-                      runName => $runName,
-                      opt => $opt);
-        my $qsub = qsubTemplate($opt, "MAPPING");
-        system("$qsub -o $stdout -e $stderr -N $jid{index} -hold_jid $jid{sort} $bash_file");
-    } else {
-        say "\t${core_file}_sorted.bai exists and is not empty, skipping sorted BAM index";
-    }
-
     my $bash_file = catfile($dirs->{job}, "$jid{check_clean}.sh");
     from_template("PerLaneCheckAndClean.sh.tt", $bash_file,
                   sampleName => $metadata->{sampleName},
@@ -222,13 +209,13 @@ sub runBamPrep {
     my ($opt) = @_;
 
     while (my ($sample, $input_bam) = each %{$opt->{SAMPLES}}) {
-        (my $input_bai = $input_bam) =~ s/\.bam$/\.bai/;
-        (my $input_flagstat = $input_bam) =~ s/\.bam$/\.flagstat/;
+        (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;
+        (my $input_flagstat = $input_bam) =~ s/\.bam$/.flagstat/;
 
         my $bam_file = "${sample}.bam";
         $opt->{BAM_FILES}->{$sample} = $bam_file;
         my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $bam_file);
-        my $sample_bai = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", "${sample}.bai");
+        my $sample_bai = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", "${sample}.bam.bai");
         my $sample_flagstat = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", "${sample}.flagstat");
 
         my $bai_good = verifyBai($input_bai, $input_bam, $opt);

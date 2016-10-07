@@ -32,7 +32,6 @@ else
 
     ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
     [% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.tmp.bam
-    [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.tmp.bai
     [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam > mapping/[% sample %]_dedup.flagstat
 
     echo "End markdup	" `date` "	[% sample %].bam	" `uname -n` >> logs/[% sample %].log
@@ -49,11 +48,12 @@ if [ -s mapping/[% sample %]_dedup.flagstat ]; then
     dedup_reads=$(awk '/d+/ { print $1; exit }' "mapping/[% sample %]_dedup.flagstat")
     if [ $dedup_reads -eq $total_reads ]; then
         rm -f mapping/[% sample %].bam
-        rm -f mapping/[% sample %].bai
+        rm -f mapping/[% sample %].bam.bai
         mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
-        mv mapping/[% sample %]_dedup.tmp.bai mapping/[% sample %]_dedup.bai
+        mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
         for bam_file in $(find mapping -name '*_sorted.bam'); do
             rm $bam_file
+            rm $bam_file.bai
         done
 
         touch logs/Mapping_[% sample %].done

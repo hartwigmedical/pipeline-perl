@@ -23,8 +23,7 @@ if [ -s "mapping/[% flagstat %]" ] && [ -s "mapping/[% realignedFlagstat %]" ]; 
 	flagstat_realigned=$(awk '/d+/ { print $1; exit }' "mapping/[% realignedFlagstat %]")
 	if [ $flagstat_orig -eq $flagstat_realigned ]; then
         mv tmp/[% realignedBam %] mapping/[% realignedBam %]
-        mv tmp/[% realignedBai %] mapping/[% realignedBai %]
-        cp mapping/[% realignedBai %] mapping/[% realignedBamBai %]
+        mv tmp/[% realignedBai %] mapping/[% realignedBamBai %]
         mv tmp/IndelRealignment.jobreport.txt logs/IndelRealignment.jobreport.txt
         mv tmp/IndelRealignment.jobreport.pdf logs/IndelRealignment.jobreport.pdf
 
@@ -38,7 +37,6 @@ if [ -s "mapping/[% flagstat %]" ] && [ -s "mapping/[% realignedFlagstat %]" ]; 
         [% opt.BAMUTIL_PATH %]/bam diff --in1 mapping/[% healthCheckPostRealignSlicedBam %] --in2 mapping/[% healthCheckPreRealignSlicedBam %] --noPos --onlyDiffs --out mapping/[% healthCheckPrePostRealignDiff %]
 
 		touch logs/Realignment_[% sample %].done
-
   	    [% INCLUDE Status.tt step=sample status="success" %]
 	else
   	    [% INCLUDE Status.tt step=sample status="failed" %]

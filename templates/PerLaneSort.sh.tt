@@ -16,7 +16,7 @@ echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/
 
 [% INCLUDE Status.tt step=coreName status="processing" %]
 
-[% opt.SAMBAMBA_PATH %]/sambamba sort --tmpdir=[% opt.OUTPUT_DIR %]/[% sampleName %]/tmp/ -m [% opt.MAPPING_MEM %]GB -t [% opt.MAPPING_THREADS %] -o [% coreName %]_sorted.bam  [% coreName %].bam
+[% opt.SAMBAMBA_PATH %]/sambamba sort --tmpdir=[% opt.OUTPUT_DIR %]/[% sampleName %]/tmp/ -m [% opt.MAPPING_MEM %]GB -t [% opt.MAPPING_THREADS %] -o [% coreName %]_sorted.bam [% coreName %].bam
 
 [% INCLUDE Status.tt step=coreName status="finished" %]
 
