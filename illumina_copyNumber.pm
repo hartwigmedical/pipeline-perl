@@ -35,7 +35,7 @@ sub runCopyNumberTools {
             runSampleCnv($sample, undef, $sample, $check_cnv_jobs, $opt);
         }
     }
-    $opt->{RUNNING_JOBS}->{'CNV'} = $check_cnv_jobs;
+    $opt->{RUNNING_JOBS}->{cnv} = $check_cnv_jobs;
 }
 
 sub runSampleCnv {

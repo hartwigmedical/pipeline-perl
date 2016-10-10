@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=PostStatsCheck
-export JOB_SET="[% runName %]"
+export JOB_SET="[% run_name %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]
@@ -22,4 +22,4 @@ else
     fail "bamMetrics reports missing"
 fi
 
-echo "Finished poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Finished poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% run_name %].log

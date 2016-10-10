@@ -48,7 +48,7 @@ sub runKinship {
         system "$qsub -o $log_dir/Kinship_${run_name}.out -e $log_dir/Kinship_${run_name}.err -N $job_id $bash_file";
     }
 
-    $opt->{RUNNING_JOBS}->{'Kinship'} = [$job_id];
+    $opt->{RUNNING_JOBS}->{kinship} = [$job_id];
 }
 
 1;

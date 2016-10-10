@@ -186,7 +186,7 @@ sub mergeSomatics {
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
-    $opt->{RUNNING_JOBS}->{'somVar'} = [$job_id];
+    $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 }
 
 sub runStrelka {

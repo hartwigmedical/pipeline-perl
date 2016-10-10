@@ -61,8 +61,7 @@ if ($opt->{FASTQ}) {
 if ($opt->{FASTQ} or $opt->{BAM}) {
     if ($opt->{POSTSTATS} eq "yes") {
         say "\n### SCHEDULING POSTSTATS ###";
-        my $postStatsJobs = illumina_poststats::runPostStats($opt);
-        $opt->{RUNNING_JOBS}->{'postStats'} = $postStatsJobs;
+        illumina_poststats::runPostStats($opt);
     }
 
     if ($opt->{INDELREALIGNMENT} eq "yes") {

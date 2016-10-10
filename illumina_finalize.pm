@@ -36,10 +36,10 @@ sub runFinalize {
         grep { defined } @{$opt{RUNNING_JOBS}}{"baf",
                                                "prestats",
                                                keys %{$opt{SAMPLES}},
-                                               "postStats",
-                                               "somVar",
-                                               "CNV",
-                                               "Kinship"
+                                               "poststats",
+                                               "somvar",
+                                               "cnv",
+                                               "kinship"
                                            };
 
     from_template("Finalize.sh.tt", $bash_file,

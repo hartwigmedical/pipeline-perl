@@ -15,64 +15,51 @@ use illumina_template;
 
 
 sub runPostStats {
-    my $configuration = shift;
-    my %opt = %{$configuration};
-    my @runningJobs;
-    my $runName = basename($opt{OUTPUT_DIR});
-    my $jobID = "PostStats_".getJobId();
-    my $jobIDCheck = "PostStats_Check_".getJobId();
+    my ($opt) = @_;
+    my $run_name = basename($opt->{OUTPUT_DIR});
 
-    if (!-f "$opt{OUTPUT_DIR}/logs/PostStats.done") {
-        my $command = "perl $opt{BAMMETRICS_PATH}/bamMetrics.pl ";
-        foreach my $sample (keys %{$opt{SAMPLES}}) {
-            my $sampleBam = "$opt{OUTPUT_DIR}/$sample/mapping/$opt{BAM_FILES}->{$sample}";
-            $command .= "-bam $sampleBam ";
-            if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-                push(@runningJobs, join(",",@{$opt{RUNNING_JOBS}->{$sample}}));
-            }
-        }
+    my $done_file = catfile($opt->{OUTPUT_DIR}, "logs", "PostStats.done");
 
-        $command .= "-output_dir $opt{OUTPUT_DIR}/QCStats/ ";
-        $command .= "-run_name $runName ";
-        $command .= "-genome $opt{GENOME} ";
-        $command .= "-queue $opt{POSTSTATS_QUEUE} ";
-        $command .= "-queue_threads $opt{POSTSTATS_THREADS} ";
-        $command .= "-queue_mem $opt{POSTSTATS_MEM} ";
-        $command .= "-queue_time $opt{POSTSTATS_TIME} ";
-        $command .= "-queue_project $opt{CLUSTER_PROJECT} ";
-        $command .= "-picard_path $opt{PICARD_PATH} ";
-        $command .= "-debug ";
-        $command .= "-wgs ";
-        $command .= "-coverage_cap 250 ";
-
-        if ($opt{SINGLE_END}) {
-            $command .= "-single_end ";
-        }
-
-        if ($opt{CLUSTER_RESERVATION} eq "yes") {
-            $command .= "-queue_reserve ";
-        }
-
-        my $bashFile = $opt{OUTPUT_DIR}."/jobs/".$jobID.".sh";
-        my $logDir = $opt{OUTPUT_DIR}."/logs";
-
-        from_template("PostStats.sh.tt", $bashFile, command => $command, runName => $runName, jobID => $jobID, jobIDCheck => $jobIDCheck, opt => \%opt);
-
-        my $qsub = qsubTemplate(\%opt, "POSTSTATS");
-        if (@runningJobs) {
-            system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobID." -hold_jid ".join(",",@runningJobs)." ".$bashFile;
-        } else {
-            system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobID." ".$bashFile;
-        }
-
-        my $bashFileCheck = $opt{OUTPUT_DIR}."/jobs/".$jobIDCheck.".sh";
-        from_template("PostStatsCheck.sh.tt", $bashFileCheck, runName => $runName, opt => \%opt);
-
-        system $qsub." -o ".$logDir."/PostStats_".$runName.".out -e ".$logDir."/PostStats_".$runName.".err -N ".$jobIDCheck." -hold_jid bamMetrics_report_".$runName.",".$jobID." ".$bashFileCheck;
-        return [$jobIDCheck];
-    } else {
-        say "WARNING: $opt{OUTPUT_DIR}/logs/PostStats.done exists, skipping";
+    if (-f $done_file) {
+        say "WARNING: $done_file exists, skipping";
+        return;
     }
+
+    my @bam_files;
+    my @running_jobs;
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        push @bam_files, catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+        if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
+            push(@running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}}));
+        }
+    }
+
+    my $job_id = "PostStats_" . getJobId();
+    my $job_id_check = "PostStatsCheck_" . getJobId();
+    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
+    my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
+    my $stdout = catfile($log_dir, "PostStats_${run_name}.out");
+    my $stderr = catfile($log_dir, "PostStats_${run_name}.err");
+
+    from_template("PostStats.sh.tt", $bash_file,
+                  bam_files => \@bam_files,
+                  job_id => $job_id,
+                  job_id_check => $job_id_check,
+                  run_name => $run_name,
+                  opt => $opt);
+
+    my $qsub = qsubTemplate($opt, "POSTSTATS");
+    if (@running_jobs) {
+        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
+    } else {
+        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
+    }
+
+    $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id_check}.sh");
+    from_template("PostStatsCheck.sh.tt", $bash_file, run_name => $run_name, opt => $opt);
+    system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
+
+    $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
 }
 
 1;
