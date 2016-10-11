@@ -14,7 +14,7 @@ export JOB_START=$(date +%s)
 
 if [ -s [% sample_bam %] [% IF control_bam %]-a -s [% control_bam %] [% END %]]
 then
-    echo "Start ${JOB_NAME}	" `date` "	 [% sample_name %] 	 [% control_bam %]	" `uname -n` >> [% dirs.log %]/freec.log
+    echo "Start ${JOB_NAME}	" `date` "	 [% sample_name %]	" `uname -n` >> [% dirs.log %]/freec.log
 
     [% opt.FREEC_PATH %]/freec -conf [% config_file %]
 
@@ -47,7 +47,7 @@ then
     fi
 else
     [% INCLUDE Status.tt step=sample_name status="failed" %]
-    fail "[% sample_bam %] or [% control_bam %] does not exist."
+    fail "[% sample_bam %] [% IF control_bam %]or [% control_bam %] [% END %]does not exist."
 fi
 
-echo "End ${JOB_NAME}	" `date` "	 [% sample_name %] 	 [% control_bam %]	" `uname -n` >> [% dirs.log %]/freec.log
+echo "End ${JOB_NAME}	" `date` "	 [% sample_name %]	" `uname -n` >> [% dirs.log %]/freec.log

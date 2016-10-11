@@ -55,10 +55,9 @@ sub runSampleCnv {
 
     my @running_jobs;
     push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
-    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$control}} if @{$opt->{RUNNING_JOBS}->{$control}};
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$control}} if $control and @{$opt->{RUNNING_JOBS}->{$control}};
     my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-    my $control_bam = catfile($opt->{OUTPUT_DIR}, $control, "mapping", $opt->{BAM_FILES}->{$control});
-    $control_bam = undef unless $control;
+    my $control_bam = $control ? catfile($opt->{OUTPUT_DIR}, $control, "mapping", $opt->{BAM_FILES}->{$control}) : "";
 
     say "\n$cnv_name \t $control_bam \t $sample_bam";
 
