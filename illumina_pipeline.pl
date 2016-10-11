@@ -86,25 +86,17 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
 
     if ($opt->{VARIANT_CALLING} eq "yes") {
         say "\n### SCHEDULING VARIANT CALLING ####";
-        $opt = illumina_germlineCalling::runVariantCalling($opt);
+        illumina_germlineCalling::runVariantCalling($opt);
     }
 
     if ($opt->{FILTER_VARIANTS} eq "yes") {
         say "\n### SCHEDULING VARIANT FILTRATION ####";
-        my $FVJob = illumina_germlineFiltering::runFilterVariants($opt);
-
-        foreach my $sample (keys %{$opt->{SAMPLES}}) {
-            push @{$opt->{RUNNING_JOBS}->{$sample}}, $FVJob;
-        }
+        illumina_germlineFiltering::runFilterVariants($opt);
     }
 
     if ($opt->{ANNOTATE_VARIANTS} eq "yes") {
         say "\n### SCHEDULING VARIANT ANNOTATION ####";
-        my $AVJob = illumina_germlineAnnotation::runAnnotateVariants($opt);
-
-        foreach my $sample (keys %{$opt->{SAMPLES}}) {
-            push @{$opt->{RUNNING_JOBS}->{$sample}}, $AVJob;
-        }
+        illumina_germlineAnnotation::runAnnotateVariants($opt);
     }
 
     if ($opt->{KINSHIP} eq "yes") {
