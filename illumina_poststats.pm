@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId qsubTemplate);
+use illumina_template qw(from_template);
 
 
 sub runPostStats {
@@ -60,6 +60,7 @@ sub runPostStats {
     system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
+    return;
 }
 
 1;

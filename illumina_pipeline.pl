@@ -135,6 +135,7 @@ sub getSamples {
             @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
+    return;
 }
 
 sub createOutputDirs {
@@ -185,6 +186,7 @@ sub createOutputDirs {
             mkdir("${output_dir}/$sample/tmp") or die "Couldn't create directory ${output_dir}/$sample/tmp: $!";
         }
     }
+    return;
 }
 
 sub setupLogging {
@@ -214,7 +216,7 @@ sub readConfig {
     open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
     while (<$fh>) {
         chomp;
-        next if m/^#/ or !$_;
+        next if m/^#/ or not $_;
         my ($key, $val) = split("\t", $_, 2);
 
         if ($key eq 'INIFILE') {
@@ -228,6 +230,7 @@ sub readConfig {
         }
     }
     close $fh;
+    return;
 }
 
 sub checkConfig {
@@ -527,6 +530,7 @@ sub checkConfig {
     if ($checkFailed) {
         die "One or more options not found in config files";
     }
+    return;
 }
 
 sub lockRun {
@@ -538,15 +542,16 @@ sub lockRun {
 }
 
 sub recordGitVersion {
-    my ($opt) = (@_);
+    my ($opt) = @_;
 
     my $git_dir = catfile(dirname(abs_path($0)), ".git");
     $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
     chomp $opt->{VERSION};
+    return;
 }
 
 sub copyConfigAndScripts {
-    my ($opt) = (@_);
+    my ($opt) = @_;
 
     my $pipeline_path = dirname(abs_path($0));
     my $slice_dir = catfile($pipeline_path, "settings", "slicing");
@@ -562,4 +567,5 @@ sub copyConfigAndScripts {
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $ini_file: $!";
     }
+    return;
 }

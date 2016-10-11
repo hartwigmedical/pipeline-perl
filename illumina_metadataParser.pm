@@ -12,18 +12,20 @@ use Carp;
 BEGIN {
     require Exporter;
     our @ISA = qw(Exporter);
-    our @EXPORT = qw(metadataParse);
+    our @EXPORT_OK = qw(metadataParse);
 }
 
 
 sub metadataParse {
     my $directory = shift || return;
     my $metadata_file = catfile($directory, "metadata");
-    my $json_conf = do {
+    my $json_conf;
+    {
         open my $json_fh, "<:encoding(UTF-8)", $metadata_file or confess "Can't open $metadata_file";
         local $/;
-        <$json_fh>;
-    };
+        $json_conf = <$json_fh>;
+        close $json_fh;
+    }
     my $config = decode_json($json_conf);
     return $config;
 }

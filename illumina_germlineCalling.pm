@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId jobNative qsubJava);
+use illumina_template qw(from_template);
 
 
 sub runVariantCalling {
@@ -85,6 +85,7 @@ sub runVariantCalling {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobID;
     }
+    return;
 }
 
 1;

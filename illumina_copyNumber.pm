@@ -11,9 +11,9 @@ use File::Path qw(make_path);
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
-use illumina_metadataParser;
+use illumina_sge qw(getJobId qsubTemplate);
+use illumina_template qw(from_template);
+use illumina_metadataParser qw(metadataParse);
 
 
 sub runCopyNumberTools {
@@ -36,6 +36,7 @@ sub runCopyNumberTools {
         }
     }
     $opt->{RUNNING_JOBS}->{cnv} = $check_cnv_jobs;
+    return;
 }
 
 sub runSampleCnv {
@@ -91,10 +92,11 @@ sub runSampleCnv {
         system "$qsub -o $freec_dirs{log} -e $freec_dirs{log} -N $job_id $bash_file";
     }
     push @{$check_cnv_jobs}, $job_id;
+    return;
 }
 
 sub runFreec {
-    my ($sample_name, $sample_bam, $control_bam, $run_name, $running_jobs, $dirs, $opt) = (@_);
+    my ($sample_name, $sample_bam, $control_bam, $run_name, $running_jobs, $dirs, $opt) = @_;
 
     my $done_file = catfile($dirs->{log}, "freec.done");
     if (-f $done_file) {

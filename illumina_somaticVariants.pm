@@ -12,9 +12,9 @@ use Carp;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
-use illumina_metadataParser;
+use illumina_sge qw(getJobId qsubTemplate qsubJava);
+use illumina_template qw(from_template);
+use illumina_metadataParser qw(metadataParse);
 
 
 sub runSomaticVariantCallers {
@@ -92,11 +92,12 @@ sub runSomaticVariantCallers {
     }
 
     my $job_id = mergeSomatics($tumor_sample, $somatic_name, \@somvar_jobs, \%somatic_dirs, $opt);
-    return [$job_id];
+    $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
+    return;
 }
 
 sub mergeSomatics {
-    my ($tumor_sample, $somatic_name, $somvar_jobs, $somatic_dirs, $opt) = (@_);
+    my ($tumor_sample, $somatic_name, $somvar_jobs, $somatic_dirs, $opt) = @_;
     my $runName = basename($opt->{OUTPUT_DIR});
 
     say "\n###SCHEDULING MERGE SOMATIC VCFS####";
@@ -186,11 +187,11 @@ sub mergeSomatics {
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
-    $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
+    return $job_id;
 }
 
 sub runStrelka {
-    my ($tumor_sample, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = (@_);
+    my ($tumor_sample, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
     my $runName = basename($opt{OUTPUT_DIR});
@@ -222,7 +223,7 @@ sub runStrelka {
 }
 
 sub runPileup {
-    my ($sample, $configuration) = (@_);
+    my ($sample, $configuration) = @_;
     my %opt = %{$configuration};
     my $runName = basename($opt{OUTPUT_DIR});
 
@@ -256,7 +257,7 @@ sub runPileup {
 }
 
 sub runVarscan {
-    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = (@_);
+    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my %opt = %{$opt};
     my @running_jobs = @{$running_jobs};
     push @running_jobs, @{$opt{RUNNING_JOBS}->{'pileup'}};
@@ -348,7 +349,7 @@ sub runVarscan {
 }
 
 sub runFreeBayes {
-    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = (@_);
+    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
     my $runName = basename($opt{OUTPUT_DIR});
@@ -447,7 +448,7 @@ sub runFreeBayes {
 }
 
 sub runMutect {
-    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = (@_);
+    my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
     my %opt = %{$opt};
     my $runName = basename($opt{OUTPUT_DIR});

@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId jobNative qsubJava qsubTemplate);
+use illumina_template qw(from_template);
 
 
 sub runRealignment {
@@ -60,7 +60,7 @@ sub runRealignment {
         my $knownIndelFiles;
         if ($opt->{REALIGNMENT_KNOWN}) {
             map { die "ERROR: $_ does not exist" if !-f } @knownIndelFiles;
-            $knownIndelFiles = join " ", map "-known $_", @knownIndelFiles;
+            $knownIndelFiles = join " ", map { "-known $_" } @knownIndelFiles;
         }
 
         from_template("Realign.sh.tt", $bashFile,
@@ -114,6 +114,7 @@ sub runRealignment {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobIDRealign;
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobIDPostProcess;
     }
+    return;
 }
 
 1;

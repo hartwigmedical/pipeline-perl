@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId qsubTemplate);
+use illumina_template qw(from_template);
 
 
 sub runPreStats {
@@ -44,6 +44,7 @@ sub runPreStats {
             say "\tWARNING: $done_file exists, skipping";
         }
     }
+    return;
 }
 
 1;

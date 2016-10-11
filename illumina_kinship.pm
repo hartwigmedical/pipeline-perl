@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId qsubJava);
+use illumina_template qw(from_template);
 
 
 sub runKinship {
@@ -49,6 +49,7 @@ sub runKinship {
     }
 
     $opt->{RUNNING_JOBS}->{kinship} = [$job_id];
+    return;
 }
 
 1;

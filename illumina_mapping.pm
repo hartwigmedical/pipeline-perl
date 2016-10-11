@@ -12,8 +12,8 @@ use List::MoreUtils qw(zip);
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
+use illumina_sge qw(getJobId qsubTemplate);
+use illumina_template qw(from_template);
 
 
 sub validateFastQName {
@@ -80,6 +80,7 @@ sub runMapping {
         system("$qsub -o $stdout -e $stderr -N $job_id -hold_jid $hold_jids $bash_file");
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
+    return;
 }
 
 sub addDirectories {
@@ -92,6 +93,7 @@ sub addDirectories {
         job => catfile($out_dir, "jobs"),
         mapping => catfile($out_dir, "mapping"),
     };
+    return;
 }
 
 sub createIndividualMappingJobs {
@@ -203,6 +205,7 @@ sub createIndividualMappingJobs {
 
     my $qsub = qsubTemplate($opt, "MAPPING");
     system("$qsub -o $stdout -e $stderr -N $jid{check_clean} -hold_jid $jid{mapping_flagstat},$jid{sort_flagstat} $bash_file");
+    return;
 }
 
 sub runBamPrep {
@@ -243,6 +246,7 @@ sub runBamPrep {
         system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
+    return;
 }
 
 sub verifyBam {
@@ -252,14 +256,14 @@ sub verifyBam {
     (my $sample = fileparse($bam_file)) =~ s/\.bam$//;
 
     my $headers = bamHeaders($bam_file, $opt);
-    my @read_groups = grep $_->{name} eq '@RG', @$headers;
+    my @read_groups = grep { $_->{name} eq '@RG' } @$headers;
 
-    my @sample_names = map $_->{tags}{SM}, @read_groups;
-    confess "too many samples in BAM $bam_file: @sample_names" unless keys { map { $_, 1 } @sample_names } < 2;
+    my @sample_names = map { $_->{tags}{SM} } @read_groups;
+    confess "too many samples in BAM $bam_file: @sample_names" unless keys { map { $_ => 1 } @sample_names } < 2;
     warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
     $sample = $sample_names[0] if @sample_names;
 
-    my %header_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{name} eq '@SQ', @$headers;
+    my %header_contigs = map { $_->{tags}{SN} => $_->{tags}{LN} } grep { $_->{name} eq '@SQ' } @$headers;
     verifyContigs(\%header_contigs, refGenomeContigs($opt));
     verifyReadGroups(\@read_groups, bamReads($bam_file, 1000, $opt));
 
@@ -269,11 +273,11 @@ sub verifyBam {
 sub verifyBai {
     my ($bai_file, $bam_file, $opt) = @_;
 
-    -f $bai_file && -M $bam_file > -M $bai_file or return 0;
+    (-f $bai_file && -M $bam_file > -M $bai_file) or return 0;
 
     # this check does not happen if the .bai is missing/old, so re-implemented in the job :(
     my $headers = bamHeaders($bam_file, $opt);
-    my %header_contigs = map { $_->{tags}{SN}, $_->{tags}{LN} } grep $_->{name} eq '@SQ', @$headers;
+    my %header_contigs = map { $_->{tags}{SN} => $_->{tags}{LN} } grep { $_->{name} eq '@SQ' } @$headers;
     verifyContigs(indexContigs($bam_file, $opt), \%header_contigs);
     return 1;
 }
@@ -293,7 +297,7 @@ sub bamHeaders {
     $? == 0 or confess "could not read BAM headers from $bam_file";
 
     chomp @lines;
-    my @fields = map [ split qr/[\t:]/ ], @lines;
+    my @fields = map { [ split qr/[\t:]/ ] } @lines;
     my @headers = map {
             name => shift $_,
             tags => { @$_ },
@@ -310,18 +314,17 @@ sub bamReads {
     chomp @lines;
 
     my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
-    my @fields = map [ split "\t", $_, @field_names ], @lines;
-    my @reads = map +{ zip @field_names, @$_ }, @fields;
+    my @fields = map { [ split "\t", $_, @field_names ] } @lines;
+    my @reads = map { { zip @field_names, @$_ } } @fields;
     map {
-        $_->{tags} = {
-            map {
-                shift @$_,
-                {
-                    type => shift @$_,
-                    value => shift @$_,
-                },
-            } map [ split ":" ], split "\t", $_->{tags}
-        },
+            $_->{tags} = {
+                    map {
+                            shift @$_ => {
+                                    type => shift @$_,
+                                    value => shift @$_,
+                            }
+                    } map { [ split ":" ] } split "\t", $_->{tags}
+                }
     } @reads;
     return \@reads;
 }
@@ -366,6 +369,7 @@ sub verifyContigs {
     }
     warn $_ foreach @warnings;
     confess "contigs do not match" if @warnings;
+    return;
 }
 
 sub verifyReadGroups {
@@ -375,6 +379,7 @@ sub verifyReadGroups {
     my %reads_rgids = map { $_->{tags}{RG}{value} => 1 } @$bam_reads;
     my @unknown_rgids = grep { not exists $header_rgids{$_} } keys %reads_rgids;
     confess "read group IDs from read tags not in BAM header:\n\t" . join "\n\t", @unknown_rgids if @unknown_rgids;
+    return;
 }
 
 1;

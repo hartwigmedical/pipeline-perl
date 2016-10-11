@@ -1,0 +1,4 @@
+severity = 4
+
+[InputOutput::RequireBriefOpen]
+lines = 20

@@ -11,7 +11,7 @@ use File::Basename;
 BEGIN {
     require Exporter;
     our @ISA = qw(Exporter);
-    our @EXPORT = qw(
+    our @EXPORT_OK = qw(
                         qsubTemplate
                         qsubJava
                         jobNative

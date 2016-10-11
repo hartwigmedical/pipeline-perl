@@ -10,9 +10,9 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge;
-use illumina_template;
-use illumina_metadataParser;
+use illumina_sge qw(getJobId qsubTemplate);
+use illumina_template qw(from_template);
+use illumina_metadataParser qw(metadataParse);
 
 
 sub runFinalize {
@@ -54,6 +54,7 @@ sub runFinalize {
     } else {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} $bash_file";
     }
+    return;
 }
 
 1;
