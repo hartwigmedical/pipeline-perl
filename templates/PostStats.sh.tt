@@ -29,6 +29,7 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
     -queue_time [% opt.POSTSTATS_TIME %] \
     -queue_project [% opt.CLUSTER_PROJECT %] \
     -picard_path [% opt.PICARD_PATH %] \
+    -sambamba_path [% opt.SAMBAMBA_PATH %] \
     -debug \
     -wgs \
     -coverage_cap 250[% IF opt.exists('SINGLE_END') %] -single_end[% END %][% IF opt.CLUSTER_RESERVATION == "yes" %] -queue_reserve[% END %]
