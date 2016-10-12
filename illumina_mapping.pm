@@ -111,7 +111,6 @@ sub createIndividualMappingJobs {
         mapping_flagstat => "MapFS_$metadata->{coreName}_" . getJobId(),
         sort => "Sort_$metadata->{coreName}_" . getJobId(),
         sort_flagstat => "SortFS_$metadata->{coreName}_" . getJobId(),
-        index => "Index_$metadata->{coreName}_" . getJobId(),
         check_clean => "CheckAndClean_$metadata->{coreName}_" . getJobId(),
     );
 
