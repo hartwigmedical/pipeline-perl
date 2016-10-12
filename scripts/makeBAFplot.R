@@ -30,8 +30,8 @@ determine_peaks <- function(region) {
 
   d <- density(region$baf, bw="sj")
 
-  ts_y <-ts(d$y)
-  tp <-turnpoints(ts_y)
+  ts_y <- ts(d$y)
+  tp <- turnpoints(ts_y)
   peaks <- data.frame(baf=d$x[tp$tppos], dens=d$y[tp$tppos])
   df <- data.frame(subset(peaks, dens >= 2.0))
   if (nrow(df) < 2) {
