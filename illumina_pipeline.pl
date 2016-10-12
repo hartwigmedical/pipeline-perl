@@ -11,6 +11,9 @@ use File::Copy::Recursive qw(rcopy);
 use File::Basename;
 use File::Spec::Functions;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
+use IO::Pipe;
+use POSIX qw(strftime);
+use Time::HiRes qw(gettimeofday);
 
 use FindBin;
 use lib "$FindBin::Bin";
@@ -36,6 +39,7 @@ readConfig($ARGV[0], $opt);
 checkConfig($opt);
 getSamples($opt);
 createOutputDirs($opt->{OUTPUT_DIR}, $opt->{SAMPLES});
+setupLogging($opt->{OUTPUT_DIR});
 lockRun($opt->{OUTPUT_DIR}) or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
 recordGitVersion($opt);
 copyConfigAndScripts($opt);
@@ -181,6 +185,20 @@ sub createOutputDirs {
             mkdir("${output_dir}/$sample/tmp") or die "Couldn't create directory ${output_dir}/$sample/tmp: $!";
         }
     }
+}
+
+sub setupLogging {
+    my ($output_dir) = @_;
+
+    my ($seconds, $microseconds) = gettimeofday;
+    my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
+    my $log_file = catfile($output_dir, "logs", "submitlog_${datetime}.txt");
+    my $log_fh = IO::Pipe->new()->writer("tee $log_file") or die "Couldn't tee to $log_file: $!";
+    open STDOUT, ">&", $log_fh or die "STDOUT redirection failed: $!";
+    open STDERR, ">&", $log_fh or die "STDERR redirection failed: $!";
+    STDOUT->autoflush(1);
+    STDERR->autoflush(1);
+    $log_fh->autoflush(1);
 }
 
 sub usage {
