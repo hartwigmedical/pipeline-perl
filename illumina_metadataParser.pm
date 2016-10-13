@@ -8,12 +8,8 @@ use File::Spec::Functions;
 use JSON;
 use Carp;
 
-
-BEGIN {
-    require Exporter;
-    our @ISA = qw(Exporter);
-    our @EXPORT_OK = qw(metadataParse);
-}
+use parent qw(Exporter);
+our @EXPORT_OK = qw(metadataParse);
 
 
 sub metadataParse {
@@ -22,7 +18,7 @@ sub metadataParse {
     my $json_conf;
     {
         open my $json_fh, "<:encoding(UTF-8)", $metadata_file or confess "Can't open $metadata_file";
-        local $/;
+        local $/ = undef;
         $json_conf = <$json_fh>;
         close $json_fh;
     }

@@ -22,7 +22,14 @@ sub validateFastQName {
     (my $R1 = $input_file) =~ s/_R2/_R1/;
     (my $R2 = $input_file) =~ s/_R1/_R2/;
 
-    my $fastQPattern = qr/^(?<sampleName>[^_]+)_(?<flowcellID>[^_]+)_(?<index>[^_]+)_(?<lane>[^_]+)_(?<tag>R1|R2)_(?<suffix>[^\.]+)(?<ext>\.fastq\.gz)$/;
+    my $fastQPattern = qr/^(?<sampleName>[^_]+)
+                          _(?<flowcellID>[^_]+)
+                          _(?<index>[^_]+)
+                          _(?<lane>[^_]+)
+                          _(?<tag>R1|R2)
+                          _(?<suffix>[^\.]+)
+                          (?<ext>\.fastq\.gz)$
+                         /x;
     $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
 
     return {
@@ -258,7 +265,7 @@ sub verifyBam {
     my @read_groups = grep { $_->{name} eq '@RG' } @$headers;
 
     my @sample_names = map { $_->{tags}{SM} } @read_groups;
-    confess "too many samples in BAM $bam_file: @sample_names" unless keys { map { $_ => 1 } @sample_names } < 2;
+    confess "too many samples in BAM $bam_file: @sample_names" if keys { map { $_ => 1 } @sample_names } > 1;
     warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
     $sample = $sample_names[0] if @sample_names;
 
@@ -314,7 +321,7 @@ sub bamReads {
 
     my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
     my @fields = map { [ split "\t", $_, @field_names ] } @lines;
-    my @reads = map { { zip @field_names, @$_ } } @fields;
+    my @reads = map { +{ zip @field_names, @$_ } } @fields;
     map {
             $_->{tags} = {
                     map {

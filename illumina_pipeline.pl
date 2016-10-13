@@ -201,10 +201,11 @@ sub setupLogging {
     STDOUT->autoflush(1);
     STDERR->autoflush(1);
     $log_fh->autoflush(1);
+    return;
 }
 
 sub usage {
-    warn <<END;
+    warn <<"END";
     Usage: perl illumina_pipeline.pl configurationFile.conf
 END
     exit;

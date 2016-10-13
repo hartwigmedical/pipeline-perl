@@ -7,17 +7,13 @@ use warnings;
 use POSIX qw(tmpnam);
 use File::Basename;
 
-
-BEGIN {
-    require Exporter;
-    our @ISA = qw(Exporter);
-    our @EXPORT_OK = qw(
-                        qsubTemplate
-                        qsubJava
-                        jobNative
-                        getJobId
-                   );
-}
+use parent qw(Exporter);
+our @EXPORT_OK = qw(
+                       qsubTemplate
+                       qsubJava
+                       jobNative
+                       getJobId
+               );
 
 
 sub generic {

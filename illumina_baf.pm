@@ -43,7 +43,7 @@ sub runBAF {
 			push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
 
 			my $run_unified_genotyper = 0;
-            my $done_file = catfile($baf_dirs->{log}, "BAF_UG_${sample}.done");
+            $done_file = catfile($baf_dirs->{log}, "BAF_UG_${sample}.done");
 			if (-f $done_file) {
 				say "WARNING: $done_file exists, skipping Unified Genotyper for $sample";
 			} else {

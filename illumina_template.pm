@@ -11,14 +11,11 @@ use Env qw($TEMPLATES);
 
 use FindBin;
 
+use parent qw(Exporter);
+our @EXPORT_OK = qw(from_template);
+
 
 my $template_dir = $TEMPLATES ? $TEMPLATES : catfile("$FindBin::Bin", "templates");
-
-BEGIN {
-    require Exporter;
-    our @ISA = qw(Exporter);
-    our @EXPORT_OK = qw(from_template);
-}
 
 
 sub from_template {
