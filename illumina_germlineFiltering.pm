@@ -83,9 +83,9 @@ sub runFilterVariants {
 
     my $qsub = qsubJava($opt, "FILTER_MASTER");
     if (@runningJobs) {
-        system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+        system "$qsub -o $logDir/GermlineFiltering_$runName.out -e $logDir/GermlineFiltering_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
     } else {
-        system "$qsub -o $logDir/GermlineFilter_$runName.out -e $logDir/GermlineFilter_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $logDir/GermlineFiltering_$runName.out -e $logDir/GermlineFiltering_$runName.err -N $jobID $bashFile";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

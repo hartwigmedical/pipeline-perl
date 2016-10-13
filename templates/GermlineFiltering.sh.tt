@@ -6,7 +6,7 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME="GermlineFilter"
+export JOB_NAME="GermlineFiltering"
 export JOB_SET="[% runName %]"
 export JOB_START=$(date +%s)
 
@@ -37,4 +37,3 @@ else
 fi
 
 echo "End germline variant filter	" `date` "	[% runName %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
-
