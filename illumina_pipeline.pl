@@ -224,7 +224,8 @@ sub readConfig {
     while (<$fh>) {
         chomp;
         next if m/^#/ or not $_;
-        my ($key, $val) = split("\t", $_, 2);
+        my ($key, $val) = split "\t", $_, 2;
+        warn "Key '$key' is missing a value - is it badly formatted?" if not defined $val;
 
         if ($key eq 'INIFILE') {
             $val = catfile(dirname(abs_path($0)), $val) unless file_name_is_absolute($val);
@@ -554,9 +555,7 @@ sub checkConfig {
         if (!$opt{FINALIZE_TIME}) { say "ERROR: No FINALIZE_TIME found in .ini file"; $checkFailed = 1; }
     }
 
-    if ($checkFailed) {
-        die "One or more options not found in config files";
-    }
+    die "One or more options not found or invalid in config files" if $checkFailed;
     return;
 }
 
@@ -594,5 +593,11 @@ sub copyConfigAndScripts {
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $ini_file: $!";
     }
+
+    my $final_ini = catfile($opt->{OUTPUT_DIR}, "logs", "final.ini");
+    open my $fh, ">", $final_ini or die "Couldn't open $final_ini: $!";
+    say $fh join "\n", map { "$_\t$opt->{$_}" if defined $opt->{$_} } keys %{$opt};
+    close $fh;
+
     return;
 }
