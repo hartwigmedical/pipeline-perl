@@ -142,23 +142,23 @@ sub createOutputDirs {
     my ($output_dir, $samples) = @_;
 
     if (!-d $output_dir) {
-	    make_path($output_dir) or die "Couldn't create directory ${output_dir}: $!";
+        make_path($output_dir) or die "Couldn't create directory ${output_dir}: $!";
     }
 
     if (!-d "${output_dir}/QCStats") {
-	    mkdir("${output_dir}/QCStats") or die "Couldn't create directory ${output_dir}/QCStats: $!";
+        mkdir("${output_dir}/QCStats") or die "Couldn't create directory ${output_dir}/QCStats: $!";
     }
 
     if (!-d "${output_dir}/jobs") {
-	    mkdir("${output_dir}/jobs") or die "Couldn't create directory ${output_dir}/jobs: $!";
+        mkdir("${output_dir}/jobs") or die "Couldn't create directory ${output_dir}/jobs: $!";
     }
 
     if (!-d "${output_dir}/logs") {
-	    mkdir("${output_dir}/logs") or die "Couldn't create directory ${output_dir}/logs: $!";
+        mkdir("${output_dir}/logs") or die "Couldn't create directory ${output_dir}/logs: $!";
     }
 
     if (!-d "${output_dir}/tmp") {
-	    mkdir("${output_dir}/tmp") or die "Couldn't create directory ${output_dir}/tmp: $!";
+        mkdir("${output_dir}/tmp") or die "Couldn't create directory ${output_dir}/tmp: $!";
     }
 
     foreach my $sample (keys %{$samples}) {
@@ -292,16 +292,16 @@ sub checkConfig {
         if (!$opt{MAPPING_SETTINGS}) { say "ERROR: No MAPPING_SETTINGS option found in config files."; $checkFailed = 1; }
 
         if (!$opt{MARKDUP_QUEUE}) { say "ERROR: No MARKDUP_QUEUE option found in config files."; $checkFailed = 1; }
-	    if (!$opt{MARKDUP_TIME}) { say "ERROR: No MARKDUP_TIME option found in config files."; $checkFailed = 1; }
-	    if (!$opt{MARKDUP_THREADS}) { say "ERROR: No MARKDUP_THREADS option found in config files."; $checkFailed = 1; }
-	    if (!$opt{MARKDUP_MEM}) { say "ERROR: No MARKDUP_MEM option found in config files."; $checkFailed = 1; }
-	    if (!$opt{MARKDUP_OVERFLOW_LIST_SIZE}) { say "ERROR: No MARKDUP_OVERFLOW_LIST_SIZE option found in config files."; $checkFailed = 1; }
-	}
+        if (!$opt{MARKDUP_TIME}) { say "ERROR: No MARKDUP_TIME option found in config files."; $checkFailed = 1; }
+        if (!$opt{MARKDUP_THREADS}) { say "ERROR: No MARKDUP_THREADS option found in config files."; $checkFailed = 1; }
+        if (!$opt{MARKDUP_MEM}) { say "ERROR: No MARKDUP_MEM option found in config files."; $checkFailed = 1; }
+        if (!$opt{MARKDUP_OVERFLOW_LIST_SIZE}) { say "ERROR: No MARKDUP_OVERFLOW_LIST_SIZE option found in config files."; $checkFailed = 1; }
+    }
 
-	if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
-	if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
-	if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
-	if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
+    if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
+    if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
+    if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
+    if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
 
     ## POSTSTATS
     if ($opt{POSTSTATS} && $opt{POSTSTATS} eq "yes") {
@@ -473,7 +473,7 @@ sub checkConfig {
         if (!$opt{BAF_TIME}) { say "ERROR: No BAF_TIME option found in config files."; $checkFailed = 1; }
         if (!$opt{BIOVCF_PATH}) { say "ERROR: No BIOVCF_PATH option found in config files."; $checkFailed = 1; }
         if (!$opt{BAF_SNPS}) { say "ERROR: No BAF_SNPS option found in config files."; $checkFailed = 1; }
-	}
+    }
 
     ## ANNOTATE_VARIANTS
     if ($opt{ANNOTATE_VARIANTS} && $opt{ANNOTATE_VARIANTS} eq "yes") {
