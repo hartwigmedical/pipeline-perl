@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=Mutect
-export JOB_SET="[% runName %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]

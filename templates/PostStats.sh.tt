@@ -7,12 +7,12 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=PostStats
-export JOB_SET="[% run_name %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]
 
-echo "Start poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% run_name %].log
+echo "Start poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
@@ -21,7 +21,7 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
     -bam [% bam_file %] \
 [% END -%]
     -output_dir [% opt.OUTPUT_DIR %]/QCStats/ \
-    -run_name [% run_name %] \
+    -run_name [% opt.RUN_NAME %] \
     -genome [% opt.GENOME %] \
     -queue [% opt.POSTSTATS_QUEUE %] \
     -queue_threads [% opt.POSTSTATS_THREADS %] \
@@ -34,6 +34,6 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
     -wgs \
     -coverage_cap 250[% IF opt.exists('SINGLE_END') %] -single_end[% END %][% IF opt.CLUSTER_RESERVATION == "yes" %] -queue_reserve[% END %]
 
-qalter -hold_jid bamMetrics_report_[% run_name %],[% job_id %] [% job_id_check %]
+qalter -hold_jid bamMetrics_report_[% opt.RUN_NAME %],[% job_id %] [% job_id_check %]
 
 [% INCLUDE Status.tt step="" status="finished" %]

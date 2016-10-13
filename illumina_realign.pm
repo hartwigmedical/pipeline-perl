@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runRealignment {
     my ($opt) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     say "Running single sample indel realignment for the following BAM-files:";
 
@@ -63,8 +62,7 @@ sub runRealignment {
                       knownIndelFiles => $knownIndelFiles,
                       healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam,
                       healthCheckPreRealignSlicedBamBai => $healthCheckPreRealignSlicedBamBai,
-                      opt => $opt,
-                      runName => $runName);
+                      opt => $opt);
 
         my $qsub = qsubJava($opt, "REALIGNMENT_MASTER");
         my $stdout = catfile($logDir, "Realignment_${sample}.out");
@@ -95,8 +93,7 @@ sub runRealignment {
                       healthCheckPostRealignSlicedBamBai => $healthCheckPostRealignSlicedBamBai,
                       healthCheckPostRealignSlicedFlagstat => $healthCheckPostRealignSlicedFlagstat,
                       healthCheckPrePostRealignDiff => $healthCheckPrePostRealignDiff,
-                      opt => $opt,
-                      runName => $runName);
+                      opt => $opt);
 
         $qsub = qsubTemplate($opt, "FLAGSTAT");
         $stdout = catfile($logDir, "RealignmentPostProcess_${sample}.out");

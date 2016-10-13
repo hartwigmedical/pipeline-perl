@@ -42,7 +42,6 @@ sub validateFastQName {
 
 sub runMapping {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     die "GENOME: $opt->{GENOME} does not exist!" if !-f $opt->{GENOME};
     die "GENOME BWT: $opt->{GENOME}.bwt does not exist!" if !-f "$opt->{GENOME}.bwt";
@@ -80,7 +79,7 @@ sub runMapping {
         my $job_id = "MergeMarkdup_${sample}_" . getJobId();
         my $bash_file = catfile($info->{dirs}->{job}, "${job_id}.sh");
 
-        from_template("MergeMarkdup.sh.tt", $bash_file, sample => $sample, bams => $bams, run_name => $run_name, opt => $opt);
+        from_template("MergeMarkdup.sh.tt", $bash_file, sample => $sample, bams => $bams, opt => $opt);
         my $qsub = qsubTemplate($opt, "MARKDUP");
         my $stdout = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.out");
         my $stderr = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.err");
@@ -105,7 +104,6 @@ sub addDirectories {
 
 sub createIndividualMappingJobs {
     my ($opt, $metadata, $samples) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA',
                                                    $metadata->{coreName},
@@ -152,7 +150,6 @@ sub createIndividualMappingJobs {
                       RG_PL => $RG_PL,
                       RG_LB => $RG_LB,
                       RG_PU => $RG_PU,
-                      runName => $runName,
                       opt => $opt);
 
         my $qsub = qsubTemplate($opt, "MAPPING");
@@ -166,7 +163,6 @@ sub createIndividualMappingJobs {
         from_template("PerLaneMapFS.sh.tt", $bash_file,
                       sampleName => $metadata->{sampleName},
                       coreName => $metadata->{coreName},
-                      runName => $runName,
                       opt => $opt);
 
         my $qsub = qsubTemplate($opt, "FLAGSTAT");
@@ -180,7 +176,6 @@ sub createIndividualMappingJobs {
         from_template("PerLaneSort.sh.tt", $bash_file,
                       coreName => $metadata->{coreName},
                       sampleName => $metadata->{sampleName},
-                      runName => $runName,
                       opt => $opt);
 
         my $qsub = qsubTemplate($opt, "MAPPING");
@@ -194,7 +189,6 @@ sub createIndividualMappingJobs {
         from_template("PerLaneSortFS.sh.tt", $bash_file,
                       sampleName => $metadata->{sampleName},
                       coreName => $metadata->{coreName},
-                      runName => $runName,
                       opt => $opt);
 
         my $qsub = qsubTemplate($opt, "FLAGSTAT");

@@ -98,7 +98,6 @@ sub runSomaticVariantCallers {
 
 sub mergeSomatics {
     my ($tumor_sample, $somatic_name, $somvar_jobs, $somatic_dirs, $opt) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     say "\n###SCHEDULING MERGE SOMATIC VCFS####";
 
@@ -119,8 +118,7 @@ sub mergeSomatics {
                   inputs => join(" ", @inputs),
                   outvcf => $outvcf,
                   dirs => $somatic_dirs,
-                  opt => $opt,
-                  runName => $runName);
+                  opt => $opt);
 
     my $qsub = qsubJava($opt, "SOMVARMERGE");
     if (@{$somvar_jobs}) {
@@ -141,8 +139,7 @@ sub mergeSomatics {
                       invcf => $invcf,
                       outvcf => $outvcf,
                       dirs => $somatic_dirs,
-                      opt => $opt,
-                      runName => $runName);
+                      opt => $opt);
 
         $qsub = qsubJava($opt, "SOMVARMERGE");
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
@@ -161,8 +158,7 @@ sub mergeSomatics {
                       basename => $basename,
                       finalvcf => $outvcf,
                       dirs => $somatic_dirs,
-                      opt => $opt,
-                      runName => $runName);
+                      opt => $opt);
 
         $qsub = qsubJava($opt, "SOMVARMERGE");
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
@@ -181,8 +177,7 @@ sub mergeSomatics {
                   tumor_sample => $tumor_sample,
                   somatic_name => $somatic_name,
                   dirs => $somatic_dirs,
-                  opt => $opt,
-                  runName => $runName);
+                  opt => $opt);
 
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
@@ -193,8 +188,6 @@ sub mergeSomatics {
 sub runStrelka {
     my ($tumor_sample, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
-    my %opt = %{$opt};
-    my $runName = basename($opt{OUTPUT_DIR});
 
     my $done_file = catfile($somatic_dirs->{log}, "strelka.done");
     if (-f $done_file) {
@@ -209,10 +202,9 @@ sub runStrelka {
                   ref_sample_bam => $ref_sample_bam,
                   tumor_sample_bam => $tumor_sample_bam,
                   dirs => $somatic_dirs,
-                  runName => $runName,
-                  opt => \%opt);
+                  opt => $opt);
 
-    my $qsub = qsubJava(\%opt, "STRELKA");
+    my $qsub = qsubJava($opt, "STRELKA");
     if (@running_jobs) {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
@@ -223,33 +215,30 @@ sub runStrelka {
 }
 
 sub runPileup {
-    my ($sample, $configuration) = @_;
-    my %opt = %{$configuration};
-    my $runName = basename($opt{OUTPUT_DIR});
+    my ($sample, $opt) = @_;
 
-    my $bam = $opt{BAM_FILES}->{$sample};
+    my $bam = $opt->{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
     my $jobID = "PileUp_${sample}_" . getJobId();
 
-    my $done_file = catfile($opt{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
+    my $done_file = catfile($opt->{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return $jobID;
     }
 
-    my $logDir = catfile($opt{OUTPUT_DIR}, $sample, "logs");
-    my $bashFile = catfile($opt{OUTPUT_DIR}, $sample, "jobs", "${jobID}.sh");
+    my $logDir = catfile($opt->{OUTPUT_DIR}, $sample, "logs");
+    my $bashFile = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "${jobID}.sh");
 
     from_template("PileUp.sh.tt", "$bashFile",
                   sample => $sample,
                   bam => $bam,
                   pileup => $pileup,
-                  runName => $runName,
-                  opt => $configuration);
+                  opt => $opt);
 
-    my $qsub = qsubTemplate(\%opt, "PILEUP");
-    if (@{$opt{RUNNING_JOBS}->{$sample}}) {
-        system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID -hold_jid " . join(",", @{$opt{RUNNING_JOBS}->{$sample}}) . " $bashFile";
+    my $qsub = qsubTemplate($opt, "PILEUP");
+    if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
+        system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID -hold_jid " . join(",", @{$opt->{RUNNING_JOBS}->{$sample}}) . " $bashFile";
     } else {
         system "$qsub -o $logDir/Pileup_$sample.out -e $logDir/Pileup_$sample.err -N $jobID $bashFile";
     }
@@ -258,9 +247,8 @@ sub runPileup {
 
 sub runVarscan {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
-    my %opt = %{$opt};
     my @running_jobs = @{$running_jobs};
-    push @running_jobs, @{$opt{RUNNING_JOBS}->{'pileup'}};
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{'pileup'}};
 
     my $varscan_out_dir = catfile($somatic_dirs->{out}, "varscan");
     (my $tumor_sample_pileup = $tumor_sample_bam) =~ s/\.bam$/\.pileup\.gz/;
@@ -276,7 +264,6 @@ sub runVarscan {
         return;
     }
 
-    my $runName = basename($opt{OUTPUT_DIR});
     my @chrs = @{getChromosomes($opt)};
     my @varscan_jobs;
 
@@ -292,10 +279,9 @@ sub runVarscan {
                       ref_sample_pileup => $ref_sample_pileup,
                       tumor_sample_pileup => $tumor_sample_pileup,
                       dirs => $somatic_dirs,
-                      runName => $runName,
-                      opt => \%opt);
+                      opt => $opt);
 
-        my $qsub = qsubJava(\%opt, "VARSCAN");
+        my $qsub = qsubJava($opt, "VARSCAN");
         if (@running_jobs) {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
@@ -309,8 +295,8 @@ sub runVarscan {
     my $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
     my $file_test = "if [ -s $ref_sample_bam -a -s $tumor_sample_bam ";
-    my $snp_concat_command = catfile($opt{VCFTOOLS_PATH}, "vcf-concat");
-    my $indel_concat_command = catfile($opt{VCFTOOLS_PATH}, "vcf-concat");
+    my $snp_concat_command = catfile($opt->{VCFTOOLS_PATH}, "vcf-concat");
+    my $indel_concat_command = catfile($opt->{VCFTOOLS_PATH}, "vcf-concat");
     my $rm_command = "rm ";
 
     foreach my $chr (@chrs) {
@@ -336,10 +322,9 @@ sub runVarscan {
                   snp_concat_command => $snp_concat_command,
                   indel_concat_command => $indel_concat_command,
                   dirs => $somatic_dirs,
-                  runName => $runName,
                   opt => $opt);
 
-    my $qsub = qsubJava(\%opt, "VARSCAN");
+    my $qsub = qsubJava($opt, "VARSCAN");
     if (@varscan_jobs) {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @varscan_jobs) . " $bash_file";
     } else {
@@ -351,8 +336,7 @@ sub runVarscan {
 sub runFreeBayes {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
-    my %opt = %{$opt};
-    my $runName = basename($opt{OUTPUT_DIR});
+
     my $freebayes_out_dir = catfile($somatic_dirs->{out}, "freebayes");
     my $freebayes_tmp_dir = catfile($freebayes_out_dir, "tmp");
 
@@ -377,13 +361,13 @@ sub runFreeBayes {
         my $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
         my $output_name = "${somatic_name}_${chr}";
 
-        my $freebayes_command = catfile($opt{FREEBAYES_PATH}, "freebayes");
-        $freebayes_command .= " -f $opt{GENOME} -r $chr $opt{FREEBAYES_SETTINGS} $ref_sample_bam $tumor_sample_bam > $freebayes_out_dir/$output_name.vcf";
+        my $freebayes_command = catfile($opt->{FREEBAYES_PATH}, "freebayes");
+        $freebayes_command .= " -f $opt->{GENOME} -r $chr $opt->{FREEBAYES_SETTINGS} $ref_sample_bam $tumor_sample_bam > $freebayes_out_dir/$output_name.vcf";
 
-        my $sort_uniq_filter_command = "$opt{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
+        my $sort_uniq_filter_command = "$opt->{VCFTOOLS_PATH}/vcf-sort -c -t $freebayes_tmp_dir $freebayes_out_dir/$output_name.vcf | $opt->{VCFLIB_PATH}/vcfuniq > $freebayes_out_dir/$output_name.sorted_uniq.vcf";
         my $mv_command;
-        if ($opt{SOMVAR_TARGETS}) {
-            $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt{FREEBAYES_MEM}."G -jar $opt{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt{GENOME} -L $opt{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
+        if ($opt->{SOMVAR_TARGETS}) {
+            $sort_uniq_filter_command .= "\n\tjava -Xmx".$opt->{FREEBAYES_MEM}."G -jar $opt->{GATK_PATH}/GenomeAnalysisTK.jar -T SelectVariants -R $opt->{GENOME} -L $opt->{SOMVAR_TARGETS} -V $freebayes_out_dir/$output_name.sorted_uniq.vcf -o $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf\n";
             $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq_targetfilter.vcf $freebayes_out_dir/$output_name.vcf";
         } else {
             $mv_command = "mv $freebayes_out_dir/$output_name.sorted_uniq.vcf $freebayes_out_dir/$output_name.vcf";
@@ -398,10 +382,9 @@ sub runFreeBayes {
                       tumor_sample_bam => $tumor_sample_bam,
                       ref_sample_bam => $ref_sample_bam,
                       dirs => $somatic_dirs,
-                      runName => $runName,
                       opt => $opt);
 
-        my $qsub = qsubJava(\%opt, "FREEBAYES");
+        my $qsub = qsubJava($opt, "FREEBAYES");
         if (@running_jobs) {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
@@ -415,7 +398,7 @@ sub runFreeBayes {
     my $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
     my $file_test = "if [ -s $ref_sample_bam -a -s $tumor_sample_bam ";
-    my $concat_command = "$opt{VCFTOOLS_PATH}/vcf-concat ";
+    my $concat_command = "$opt->{VCFTOOLS_PATH}/vcf-concat ";
     my $rm_command = "rm -r $freebayes_tmp_dir ";
     foreach my $chr (@chrs) {
         my $snp_output = "${somatic_name}_${chr}";
@@ -435,10 +418,9 @@ sub runFreeBayes {
                   freebayes_out_dir => $freebayes_out_dir,
                   somatic_name => $somatic_name,
                   dirs => $somatic_dirs,
-                  runName => $runName,
                   opt => $opt);
 
-    my $qsub = qsubJava(\%opt, "FREEBAYES");
+    my $qsub = qsubJava($opt, "FREEBAYES");
     if (@freebayes_jobs) {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @freebayes_jobs) . " $bash_file";
     } else {
@@ -450,8 +432,7 @@ sub runFreeBayes {
 sub runMutect {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $somatic_dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
-    my %opt = %{$opt};
-    my $runName = basename($opt{OUTPUT_DIR});
+
     my $mutect_out_dir = catfile($somatic_dirs->{out}, "mutect");
     my $mutect_tmp_dir = catfile($mutect_out_dir, "tmp");
 
@@ -476,9 +457,9 @@ sub runMutect {
         my $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
         my $output_name = "${somatic_name}_${chr}";
 
-        my $command = "java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{MUTECT_PATH}/mutect.jar -T MuTect ";
-        $command .= "-R $opt{GENOME} --cosmic $opt{MUTECT_COSMIC} --dbsnp $opt{CALLING_DBSNP} --intervals $chr ";
-        #if ($opt{SOMVAR_TARGETS}) { $command .= "--intervals $opt{SOMVAR_TARGETS} "; }
+        my $command = "java -Xmx".$opt->{MUTECT_MEM}."G -jar $opt->{MUTECT_PATH}/mutect.jar -T MuTect ";
+        $command .= "-R $opt->{GENOME} --cosmic $opt->{MUTECT_COSMIC} --dbsnp $opt->{CALLING_DBSNP} --intervals $chr ";
+        #if ($opt->{SOMVAR_TARGETS}) { $command .= "--intervals $opt->{SOMVAR_TARGETS} "; }
         $command .= "--input_file:normal $ref_sample_bam --input_file:tumor $tumor_sample_bam ";
         $command .= "--out ${output_name}.out --vcf ${output_name}_mutect.vcf";
 
@@ -489,10 +470,9 @@ sub runMutect {
                       tumor_sample_bam => $tumor_sample_bam,
                       ref_sample_bam => $ref_sample_bam,
                       dirs => $somatic_dirs,
-                      runName => $runName,
-                      opt => \%opt);
+                      opt => $opt);
 
-        my $qsub = qsubJava(\%opt, "MUTECT");
+        my $qsub = qsubJava($opt, "MUTECT");
         if (@running_jobs) {
             system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
         } else {
@@ -505,8 +485,8 @@ sub runMutect {
     my $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
     my $file_test = "if [ -s $ref_sample_bam -a -s $tumor_sample_bam ";
-    my $concat_command = catfile($opt{VCFTOOLS_PATH}, "vcf-concat");
-    my $filter_command = "cat ${somatic_name}_mutect.vcf | java -Xmx".$opt{MUTECT_MEM}."G -jar $opt{SNPEFF_PATH}/SnpSift.jar filter \"(na FILTER ) | (FILTER = 'PASS')\" > ${somatic_name}_mutect_passed.vcf \n";
+    my $concat_command = catfile($opt->{VCFTOOLS_PATH}, "vcf-concat");
+    my $filter_command = "cat ${somatic_name}_mutect.vcf | java -Xmx".$opt->{MUTECT_MEM}."G -jar $opt->{SNPEFF_PATH}/SnpSift.jar filter \"(na FILTER ) | (FILTER = 'PASS')\" > ${somatic_name}_mutect_passed.vcf \n";
 
     foreach my $chr (@chrs) {
         my $output = "${somatic_name}_${chr}_mutect.vcf";
@@ -526,10 +506,9 @@ sub runMutect {
                   filter_command => $filter_command,
                   mutect_out_dir => $mutect_out_dir,
                   dirs => $somatic_dirs,
-                  runName => $runName,
                   opt => $opt);
 
-    my $qsub = qsubJava(\%opt, "MUTECT");
+    my $qsub = qsubJava($opt, "MUTECT");
     if (@mutect_jobs) {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid " . join(",", @mutect_jobs) . " $bash_file";
     } else {

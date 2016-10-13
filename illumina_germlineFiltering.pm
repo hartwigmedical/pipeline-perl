@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runFilterVariants {
     my ($opt) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     my @runningJobs;
     my $jobID = "GermlineFilter_" . getJobId();
@@ -31,7 +30,7 @@ sub runFilterVariants {
     my $jobNative = jobNative($opt, "FILTER");
     $command .= "-jobQueue $opt->{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt->{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
 
-    $command .= "-S $opt->{OUTPUT_DIR}/QScripts/$opt->{FILTER_SCALA} -R $opt->{GENOME} -V $opt->{OUTPUT_DIR}/$runName\.raw_variants.vcf -O $runName -mem $opt->{FILTER_MEM} -nsc $opt->{FILTER_SCATTER} ";
+    $command .= "-S $opt->{OUTPUT_DIR}/QScripts/$opt->{FILTER_SCALA} -R $opt->{GENOME} -V $opt->{OUTPUT_DIR}/$opt->{RUN_NAME}.raw_variants.vcf -O $opt->{RUN_NAME} -mem $opt->{FILTER_MEM} -nsc $opt->{FILTER_SCATTER} ";
 
 	my @SNPFilterNames = split "\t", $opt->{FILTER_SNPNAME};
 	my @SNPFilterExprs = split "\t", $opt->{FILTER_SNPEXPR};
@@ -73,7 +72,12 @@ sub runFilterVariants {
 
     my $bashFile = catfile($opt->{OUTPUT_DIR}, "jobs", "${jobID}.sh");
     my $logDir = catfile($opt->{OUTPUT_DIR}, "logs");
-    from_template("GermlineFiltering.sh.tt", $bashFile, runName => $runName, command => $command, opt => $opt);
+    my $stdout = catfile($logDir, "GermlineFiltering_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($logDir, "GermlineFiltering_$opt->{RUN_NAME}.err");
+
+    from_template("GermlineFiltering.sh.tt", $bashFile,
+                  command => $command,
+                  opt => $opt);
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {
@@ -83,9 +87,9 @@ sub runFilterVariants {
 
     my $qsub = qsubJava($opt, "FILTER_MASTER");
     if (@runningJobs) {
-        system "$qsub -o $logDir/GermlineFiltering_$runName.out -e $logDir/GermlineFiltering_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+        system "$qsub -o $stdout -e $stderr -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
     } else {
-        system "$qsub -o $logDir/GermlineFiltering_$runName.out -e $logDir/GermlineFiltering_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $stdout -e $stderr -N $jobID $bashFile";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

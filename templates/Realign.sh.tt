@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=Realign
-export JOB_SET="[% runName %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 source [% opt.CLUSTER_PATH %]/settings.sh

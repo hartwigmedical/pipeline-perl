@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runAnnotateVariants {
     my ($opt) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     my @runningJobs;
     my $jobID = "GermlineAnnotation_" . getJobId();
@@ -27,12 +26,17 @@ sub runAnnotateVariants {
         return;
     }
 
-    my $invcf = "${runName}.filtered_variants.vcf";
+    my $invcf = "$opt->{RUN_NAME}.filtered_variants.vcf";
     my $preAnnotateVCF = $invcf;
     my $bashFile = catfile($opt->{OUTPUT_DIR}, "jobs", "${jobID}.sh");
     my $logDir = catfile($opt->{OUTPUT_DIR}, "logs");
+    my $stdout = catfile($logDir, "GermlineAnnotation_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($logDir, "GermlineAnnotation_$opt->{RUN_NAME}.err");
 
-    from_template("GermlineAnnotation.sh.tt", $bashFile, runName => $runName, invcf => $invcf, preAnnotateVCF => $preAnnotateVCF, opt => $opt);
+    from_template("GermlineAnnotation.sh.tt", $bashFile,
+                  invcf => $invcf,
+                  preAnnotateVCF => $preAnnotateVCF,
+                  opt => $opt);
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {
@@ -42,9 +46,9 @@ sub runAnnotateVariants {
 
     my $qsub = qsubJava($opt, "ANNOTATE");
     if (@runningJobs) {
-	    system "$qsub -o $logDir/GermlineAnnotation_$runName.out -e $logDir/GermlineAnnotation_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+	    system "$qsub -o $stdout -e $stderr -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
     } else {
-	    system "$qsub -o $logDir/GermlineAnnotation_$runName.out -e $logDir/GermlineAnnotation_$runName.err -N $jobID $bashFile";
+	    system "$qsub -o $stdout -e $stderr -N $jobID $bashFile";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

@@ -41,7 +41,6 @@ sub runCopyNumberTools {
 
 sub runSampleCnv {
     my ($sample, $control, $cnv_name, $check_cnv_jobs, $opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "copyNumber", $cnv_name);
     my %freec_dirs = (
@@ -71,7 +70,7 @@ sub runSampleCnv {
     my @cnv_jobs;
     if ($opt->{CNV_FREEC} eq "yes") {
         say "\n###SCHEDULING FREEC####";
-        my $freec_job = runFreec($sample, $sample_bam, $control_bam, $run_name, \@running_jobs, \%freec_dirs, $opt);
+        my $freec_job = runFreec($sample, $sample_bam, $control_bam, \@running_jobs, \%freec_dirs, $opt);
         push @cnv_jobs, $freec_job if $freec_job;
     }
 
@@ -81,7 +80,6 @@ sub runSampleCnv {
 
     from_template("CnvCheck.sh.tt", $bash_file,
                   cnv_name => $cnv_name,
-                  run_name => $run_name,
                   dirs => \%freec_dirs,
                   opt => $opt);
 
@@ -96,7 +94,7 @@ sub runSampleCnv {
 }
 
 sub runFreec {
-    my ($sample_name, $sample_bam, $control_bam, $run_name, $running_jobs, $dirs, $opt) = @_;
+    my ($sample_name, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) = @_;
 
     my $done_file = catfile($dirs->{log}, "freec.done");
     if (-f $done_file) {
@@ -129,7 +127,6 @@ sub runFreec {
                   control_bam => $control_bam,
                   sample_bam_name => $sample_bam_name,
                   config_file => $config_file,
-                  run_name => $run_name,
                   dirs => $dirs,
                   opt => $opt);
 

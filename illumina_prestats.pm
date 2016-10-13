@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runPreStats {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     say "Creating FASTQC report for the following fastq.gz files:";
     foreach my $input_file (keys %{$opt->{FASTQ}}) {
@@ -35,7 +34,6 @@ sub runPreStats {
                           sample_name => $sample_name,
                           core_name => $core_name,
                           input => $input_file,
-                          run_name => $run_name,
                           opt => $opt);
             my $qsub = qsubTemplate($opt, "PRESTATS");
             system("$qsub -o $log_dir/PreStat_${core_name}.out -e $log_dir/PreStats_${core_name}.err -N $job_id $bash_file");

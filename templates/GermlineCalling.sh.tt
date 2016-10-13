@@ -7,14 +7,14 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=GermlineCalling
-export JOB_SET="[% runName %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]/tmp
 
-echo "Start germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Start germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 
 [% sampleBam = sampleBams.shift %]
 [% bamIfList = "-s " _ sampleBam  %]
@@ -31,9 +31,9 @@ else
 	fail "One or more input bam files do not exist."
 fi
 
-if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
-	mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].raw_variants.vcf [% opt.OUTPUT_DIR %]/
-	mv [% opt.OUTPUT_DIR %]/tmp/[% runName %].raw_variants.vcf.idx [% opt.OUTPUT_DIR %]/
+if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].raw_variants.vcf.done ]; then
+	mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf [% opt.OUTPUT_DIR %]/
+	mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf.idx [% opt.OUTPUT_DIR %]/
 	[% IF opt.CALLING_GVCF == 'yes' %]
 		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz [% opt.OUTPUT_DIR %]/gvcf/
 		mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% opt.OUTPUT_DIR %]/gvcf/
@@ -43,8 +43,8 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% runName %].raw_variants.vcf.done ]; then
 	[% INCLUDE Status.tt step="" status="success" %]
 else
 	[% INCLUDE Status.tt step="" status="failed" %]
-	fail "[% runName %].raw_variants.vcf.done does not exist."
+	fail "[% opt.RUN_NAME %].raw_variants.vcf.done does not exist."
 fi
 
-echo "Finished germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% runName %].log
+echo "Finished germline variant caller	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 

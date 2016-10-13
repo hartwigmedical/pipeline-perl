@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runVariantCalling {
     my ($opt) = @_;
-    my $runName = basename($opt->{OUTPUT_DIR});
 
     my @sampleBams;
     my @runningJobs;
@@ -41,7 +40,7 @@ sub runVariantCalling {
 	    $command .= " -glm $opt->{CALLING_UGMODE} ";
     }
 
-    $command .= "-R $opt->{GENOME} -O $runName -mem $opt->{CALLING_MEM} -nct $opt->{CALLING_THREADS} -nsc $opt->{CALLING_SCATTER} -stand_call_conf $opt->{CALLING_STANDCALLCONF} -stand_emit_conf $opt->{CALLING_STANDEMITCONF} ";
+    $command .= "-R $opt->{GENOME} -O $opt->{RUN_NAME} -mem $opt->{CALLING_MEM} -nct $opt->{CALLING_THREADS} -nsc $opt->{CALLING_SCATTER} -stand_call_conf $opt->{CALLING_STANDCALLCONF} -stand_emit_conf $opt->{CALLING_STANDEMITCONF} ";
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $sampleBam = "$opt->{OUTPUT_DIR}/$sample/mapping/$opt->{BAM_FILES}->{$sample}";
@@ -73,13 +72,19 @@ sub runVariantCalling {
 
     my $bashFile = catfile($opt->{OUTPUT_DIR}, "jobs", "${jobID}.sh");
     my $logDir = catfile($opt->{OUTPUT_DIR}, "logs");
-    from_template("GermlineCalling.sh.tt", $bashFile, runName => $runName, command => $command, sampleBams => \@sampleBams, opt => $opt);
+    my $stdout = catfile($logDir, "GermlineCaller_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($logDir, "GermlineCaller_$opt->{RUN_NAME}.err");
+
+    from_template("GermlineCalling.sh.tt", $bashFile,
+                  command => $command,
+                  sampleBams => \@sampleBams,
+                  opt => $opt);
 
     my $qsub = qsubJava($opt, "CALLING_MASTER");
     if (@runningJobs) {
-        system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+        system "$qsub -o $stdout -e $stderr -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
     } else {
-        system "$qsub -o $logDir/GermlineCaller_$runName.out -e $logDir/GermlineCaller_$runName.err -N $jobID $bashFile";
+        system "$qsub -o $stdout -e $stderr -N $jobID $bashFile";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

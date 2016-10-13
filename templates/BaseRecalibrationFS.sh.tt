@@ -7,7 +7,7 @@
 #[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=BaseRecalibrationFS
-export JOB_SET="[% run_name %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 cd [% dirs.tmp %]
 

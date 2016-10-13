@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runBaseRecalibration {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     say "Running base recalibration for the following BAM-files:";
 
@@ -65,7 +64,6 @@ sub runBaseRecalibration {
                       job_native => $job_native,
                       known_files => $known_files,
                       dirs => $dirs,
-                      run_name => $run_name,
                       opt => $opt
                   );
 
@@ -87,7 +85,6 @@ sub runBaseRecalibration {
                       recal_bambai => $recal_bambai,
                       recal_flagstat => $recal_flagstat,
                       dirs => $dirs,
-                      run_name => $run_name,
                       opt => $opt
                   );
 

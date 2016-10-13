@@ -246,11 +246,10 @@ sub checkConfig {
     my %opt = %{$opt};
 
     my $checkFailed = 0;
-    my $runName = "";
 
     ### Input and Output
     if (!$opt{INIFILE}) { say "ERROR: No INIFILE option found in config files."; $checkFailed = 1; }
-    if (!$opt{OUTPUT_DIR}) { say "ERROR: No OUTPUT_DIR found in config files."; $checkFailed = 1; } else { $runName = basename($opt{OUTPUT_DIR}); }
+    if (!$opt{OUTPUT_DIR}) { say "ERROR: No OUTPUT_DIR found in config files."; $checkFailed = 1; }
     if (!($opt{FASTQ} || $opt{BAM})) { say "ERROR: No FASTQ or BAM files found in config files."; $checkFailed = 1; }
     if (!$opt{MAIL}) { say "ERROR: No MAIL address specified in config files."; $checkFailed = 1; }
 
@@ -556,6 +555,7 @@ sub checkConfig {
     }
 
     die "One or more options not found or invalid in config files" if $checkFailed;
+    $opt->{RUN_NAME} = basename($opt{OUTPUT_DIR});
     return;
 }
 

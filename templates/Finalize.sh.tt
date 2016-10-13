@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME=Finalize
-export JOB_SET="[% run_name %]"
+export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step="" status="processing" %]
@@ -16,7 +16,7 @@ source [% opt.CLUSTER_PATH %]/settings.sh
 
 failed=false
 rm -f [% log_file %]
-echo "Check and cleanup for run: [% run_name %]" >> [% log_file %]
+echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
 echo "Pipeline version: [% opt.VERSION %]" >> [% log_file %]
 echo >> [% log_file %]
 
@@ -176,7 +176,7 @@ echo >> [% log_file %]
 if [[ "${failed}" == "true" ]]
 then
     echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
-    mail -s "Pipeline FAILED [% run_name %]" "[% opt.MAIL %]" < [% log_file %]
+    mail -s "Pipeline FAILED [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
     [% INCLUDE Status.tt step="" status="failed" %]
 else
     echo "The pipeline completed successfully." >> [% log_file %]
@@ -202,7 +202,7 @@ else
 [% END -%]
 
     done_file="[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done"
-    mail -s "Pipeline DONE [% run_name %]" "[% opt.MAIL %]" < [% log_file %]
+    mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
     touch ${done_file}
     [% INCLUDE Status.tt step="" status="success" %]
 fi

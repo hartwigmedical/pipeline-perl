@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runPostStats {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     my $done_file = catfile($opt->{OUTPUT_DIR}, "logs", "PostStats.done");
 
@@ -38,14 +37,13 @@ sub runPostStats {
     my $job_id_check = "PostStatsCheck_" . getJobId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
-    my $stdout = catfile($log_dir, "PostStats_${run_name}.out");
-    my $stderr = catfile($log_dir, "PostStats_${run_name}.err");
+    my $stdout = catfile($log_dir, "PostStats_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($log_dir, "PostStats_$opt->{RUN_NAME}.err");
 
     from_template("PostStats.sh.tt", $bash_file,
                   bam_files => \@bam_files,
                   job_id => $job_id,
                   job_id_check => $job_id_check,
-                  run_name => $run_name,
                   opt => $opt);
 
     my $qsub = qsubTemplate($opt, "POSTSTATS");
@@ -56,7 +54,7 @@ sub runPostStats {
     }
 
     $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id_check}.sh");
-    from_template("PostStatsCheck.sh.tt", $bash_file, run_name => $run_name, opt => $opt);
+    from_template("PostStatsCheck.sh.tt", $bash_file, opt => $opt);
     system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];

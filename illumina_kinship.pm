@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runKinship {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
 
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $done_file = catfile($log_dir, "Kinship.done");
@@ -25,14 +24,15 @@ sub runKinship {
         return;
     }
 
-    my $vcf = "${run_name}.filtered_variants.vcf";
+    my $vcf = "$opt->{RUN_NAME}.filtered_variants.vcf";
     my $job_id = "Kinship_" . getJobId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
+    my $stdout = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.err");
 
     from_template("Kinship.sh.tt", $bash_file,
                   vcf => $vcf,
-                  opt => $opt,
-                  run_name => $run_name);
+                  opt => $opt);
 
     my @runningJobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
@@ -43,9 +43,9 @@ sub runKinship {
 
     my $qsub = qsubJava($opt, "KINSHIP");
     if (@runningJobs) {
-        system "$qsub -o $log_dir/Kinship_${run_name}.out -e $log_dir/Kinship_${run_name}.err -N $job_id -hold_jid " . join(",", @runningJobs) . " $bash_file";
+        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @runningJobs) . " $bash_file";
     } else {
-        system "$qsub -o $log_dir/Kinship_${run_name}.out -e $log_dir/Kinship_${run_name}.err -N $job_id $bash_file";
+        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
     }
 
     $opt->{RUNNING_JOBS}->{kinship} = [$job_id];

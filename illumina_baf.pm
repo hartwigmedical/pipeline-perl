@@ -16,7 +16,6 @@ use illumina_template qw(from_template);
 
 sub runBAF {
     my ($opt) = @_;
-    my $run_name = basename($opt->{OUTPUT_DIR});
     my @baf_jobs;
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
@@ -74,7 +73,6 @@ sub runBAF {
                           run_unified_genotyper => $run_unified_genotyper,
                           create_baf_file => $create_baf_file,
                           create_baf_plots => $create_baf_plots,
-                          run_name => $run_name,
                           dirs => $baf_dirs,
                           opt => $opt);
 
