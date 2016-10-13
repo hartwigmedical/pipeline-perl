@@ -22,6 +22,7 @@ use illumina_prestats;
 use illumina_mapping;
 use illumina_poststats;
 use illumina_realign;
+use illumina_baseRecal;
 use illumina_germlineCalling;
 use illumina_germlineFiltering;
 use illumina_germlineAnnotation;
@@ -71,6 +72,11 @@ if ($opt->{FASTQ} or $opt->{BAM}) {
     if ($opt->{INDELREALIGNMENT} eq "yes") {
         say "\n### SCHEDULING INDELREALIGNMENT ###";
         illumina_realign::runRealignment($opt);
+    }
+
+    if ($opt->{BASEQUALITYRECAL} eq "yes") {
+        say "\n### SCHEDULING BASERECALIBRATION ###";
+        illumina_baseRecal::runBaseRecalibration($opt);
     }
 
     if ($opt->{SOMATIC_VARIANTS} eq "yes") {
@@ -258,6 +264,7 @@ sub checkConfig {
     if (!$opt{MAPPING}) { say "ERROR: No MAPPING option found in config files."; $checkFailed = 1; }
     if (!$opt{POSTSTATS}) { say "ERROR: No POSTSTATS option found in config files."; $checkFailed = 1; }
     if (!$opt{INDELREALIGNMENT}) { say "ERROR: No INDELREALIGNMENT option found in config files."; $checkFailed = 1; }
+    if (!$opt{BASEQUALITYRECAL}) { say "ERROR: No BASEQUALITYRECAL option found in config files."; $checkFailed = 1; }
     if (!$opt{VARIANT_CALLING}) { say "ERROR: No VARIANT_CALLING option found in config files."; $checkFailed = 1; }
     if (!$opt{FILTER_VARIANTS}) { say "ERROR: No FILTER_VARIANTS option found in config files."; $checkFailed = 1; }
     if (!$opt{SOMATIC_VARIANTS}) { say "ERROR: No SOMATIC_VARIANTS option found in config files."; $checkFailed = 1; }
@@ -328,6 +335,25 @@ sub checkConfig {
         if (!$opt{REALIGNMENT_SCALA}) { say "ERROR: No REALIGNMENT_SCALA option found in config files."; $checkFailed = 1; }
         if (!$opt{REALIGNMENT_SCATTER}) { say "ERROR: No REALIGNMENT_SCATTER option found in config files."; $checkFailed = 1; }
         if ($opt{REALIGNMENT_KNOWN} && grep { !-f } split "\t", $opt{REALIGNMENT_KNOWN}) { say "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist."; $checkFailed = 1; }
+        if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
+        if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
+        if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
+        if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
+    }
+
+    ## BASEQUALITYRECAL
+    if ($opt{BASEQUALITYRECAL} && $opt{BASEQUALITYRECAL} eq "yes") {
+        if (!$opt{BASERECALIBRATION_MASTER_QUEUE}) { say "ERROR: No BASERECALIBRATION_MASTER_QUEUE option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_MASTER_TIME}) { say "ERROR: No BASERECALIBRATION_MASTER_TIME option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_MASTER_THREADS}) { say "ERROR: No BASERECALIBRATION_MASTER_THREADS option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_MASTER_MEM}) { say "ERROR: No BASERECALIBRATION_MASTER_MEM option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_QUEUE}) { say "ERROR: No BASERECALIBRATION_QUEUE option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_THREADS}) { say "ERROR: No BASERECALIBRATION_THREADS option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_MEM}) { say "ERROR: No BASERECALIBRATION_MEM option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_TIME}) { say "ERROR: No BASERECALIBRATION_TIME option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_SCALA}) { say "ERROR: No BASERECALIBRATION_SCALA option found in config files."; $checkFailed = 1; }
+        if (!$opt{BASERECALIBRATION_SCATTER}) { say "ERROR: No BASERECALIBRATION_SCATTER option found in config files."; $checkFailed = 1; }
+        if ($opt{BASERECALIBRATION_KNOWN} && grep { !-f } split "\t", $opt{BASERECALIBRATION_KNOWN}) { say "ERROR: Some of $opt{BASERECALIBRATION_KNOWN} do not exist."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
         if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }

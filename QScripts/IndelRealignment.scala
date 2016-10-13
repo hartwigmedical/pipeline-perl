@@ -8,7 +8,7 @@ class IndelRealignment extends QScript {
     qscript =>
 
     @Input(doc="The reference file for the bam files.", shortName="R", required=true)
-    var referenceFile: File = _ 
+    var referenceFile: File = _
 
     @Input(doc="One or more bam files.", shortName="I",required=true)
     var bamFiles: List[File] = Nil
@@ -24,7 +24,7 @@ class IndelRealignment extends QScript {
 
     @Input(doc ="Input VCF file with known indels.", shortName="known", required=false)
     var knownIndelFiles: List[File] = Nil
-    
+
     // This trait allows us set the variables below in one place,
     // and then reuse this trait on each CommandLineGATK function below.
     trait TCIR_Arguments extends CommandLineGATK {

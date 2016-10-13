@@ -24,7 +24,7 @@ echo >> [% log_file %]
 echo "Sample: [% sample %]" >> [% log_file %]
 
 [% IF opt.PRESTATS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/PreStats_[% sample %].done";
+done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/PreStats_[% sample %].done"
 if [ -f ${done_file} ]
 then
     echo "	 PreStats: done" >> [% log_file %]
@@ -35,7 +35,7 @@ fi
 [% END -%]
 
 [% IF opt.MAPPING == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Mapping_[% sample %].done";
+done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Mapping_[% sample %].done"
 if [ -f ${done_file} ]
 then
     echo "	 Mapping: done" >> [% log_file %]
@@ -46,7 +46,7 @@ fi
 [% END -%]
 
 [% IF opt.INDELREALIGNMENT == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done";
+done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done"
 if [ -f ${done_file} ]
 then
     echo "	 Indel realignment: done" >> [% log_file %]
@@ -56,8 +56,19 @@ else
 fi
 [% END -%]
 
+[% IF opt.BASEQUALITYRECAL == "yes" -%]
+done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/BaseRecalibration_[% sample %].done"
+if [ -f ${done_file} ]
+then
+    echo "	 Base recalibration: done" >> [% log_file %]
+else
+    echo "	 Base recalibration: failed" >> [% log_file %]
+    failed=true
+fi
+[% END -%]
+
 [% IF opt.BAF == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/BAF_[% sample %].done";
+done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/BAF_[% sample %].done"
 if [ -f ${done_file} ]
 then
     echo "	 BAF analysis: done" >> [% log_file %]
@@ -70,7 +81,7 @@ echo >> [% log_file %]
 [% END -%]
 
 [% IF opt.POSTSTATS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/PostStats.done";
+done_file="[% opt.OUTPUT_DIR %]/logs/PostStats.done"
 if [ -f ${done_file} ]
 then
     echo "PostStats: done" >> [% log_file %]
@@ -81,7 +92,7 @@ fi
 [% END -%]
 
 [% IF opt.VARIANT_CALLING == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineCaller.done";
+done_file="[% opt.OUTPUT_DIR %]/logs/GermlineCaller.done"
 if [ -f ${done_file} ]
 then
     echo "Germline caller: done" >> [% log_file %]
@@ -92,7 +103,7 @@ fi
 [% END -%]
 
 [% IF opt.FILTER_VARIANTS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineFilter.done";
+done_file="[% opt.OUTPUT_DIR %]/logs/GermlineFilter.done"
 if [ -f ${done_file} ]
 then
     echo "Germline filter: done" >> [% log_file %]
@@ -103,7 +114,7 @@ fi
 [% END -%]
 
 [% IF opt.ANNOTATE_VARIANTS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done";
+done_file="[% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done"
 if [ -f ${done_file} ]
 then
     echo "Germline annotation: done" >> [% log_file %]
@@ -115,7 +126,7 @@ fi
 
 [% IF opt.SOMATIC_VARIANTS == "yes" -%]
 echo "Somatic variants:" >> [% log_file %]
-done_file="[% opt.OUTPUT_DIR %]/somaticVariants/[% joint_name %]/logs/[% joint_name %].done";
+done_file="[% opt.OUTPUT_DIR %]/somaticVariants/[% joint_name %]/logs/[% joint_name %].done"
 if [ -f ${done_file} ]
 then
     echo "	 [% joint_name %]: done" >> [% log_file %]
@@ -128,7 +139,7 @@ fi
 [% IF opt.COPY_NUMBER == "yes" -%]
 echo "Copy number analysis:" >> [% log_file %]
 [% IF opt.CNV_MODE == "sample_control" -%]
-done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% joint_name %]/logs/[% joint_name %].done";
+done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% joint_name %]/logs/[% joint_name %].done"
 if [ -f ${done_file} ]
 then
     echo "	 [% joint_name %]: done" >> [% log_file %]
@@ -138,7 +149,7 @@ else
 fi
 [% ELSIF opt.CNV_MODE == "sample" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
-done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% sample %]/logs/[% sample %].done";
+done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% sample %]/logs/[% sample %].done"
 if [ -f ${done_file} ]
 then
     echo "	 [% sample %]: done" >> [% log_file %]
@@ -151,7 +162,7 @@ fi
 [% END -%]
 
 [% IF opt.KINSHIP == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/Kinship.done";
+done_file="[% opt.OUTPUT_DIR %]/logs/Kinship.done"
 if [ -f ${done_file} ]
 then
     echo "Kinship: done" >> [% log_file %]
@@ -190,7 +201,7 @@ else
 [% END -%]
 [% END -%]
 
-    done_file="[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done";
+    done_file="[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done"
     mail -s "Pipeline DONE [% run_name %]" "[% opt.MAIL %]" < [% log_file %]
     touch ${done_file}
     [% INCLUDE Status.tt step="" status="success" %]

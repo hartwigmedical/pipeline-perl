@@ -19,9 +19,9 @@ if [ -s "tmp/[% realignedBam %]" ]; then
 fi
 
 if [ -s "mapping/[% flagstat %]" ] && [ -s "mapping/[% realignedFlagstat %]" ]; then
-	flagstat_orig=$(awk '/d+/ { print $1; exit }' "mapping/[% flagstat %]")
-	flagstat_realigned=$(awk '/d+/ { print $1; exit }' "mapping/[% realignedFlagstat %]")
-	if [ $flagstat_orig -eq $flagstat_realigned ]; then
+	orig_rc=$(awk '/d+/ { print $1; exit }' "mapping/[% flagstat %]")
+	realign_rc=$(awk '/d+/ { print $1; exit }' "mapping/[% realignedFlagstat %]")
+	if [ $orig_rc -eq $realign_rc ]; then
         mv tmp/[% realignedBam %] mapping/[% realignedBam %]
         mv tmp/[% realignedBai %] mapping/[% realignedBamBai %]
         mv tmp/IndelRealignment.jobreport.txt logs/IndelRealignment.jobreport.txt
@@ -40,7 +40,7 @@ if [ -s "mapping/[% flagstat %]" ] && [ -s "mapping/[% realignedFlagstat %]" ]; 
   	    [% INCLUDE Status.tt step=sample status="success" %]
 	else
   	    [% INCLUDE Status.tt step=sample status="failed" %]
-		fail "${PWD}/mapping/[% flagstat %] and ${PWD}/mapping/[% realignedFlagstat %] do not have the same read counts"
+		fail "${PWD}/mapping/[% flagstat %] and ${PWD}/mapping/[% realignedFlagstat %] do not have the same read counts."
 	fi
 else
 	[% INCLUDE Status.tt step=sample status="failed" %]

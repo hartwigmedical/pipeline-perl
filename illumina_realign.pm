@@ -20,10 +20,8 @@ sub runRealignment {
 
     say "Running single sample indel realignment for the following BAM-files:";
 
-    my @knownIndelFiles;
-    if ($opt->{REALIGNMENT_KNOWN}) {
-        @knownIndelFiles = split '\t', $opt->{REALIGNMENT_KNOWN};
-    }
+    my $knownIndelFiles;
+    $knownIndelFiles = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $bam = $opt->{BAM_FILES}->{$sample};
@@ -56,12 +54,6 @@ sub runRealignment {
         my $jobIDRealign = "Realign_${sample}_" . getJobId();
         my $bashFile = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "${jobIDRealign}.sh");
         my $jobNative = jobNative($opt, "REALIGNMENT");
-
-        my $knownIndelFiles;
-        if ($opt->{REALIGNMENT_KNOWN}) {
-            map { die "ERROR: $_ does not exist" if !-f } @knownIndelFiles;
-            $knownIndelFiles = join " ", map { "-known $_" } @knownIndelFiles;
-        }
 
         from_template("Realign.sh.tt", $bashFile,
                       sample => $sample,

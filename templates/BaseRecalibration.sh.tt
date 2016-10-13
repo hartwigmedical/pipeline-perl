@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=BaseRecalibration
+export JOB_SET="[% run_name %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=sample status="processing" %]
+
+echo "Start base recalibration	" `date` "	[% sample_bam %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+
+source [% opt.CLUSTER_PATH %]/settings.sh
+cd [% dirs.tmp %]
+
+if [ -s "[% sample_bam_path %]" ]
+then
+    java -Xmx[% opt.BASERECALIBRATION_MASTER_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
+         -jar [% opt.QUEUE_PATH %]/Queue.jar \
+         -jobQueue [% opt.BASERECALIBRATION_QUEUE %] \
+         -jobNative "[% job_native %]" \
+         -jobRunner GridEngine \
+         -jobReport [% dirs.log %]/BaseRecalibration.jobReport.txt \
+         -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.BASERECALIBRATION_SCALA %] \
+         -R [% opt.GENOME %] \
+         -I [% sample_bam_path %] \
+         -mem [% opt.BASERECALIBRATION_MEM %] \
+         -nct [% opt.BASERECALIBRATION_THREADS %] \
+         -nsc [% opt.BASERECALIBRATION_SCATTER %] \
+         [% known_files %] \
+         -run
+    [% INCLUDE Status.tt step=sample status="success" %]
+else
+    [% INCLUDE Status.tt step=sample status="failed" %]
+    fail "[% sample_bam_path %] does not exist."
+fi
