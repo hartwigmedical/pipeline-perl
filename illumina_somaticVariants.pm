@@ -12,7 +12,8 @@ use Carp;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge qw(getJobId qsubTemplate qsubJava);
+use illumina_sge qw(qsubTemplate qsubJava);
+use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 use illumina_metadataParser qw(metadataParse);
 

@@ -4,7 +4,6 @@ use 5.16.0;
 use strict;
 use warnings;
 
-use POSIX qw(tmpnam);
 use File::Basename;
 
 use parent qw(Exporter);
@@ -12,7 +11,6 @@ our @EXPORT_OK = qw(
                        qsubTemplate
                        qsubJava
                        jobNative
-                       getJobId
                );
 
 
@@ -44,12 +42,6 @@ sub jobNative {
     my $qsub = generic($opt, $function);
     $qsub =~ s/^qsub//;
     return $qsub
-}
-
-sub getJobId {
-    my $id = fileparse(tmpnam());
-    $id =~ s#(file|tmp\.[0-9]+\.)##;
-    return $id;
 }
 
 1;

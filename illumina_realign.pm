@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge qw(getJobId jobNative qsubJava qsubTemplate);
-use illumina_template qw(from_template);
+use illumina_sge qw(jobNative qsubJava qsubTemplate);
+use illumina_jobs;
 
 
 sub runRealignment {
@@ -19,89 +19,89 @@ sub runRealignment {
 
     say "Running single sample indel realignment for the following BAM-files:";
 
-    my $knownIndelFiles;
-    $knownIndelFiles = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
+    my $known_files;
+    $known_files = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $bam = $opt->{BAM_FILES}->{$sample};
-        (my $flagstat = $bam) =~ s/\.bam$/.flagstat/;
-        (my $realignedBam = $bam) =~ s/\.bam$/.realigned.bam/;
-        (my $realignedBai = $bam) =~ s/\.bam$/.realigned.bai/;
-        (my $realignedBamBai = $bam) =~ s/\.bam$/.realigned.bam.bai/;
-        (my $realignedFlagstat = $bam) =~ s/\.bam$/.realigned.flagstat/;
+        my $sample_bam = $opt->{BAM_FILES}->{$sample};
+        (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
+        (my $realigned_bam = $sample_bam) =~ s/\.bam$/.realigned.bam/;
+        (my $realigned_bai = $sample_bam) =~ s/\.bam$/.realigned.bai/;
+        (my $realigned_flagstat = $sample_bam) =~ s/\.bam$/.realigned.flagstat/;
+        (my $cpct_sliced_bam = $sample_bam) =~ s/\.bam$/.realigned.sliced.bam/;
 
-        (my $healthCheckPreRealignSlicedBam = $bam) =~ s/\.bam$/.qc.prerealign.sliced.bam/;
-        (my $healthCheckPreRealignSlicedBamBai = $bam) =~ s/\.bam$/.qc.prerealign.sliced.bam.bai/;
-        (my $healthCheckPostRealignSlicedBam = $bam) =~ s/\.bam$/.qc.postrealign.sliced.bam/;
-        (my $healthCheckPostRealignSlicedBamBai = $bam) =~ s/\.bam$/.qc.postrealign.sliced.bam.bai/;
-        (my $healthCheckPostRealignSlicedFlagstat = $bam) =~ s/\.bam$/.qc.postrealign.sliced.flagstat/;
-        (my $healthCheckPrePostRealignDiff = $bam) =~ s/\.bam$/.qc.prepostrealign.diff/;
-        (my $cpctSlicedBam = $bam) =~ s/\.bam$/.realigned.sliced.bam/;
-        (my $cpctSlicedBamBai = $bam) =~ s/\.bam$/.realigned.sliced.bam.bai/;
+        $opt->{BAM_FILES}->{$sample} = $realigned_bam;
 
-        $opt->{BAM_FILES}->{$sample} = $realignedBam;
+        my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
+        my $dirs = {
+            out => $out_dir,
+            log => catfile($out_dir, "logs"),
+            tmp => catfile($out_dir, "tmp"),
+            job => catfile($out_dir, "jobs"),
+            mapping => catfile($out_dir, "mapping"),
+        };
 
-        say "\t$opt->{OUTPUT_DIR}/${sample}/mapping/${bam}";
+        my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
+        say "\t${sample_bam_path}";
 
-        my $done_file = catfile($opt->{OUTPUT_DIR}, $sample, "logs", "Realignment_${sample}.done");
-        if (-f $done_file) {
-            say "WARNING: $done_file exists, skipping";
-            next;
-        }
+        my $realign_job_id = illumina_jobs::fromTemplate(
+            "Realignment",
+            $sample,
+            qsubJava($opt, "REALIGNMENT_MASTER"),
+            $opt->{RUNNING_JOBS}->{$sample},
+            $dirs,
+            $opt,
+            sample => $sample,
+            sample_bam => $sample_bam,
+            sample_bam_path => $sample_bam_path,
+            job_native => jobNative($opt, "REALIGNMENT"),
+            known_files => $known_files);
 
-        my $logDir = catfile($opt->{OUTPUT_DIR}, $sample, "logs");
-        my $jobIDRealign = "Realign_${sample}_" . getJobId();
-        my $bashFile = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "${jobIDRealign}.sh");
-        my $jobNative = jobNative($opt, "REALIGNMENT");
+        next unless $realign_job_id;
 
-        from_template("Realign.sh.tt", $bashFile,
-                      sample => $sample,
-                      bam => $bam,
-                      logDir => $logDir,
-                      jobNative => $jobNative,
-                      knownIndelFiles => $knownIndelFiles,
-                      healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam,
-                      healthCheckPreRealignSlicedBamBai => $healthCheckPreRealignSlicedBamBai,
-                      opt => $opt);
+        my $flagstat_job_id = illumina_jobs::flagstatBam(
+            $sample,
+            catfile($dirs->{tmp}, $realigned_bam),
+            catfile($dirs->{mapping}, $realigned_flagstat),
+            [$realign_job_id],
+            $dirs,
+            $opt);
 
-        my $qsub = qsubJava($opt, "REALIGNMENT_MASTER");
-        my $stdout = catfile($logDir, "Realignment_${sample}.out");
-        my $stderr = catfile($logDir, "Realignment_${sample}.err");
-        if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
-            my $hold_jids = join ",", @{$opt->{RUNNING_JOBS}->{$sample}};
-            system "$qsub -o $stdout -e $stderr -N $jobIDRealign -hold_jid $hold_jids $bashFile";
-        } else {
-            system "$qsub -o $stdout -e $stderr -N $jobIDRealign $bashFile";
-        }
+        my $check_job_id = illumina_jobs::fromTemplate(
+            "ReadCountCheck",
+            $sample,
+            qsubTemplate($opt, "FLAGSTAT"),
+            [$flagstat_job_id],
+            $dirs,
+            $opt,
+            sample => $sample,
+            pre_flagstat_path => catfile($dirs->{mapping}, $sample_flagstat),
+            post_flagstat_path => catfile($dirs->{mapping}, $realigned_flagstat),
+            post_bam => $realigned_bam,
+            post_bai => $realigned_bai,
+            success_template => "RealignmentSuccess.tt");
 
-        my $jobIDPostProcess = "RealignPostProcess_${sample}_" . getJobId();
-        my $realignPostProcessScript = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "${jobIDPostProcess}.sh");
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
 
-        from_template("RealignPostProcess.sh.tt", $realignPostProcessScript,
-                      realignedBam => $realignedBam,
-                      realignedBai => $realignedBai,
-                      realignedBamBai => $realignedBamBai,
-                      realignedFlagstat => $realignedFlagstat,
-                      flagstat => $flagstat,
-                      sample => $sample,
-                      bam => $bam,
-                      logDir => $logDir,
-                      cpctSlicedBam => $cpctSlicedBam,
-                      cpctSlicedBamBai => $cpctSlicedBamBai,
-                      healthCheckPreRealignSlicedBam => $healthCheckPreRealignSlicedBam,
-                      healthCheckPostRealignSlicedBam => $healthCheckPostRealignSlicedBam,
-                      healthCheckPostRealignSlicedBamBai => $healthCheckPostRealignSlicedBamBai,
-                      healthCheckPostRealignSlicedFlagstat => $healthCheckPostRealignSlicedFlagstat,
-                      healthCheckPrePostRealignDiff => $healthCheckPrePostRealignDiff,
-                      opt => $opt);
+        my $qc_job_ids = illumina_jobs::prePostSliceAndDiffBams(
+            $sample,
+            "realign",
+            $sample_bam,
+            $realigned_bam,
+            [$check_job_id],
+            $dirs,
+            $opt);
 
-        $qsub = qsubTemplate($opt, "FLAGSTAT");
-        $stdout = catfile($logDir, "RealignmentPostProcess_${sample}.out");
-        $stderr = catfile($logDir, "RealignmentPostProcess_${sample}.err");
-        system "$qsub -o $stdout -e $stderr -N $jobIDPostProcess -hold_jid $jobIDRealign $realignPostProcessScript";
+        my $cpct_job_id = illumina_jobs::sliceBam(
+            $sample,
+            $realigned_bam,
+            $cpct_sliced_bam,
+            "CPCT_Slicing.bed",
+            [$check_job_id],
+            $dirs,
+            $opt);
 
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobIDRealign;
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobIDPostProcess;
+        push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
     }
     return;
 }

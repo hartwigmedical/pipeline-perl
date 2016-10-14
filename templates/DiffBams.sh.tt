@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=BamDiff
+export JOB_SET="[% opt.RUN_NAME %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=diff_name status="processing" %]
+
+echo "Start BamDiff	" `date` "	[% diff_name %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+
+if [ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ]
+then
+    [% opt.BAMUTIL_PATH %]/bam diff --in1 [% input_bam1 %] --in2 [% input_bam2 %] --noPos --onlyDiffs --out [% output_diff %]
+
+    if [ -s [% output_diff %] ]
+    then
+        [% INCLUDE Status.tt step=diff_name status="success" %]
+    else
+        [% INCLUDE Status.tt step=diff_name status="failed" %]
+        fail "[% output_diff %] does not exist or is empty."
+    fi
+else
+    [% INCLUDE Status.tt step=diff_name status="failed" %]
+    fail "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
+fi
+
+echo "End BamDiff	" `date` "	[% diff_name %]	" `uname -n` >> [% dirs.log %]/[% sample %].log

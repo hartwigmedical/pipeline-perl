@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=Flagstat
+export JOB_SET="[% opt.RUN_NAME %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=sample status="processing" %]
+echo "Start Flagstat	" `date` "	[% sample_bam_path %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+
+if [ -s "[% sample_bam_path %]" ]
+then
+   [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% sample_bam_path %]" > "[% sample_flagstat_path %]"
+   if [ -s "[% sample_flagstat_path %]" ]
+   then
+      [% INCLUDE Status.tt step=sample status="success" %]
+   else
+      [% INCLUDE Status.tt step=sample status="failed" %]
+      fail "[% sample_flagstat_path %] does not exist or is empty."
+   fi
+else
+   [% INCLUDE Status.tt step=sample status="failed" %]
+   fail "[% sample_bam_path %] does not exist or is empty."
+fi
+
+echo "End Flagstat	" `date` "	[% sample_bam_path %]	" `uname -n` >> [% dirs.log %]/[% sample %].log

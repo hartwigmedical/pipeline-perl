@@ -10,7 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge qw(getJobId jobNative qsubJava);
+use illumina_sge qw(jobNative qsubJava);
+use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 
 

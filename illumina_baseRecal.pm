@@ -10,8 +10,8 @@ use File::Spec::Functions;
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge qw(getJobId jobNative qsubJava qsubTemplate);
-use illumina_template qw(from_template);
+use illumina_sge qw(jobNative qsubJava qsubTemplate);
+use illumina_jobs;
 
 
 sub runBaseRecalibration {
@@ -27,72 +27,81 @@ sub runBaseRecalibration {
         (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
         (my $recal_bam = $sample_bam) =~ s/\.bam$/.recalibrated.bam/;
         (my $recal_bai = $sample_bam) =~ s/\.bam$/.recalibrated.bai/;
-        (my $recal_bambai = $sample_bam) =~ s/\.bam$/.recalibrated.bam.bai/;
         (my $recal_flagstat = $sample_bam) =~ s/\.bam$/.recalibrated.flagstat/;
+        (my $cpct_sliced_bam = $sample_bam) =~ s/\.bam$/.recalibrated.sliced.bam/;
+
+        $opt->{BAM_FILES}->{$sample} = $recal_bam;
 
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
         my $dirs = {
             out => $out_dir,
             log => catfile($out_dir, "logs"),
-            mapping => catfile($out_dir, "mapping"),
             tmp => catfile($out_dir, "tmp"),
             job => catfile($out_dir, "jobs"),
+            mapping => catfile($out_dir, "mapping"),
         };
 
         my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
-        say "\t$sample_bam_path";
+        say "\t${sample_bam_path}";
 
-        $opt->{BAM_FILES}->{$sample} = $recal_bam;
+        my $recal_job_id = illumina_jobs::fromTemplate(
+            "BaseRecalibration",
+            $sample,
+            qsubJava($opt, "BASERECALIBRATION_MASTER"),
+            $opt->{RUNNING_JOBS}->{$sample},
+            $dirs,
+            $opt,
+            sample => $sample,
+            sample_bam => $sample_bam,
+            sample_bam_path => $sample_bam_path,
+            job_native => jobNative($opt, "BASERECALIBRATION"),
+            known_files => $known_files);
 
-        my $done_file = catfile($dirs->{log}, "BaseRecalibration_${sample}.done");
-        if (-f $done_file) {
-            say "\tWARNING: $done_file exists, skipping";
-            next;
-        }
+        next unless $recal_job_id;
 
-        my $job_native = jobNative($opt, "BASERECALIBRATION");
-        my $job_id = "BQSR_${sample}_" . getJobId();
-        my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
-        my $stdout = catfile($dirs->{log}, "BaseRecalibration_${sample}.out");
-        my $stderr = catfile($dirs->{log}, "BaseRecalibration_${sample}.err");
-        my $qsub = qsubJava($opt, "BASERECALIBRATION_MASTER");
+        my $flagstat_job_id = illumina_jobs::flagstatBam(
+            $sample,
+            catfile($dirs->{tmp}, $recal_bam),
+            catfile($dirs->{mapping}, $recal_flagstat),
+            [$recal_job_id],
+            $dirs,
+            $opt);
 
-        from_template("BaseRecalibration.sh.tt", $bash_file,
-                      sample => $sample,
-                      sample_bam => $sample_bam,
-                      sample_bam_path => $sample_bam_path,
-                      job_native => $job_native,
-                      known_files => $known_files,
-                      dirs => $dirs,
-                      opt => $opt
-                  );
+        my $check_job_id = illumina_jobs::fromTemplate(
+            "ReadCountCheck",
+            $sample,
+            qsubTemplate($opt, "FLAGSTAT"),
+            [$flagstat_job_id],
+            $dirs,
+            $opt,
+            sample => $sample,
+            pre_flagstat_path => catfile($dirs->{mapping}, $sample_flagstat),
+            post_flagstat_path => catfile($dirs->{mapping}, $recal_flagstat),
+            post_bam => $recal_bam,
+            post_bai => $recal_bai,
+            success_template => "BaseRecalibrationSuccess.tt");
 
-        if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
-            system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @{$opt->{RUNNING_JOBS}->{$sample}}) . " $bash_file";
-        } else {
-            system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
-        }
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
 
-        my $job_id_fs = "BQSRFS_${sample}_" . getJobId();
-        $bash_file = catfile($dirs->{job}, "${job_id_fs}.sh");
+        my $qc_job_ids = illumina_jobs::prePostSliceAndDiffBams(
+            $sample,
+            "recal",
+            $sample_bam,
+            $recal_bam,
+            [$check_job_id],
+            $dirs,
+            $opt);
 
-        from_template("BaseRecalibrationFS.sh.tt", $bash_file,
-                      sample => $sample,
-                      sample_bam => $sample_bam,
-                      sample_flagstat => $sample_flagstat,
-                      recal_bam => $recal_bam,
-                      recal_bai => $recal_bai,
-                      recal_bambai => $recal_bambai,
-                      recal_flagstat => $recal_flagstat,
-                      dirs => $dirs,
-                      opt => $opt
-                  );
+        my $cpct_job_id = illumina_jobs::sliceBam(
+            $sample,
+            $recal_bam,
+            $cpct_sliced_bam,
+            "CPCT_Slicing.bed",
+            [$check_job_id],
+            $dirs,
+            $opt);
 
-        $qsub = qsubTemplate($opt, "FLAGSTAT");
-        system "$qsub -o $stdout -e $stderr -N $job_id_fs -hold_jid $job_id $bash_file";
-
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id_fs;
+        push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
     }
     return;
 }

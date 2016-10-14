@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+#[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=ReadCountCheck
+export JOB_SET="[% opt.RUN_NAME %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=sample status="processing" %]
+echo "Start ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+
+if [ -s "[% pre_flagstat_path %]" ] && [ -s "[% post_flagstat_path %]" ]
+then
+    pre_read_count=$(awk '/d+/ { print $1; exit }' "[% pre_flagstat_path %]")
+    post_read_count=$(awk '/d+/ { print $1; exit }' "[% post_flagstat_path %]")
+    if [ $pre_read_count -eq $post_read_count ]
+    then
+        mv [% dirs.tmp %]/[% post_bam %] [% dirs.mapping %]
+        mv [% dirs.tmp %]/[% post_bai %] [% dirs.mapping %]/[% post_bam %].bai
+
+        [% INCLUDE $success_template %]
+        [% INCLUDE Status.tt step=sample status="success" %]
+    else
+        [% INCLUDE Status.tt step=sample status="failed" %]
+        fail "[% pre_flagstat_path %] and [% post_flagstat_path %] do not have the same read counts."
+    fi
+else
+    [% INCLUDE Status.tt step=sample status="failed" %]
+    fail "Either [% pre_flagstat_path %] or [% post_flagstat_path %] is empty."
+fi
+
+echo "End ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% dirs.log %]/[% sample %].log

@@ -11,7 +11,8 @@ use File::Path qw(make_path);
 use FindBin;
 use lib "$FindBin::Bin";
 
-use illumina_sge qw(getJobId qsubTemplate);
+use illumina_sge qw(qsubTemplate);
+use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 use illumina_metadataParser qw(metadataParse);
 

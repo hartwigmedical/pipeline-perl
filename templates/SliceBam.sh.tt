@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=Slice
+export JOB_SET="[% opt.RUN_NAME %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=sample_bam status="processing" %]
+
+echo "Start SliceBam	" `date` "	[% sample_bam %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+
+if [ -s [% input_bam %] ]
+then
+    [% opt.SAMBAMBA_PATH %]/sambamba view [% input_bam %] -L [% bed_file %] -f bam -o [% sliced_bam %]
+    if [ -s [% sliced_bam %] ]
+    then
+        [% opt.SAMBAMBA_PATH %]/sambamba index [% sliced_bam %]
+        if [ -s [% sliced_bam %].bai ]
+        then
+            [% INCLUDE Status.tt step=sample_bam status="success" %]
+        else
+            [% INCLUDE Status.tt step=sample_bam status="failed" %]
+            fail "[% sliced_bam %].bai does not exist or is empty."
+        fi
+    else
+        [% INCLUDE Status.tt step=sample_bam status="failed" %]
+        fail "[% sliced_bam %] does not exist or is empty."
+    fi
+else
+    [% INCLUDE Status.tt step=sample_bam status="failed" %]
+    fail "[% input_bam %] does not exist or is empty."
+fi
+
+echo "End SliceBam	" `date` "	[% sample_bam %]	" `uname -n` >> [% dirs.log %]/[% sample %].log

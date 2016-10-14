@@ -1,0 +1,3 @@
+mv [% dirs.tmp %]/IndelRealignment.jobreport.txt [% dirs.log %]/IndelRealignment.jobreport.txt
+        mv [% dirs.tmp %]/IndelRealignment.jobreport.pdf [% dirs.log %]/IndelRealignment.jobreport.pdf
+        touch [% dirs.log %]/Realignment_[% sample %].done
