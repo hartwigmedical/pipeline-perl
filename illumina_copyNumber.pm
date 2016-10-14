@@ -41,25 +41,25 @@ sub runSampleCnv {
     my ($sample, $control, $cnv_name, $check_cnv_jobs, $opt) = @_;
 
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "copyNumber", $cnv_name);
-    my %freec_dirs = (
+    my $cnv_dirs = {
         out => $out_dir,
         log => catfile($out_dir, "logs"),
         job => catfile($out_dir, "jobs"),
-    );
+    };
 
-    make_path(values %freec_dirs, { error => \my $errors });
+    make_path(values %{$cnv_dirs}, { error => \my $errors });
     my $messages = join ", ", map { join ": ", each $_ } @{$errors};
     die "Couldn't create copy number output directories: $messages" if $messages;
 
-    my @running_jobs;
-    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
-    push @running_jobs, @{$opt->{RUNNING_JOBS}->{$control}} if $control and @{$opt->{RUNNING_JOBS}->{$control}};
+    my $running_jobs = [];
+    push @{$running_jobs}, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
+    push @{$running_jobs}, @{$opt->{RUNNING_JOBS}->{$control}} if $control and @{$opt->{RUNNING_JOBS}->{$control}};
     my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
     my $control_bam = $control ? catfile($opt->{OUTPUT_DIR}, $control, "mapping", $opt->{BAM_FILES}->{$control}) : "";
 
     say "\n$cnv_name \t $control_bam \t $sample_bam";
 
-    my $done_file = catfile($freec_dirs{log}, "${cnv_name}.done");
+    my $done_file = catfile($cnv_dirs->{log}, "${cnv_name}.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
@@ -68,24 +68,29 @@ sub runSampleCnv {
     my @cnv_jobs;
     if ($opt->{CNV_FREEC} eq "yes") {
         say "\n###SCHEDULING FREEC####";
-        my $freec_job = runFreec($sample, $sample_bam, $control_bam, \@running_jobs, \%freec_dirs, $opt);
+        my $freec_job = runFreec($sample, $sample_bam, $control_bam, $running_jobs, $cnv_dirs, $opt);
         push @cnv_jobs, $freec_job if $freec_job;
+    }
+    if ($opt->{CNV_QDNASEQ} eq "yes") {
+        say "\n###SCHEDULING QDNASEQ####";
+        my $qdnaseq_job = runQDNAseq($sample, $sample_bam, $running_jobs, $cnv_dirs, $opt);
+        push @cnv_jobs, $qdnaseq_job if $qdnaseq_job;
     }
 
     # check is separated from run, could have more/different CNV tools
     my $job_id = "CnvCheck_${sample}_" . getJobId();
-    my $bash_file = catfile($freec_dirs{job}, "${job_id}.sh");
+    my $bash_file = catfile($cnv_dirs->{job}, "${job_id}.sh");
 
     from_template("CnvCheck.sh.tt", $bash_file,
                   cnv_name => $cnv_name,
-                  dirs => \%freec_dirs,
+                  dirs => $cnv_dirs,
                   opt => $opt);
 
     my $qsub = qsubTemplate($opt, "CNVCHECK");
     if (@cnv_jobs) {
-        system "$qsub -o $freec_dirs{log} -e $freec_dirs{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) ." $bash_file";
+        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) ." $bash_file";
     } else {
-        system "$qsub -o $freec_dirs{log} -e $freec_dirs{log} -N $job_id $bash_file";
+        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id $bash_file";
     }
     push @{$check_cnv_jobs}, $job_id;
     return;
@@ -129,6 +134,38 @@ sub runFreec {
                   opt => $opt);
 
     my $qsub = qsubTemplate($opt, "FREEC");
+    if (@{$running_jobs}) {
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid " . join(",", @{$running_jobs}) . " $bash_file";
+    } else {
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id $bash_file";
+    }
+    return $job_id;
+}
+
+sub runQDNAseq {
+    my ($sample_name, $sample_bam, $running_jobs, $dirs, $opt) = @_;
+
+    my $done_file = catfile($dirs->{log}, "qdnaseq.done");
+    if (-e $done_file) {
+        say "WARNING: $done_file exists, skipping";
+        return;
+    }
+
+    $dirs->{qdnaseq}{out} = catfile($dirs->{out}, "qdnaseq");
+    if (!-e $dirs->{qdnaseq}{out}) {
+        make_path($dirs->{qdnaseq}{out}) or die "Couldn't create directory $dirs->{qdnaseq}{out}: $!";
+    }
+
+    my $job_id = "QDNAseq_${sample_name}_" . getJobId();
+    my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
+
+    from_template("QDNAseq.sh.tt", $bash_file,
+                  sample_name => $sample_name,
+                  sample_bam => $sample_bam,
+                  dirs => $dirs,
+                  opt => $opt);
+
+    my $qsub = qsubTemplate($opt, "QDNASEQ");
     if (@{$running_jobs}) {
         system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid " . join(",", @{$running_jobs}) . " $bash_file";
     } else {

@@ -491,6 +491,14 @@ sub checkConfig {
             if (!$opt{FREEC_WINDOW}) { say "ERROR: No FREEC_WINDOW option found in config files."; $checkFailed = 1; }
             if (!$opt{FREEC_TELOCENTROMERIC}) { say "ERROR: No FREEC_TELOCENTROMERIC option found in config files."; $checkFailed = 1; }
         }
+        if (!$opt{CNV_QDNASEQ}) { say "ERROR: No CNV_QDNASEQ in config files."; $checkFailed = 1; }
+        if ($opt{CNV_QDNASEQ} eq "yes") {
+            if (!$opt{QDNASEQ_PATH}) { say "ERROR: No QDNASEQ_PATH option found in config files."; $checkFailed = 1; }
+            if (!$opt{QDNASEQ_QUEUE}) { say "ERROR: No QDNASEQ_QUEUE option found in config files."; $checkFailed = 1; }
+            if (!$opt{QDNASEQ_THREADS}) { say "ERROR: No QDNASEQ_THREADS option found in config files."; $checkFailed = 1; }
+            if (!$opt{QDNASEQ_MEM}) { say "ERROR: No QDNASEQ_MEM option found in config files."; $checkFailed = 1; }
+            if (!$opt{QDNASEQ_TIME}) { say "ERROR: No QDNASEQ_TIME option found in config files."; $checkFailed = 1; }
+        }
     }
 
     ##BAF Analysis

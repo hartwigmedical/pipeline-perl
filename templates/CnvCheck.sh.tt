@@ -14,7 +14,14 @@ export JOB_START=$(date +%s)
 
 echo "Start ${JOB_NAME}	"	`date`	[% cnv_name %]	`uname -n` >> [% dirs.log %]/check.log
 
-if [[ [% IF opt.CNV_FREEC == "yes" %]-f [% dirs.log %]/freec.done[% END %] ]]
+if true \
+   [%- IF opt.CNV_FREEC == "yes" %]
+   && [ -f [% dirs.log %]/freec.done ] \
+   [%- END %]
+   [%- IF opt.CNV_QDNASEQ == "yes" %]
+   && [ -f [% dirs.log %]/qdnaseq.done ] \
+   [%- END %]
+   && true
 then
     touch [% dirs.log %]/[% cnv_name %].done
     [% INCLUDE Status.tt step=cnv_name status="success" %]

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME=QDNAseq
+export JOB_SET="[% opt.RUN_NAME %]"
+export JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=sample_name status="processing" %]
+
+if [ -s "[% sample_bam %]" ]
+then
+    echo "Start QDNASEQ	" `date` "	 [% sample_bam %]	" `uname -n` >> [% dirs.log %]/qdnaseq.log
+    cd [% dirs.qdnaseq.out %]
+
+    Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
+
+    if [ -s "[% dirs.qdnaseq.out %]/[% sample_name %]"*.vcf ]
+    then
+        touch "[% dirs.log %]/qdnaseq.done"
+        [% INCLUDE Status.tt step=sample_name status="success" %]
+    else
+        [% INCLUDE Status.tt step=sample_name status="failed" %]
+        fail "No QDNAseq VCFs produced."
+    fi
+    echo "End QDNASEQ	" `date` "	 [% sample_bam %]	" `uname -n` >> [% dirs.log %]/qdnaseq.log
+else
+    [% INCLUDE Status.tt step=sample_name status="failed" %]
+    fail "Input BAM files do not exist."
+fi
