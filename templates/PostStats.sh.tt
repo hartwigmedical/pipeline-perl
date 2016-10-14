@@ -32,7 +32,14 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
     -sambamba_path [% opt.SAMBAMBA_PATH %] \
     -debug \
     -wgs \
-    -coverage_cap 250[% IF opt.exists('SINGLE_END') %] -single_end[% END %][% IF opt.CLUSTER_RESERVATION == "yes" %] -queue_reserve[% END %]
+    -coverage_cap 250 \
+[%- IF opt.exists('SINGLE_END') %]
+    -single_end \
+[%- END -%]
+[%- IF opt.CLUSTER_RESERVATION == "yes" %]
+    -queue_reserve \
+[%- END %]
+    ;
 
 qalter -hold_jid bamMetrics_report_[% opt.RUN_NAME %],[% job_id %] [% job_id_check %]
 
@@ -46,6 +53,23 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar 
      -I "[% pair.value %]" \
      -o "[% dirs.${pair.key} %]/[% pair.key %]_[% design %].vcf"
 [% END -%]
+[% END %]
+
+[%- IF opt.EXONCALLCOV == "yes" -%]
+[% opt.EXONCALLCOV_PATH %]/ExonCov.py \
+[% FOREACH bam_file IN sample_bams.values -%]
+    -i [% bam_file %] \
+[% END -%]
+    --queue [% opt.EXONCALLCOV_QUEUE %] \
+    -a [% opt.EXONCALLCOV_TIME %] \
+    -c [% opt.EXONCALLCOV_MEM %] \
+    -b [% opt.EXONCALLCOV_BED %] \
+    -n [% opt.EXONCALLCOV_ENS %] \
+    -p [% opt.EXONCALLCOV_PREF %] \
+    -l [% opt.EXONCALLCOV_PANEL %] \
+    -s [% opt.SAMBAMBA_PATH %]/sambamba \
+    -w [% opt.OUTPUT_DIR %] \
+    -o QCStats/exoncov
 [% END -%]
 
 [% INCLUDE Status.tt step="" status="finished" %]

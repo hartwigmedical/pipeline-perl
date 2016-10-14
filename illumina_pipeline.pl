@@ -320,6 +320,21 @@ sub checkConfig {
         if (!$opt{POSTSTATS_MEM}) { say "ERROR: No POSTSTATS_MEM option found in config files."; $checkFailed = 1; }
         if (!$opt{POSTSTATS_QUEUE}) { say "ERROR: No POSTSTATS_QUEUE option found in config files."; $checkFailed = 1; }
         if (!$opt{POSTSTATS_TIME}) { say "ERROR: No POSTSTATS_TIME option found in config files."; $checkFailed = 1; }
+        if (!$opt{EXONCALLCOV}) { say "ERROR: No EXONCALLCOV option found in config files."; $checkFailed = 1; }
+        if ($opt{EXONCALLCOV} eq "yes") {
+            if (!$opt{EXONCALLCOV_QUEUE}) { say "ERROR: No EXONCALLCOV_QUEUE option found in config files."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_TIME}) { say "ERROR: No EXONCALLCOV_TIME option found in config files."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_MEM}) { say "ERROR: No EXONCALLCOV_MEM option found in config files."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_PATH}) { say "ERROR: No EXONCALLCOV_PATH option found in config files."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_BED}) { say "ERROR: No EXONCALLCOV_BED option found in config files."; $checkFailed = 1; }
+            if ($opt{EXONCALLCOV_BED} && !-f $opt{EXONCALLCOV_BED}) { say "ERROR: $opt{EXONCALLCOV_BED} does not exist."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_PREF}) { say "ERROR: No EXONCALLCOV_PREF option found in config files."; $checkFailed = 1; }
+            if ($opt{EXONCALLCOV_PREF} && !-f $opt{EXONCALLCOV_PREF}) { say "ERROR: $opt{EXONCALLCOV_PREF} does not exist."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_PANEL}) { say "ERROR: No EXONCALLCOV_PANEL option found in config files."; $checkFailed = 1; }
+            if ($opt{EXONCALLCOV_PANEL} && !-f $opt{EXONCALLCOV_PANEL}) { say "ERROR: $opt{EXONCALLCOV_PANEL} does not exist."; $checkFailed = 1; }
+            if (!$opt{EXONCALLCOV_ENS}) { say "ERROR: No EXONCALLCOV_ENS option found in config files."; $checkFailed = 1; }
+            if ($opt{EXONCALLCOV_ENS} && !-f $opt{EXONCALLCOV_ENS}) { say "ERROR: $opt{EXONCALLCOV_ENS} does not exist."; $checkFailed = 1; }
+        }
     }
 
     ## INDELREALIGNMENT

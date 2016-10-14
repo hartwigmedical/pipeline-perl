@@ -21,13 +21,19 @@ if [ -s QCStats/*.bamMetrics.pdf ] \
     && [ $(find "[% dirs.$sample %]" -type f -name "*.vcf" | wc -l) -eq [% designs.size %] ] \
     [%- END -%]
     [%- END %]
+    [%- IF opt.EXONCALLCOV == "yes" -%]
+    [%- FOREACH sample IN opt.SAMPLES.keys %]
+    && [ -s [% opt.OUTPUT_DIR %]/QCStats/exoncov/[% sample %].html ] \
+    [%- END %]
+    && [ ! -s [% opt.OUTPUT_DIR %]/QCStats/exoncov/error_collection_run ] \
+    [%- END %]
     && true
 then
     touch logs/PostStats.done
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "bamMetrics or SNPcheck reports missing"
+    fail "bamMetrics/SNPcheck/ExonCov reports missing"
 fi
 
 echo "End poststats	$(date)	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
