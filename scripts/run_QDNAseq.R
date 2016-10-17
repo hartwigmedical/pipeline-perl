@@ -46,6 +46,6 @@ exportBins(readCountsFiltered, "copynumber.igv", type="copynumber", format="igv"
 exportBins(readCountsFiltered, "segments.igv", type="segments", format="igv")
 
 # Get cnv calls
-allCalls <- cnvCall(readCountsFiltered)
-writeCalls(allCalls, "calls.igv", readCountsFiltered)
-exportVCF(allCalls, readCountsFiltered)
+allCalls <- callBins(readCountsFiltered, method="cutoff")
+exportBins(allCalls, "calls.igv", type="calls", format="igv", logTransform=FALSE)
+exportVCF(allCalls)
