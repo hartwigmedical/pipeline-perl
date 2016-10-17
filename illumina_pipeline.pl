@@ -200,13 +200,15 @@ sub setupLogging {
 
     my ($seconds, $microseconds) = gettimeofday;
     my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
-    my $log_file = catfile($output_dir, "logs", "submitlog_${datetime}.txt");
-    my $log_fh = IO::Pipe->new()->writer("tee $log_file") or die "Couldn't tee to $log_file: $!";
-    open STDOUT, ">&", $log_fh or die "STDOUT redirection failed: $!";
-    open STDERR, ">&", $log_fh or die "STDERR redirection failed: $!";
+    my $out_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
+    my $err_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
+    my $out_fh = IO::Pipe->new()->writer("tee $out_file") or die "Couldn't tee to $out_file: $!";
+    my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
+    open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
+    open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
     STDOUT->autoflush(1);
     STDERR->autoflush(1);
-    $log_fh->autoflush(1);
+    $out_fh->autoflush(1);
     return;
 }
 
