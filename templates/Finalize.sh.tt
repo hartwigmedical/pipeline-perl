@@ -12,167 +12,93 @@ export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-source [% opt.CLUSTER_PATH %]/settings.sh
+function check_step() {
+    local subdir="$1" && shift
+    local suffix="${1:+_$1}" && shift
+    local new_step_name="$1" && shift
+    local old_step_names="$*"
+
+    local indent=""
+    { [ -n "${suffix}" ] || [ "${subdir}" != "." ]; } && indent=$'\t'
+
+    local step_name
+    for step_name in ${new_step_name} ${old_step_names}
+    do
+        local done_file="[% opt.OUTPUT_DIR %]/${subdir}/logs/${step_name}${suffix}.done"
+        if [ -f "${done_file}" ]
+        then
+            echo "${indent}${new_step_name}: done" >> [% log_file %]
+            return
+        fi
+    done
+    echo "${indent}${new_step_name}: failed" >> [% log_file %]
+    failed=true
+}
+
 
 failed=false
 rm -f [% log_file %]
+
 echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
 echo "Pipeline version: [% opt.VERSION %]" >> [% log_file %]
 echo >> [% log_file %]
 
 [% FOREACH sample IN opt.SAMPLES.keys -%]
 echo "Sample: [% sample %]" >> [% log_file %]
-
 [% IF opt.PRESTATS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/PreStats_[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 PreStats: done" >> [% log_file %]
-else
-    echo "	 PreStats: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "[% sample %]" "[% sample %]" "PreStats"
 [% END -%]
-
 [% IF opt.MAPPING == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Mapping_[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 Mapping: done" >> [% log_file %]
-else
-    echo "	 Mapping: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "[% sample %]" "[% sample %]" "Mapping"
 [% END -%]
-
 [% IF opt.INDELREALIGNMENT == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/Realignment_[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 Indel realignment: done" >> [% log_file %]
-else
-    echo "	 Indel realignment: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "[% sample %]" "[% sample %]" "Realignment"
 [% END -%]
-
 [% IF opt.BASEQUALITYRECAL == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/BaseRecalibration_[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 Base recalibration: done" >> [% log_file %]
-else
-    echo "	 Base recalibration: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "[% sample %]" "[% sample %]" "BaseRecalibration"
 [% END -%]
-
 [% IF opt.BAF == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/[% sample %]/logs/BAF_[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 BAF analysis: done" >> [% log_file %]
-else
-    echo "	 BAF analysis: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "[% sample %]" "[% sample %]" "BAF"
 [% END -%]
 echo >> [% log_file %]
 [% END -%]
 
 [% IF opt.POSTSTATS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/PostStats.done"
-if [ -f ${done_file} ]
-then
-    echo "PostStats: done" >> [% log_file %]
-else
-    echo "PostStats: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "." "" "PostStats"
 [% END -%]
-
 [% IF opt.VARIANT_CALLING == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineCaller.done"
-if [ -f ${done_file} ]
-then
-    echo "Germline caller: done" >> [% log_file %]
-else
-    echo "Germline caller: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "." "" "GermlineCaller" "VariantCaller"
 [% END -%]
-
 [% IF opt.FILTER_VARIANTS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineFilter.done"
-if [ -f ${done_file} ]
-then
-    echo "Germline filter: done" >> [% log_file %]
-else
-    echo "Germline filter: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "." "" "GermlineFilter" "VariantFilter"
 [% END -%]
-
 [% IF opt.ANNOTATE_VARIANTS == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done"
-if [ -f ${done_file} ]
-then
-    echo "Germline annotation: done" >> [% log_file %]
-else
-    echo "Germline annotation: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "." "" "GermlineAnnotation" "VariantAnnotation"
 [% END -%]
 
 [% IF opt.SOMATIC_VARIANTS == "yes" -%]
 echo "Somatic variants:" >> [% log_file %]
-done_file="[% opt.OUTPUT_DIR %]/somaticVariants/[% joint_name %]/logs/[% joint_name %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 [% joint_name %]: done" >> [% log_file %]
-else
-    echo "	 [% joint_name %]: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "somaticVariants/[% joint_name %]" "" "[% joint_name %]"
 [% END -%]
 
 [% IF opt.COPY_NUMBER == "yes" -%]
 echo "Copy number analysis:" >> [% log_file %]
 [% IF opt.CNV_MODE == "sample_control" -%]
-done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% joint_name %]/logs/[% joint_name %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 [% joint_name %]: done" >> [% log_file %]
-else
-    echo "	 [% joint_name %]: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "copyNumber/[% joint_name %]" "" "[% joint_name %]"
 [% ELSIF opt.CNV_MODE == "sample" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
-done_file="[% opt.OUTPUT_DIR %]/copyNumber/[% sample %]/logs/[% sample %].done"
-if [ -f ${done_file} ]
-then
-    echo "	 [% sample %]: done" >> [% log_file %]
-else
-    echo "	 [% sample %]: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "copyNumber/[% sample %]" "" "[% sample %]"
 [% END -%]
 [% END -%]
 [% END -%]
 
 [% IF opt.KINSHIP == "yes" -%]
-done_file="[% opt.OUTPUT_DIR %]/logs/Kinship.done"
-if [ -f ${done_file} ]
-then
-    echo "Kinship: done" >> [% log_file %]
-else
-    echo "Kinship: failed" >> [% log_file %]
-    failed=true
-fi
+check_step "." "" Kinship
 [% END -%]
 
 echo >> [% log_file %]
+
+
 if [[ "${failed}" == "true" ]]
 then
     echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
@@ -201,9 +127,8 @@ else
 [% END -%]
 [% END -%]
 
-    done_file="[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done"
     mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
-    touch ${done_file}
+    touch "[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done"
     [% INCLUDE Status.tt step="" status="success" %]
 fi
 
