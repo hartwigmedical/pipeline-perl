@@ -17,7 +17,7 @@ echo "Start BamDiff	" `date` "	[% diff_name %]	" `uname -n` >> [% dirs.log %]/[%
 if [ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ]
 then
     # NB: bamutil does not produce an empty file when there is no diff
-    [% opt.BAMUTIL_PATH %]/bam diff --in1 [% input_bam1 %] --in2 [% input_bam2 %] --noPos --onlyDiffs --out [% output_diff %]
+    [% opt.BAMUTIL_PATH %]/bam diff --in1 [% input_bam1 %] --in2 [% input_bam2 %] --noPos --onlyDiffs --baseQual --out [% output_diff %]
 
     [% INCLUDE Status.tt step=diff_name status="success" %]
 else
