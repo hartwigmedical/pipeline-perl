@@ -1,14 +1,11 @@
 package illumina_poststats;
 
-use 5.16.0;
-use strict;
-use warnings;
+use FindBin;
+use lib "$FindBin::Bin";
+use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
-
-use FindBin;
-use lib "$FindBin::Bin";
 
 use illumina_sge qw(qsubTemplate);
 use illumina_jobs qw(getJobId);

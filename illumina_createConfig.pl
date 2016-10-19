@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 
-use 5.16.0;
-use strict;
-use warnings;
+use FindBin;
+use lib "$FindBin::Bin";
+use discipline;
 
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
@@ -10,9 +10,6 @@ use Getopt::Long;
 use File::Path qw(make_path);
 use File::Spec::Functions;
 use File::Find::Rule;
-
-use FindBin;
-use lib "$FindBin::Bin";
 
 use illumina_template qw(from_template);
 

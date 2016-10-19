@@ -1,15 +1,12 @@
 package illumina_jobs;
 
-use 5.16.0;
-use strict;
-use warnings;
+use FindBin;
+use lib "$FindBin::Bin";
+use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
 use POSIX qw(tmpnam);
-
-use FindBin;
-use lib "$FindBin::Bin";
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(

@@ -1,4 +1,10 @@
 severity = 4
 
+[TestingAndDebugging::RequireUseStrict]
+equivalent_modules = discipline
+
+[TestingAndDebugging::RequireUseWarnings]
+equivalent_modules = discipline
+
 [InputOutput::RequireBriefOpen]
 lines = 20

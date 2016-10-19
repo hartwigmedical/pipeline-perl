@@ -1,15 +1,14 @@
 package illumina_template;
 
-use 5.16.0;
-use strict;
-use warnings;
+use FindBin;
+use lib "$FindBin::Bin";
+use discipline;
 
 use Carp;
 use File::Spec::Functions;
 use Template;
 use Env qw($TEMPLATES);
 
-use FindBin;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(from_template);

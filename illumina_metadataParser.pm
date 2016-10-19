@@ -1,8 +1,8 @@
 package illumina_metadataParser;
 
-use 5.16.0;
-use strict;
-use warnings;
+use FindBin;
+use lib "$FindBin::Bin";
+use discipline;
 
 use File::Spec::Functions;
 use JSON;
