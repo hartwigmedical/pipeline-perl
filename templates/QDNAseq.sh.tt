@@ -19,13 +19,15 @@ then
 
     Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
 
-    if [ -s "[% dirs.qdnaseq.out %]/[% sample_name %]"*.vcf ]
+    if [ -s "[% dirs.qdnaseq.out %]/[% sample_name %]"*.vcf ] \
+       && [ -s "[% dirs.qdnaseq.out %]/calls.png" ] \
+       && [ -s "[% dirs.qdnaseq.out %]/copyNumberSegmented.png" ]
     then
         touch "[% dirs.log %]/qdnaseq.done"
         [% INCLUDE Status.tt step=sample_name status="success" %]
     else
         [% INCLUDE Status.tt step=sample_name status="failed" %]
-        fail "No QDNAseq VCFs produced."
+        fail "No QDNAseq VCFs/PNGs produced."
     fi
     echo "End QDNASEQ	" `date` "	 [% sample_bam %]	" `uname -n` >> [% dirs.log %]/qdnaseq.log
 else

@@ -41,6 +41,10 @@ if (!file.exists("readCountsFiltered.rds")) {
 	readCountsFiltered <- readRDS("readCountsFiltered.rds")
 }
 
+png("copyNumberSegmented.png", width=1024, height=1024)
+plot(readCountsFiltered)
+dev.off()
+
 #Export bins
 exportBins(readCountsFiltered, "copynumber.igv", type="copynumber", format="igv")
 exportBins(readCountsFiltered, "segments.igv", type="segments", format="igv")
@@ -49,3 +53,7 @@ exportBins(readCountsFiltered, "segments.igv", type="segments", format="igv")
 allCalls <- callBins(readCountsFiltered, method="cutoff")
 exportBins(allCalls, "calls.igv", type="calls", format="igv", logTransform=FALSE)
 exportVCF(allCalls)
+
+png("calls.png", width=1024, height=1024)
+plot(allCalls)
+dev.off()
