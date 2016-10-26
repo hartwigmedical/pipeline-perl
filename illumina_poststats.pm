@@ -6,6 +6,7 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
+use File::Path qw(make_path);
 
 use illumina_sge qw(qsubTemplate);
 use illumina_jobs qw(getJobId);
@@ -15,33 +16,49 @@ use illumina_template qw(from_template);
 sub runPostStats {
     my ($opt) = @_;
 
-    my $done_file = catfile($opt->{OUTPUT_DIR}, "logs", "PostStats.done");
+    my $out_dir = catfile($opt->{OUTPUT_DIR}, "QCStats");
+    my $dirs = {
+        out => $out_dir,
+        log => catfile($opt->{OUTPUT_DIR}, "logs"),
+        job => catfile($opt->{OUTPUT_DIR}, "jobs"),
+    };
+    map { $dirs->{$_} = catfile($out_dir, $_, "snpcheck") } keys %{$opt->{SAMPLES}};
+
+    make_path(values %{$dirs}, { error => \my $errors });
+    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
+    die "Couldn't create output directories: $messages" if $messages;
+
+    my $done_file = catfile($dirs->{log}, "PostStats.done");
 
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
     }
 
-    my @bam_files;
+    my $sample_bams = {};
     my @running_jobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        push @bam_files, catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+        $sample_bams->{$sample} = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
         if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
             push(@running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}}));
         }
     }
 
+    my @designs;
+    @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
+
     my $job_id = "PostStats_" . getJobId();
     my $job_id_check = "PostStatsCheck_" . getJobId();
-    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
-    my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
-    my $stdout = catfile($log_dir, "PostStats_$opt->{RUN_NAME}.out");
-    my $stderr = catfile($log_dir, "PostStats_$opt->{RUN_NAME}.err");
+    my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
+    my $stdout = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.err");
 
     from_template("PostStats.sh.tt", $bash_file,
-                  bam_files => \@bam_files,
+                  sample_bams => $sample_bams,
+                  designs => \@designs,
                   job_id => $job_id,
                   job_id_check => $job_id_check,
+                  dirs => $dirs,
                   opt => $opt);
 
     my $qsub = qsubTemplate($opt, "POSTSTATS");
@@ -51,8 +68,12 @@ sub runPostStats {
         system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
     }
 
-    $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id_check}.sh");
-    from_template("PostStatsCheck.sh.tt", $bash_file, opt => $opt);
+    $bash_file = catfile($dirs->{job}, "${job_id_check}.sh");
+    from_template("PostStatsCheck.sh.tt", $bash_file,
+                  designs => \@designs,
+                  sample_bams => $sample_bams,
+                  dirs => $dirs,
+                  opt => $opt);
     system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];

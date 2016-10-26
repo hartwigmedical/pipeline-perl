@@ -14,12 +14,20 @@ cd [% opt.OUTPUT_DIR %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-if [ -s QCStats/*.bamMetrics.pdf -a -s QCStats/*.bamMetrics.html ]; then
+if [ -s QCStats/*.bamMetrics.pdf ] \
+    && [ -s QCStats/*.bamMetrics.html ] \
+    [%- IF opt.exists('SNPCHECK_DESIGNS') -%]
+    [%- FOREACH sample IN sample_bams.keys %]
+    && [ $(find "[% dirs.$sample %]" -type f -name "*.vcf" | wc -l) -eq [% designs.size %] ] \
+    [%- END -%]
+    [%- END %]
+    && true
+then
     touch logs/PostStats.done
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "bamMetrics reports missing"
+    fail "bamMetrics or SNPcheck reports missing"
 fi
 
-echo "Finished poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "Finished poststats	" `date` "	" `uname -n` >> [% dirs.log %]/[% opt.RUN_NAME %].log

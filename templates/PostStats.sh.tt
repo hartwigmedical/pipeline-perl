@@ -12,15 +12,15 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]
 
-echo "Start poststats	" `date` "	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "Start poststats	" `date` "	" `uname -n` >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
 perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
-[% FOREACH bam_file IN bam_files -%]
+[% FOREACH bam_file IN sample_bams.values -%]
     -bam [% bam_file %] \
 [% END -%]
-    -output_dir [% opt.OUTPUT_DIR %]/QCStats/ \
+    -output_dir [% dirs.out %] \
     -run_name [% opt.RUN_NAME %] \
     -genome [% opt.GENOME %] \
     -queue [% opt.POSTSTATS_QUEUE %] \
@@ -35,5 +35,17 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
     -coverage_cap 250[% IF opt.exists('SINGLE_END') %] -single_end[% END %][% IF opt.CLUSTER_RESERVATION == "yes" %] -queue_reserve[% END %]
 
 qalter -hold_jid bamMetrics_report_[% opt.RUN_NAME %],[% job_id %] [% job_id_check %]
+
+[% FOREACH pair IN sample_bams.pairs -%]
+[% FOREACH design IN designs -%]
+java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+     -T UnifiedGenotyper \
+     -R "[% opt.GENOME %]" \
+     -L "[% opt.OUTPUT_DIR %]/settings/slicing/[% design %].vcf" \
+     --output_mode EMIT_ALL_SITES \
+     -I "[% pair.value %]" \
+     -o "[% dirs.${pair.key} %]/[% pair.key %]_[% design %].vcf"
+[% END -%]
+[% END -%]
 
 [% INCLUDE Status.tt step="" status="finished" %]
