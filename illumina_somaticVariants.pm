@@ -34,8 +34,8 @@ sub runSomaticVariantCallers {
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
     my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
-    $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list";
-    $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list";
+    $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
+    $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
 
     my $somatic_name = "${ref_sample}_${tumor_sample}";
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "somaticVariants", $somatic_name);
