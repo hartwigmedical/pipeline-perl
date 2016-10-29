@@ -295,11 +295,11 @@ sub bamHeaders {
     $? == 0 or confess "could not read BAM headers from $bam_file";
 
     chomp @lines;
-    my @fields = map { [ split qr/[\t:]/ ] } @lines;
+    my @fields = grep { @$_[0] ne '@CO' } map { [ split /\t/ ] } @lines;
     my @headers = map {
-            name => shift $_,
-            tags => { @$_ },
-        }, @fields;
+        name => shift $_,
+        tags => { map { split /:/, $_, 2 } @$_ },
+    }, @fields;
     return \@headers;
 }
 
