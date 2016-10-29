@@ -15,7 +15,7 @@ sub runBaseRecalibration {
 
     say "Running base recalibration for the following BAM-files:";
 
-    my $known_files;
+    my $known_files = "";
     $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

@@ -15,7 +15,7 @@ sub runRealignment {
 
     say "Running single sample indel realignment for the following BAM-files:";
 
-    my $known_files;
+    my $known_files = "";
     $known_files = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

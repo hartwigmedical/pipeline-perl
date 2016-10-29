@@ -124,6 +124,8 @@ sub runPipeline {
 sub getSamples {
     my ($opt) = @_;
 
+    $opt->{SAMPLES} = {};
+
     if ($opt->{FASTQ}) {
         foreach my $input_file (keys %{$opt->{FASTQ}}) {
             my $fastqFile = fileparse($input_file);

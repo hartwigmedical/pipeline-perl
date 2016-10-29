@@ -32,7 +32,7 @@ sub getJobId {
 sub fromTemplate {
     my ($name, $sample, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
 
-    my $suffix;
+    my $suffix = "";
     $suffix = "_${sample}" if $sample;
 
     my $done_file = catfile($dirs->{log}, "${name}${suffix}.done");
@@ -51,7 +51,7 @@ sub fromTemplate {
 
     my $stdout = catfile($dirs->{log}, "${name}${suffix}.out");
     my $stderr = catfile($dirs->{log}, "${name}${suffix}.err");
-    my $hold_jid;
+    my $hold_jid = "";
     $hold_jid = "-hold_jid " . join ",", @{$hold_jids} if @{$hold_jids};
     system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
     return $job_id;
