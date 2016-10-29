@@ -11,7 +11,7 @@ export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample status="processing" %]
-echo "Start Flagstat	" `date` "	[% sample_bam_path %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "Start Flagstat	$(date)	[% sample_bam_path %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 if [ -s "[% sample_bam_path %]" ]
 then
@@ -28,4 +28,4 @@ else
    fail "[% sample_bam_path %] does not exist or is empty."
 fi
 
-echo "End Flagstat	" `date` "	[% sample_bam_path %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "End Flagstat	$(date)	[% sample_bam_path %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

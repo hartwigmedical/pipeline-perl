@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
-echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start sort	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% INCLUDE Status.tt step=coreName status="processing" %]
 
@@ -20,5 +20,5 @@ echo "Start sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/
 
 [% INCLUDE Status.tt step=coreName status="finished" %]
 
-echo "End sort	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End sort	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 

@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
-echo "Start pileup" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+echo "Start pileup $(date) [% bam %] $(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]
 then
@@ -47,4 +47,4 @@ else
   fail "[% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist."
 fi
 
-echo "End pileup 	" `date` "[% bam %]" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+echo "End pileup	$(date) [% bam %] $(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

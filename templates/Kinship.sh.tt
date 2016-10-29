@@ -16,7 +16,7 @@ cd [% opt.OUTPUT_DIR %]/
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-echo "Start Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% opt.RUN_NAME %].log
+echo "Start Kinship	$(date)	[% vcf %]	$(uname -n)" >> logs/[% opt.RUN_NAME %].log
 
 [% opt.VCFTOOLS_PATH %]/vcftools --temp tmp --out tmp/out --vcf [% vcf %] --plink
 [% opt.PLINK_PATH %]/plink --file tmp/out --out tmp/plink --make-bed --noweb
@@ -32,4 +32,4 @@ else
     fail "kinship file missing"
 fi
 
-echo "End Kinship	" `date` "	[% vcf %]	" `uname -n` >> logs/[% opt.RUN_NAME %].log
+echo "End Kinship	$(date)	[% vcf %]	$(uname -n)" >> logs/[% opt.RUN_NAME %].log

@@ -17,7 +17,7 @@ basename="[% basename %]_snpEff"
 outvcf="$basename.vcf"
 
 cd "[% dirs.out %]"
-echo "Start Annotate	" `date` "	$invcf	" `uname -n` >> [% dirs.log %]/merge.log
+echo "Start Annotate	$(date)	$invcf	$(uname -n)" >> [% dirs.log %]/merge.log
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.SNPEFF_PATH %]/snpEff.jar -c [% opt.SNPEFF_PATH %]/snpEff.config [% opt.ANNOTATE_DB %] -v "$invcf" [% opt.ANNOTATE_FLAGS %] > "$outvcf"
 
@@ -56,4 +56,4 @@ else
     fail "$outvcf was not created by SnpEff"
 fi
 
-echo "End Annotate	" `date` "	$invcf	" `uname -n` >> [% dirs.log %]/merge.log
+echo "End Annotate	$(date)	$invcf	$(uname -n)" >> [% dirs.log %]/merge.log

@@ -12,26 +12,26 @@ export JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
-echo "Start mapping 	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% INCLUDE Status.tt step=coreName status="processing" %]
 
 [% IF R2 %]
 [% opt.BWA_PATH %]/bwa mem -t [% opt.MAPPING_THREADS %] [% opt.MAPPING_SETTINGS %] -R "@RG	ID:[% RG_ID %]	SM:[% RG_SM %]	PL:[% RG_PL %]	LB:[% RG_LB %]	PU:[% RG_PU %]" [% opt.GENOME %] [% R1 %] [% R2 %] \
-	 2>>[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log | [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.MAPPING_THREADS %] --format=bam -S -o [% coreName %].bam.tmp /dev/stdin
+   2>>[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log | [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.MAPPING_THREADS %] --format=bam -S -o [% coreName %].bam.tmp /dev/stdin
 [% ELSE %]
 [% opt.BWA_PATH %]/bwa mem -t [% opt.MAPPING_THREADS %] [% opt.MAPPING_SETTINGS %] -R "@RG	ID:[% RG_ID %]	SM:[% RG_SM %]	PL:[% RG_PL %]	LB:[% RG_LB %]	PU:[% RG_PU %]" [% opt.GENOME %] [% R1 %] \
-	 2>>[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log | [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.MAPPING_THREADS %] --format=bam -S -o [% coreName %].bam.tmp /dev/stdin
+   2>>[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log | [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.MAPPING_THREADS %] --format=bam -S -o [% coreName %].bam.tmp /dev/stdin
 [% END %]
 
 if grep -Fq '[main] Real time:' [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log; then
-	mv [% coreName %].bam.tmp [% coreName %].bam
-	touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
+    mv [% coreName %].bam.tmp [% coreName %].bam
+    touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
   
-	[% INCLUDE Status.tt step=coreName status="success" %]
+    [% INCLUDE Status.tt step=coreName status="success" %]
 else
-	[% INCLUDE Status.tt step=coreName status="failed" %]
+    [% INCLUDE Status.tt step=coreName status="failed" %]
     fail "[% coreName %] BWA did not finish properly"
 fi
 
-echo "End mapping	" `date` "	[% coreName %]	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

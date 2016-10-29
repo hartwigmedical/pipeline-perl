@@ -30,4 +30,4 @@ else
     fail "bamMetrics or SNPcheck reports missing"
 fi
 
-echo "Finished poststats	" `date` "	" `uname -n` >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End poststats	$(date)	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

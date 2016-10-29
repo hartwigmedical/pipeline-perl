@@ -14,15 +14,15 @@ bash [% opt.CLUSTER_PATH %]/settings.sh
 
 cd [% opt.OUTPUT_DIR %]/tmp
 
-echo "Start germline variant filter	" `date` "	[% opt.RUN_NAME %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "Start germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 
 if [ -s [% opt.OUTPUT_DIR %]/[% opt.RUN_NAME %].raw_variants.vcf ]; then
-	[% INCLUDE Status.tt step="" status="processing" %]
+    [% INCLUDE Status.tt step="" status="processing" %]
   
-	[% command %]
+    [% command %]
 else
-	[% INCLUDE Status.tt step="" status="failed" %]
-	fail "[% opt.RUN_NAME %].raw_variants.vcf does not exist."
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% opt.RUN_NAME %].raw_variants.vcf does not exist."
 fi
 
 if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].filtered_variants.vcf.done ]; then
@@ -32,8 +32,8 @@ if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].filtered_variants.vcf.done 
 
     [% INCLUDE Status.tt step="" status="success" %]
 else
-	[% INCLUDE Status.tt step="" status="failed" %]
-	fail "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
 fi
 
-echo "End germline variant filter	" `date` "	[% opt.RUN_NAME %].raw_variants.vcf	" `uname -n` >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "End germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log

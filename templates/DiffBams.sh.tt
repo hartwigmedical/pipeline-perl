@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=diff_name status="processing" %]
 
-echo "Start BamDiff	" `date` "	[% diff_name %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "Start BamDiff	$(date)	[% diff_name %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 if [ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ]
 then
@@ -25,4 +25,4 @@ else
     fail "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
 fi
 
-echo "End BamDiff	" `date` "	[% diff_name %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "End BamDiff	$(date)	[% diff_name %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

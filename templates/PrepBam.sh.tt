@@ -14,7 +14,7 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]
 
 if [ -s [% sample_bam  %] ]
 then
-    echo "Start ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% log_dir %]/[% sample %].log
+    echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% log_dir %]/[% sample %].log
 
     if [ ! -s [% sample_bai %] ]
     then
@@ -49,4 +49,4 @@ else
     fail "[% sample_bam %] does not exist."
 fi
 
-echo "End ${JOB_NAME}	" `date` "	[% sample %]	" `uname -n` >> [% log_dir %]/[% sample %].log
+echo "End ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% log_dir %]/[% sample %].log

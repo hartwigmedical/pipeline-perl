@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
 then
-  echo "Start Mutect  " `date` "   [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %] " `uname -n` >> [% dirs.log %]/mutect.log
+  echo "Start Mutect   $(date)    [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]  $(uname -n)" >> [% dirs.log %]/mutect.log
   cd [% mutect_tmp_dir %]
 
   [% INCLUDE Status.tt step=chr status="processing" %]
@@ -21,7 +21,7 @@ then
   
   [% INCLUDE Status.tt step=chr status="finished" %]
   
-  echo "End Mutect  " `date` "   [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/mutect.log
+  echo "End Mutect   $(date)    [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/mutect.log
 else
   [% INCLUDE Status.tt step=chr status="failed" %]
   fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."

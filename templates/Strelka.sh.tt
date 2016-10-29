@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
 then
-  echo "Start Strelka " `date` "  [% ref_sample_bam %]  [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/strelka.log
+  echo "Start Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log
   
   [% INCLUDE Status.tt step="" status="processing" %]
 
@@ -42,4 +42,4 @@ else
   fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
 fi
 
-echo "End Strelka " `date` "  [% ref_sample_bam %]  [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/strelka.log
+echo "End Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log

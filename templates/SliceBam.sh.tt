@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample_bam status="processing" %]
 
-echo "Start SliceBam	" `date` "	[% sample_bam %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "Start SliceBam	$(date)	[% sample_bam %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 if [ -s [% input_bam %] ]
 then
@@ -36,4 +36,4 @@ else
     fail "[% input_bam %] does not exist or is empty."
 fi
 
-echo "End SliceBam	" `date` "	[% sample_bam %]	" `uname -n` >> [% dirs.log %]/[% sample %].log
+echo "End SliceBam	$(date)	[% sample_bam %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

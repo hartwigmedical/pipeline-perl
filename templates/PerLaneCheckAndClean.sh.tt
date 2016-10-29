@@ -8,7 +8,7 @@
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
-echo "Start cleanup	" `date` "	 [% coreName %] 	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start cleanup	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
@@ -28,4 +28,4 @@ else
     fail "Either [% coreName %].flagstat or [% coreName %]_sorted.flagstat is empty."
 fi
 
-echo "End cleanup	" `date` "	 [% coreName %] 	" `uname -n` >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End cleanup	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

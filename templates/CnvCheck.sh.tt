@@ -12,7 +12,7 @@ export JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=cnv_name status="processing" %]
 
-echo "Start ${JOB_NAME}	"	`date`	[% cnv_name %]	`uname -n` >> [% dirs.log %]/check.log
+echo "Start ${JOB_NAME}		$(date)	[% cnv_name %]	$(uname -n)" >> [% dirs.log %]/check.log
 
 if true \
     [%- IF opt.CNV_FREEC == "yes" %]
@@ -30,4 +30,4 @@ else
     fail "${cnv_name} has missing done files, copy number check failed"
 fi
 
-echo "End ${JOB_NAME}	"	`date`	[% cnv_name %]	`uname -n` >> [% dirs.log %]/check.log
+echo "End ${JOB_NAME}		$(date)	[% cnv_name %]	$(uname -n)" >> [% dirs.log %]/check.log

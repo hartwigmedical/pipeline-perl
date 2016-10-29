@@ -15,7 +15,7 @@ cd [% freebayes_out_dir %]
 
 [% file_test %]
 then
-  echo "Start concat and postprocess Freebayes  " `date` "   [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/freebayes.log
+  echo "Start concat and postprocess Freebayes   $(date)    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
   [% INCLUDE Status.tt step="PostProcess" status="processing" %]
   
   [% concat_command %]
@@ -41,7 +41,7 @@ then
     fail "[% freebayes_out_dir %]/[% somatic_name %]_somatic_filtered.vcf does not exist."
   fi
   
-  echo "End concat and postprocess Freebayes  " `date` "   [% ref_sample_bam %]    [% tumor_sample_bam %]  " `uname -n` >> [% dirs.log %]/freebayes.log
+  echo "End concat and postprocess Freebayes   $(date)    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
 else
   [% INCLUDE Status.tt step="PostProcess" status="failed" %]
   fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."

@@ -14,7 +14,7 @@ export JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start Merge	" `date` "	[% opt.RUN_NAME %]	" `uname -n` >> [% dirs.log %]/merge.log
+echo "Start Merge	$(date)	[% opt.RUN_NAME %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] -o [% outvcf %] --genotypemergeoption uniquify [% inputs %]
 
@@ -26,4 +26,4 @@ else
     fail "[% outvcf %] was not created by CombineVariants"
 fi
 
-echo "End Merge	" `date` "	[% opt.RUN_NAME %]	" `uname -n` >> [% dirs.log %]/merge.log
+echo "End Merge	$(date)	[% opt.RUN_NAME %]	$(uname -n)" >> [% dirs.log %]/merge.log
