@@ -10,7 +10,7 @@ export JOB_NAME=Varscan
 export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
-cd [% varscan_out_dir %]
+cd [% dirs.varscan.out %]
 
 if [ -s [% ref_sample_pileup %] -a -s [% tumor_sample_pileup %] ]
 then
@@ -24,7 +24,12 @@ then
     [% opt.TABIX_PATH %]/tabix [% tumor_sample_pileup %] [% chr %] > "$tumor_pipe" &
     tabix_tumor_pid=$!
 
-    java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] somatic "$ref_pipe" "$tumor_pipe" [% output_name %] [% opt.VARSCAN_SETTINGS %] --output-vcf 1
+    java -Xmx[% opt.VARSCAN_MEM %]G \
+        -jar [% opt.VARSCAN_PATH %] \
+        somatic "$ref_pipe" "$tumor_pipe" \
+        [% output_name %] \
+        [% opt.VARSCAN_SETTINGS %] \
+        --output-vcf 1
 
     wait $tabix_ref_pid
     wait $tabix_tumor_pid

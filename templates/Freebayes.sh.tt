@@ -10,20 +10,40 @@ export JOB_NAME=Freebayes
 export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
-cd [% freebayes_out_dir %]
+cd [% dirs.freebayes.out %]
 if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
 then
-  echo "Start Freebayes   $(date)    [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
-  [% INCLUDE Status.tt step=chr status="processing" %]
+    echo "Start Freebayes   $(date)    [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
+    [% INCLUDE Status.tt step=chr status="processing" %]
 
-  [% freebayes_command %]
-  [% sort_uniq_filter_command %]
-  [% mv_command %]
-  
-  [% INCLUDE Status.tt step=chr status="finished" %]
-  
-  echo "End Freebayes   $(date)    [% chr %] [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
+    [% opt.FREEBAYES_PATH %]/freebayes \
+        -f [% opt.GENOME %] \
+        -r [% chr %] \
+        [% opt.FREEBAYES_SETTINGS %] \
+        [% ref_sample_bam %] [% tumor_sample_bam %] \
+        > [% dirs.freebayes.out %]/[% output_name %].vcf
+
+    [% opt.VCFTOOLS_PATH %]/vcf-sort -c -t [% dirs.freebayes.tmp %] [% dirs.freebayes.out %]/[% output_name %].vcf \
+        | [% opt.VCFLIB_PATH %]/vcfuniq > [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf
+
+    [%- IF opt.exists('SOMVAR_TARGETS') %]
+    java -Xmx[% opt.FREEBAYES_MEM %]G \
+        -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+        -T SelectVariants \
+        -R [% opt.GENOME %] \
+        -L [% opt.SOMVAR_TARGETS %] \
+        -V [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf \
+        -o [% dirs.freebayes.out %]/[% output_name %].sorted_uniq_targetfilter.vcf
+
+    mv [% dirs.freebayes.out %]/[% output_name %].sorted_uniq_targetfilter.vcf [% dirs.freebayes.out %]/[% output_name %].vcf
+    [%- ELSE %]
+    mv [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf [% dirs.freebayes.out %]/[% output_name %].vcf
+    [%- END %]
+
+    [% INCLUDE Status.tt step=chr status="finished" %]
+
+    echo "End Freebayes   $(date)    [% chr %] [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
 else
-  [% INCLUDE Status.tt step=chr status="failed" %]
-  fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
+    [% INCLUDE Status.tt step=chr status="failed" %]
+    fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
 fi

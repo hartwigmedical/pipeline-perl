@@ -12,34 +12,51 @@ export JOB_START=$(date +%s)
 
 if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
 then
-  echo "Start Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log
-  
-  [% INCLUDE Status.tt step="" status="processing" %]
+    echo "Start Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log
 
-  # Run Strelka
-  rm -rf [% dirs.out %]/strelka
-  [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl --tumor [% tumor_sample_bam %] --normal [% ref_sample_bam %] --ref [% opt.GENOME %] --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] --output-dir [% dirs.out %]/strelka
+    [% INCLUDE Status.tt step="" status="processing" %]
 
-  cd [% dirs.out %]/strelka
-  make -j [% opt.STRELKA_THREADS %]
+    rm -rf [% dirs.out %]/strelka
+    [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
+        --tumor [% tumor_sample_bam %] \
+        --normal [% ref_sample_bam %] \
+        --ref [% opt.GENOME %] \
+        --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] \
+        --output-dir [% dirs.strelka.out %]
 
-  # Check strelka completed
-  if [ -f [% dirs.out %]/strelka/task.complete ]
-  then
-    java -Xmx[% opt.STRELKA_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] --genotypemergeoption unsorted -o passed.somatic.merged.vcf -V results/passed.somatic.snvs.vcf -V results/passed.somatic.indels.vcf 
-    perl -p -e 's/\t([A-Z][A-Z]:)/\tGT:$1/g' passed.somatic.merged.vcf | perl -p -e 's/(:T[UO]R?)\t/$1\t0\/0:/g' | perl -p -e 's/(:\d+,\d+)\t/$1\t0\/1:/g' | perl -p -e 's/(#CHROM.*)/##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility.\n$1/g' > temp.vcf
-    mv temp.vcf passed.somatic.merged.vcf
-    rm -r chromosomes/
-    touch [% dirs.log %]/strelka.done
-    
-    [% INCLUDE Status.tt step="" status="success" %]
-  else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "Strelka did not complete successfully"
-  fi
+    cd [% dirs.strelka.out %]
+    make -j [% opt.STRELKA_THREADS %]
+
+    if [ -f [% dirs.strelka.out %]/task.complete ]
+    then
+        java -Xmx[% opt.STRELKA_MEM %]G \
+            -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+            -T CombineVariants \
+            -R [% opt.GENOME %] \
+            --genotypemergeoption unsorted \
+            -V results/passed.somatic.snvs.vcf \
+            -V results/passed.somatic.indels.vcf \
+            -o passed.somatic.merged.vcf
+
+        awk -F'\t' -v OFS='\t' '
+            /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
+            /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
+            { print }' \
+            passed.somatic.merged.vcf \
+            > temp.vcf
+
+        mv temp.vcf passed.somatic.merged.vcf
+        rm -r chromosomes/
+
+        touch [% dirs.log %]/strelka.done
+        [% INCLUDE Status.tt step="" status="success" %]
+    else
+        [% INCLUDE Status.tt step="" status="failed" %]
+        fail "Strelka did not complete successfully"
+    fi
 else
-  [% INCLUDE Status.tt step="" status="failed" %]
-  fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
+    [% INCLUDE Status.tt step="" status="failed" %]
+    fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
 fi
 
 echo "End Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log

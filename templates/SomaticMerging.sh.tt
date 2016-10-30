@@ -22,7 +22,7 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
     -R [% opt.GENOME %] \
     -o [% out_vcf %] \
     --genotypemergeoption uniquify \
-    [% inputs %]
+    [% inputs.join(' ') %]
 
 if [ -s "[% out_vcf %]" ]
 then

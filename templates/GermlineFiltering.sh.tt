@@ -19,7 +19,39 @@ echo "Start germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	
 if [ -s [% opt.OUTPUT_DIR %]/[% opt.RUN_NAME %].raw_variants.vcf ]; then
     [% INCLUDE Status.tt step="" status="processing" %]
   
-    [% command %]
+    java -Xmx[% opt.FILTER_MASTER_MEM %]G -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
+        -jar [% opt.QUEUE_PATH %]/Queue.jar \
+        -jobQueue [% opt.FILTER_QUEUE %] \
+        -jobNative "[% job_native %]" \
+        -jobRunner GridEngine \
+        -jobReport [% opt.OUTPUT_DIR %]/logs/GermlineFilter.jobReport.txt \
+        -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.FILTER_SCALA %] \
+        -R [% opt.GENOME %] \
+        -V [% opt.OUTPUT_DIR %]/[% opt.RUN_NAME %].raw_variants.vcf \
+        -O [% opt.RUN_NAME %] \
+        -mem [% opt.FILTER_MEM %] \
+        -nsc [% opt.FILTER_SCATTER %] \
+        [%- FOREACH snp_type IN snp_types %]
+        -snpType [% snp_type %] \
+        [%- END %]
+        [%- FOREACH i IN [1 .. snp_filter_names.size] %]
+        [%- index = i - 1 %]
+        -snpFilterName [% snp_filter_names.$index %] \
+        -snpFilterExpression "[% snp_filter_exprs.$index %]" \
+        [%- END %]
+        [%- IF opt.exists('FILTER_CLUSTERSIZE') && opt.exists('FILTER_CLUSTERWINDOWSIZE') %]
+        -cluster [% opt.FILTER_CLUSTERSIZE %] \
+        -window [% opt.FILTER_CLUSTERWINDOWSIZE %] \
+        [%- END %]
+        [%- FOREACH indel_type IN indel_types %]
+        -indelType [% indel_type %] \
+        [%- END %]
+        [%- FOREACH i IN [1 .. indel_filter_names.size] %]
+        [%- index = i - 1 %]
+        -indelFilterName [% indel_filter_names.$index %] \
+        -indelFilterExpression "[% indel_filter_exprs.$index %]" \
+        [%- END %]
+        -run
 else
     [% INCLUDE Status.tt step="" status="failed" %]
     fail "[% opt.RUN_NAME %].raw_variants.vcf does not exist."

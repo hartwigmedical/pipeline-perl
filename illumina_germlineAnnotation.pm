@@ -48,9 +48,9 @@ sub runAnnotateVariants {
 
     my $qsub = qsubJava($opt, "ANNOTATE");
     if (@running_jobs) {
-	    system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
+        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
-	    system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
+        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

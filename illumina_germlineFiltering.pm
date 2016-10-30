@@ -17,68 +17,43 @@ sub runFilterVariants {
 
     say "\n### SCHEDULING VARIANT FILTRATION ###";
 
-    my @running_jobs;
-    my $job_id = "GermlineFilter_" . getJobId();
-
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineFilter.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantFilter.done") {
-		say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping";
+        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping";
         return;
     }
 
-    my $command = "java -Xmx".$opt->{FILTER_MASTER_MEM}."G -Djava.io.tmpdir=$opt->{OUTPUT_DIR}/tmp -jar $opt->{QUEUE_PATH}/Queue.jar ";
-    my $job_native = jobNative($opt, "FILTER");
-    $command .= "-jobQueue $opt->{FILTER_QUEUE} -jobNative \"$job_native\" -jobRunner GridEngine -jobReport $opt->{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
+    my @snp_types = split ",", $opt->{FILTER_SNPTYPES};
+    my @snp_filter_names = split "\t", $opt->{FILTER_SNPNAME};
+    my @snp_filter_exprs = split "\t", $opt->{FILTER_SNPEXPR};
+    if (scalar @snp_filter_names ne scalar @snp_filter_exprs) {
+        die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length";
+    }
 
-    $command .= "-S $opt->{OUTPUT_DIR}/QScripts/$opt->{FILTER_SCALA} -R $opt->{GENOME} -V $opt->{OUTPUT_DIR}/$opt->{RUN_NAME}.raw_variants.vcf -O $opt->{RUN_NAME} -mem $opt->{FILTER_MEM} -nsc $opt->{FILTER_SCATTER} ";
+    my @indel_types = split ",", $opt->{FILTER_INDELTYPES};
+    my @indel_filter_names = split "\t", $opt->{FILTER_INDELNAME};
+    my @indel_filter_exprs = split "\t", $opt->{FILTER_INDELEXPR};
+    if (scalar @indel_filter_names ne scalar @indel_filter_exprs) {
+        die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
+    }
 
-	my @snp_filter_names = split "\t", $opt->{FILTER_SNPNAME};
-	my @snp_filter_exprs = split "\t", $opt->{FILTER_SNPEXPR};
-	my @snp_types = split ",", $opt->{FILTER_SNPTYPES};
-
-	foreach my $snp_type (@snp_types) {
-		$command .= "-snpType $snp_type ";
-	}
-
-	if (scalar(@snp_filter_names) ne scalar(@snp_filter_exprs)) {
-		die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length";
-	}
-
-	foreach my $i (0 .. scalar(@snp_filter_names)-1) {
-		$command .= "-snpFilterName $snp_filter_names[$i] -snpFilterExpression \"$snp_filter_exprs[$i]\" ";
-	}
-
-	if ($opt->{FILTER_CLUSTERSIZE} and $opt->{FILTER_CLUSTERWINDOWSIZE}) {
-		$command .= "-cluster $opt->{FILTER_CLUSTERSIZE} -window $opt->{FILTER_CLUSTERWINDOWSIZE} ";
-	}
-
-	my @indel_filter_names = split "\t", $opt->{FILTER_INDELNAME};
-	my @indel_filter_exprs = split "\t", $opt->{FILTER_INDELEXPR};
-	my @indel_types = split ",", $opt->{FILTER_INDELTYPES};
-
-	foreach my $indel_type (@indel_types) {
-		$command .= "-indelType $indel_type ";
-	}
-
-	if (scalar(@indel_filter_names) ne scalar(@indel_filter_exprs)) {
-		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
-	}
-
-	foreach my $i (0 .. scalar(@indel_filter_names)-1) {
-		$command .= "-indelFilterName $indel_filter_names[$i] -indelFilterExpression \"$indel_filter_exprs[$i]\" ";
-	}
-
-    $command .= "-run";
-
+    my $job_id = "GermlineFilter_" . getJobId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $stdout = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.err");
 
     from_template("GermlineFiltering.sh.tt", $bash_file,
-                  command => $command,
+                  snp_types => \@snp_types,
+                  snp_filter_names => \@snp_filter_names,
+                  snp_filter_exprs => \@snp_filter_exprs,
+                  indel_types => \@indel_types,
+                  indel_filter_names => \@indel_filter_names,
+                  indel_filter_exprs => \@indel_filter_exprs,
+                  job_native => jobNative($opt, "FILTER"),
                   opt => $opt);
 
+    my @running_jobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {
             push @running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
