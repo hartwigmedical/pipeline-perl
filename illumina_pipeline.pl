@@ -121,7 +121,7 @@ sub runPipeline {
             illumina_finalize::runFinalize($opt);
         }
     }
-    illumina_metadata::writePortalLinks($opt);
+    illumina_metadata::writeLinks($opt);
     return;
 }
 

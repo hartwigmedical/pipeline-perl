@@ -11,7 +11,7 @@ use JSON;
 use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse linkArtefact);
+our @EXPORT_OK = qw(parse portalName linkArtefact writeLinks);
 
 
 sub readJson {
@@ -62,15 +62,15 @@ sub portalName {
 sub linkArtefact {
     my ($source_path, $portal_name, $opt) = @_;
 
-    $opt->{PORTAL_LINKS} = {} if not exists $opt->{PORTAL_LINKS};
-    $opt->{PORTAL_LINKS}->{$portal_name} = $source_path;
+    $opt->{LINKS} = {} if not exists $opt->{LINKS};
+    $opt->{LINKS}->{$portal_name} = $source_path;
     return;
 }
 
-sub writePortalLinks {
+sub writeLinks {
     my ($opt) = @_;
-    my $outfile = catfile($opt->{OUTPUT_DIR}, "logs", "portal.json");
-    writeJson($outfile, $opt->{PORTAL_LINKS});
+    my $outfile = catfile($opt->{OUTPUT_DIR}, "logs", "links.json");
+    writeJson($outfile, $opt->{LINKS});
     return;
 }
 
