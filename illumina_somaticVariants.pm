@@ -179,7 +179,7 @@ sub mergeSomatics {
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
-    illumina_metadata::linkArtefact($out_vcf, "somatic.vcf", "Somatic VCF", $opt);
+    illumina_metadata::linkArtefact($out_vcf, "Somatic VCF", $opt);
 
     return $job_id;
 }

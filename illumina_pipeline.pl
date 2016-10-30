@@ -637,8 +637,8 @@ sub linkBamArtefacts {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $bam_path = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
         my $portal_name = illumina_metadata::portalName($sample, $opt);
-        illumina_metadata::linkArtefact($bam_path, "${sample}.bam", "${portal_name} BAM", $opt);
-        illumina_metadata::linkArtefact("${bam_path}.bai", "${sample}.bam.bai", "${portal_name} BAI", $opt);
+        illumina_metadata::linkArtefact($bam_path, "${portal_name} BAM", $opt);
+        illumina_metadata::linkArtefact("${bam_path}.bai", "${portal_name} BAI", $opt);
     }
     return;
 }

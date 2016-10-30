@@ -6,7 +6,7 @@ use discipline;
 
 use File::Spec::Functions qw(:ALL);
 use File::Basename;
-use File::chdir;
+
 use JSON;
 use Carp;
 
@@ -60,19 +60,11 @@ sub portalName {
 }
 
 sub linkArtefact {
-    my ($source_path, $target_path, $portal_name, $opt) = @_;
+    my ($source_path, $portal_name, $opt) = @_;
 
     $opt->{PORTAL_LINKS} = {} if not exists $opt->{PORTAL_LINKS};
-    not -l $source_path or die "$source_path is a symlink and should not be provided to the portal";
     $opt->{PORTAL_LINKS}->{$portal_name} = $source_path;
-
-    my ($name, $parent_dir) = fileparse($source_path);
-    if ($source_path ne $target_path) {
-        local $CWD = $parent_dir;
-        not -l $target_path or unlink $target_path or confess "Couldn't replace previous symlink $target_path: $!";
-        symlink $name, $target_path or confess "Couldn't create symlink $target_path: $!";
-    }
-    return fileparse($target_path);
+    return;
 }
 
 sub writePortalLinks {

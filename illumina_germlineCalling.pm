@@ -106,11 +106,11 @@ sub linkArtefacts {
             (my $gvcf_file = $bam_file) =~ s/\.bam$/.g.vcf.gz/;
             my $gvcf_path = catfile($gvcf_dir, $gvcf_file);
             my $portal_name = illumina_metadata::portalName($sample, $opt);
-            illumina_metadata::linkArtefact($gvcf_path, "${sample}.g.vcf.gz", "${portal_name} gVCF", $opt);
+            illumina_metadata::linkArtefact($gvcf_path, "${portal_name} gVCF", $opt);
         }
     }
     my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.raw_variants.vcf");
-    illumina_metadata::linkArtefact($germline_vcf_path, "germline.vcf", "Germline VCF", $opt);
+    illumina_metadata::linkArtefact($germline_vcf_path, "Germline VCF", $opt);
     return;
 }
 

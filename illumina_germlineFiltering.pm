@@ -94,8 +94,9 @@ sub runFilterVariants {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
 
+    # dependent GermlineFilter.scala, could fix to be explicit
     my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
-    illumina_metadata::linkArtefact($germline_vcf_path, "germline.vcf", "Germline VCF", $opt);
+    illumina_metadata::linkArtefact($germline_vcf_path, "Germline VCF", $opt);
 
     return;
 }
