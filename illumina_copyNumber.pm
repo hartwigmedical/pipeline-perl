@@ -17,6 +17,8 @@ use illumina_metadata;
 sub runCopyNumberTools {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING COPY NUMBER TOOLS ###";
+
     my $check_cnv_jobs = [];
     if ($opt->{CNV_MODE} eq "sample_control") {
         my $metadata = illumina_metadata::parse($opt);

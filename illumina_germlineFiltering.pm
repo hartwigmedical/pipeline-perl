@@ -15,6 +15,8 @@ use illumina_template qw(from_template);
 sub runFilterVariants {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING VARIANT FILTRATION ###";
+
     my @running_jobs;
     my $job_id = "GermlineFilter_" . getJobId();
 

@@ -16,6 +16,8 @@ use illumina_metadata;
 sub runVariantCalling {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING VARIANT CALLING ###";
+
     my @sample_bams;
     my @running_jobs;
     my $job_id = "GermlineCalling_" . getJobId();

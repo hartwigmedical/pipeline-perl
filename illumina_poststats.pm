@@ -17,6 +17,8 @@ use illumina_metadata;
 sub runPostStats {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING POSTSTATS ###";
+
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "QCStats");
     my $dirs = {
         out => $out_dir,

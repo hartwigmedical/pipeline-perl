@@ -16,6 +16,8 @@ use illumina_metadata;
 sub runFinalize {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING PIPELINE FINALIZE ####";
+
     my $job_id = "$opt->{RUN_NAME}_" . getJobId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "Finalize_${job_id}.sh");
     my $log_file = catfile($opt->{OUTPUT_DIR}, "logs", "PipelineCheck.log");

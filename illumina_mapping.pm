@@ -14,32 +14,10 @@ use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 
 
-sub validateFastQName {
-    my ($input_file) = @_;
-    my $name = fileparse($input_file);
-    (my $R1 = $input_file) =~ s/_R2/_R1/;
-    (my $R2 = $input_file) =~ s/_R1/_R2/;
-
-    my $fastQPattern = qr/^(?<sampleName>[^_]+)
-                          _(?<flowcellID>[^_]+)
-                          _(?<index>[^_]+)
-                          _(?<lane>[^_]+)
-                          _(?<tag>R1|R2)
-                          _(?<suffix>[^\.]+)
-                          (?<ext>\.fastq\.gz)$
-                         /x;
-    $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
-
-    return {
-        R1 => $R1,
-        R2 => $R2,
-        coreName => "$+{sampleName}_$+{flowcellID}_$+{index}_$+{lane}_$+{suffix}",
-        %+,
-    };
-}
-
 sub runMapping {
     my ($opt) = @_;
+
+    say "\n### SCHEDULING MAPPING ###";
 
     die "GENOME: $opt->{GENOME} does not exist!" if !-f $opt->{GENOME};
     die "GENOME BWT: $opt->{GENOME}.bwt does not exist!" if !-f "$opt->{GENOME}.bwt";
@@ -206,8 +184,36 @@ sub createIndividualMappingJobs {
     return;
 }
 
+sub validateFastQName {
+    my ($input_file) = @_;
+    my $name = fileparse($input_file);
+    (my $R1 = $input_file) =~ s/_R2/_R1/;
+    (my $R2 = $input_file) =~ s/_R1/_R2/;
+
+    my $fastQPattern = qr/^(?<sampleName>[^_]+)
+                          _(?<flowcellID>[^_]+)
+                          _(?<index>[^_]+)
+                          _(?<lane>[^_]+)
+                          _(?<tag>R1|R2)
+                          _(?<suffix>[^\.]+)
+                          (?<ext>\.fastq\.gz)$
+                         /x;
+    $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
+
+    return {
+        R1 => $R1,
+        R2 => $R2,
+        coreName => "$+{sampleName}_$+{flowcellID}_$+{index}_$+{lane}_$+{suffix}",
+        %+,
+    };
+}
+
 sub runBamPrep {
     my ($opt) = @_;
+
+    $opt->{MAPPING} = "no";
+    $opt->{PRESTATS} = "no";
+    say "\n### SCHEDULING BAM PREP ###";
 
     while (my ($sample, $input_bam) = each %{$opt->{SAMPLES}}) {
         (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;

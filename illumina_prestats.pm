@@ -15,6 +15,7 @@ use illumina_template qw(from_template);
 sub runPreStats {
     my ($opt) = @_;
 
+    say "### SCHEDULING PRESTATS ###";
     say "Creating FASTQC report for the following fastq.gz files:";
     foreach my $input_file (keys %{$opt->{FASTQ}}) {
         my $core_name = fileparse($input_file);

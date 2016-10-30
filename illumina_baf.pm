@@ -16,6 +16,8 @@ sub runBAF {
     my ($opt) = @_;
     my @baf_jobs;
 
+    say "\n### SCHEDULING BAF ANALYSIS ###";
+
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
 		my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
         my $baf_dirs = {

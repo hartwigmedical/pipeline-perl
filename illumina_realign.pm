@@ -13,6 +13,7 @@ use illumina_jobs qw(bamOperationWithSliceChecks);
 sub runRealignment {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING INDELREALIGNMENT ###";
     say "Running single sample indel realignment for the following BAM-files:";
 
     my $known_files = "";

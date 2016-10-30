@@ -15,6 +15,8 @@ use illumina_template qw(from_template);
 sub runAnnotateVariants {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING VARIANT ANNOTATION ###";
+
     my @running_jobs;
     my $job_id = "GermlineAnnotation_" . getJobId();
 

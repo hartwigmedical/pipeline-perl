@@ -13,6 +13,7 @@ use illumina_jobs qw(bamOperationWithSliceChecks);
 sub runBaseRecalibration {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING BASERECALIBRATION ###";
     say "Running base recalibration for the following BAM-files:";
 
     my $known_files = "";

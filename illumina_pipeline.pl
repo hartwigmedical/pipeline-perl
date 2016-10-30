@@ -46,82 +46,27 @@ runPipeline($opt);
 
 sub runPipeline {
     if ($opt->{FASTQ}) {
-        if ($opt->{PRESTATS} eq "yes") {
-            say "### SCHEDULING PRESTATS ###";
-            illumina_prestats::runPreStats($opt);
-        }
-
-        if ($opt->{MAPPING} eq "yes") {
-            say "\n### SCHEDULING MAPPING ###";
-            illumina_mapping::runMapping($opt);
-        }
+        illumina_prestats::runPreStats($opt) if $opt->{PRESTATS} eq "yes";
+        illumina_mapping::runMapping($opt) if $opt->{MAPPING} eq "yes";
     } elsif ($opt->{BAM}) {
-        $opt->{MAPPING} = "no";
-        $opt->{PRESTATS} = "no";
-
-        say "\n###SCHEDULING BAM PREP###";
         illumina_mapping::runBamPrep($opt);
     }
 
     if ($opt->{FASTQ} or $opt->{BAM}) {
-        if ($opt->{POSTSTATS} eq "yes") {
-            say "\n### SCHEDULING POSTSTATS ###";
-            illumina_poststats::runPostStats($opt);
-        }
-
-        if ($opt->{INDELREALIGNMENT} eq "yes") {
-            say "\n### SCHEDULING INDELREALIGNMENT ###";
-            illumina_realign::runRealignment($opt);
-        }
-
-        if ($opt->{BASEQUALITYRECAL} eq "yes") {
-            say "\n### SCHEDULING BASERECALIBRATION ###";
-            illumina_baseRecal::runBaseRecalibration($opt);
-        }
-
+        illumina_poststats::runPostStats($opt) if $opt->{POSTSTATS} eq "yes";
+        illumina_realign::runRealignment($opt) if $opt->{INDELREALIGNMENT} eq "yes";
+        illumina_baseRecal::runBaseRecalibration($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         linkBamArtefacts($opt);
-
-        if ($opt->{SOMATIC_VARIANTS} eq "yes") {
-            say "\n### SCHEDULING SOMATIC VARIANT CALLERS ####";
-            illumina_somaticVariants::runSomaticVariantCallers($opt);
-        }
-
-        if ($opt->{COPY_NUMBER} eq "yes") {
-            say "\n### SCHEDULING COPY NUMBER TOOLS ####";
-            illumina_copyNumber::runCopyNumberTools($opt);
-        }
-
-        if ($opt->{BAF} eq "yes") {
-            say "\n### SCHEDULING BAF ANALYSIS ###";
-            illumina_baf::runBAF($opt);
-        }
-
-        if ($opt->{VARIANT_CALLING} eq "yes") {
-            say "\n### SCHEDULING VARIANT CALLING ####";
-            illumina_germlineCalling::runVariantCalling($opt);
-        }
-
-        if ($opt->{FILTER_VARIANTS} eq "yes") {
-            say "\n### SCHEDULING VARIANT FILTRATION ####";
-            illumina_germlineFiltering::runFilterVariants($opt);
-        }
-
-        if ($opt->{ANNOTATE_VARIANTS} eq "yes") {
-            say "\n### SCHEDULING VARIANT ANNOTATION ####";
-            illumina_germlineAnnotation::runAnnotateVariants($opt);
-        }
-
-        if ($opt->{KINSHIP} eq "yes") {
-            say "\n### SCHEDULING KINSHIP ####";
-            illumina_kinship::runKinship($opt);
-        }
-
-        if ($opt->{FINALIZE} eq "yes") {
-            say "\n### SCHEDULING PIPELINE FINALIZE ####";
-            illumina_finalize::runFinalize($opt);
-        }
+        illumina_somaticVariants::runSomaticVariantCallers($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
+        illumina_copyNumber::runCopyNumberTools($opt) if $opt->{COPY_NUMBER} eq "yes";
+        illumina_baf::runBAF($opt) if $opt->{BAF} eq "yes";
+        illumina_germlineCalling::runVariantCalling($opt) if $opt->{VARIANT_CALLING} eq "yes";
+        illumina_germlineFiltering::runFilterVariants($opt) if $opt->{FILTER_VARIANTS} eq "yes";
+        illumina_germlineAnnotation::runAnnotateVariants($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
+        illumina_kinship::runKinship($opt) if $opt->{KINSHIP} eq "yes";
+        illumina_finalize::runFinalize($opt) if $opt->{FINALIZE} eq "yes";
+        illumina_metadata::writeLinks($opt);
     }
-    illumina_metadata::writeLinks($opt);
     return;
 }
 

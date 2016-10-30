@@ -15,6 +15,8 @@ use illumina_template qw(from_template);
 sub runKinship {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING KINSHIP ####";
+
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $done_file = catfile($log_dir, "Kinship.done");
     if (-f $done_file) {

@@ -18,6 +18,8 @@ use illumina_metadata;
 sub runSomaticVariantCallers {
     my ($opt) = @_;
 
+    say "\n### SCHEDULING SOMATIC VARIANT CALLERS ###";
+
     my @pileupJobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if ($opt->{SOMVAR_VARSCAN} eq "yes") {
