@@ -10,7 +10,7 @@ use File::Spec::Functions;
 use illumina_sge qw(qsubTemplate);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
-use illumina_metadataParser qw(metadataParse);
+use illumina_metadata;
 
 
 sub runFinalize {
@@ -22,7 +22,7 @@ sub runFinalize {
 
     my $joint_name = "";
     if ($opt->{SOMATIC_VARIANTS} eq "yes" || ($opt->{COPY_NUMBER} eq "yes" && $opt->{CNV_MODE} eq "sample_control")) {
-        my $metadata = metadataParse($opt->{OUTPUT_DIR});
+        my $metadata = illumina_metadata::parse($opt);
         my $ref_sample = $metadata->{ref_sample};
         my $tumor_sample = $metadata->{tumor_sample};
         $joint_name = "${ref_sample}_${tumor_sample}";

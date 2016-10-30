@@ -11,7 +11,7 @@ use File::Path qw(make_path);
 use illumina_sge qw(qsubTemplate);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
-use illumina_metadataParser qw(metadataParse);
+use illumina_metadata;
 
 
 sub runCopyNumberTools {
@@ -19,7 +19,7 @@ sub runCopyNumberTools {
 
     my $check_cnv_jobs = [];
     if ($opt->{CNV_MODE} eq "sample_control") {
-        my $metadata = metadataParse($opt->{OUTPUT_DIR});
+        my $metadata = illumina_metadata::parse($opt);
         my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
         my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 

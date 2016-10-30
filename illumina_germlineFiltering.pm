@@ -15,8 +15,8 @@ use illumina_template qw(from_template);
 sub runFilterVariants {
     my ($opt) = @_;
 
-    my @runningJobs;
-    my $jobID = "GermlineFilter_" . getJobId();
+    my @running_jobs;
+    my $job_id = "GermlineFilter_" . getJobId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineFilter.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantFilter.done") {
@@ -25,74 +25,78 @@ sub runFilterVariants {
     }
 
     my $command = "java -Xmx".$opt->{FILTER_MASTER_MEM}."G -Djava.io.tmpdir=$opt->{OUTPUT_DIR}/tmp -jar $opt->{QUEUE_PATH}/Queue.jar ";
-    my $jobNative = jobNative($opt, "FILTER");
-    $command .= "-jobQueue $opt->{FILTER_QUEUE} -jobNative \"$jobNative\" -jobRunner GridEngine -jobReport $opt->{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
+    my $job_native = jobNative($opt, "FILTER");
+    $command .= "-jobQueue $opt->{FILTER_QUEUE} -jobNative \"$job_native\" -jobRunner GridEngine -jobReport $opt->{OUTPUT_DIR}/logs/GermlineFilter.jobReport.txt ";
 
     $command .= "-S $opt->{OUTPUT_DIR}/QScripts/$opt->{FILTER_SCALA} -R $opt->{GENOME} -V $opt->{OUTPUT_DIR}/$opt->{RUN_NAME}.raw_variants.vcf -O $opt->{RUN_NAME} -mem $opt->{FILTER_MEM} -nsc $opt->{FILTER_SCATTER} ";
 
-	my @SNPFilterNames = split "\t", $opt->{FILTER_SNPNAME};
-	my @SNPFilterExprs = split "\t", $opt->{FILTER_SNPEXPR};
-	my @snpTypes = split ",", $opt->{FILTER_SNPTYPES};
+	my @snp_filter_names = split "\t", $opt->{FILTER_SNPNAME};
+	my @snp_filter_exprs = split "\t", $opt->{FILTER_SNPEXPR};
+	my @snp_types = split ",", $opt->{FILTER_SNPTYPES};
 
-	foreach my $snpType (@snpTypes) {
-		$command.= "-snpType $snpType ";
+	foreach my $snp_type (@snp_types) {
+		$command .= "-snpType $snp_type ";
 	}
 
-	if (scalar(@SNPFilterNames) ne scalar(@SNPFilterExprs)) {
+	if (scalar(@snp_filter_names) ne scalar(@snp_filter_exprs)) {
 		die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length";
 	}
 
-	foreach my $i (0 .. scalar(@SNPFilterNames)-1) {
-		$command .= "-snpFilterName $SNPFilterNames[$i] -snpFilterExpression \"$SNPFilterExprs[$i]\" ";
+	foreach my $i (0 .. scalar(@snp_filter_names)-1) {
+		$command .= "-snpFilterName $snp_filter_names[$i] -snpFilterExpression \"$snp_filter_exprs[$i]\" ";
 	}
 
 	if ($opt->{FILTER_CLUSTERSIZE} and $opt->{FILTER_CLUSTERWINDOWSIZE}) {
 		$command .= "-cluster $opt->{FILTER_CLUSTERSIZE} -window $opt->{FILTER_CLUSTERWINDOWSIZE} ";
 	}
 
-	my @INDELFilterNames = split "\t", $opt->{FILTER_INDELNAME};
-	my @INDELFilterExprs = split "\t", $opt->{FILTER_INDELEXPR};
-	my @indelTypes = split ",", $opt->{FILTER_INDELTYPES};
+	my @indel_filter_names = split "\t", $opt->{FILTER_INDELNAME};
+	my @indel_filter_exprs = split "\t", $opt->{FILTER_INDELEXPR};
+	my @indel_types = split ",", $opt->{FILTER_INDELTYPES};
 
-	foreach my $indelType (@indelTypes) {
-		$command .= "-indelType $indelType ";
+	foreach my $indel_type (@indel_types) {
+		$command .= "-indelType $indel_type ";
 	}
 
-	if (scalar(@INDELFilterNames) ne scalar(@INDELFilterExprs)) {
+	if (scalar(@indel_filter_names) ne scalar(@indel_filter_exprs)) {
 		die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
 	}
 
-	foreach my $i (0 .. scalar(@INDELFilterNames)-1) {
-		$command .= "-indelFilterName $INDELFilterNames[$i] -indelFilterExpression \"$INDELFilterExprs[$i]\" ";
+	foreach my $i (0 .. scalar(@indel_filter_names)-1) {
+		$command .= "-indelFilterName $indel_filter_names[$i] -indelFilterExpression \"$indel_filter_exprs[$i]\" ";
 	}
 
     $command .= "-run";
 
-    my $bashFile = catfile($opt->{OUTPUT_DIR}, "jobs", "${jobID}.sh");
-    my $logDir = catfile($opt->{OUTPUT_DIR}, "logs");
-    my $stdout = catfile($logDir, "GermlineFiltering_$opt->{RUN_NAME}.out");
-    my $stderr = catfile($logDir, "GermlineFiltering_$opt->{RUN_NAME}.err");
+    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
+    my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
+    my $stdout = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.err");
 
-    from_template("GermlineFiltering.sh.tt", $bashFile,
+    from_template("GermlineFiltering.sh.tt", $bash_file,
                   command => $command,
                   opt => $opt);
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {
-            push @runningJobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
+            push @running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
         }
     }
 
     my $qsub = qsubJava($opt, "FILTER_MASTER");
-    if (@runningJobs) {
-        system "$qsub -o $stdout -e $stderr -N $jobID -hold_jid " . join(",", @runningJobs) . " $bashFile";
+    if (@running_jobs) {
+        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
-        system "$qsub -o $stdout -e $stderr -N $jobID $bashFile";
+        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
     }
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $jobID;
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
+
+    my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
+    illumina_metadata::linkArtefact($germline_vcf_path, "germline.vcf", "Germline VCF", $opt);
+
     return;
 }
 

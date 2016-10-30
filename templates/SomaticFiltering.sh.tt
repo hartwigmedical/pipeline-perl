@@ -14,22 +14,29 @@ export JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start Filter	$(date)	[% invcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "Start Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
-if [ -s [% invcf %] ]
+if [ -s [% in_vcf %] ]
 then
-    java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T SelectVariants -R "[% opt.GENOME %]" -L "[% opt.SOMVAR_TARGETS %]" -V "[% invcf %]" -o "[% outvcf %]"
-    if [ -s "[% outvcf %]" ]
+    java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
+        -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+        -T SelectVariants \
+        -R "[% opt.GENOME %]" \
+        -L "[% opt.SOMVAR_TARGETS %]" \
+        -V "[% in_vcf %]" \
+        -o "[% out_vcf %]"
+
+    if [ -s "[% out_vcf %]" ]
     then
-        rm [% invcf %]*
+        rm [% in_vcf %]*
         [% INCLUDE Status.tt step="" status="success" %]
     else
         [% INCLUDE Status.tt step="" status="failed" %]
-        fail "[% outvcf %] was not created by SelectVariants"
+        fail "[% out_vcf %] was not created by SelectVariants"
     fi
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% invcf %] not present"
+    fail "[% in_vcf %] not present"
 fi
 
-echo "End Filter	$(date)	[% invcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "End Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log

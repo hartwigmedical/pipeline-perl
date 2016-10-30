@@ -11,6 +11,7 @@ use File::Path qw(make_path);
 use illumina_sge qw(qsubTemplate);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
+use illumina_metadata;
 
 
 sub runPostStats {
@@ -77,6 +78,11 @@ sub runPostStats {
     system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
+
+    # dependent on implicit bamMetrics naming
+    my $metrics_path = catfile($opt->{OUTPUT_DIR}, "QCStats", "$opt->{RUN_NAME}.bamMetrics.html");
+    illumina_metadata::linkArtefact($metrics_path, "bamMetrics.html", "QC", $opt);
+
     return;
 }
 

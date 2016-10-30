@@ -16,14 +16,20 @@ cd "[% dirs.out %]"
 
 echo "Start Merge	$(date)	[% opt.RUN_NAME %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
-java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar -T CombineVariants -R [% opt.GENOME %] -o [% outvcf %] --genotypemergeoption uniquify [% inputs %]
+java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+    -T CombineVariants \
+    -R [% opt.GENOME %] \
+    -o [% out_vcf %] \
+    --genotypemergeoption uniquify \
+    [% inputs %]
 
-if [ -s "[% outvcf %]" ]
+if [ -s "[% out_vcf %]" ]
 then
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% outvcf %] was not created by CombineVariants"
+    fail "[% out_vcf %] was not created by CombineVariants"
 fi
 
 echo "End Merge	$(date)	[% opt.RUN_NAME %]	$(uname -n)" >> [% dirs.log %]/merge.log

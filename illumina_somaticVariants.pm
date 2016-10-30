@@ -12,7 +12,7 @@ use Carp;
 use illumina_sge qw(qsubTemplate qsubJava);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
-use illumina_metadataParser qw(metadataParse);
+use illumina_metadata;
 
 
 sub runSomaticVariantCallers {
@@ -29,8 +29,7 @@ sub runSomaticVariantCallers {
 
     $opt->{RUNNING_JOBS}->{'pileup'} = \@pileupJobs;
 
-    my $metadata = metadataParse($opt->{OUTPUT_DIR});
-
+    my $metadata = illumina_metadata::parse($opt);
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
     my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
@@ -105,8 +104,8 @@ sub mergeSomatics {
     push @inputs, "-V:freebayes freebayes/${somatic_name}_somatic_filtered.vcf" if $opt->{SOMVAR_FREEBAYES} eq "yes";
     push @inputs, "-V:mutect mutect/${somatic_name}_mutect_passed.vcf" if $opt->{SOMVAR_MUTECT} eq "yes";
 
-    my $invcf;
-    my $outvcf = catfile($somatic_dirs->{out}, "${somatic_name}_merged_somatics.vcf");
+    my $in_vcf;
+    my $out_vcf = catfile($somatic_dirs->{out}, "${somatic_name}_merged_somatics.vcf");
 
     my $hold_jid;
     my $job_id = "SomaticMerge_${tumor_sample}_" . getJobId();
@@ -114,7 +113,7 @@ sub mergeSomatics {
 
     from_template("SomaticMerging.sh.tt", $bash_file,
                   inputs => join(" ", @inputs),
-                  outvcf => $outvcf,
+                  out_vcf => $out_vcf,
                   dirs => $somatic_dirs,
                   opt => $opt);
 
@@ -126,16 +125,16 @@ sub mergeSomatics {
     }
 
     if ($opt->{SOMVAR_TARGETS}) {
-        $invcf = $outvcf;
-        $outvcf = catfile($somatic_dirs->{out}, "${somatic_name}_filtered_merged_somatics.vcf");
+        $in_vcf = $out_vcf;
+        $out_vcf = catfile($somatic_dirs->{out}, "${somatic_name}_filtered_merged_somatics.vcf");
 
         $hold_jid = $job_id;
         $job_id = "SomaticFilter_${tumor_sample}_" . getJobId();
         $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
         from_template("SomaticFiltering.sh.tt", $bash_file,
-                      invcf => $invcf,
-                      outvcf => $outvcf,
+                      in_vcf => $in_vcf,
+                      out_vcf => $out_vcf,
                       dirs => $somatic_dirs,
                       opt => $opt);
 
@@ -143,18 +142,18 @@ sub mergeSomatics {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
     }
 
-    my $pre_annotate_vcf = $outvcf;
+    my $pre_annotate_vcf = $out_vcf;
 
     if ($opt->{SOMVAR_ANNOTATE} eq "yes") {
-        (my $basename = $outvcf) =~ s/\.vcf$//;
-        $outvcf = "${basename}_annotated.vcf";
+        (my $basename = $out_vcf) =~ s/\.vcf$//;
+        $out_vcf = "${basename}_annotated.vcf";
         $hold_jid = $job_id;
         $job_id = "SomaticAnnotate_${tumor_sample}_" . getJobId();
         $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
         from_template("SomaticAnnotation.sh.tt", $bash_file,
                       basename => $basename,
-                      finalvcf => $outvcf,
+                      finalvcf => $out_vcf,
                       dirs => $somatic_dirs,
                       opt => $opt);
 
@@ -162,16 +161,16 @@ sub mergeSomatics {
         system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
     }
 
-    $invcf = $outvcf;
-    $outvcf =~ s/\.vcf$/_melted.vcf/;
+    $in_vcf = $out_vcf;
+    $out_vcf =~ s/\.vcf$/_melted.vcf/;
     $hold_jid = $job_id;
     $job_id = "SomaticMelt_${tumor_sample}_" . getJobId();
     $bash_file = catfile($somatic_dirs->{job}, "${job_id}.sh");
 
     from_template("SomaticMelting.sh.tt", $bash_file,
                   pre_annotate_vcf => $pre_annotate_vcf,
-                  invcf => $invcf,
-                  outvcf => $outvcf,
+                  in_vcf => $in_vcf,
+                  out_vcf => $out_vcf,
                   tumor_sample => $tumor_sample,
                   somatic_name => $somatic_name,
                   dirs => $somatic_dirs,
@@ -179,6 +178,8 @@ sub mergeSomatics {
 
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $somatic_dirs->{log} -e $somatic_dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
+
+    illumina_metadata::linkArtefact($out_vcf, "somatic.vcf", "Somatic VCF", $opt);
 
     return $job_id;
 }

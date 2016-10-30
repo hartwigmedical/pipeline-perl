@@ -28,6 +28,7 @@ use illumina_copyNumber;
 use illumina_baf;
 use illumina_kinship;
 use illumina_finalize;
+use illumina_metadata;
 
 
 my $opt = {};
@@ -37,7 +38,7 @@ checkConfig($opt);
 getSamples($opt);
 createOutputDirs($opt->{OUTPUT_DIR}, $opt->{SAMPLES});
 setupLogging($opt->{OUTPUT_DIR});
-lockRun($opt->{OUTPUT_DIR}) or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
+lockRun($opt->{OUTPUT_DIR});
 recordGitVersion($opt);
 copyConfigAndScripts($opt);
 runPipeline($opt);
@@ -77,6 +78,8 @@ sub runPipeline {
             say "\n### SCHEDULING BASERECALIBRATION ###";
             illumina_baseRecal::runBaseRecalibration($opt);
         }
+
+        linkBamArtefacts($opt);
 
         if ($opt->{SOMATIC_VARIANTS} eq "yes") {
             say "\n### SCHEDULING SOMATIC VARIANT CALLERS ####";
@@ -118,6 +121,7 @@ sub runPipeline {
             illumina_finalize::runFinalize($opt);
         }
     }
+    illumina_metadata::writePortalLinks($opt);
     return;
 }
 
@@ -589,9 +593,9 @@ sub checkConfig {
 sub lockRun {
     my ($dir) = @_;
     my $lock_file = catfile($dir, "run.lock");
-    my $retval = sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL;
-    close $fh if $retval;
-    return $retval;
+    sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
+    close $fh;
+    return;
 }
 
 sub recordGitVersion {
@@ -626,5 +630,15 @@ sub copyConfigAndScripts {
     say $fh join "\n", map { "$_\t$opt->{$_}" if defined $opt->{$_} } keys %{$opt};
     close $fh;
 
+    return;
+}
+
+sub linkBamArtefacts {
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        my $bam_path = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+        my $portal_name = illumina_metadata::portalName($sample, $opt);
+        illumina_metadata::linkArtefact($bam_path, "${sample}.bam", "${portal_name} BAM", $opt);
+        illumina_metadata::linkArtefact("${bam_path}.bai", "${sample}.bam.bai", "${portal_name} BAI", $opt);
+    }
     return;
 }
