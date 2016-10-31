@@ -80,7 +80,7 @@ sub runPostStats {
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
 
     # dependent on implicit bamMetrics naming
-    my $metrics_path = catfile($opt->{OUTPUT_DIR}, "QCStats", "$opt->{RUN_NAME}.bamMetrics.html");
+    my $metrics_path = catfile($opt->{OUTPUT_DIR}, "QCStats", "$opt->{RUN_NAME}.bamMetrics.pdf");
     illumina_metadata::linkArtefact($metrics_path, "QC", $opt);
 
     return;
