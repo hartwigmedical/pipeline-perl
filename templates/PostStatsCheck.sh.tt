@@ -10,12 +10,12 @@ export JOB_NAME=PostStatsCheck
 export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
-cd [% opt.OUTPUT_DIR %]
+cd [% dirs.tmp %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-if [ -s QCStats/*.bamMetrics.pdf ] \
-    && [ -s QCStats/*.bamMetrics.html ] \
+if [ -s [% dirs.out %]/*.bamMetrics.pdf ] \
+    && [ -s [% dirs.out %]/*.bamMetrics.html ] \
     [%- IF opt.exists('SNPCHECK_DESIGNS') -%]
     [%- FOREACH sample IN sample_bams.keys %]
     && [ $(find "[% dirs.$sample %]" -type f -name "*.vcf" | wc -l) -eq [% designs.size %] ] \
@@ -23,13 +23,13 @@ if [ -s QCStats/*.bamMetrics.pdf ] \
     [%- END %]
     [%- IF opt.EXONCALLCOV == "yes" -%]
     [%- FOREACH sample IN opt.SAMPLES.keys %]
-    && [ -s [% opt.OUTPUT_DIR %]/QCStats/exoncov/[% sample %].html ] \
+    && [ -s [% dirs.exoncov %]/[% sample %].html ] \
     [%- END %]
-    && [ ! -s [% opt.OUTPUT_DIR %]/QCStats/exoncov/error_collection_run ] \
+    && [ ! -s [% dirs.exoncov %]/error_collection_run ] \
     [%- END %]
     && true
 then
-    touch logs/PostStats.done
+    touch [% dirs.log %]/PostStats.done
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]

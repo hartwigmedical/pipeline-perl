@@ -10,7 +10,7 @@ export JOB_NAME=PostStats
 export JOB_SET="[% opt.RUN_NAME %]"
 export JOB_START=$(date +%s)
 
-cd [% opt.OUTPUT_DIR %]
+cd [% dirs.tmp %]
 
 echo "Start poststats	$(date)	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
@@ -68,8 +68,8 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar 
     -p [% opt.EXONCALLCOV_PREF %] \
     -l [% opt.EXONCALLCOV_PANEL %] \
     -s [% opt.SAMBAMBA_PATH %]/sambamba \
-    -w [% opt.OUTPUT_DIR %] \
-    -o QCStats/exoncov
+    -w [% dirs.tmp %] \
+    -o [% dirs.exoncov %]
 [% END -%]
 
 [% INCLUDE Status.tt step="" status="finished" %]

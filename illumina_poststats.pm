@@ -5,7 +5,7 @@ use lib "$FindBin::Bin";
 use discipline;
 
 use File::Basename;
-use File::Spec::Functions;
+use File::Spec::Functions qw(:ALL);
 use File::Path qw(make_path);
 
 use illumina_sge qw(qsubTemplate);
@@ -22,17 +22,20 @@ sub runPostStats {
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "QCStats");
     my $dirs = {
         out => $out_dir,
+        tmp => catfile($opt->{OUTPUT_DIR}, "tmp"),
         log => catfile($opt->{OUTPUT_DIR}, "logs"),
         job => catfile($opt->{OUTPUT_DIR}, "jobs"),
     };
-    map { $dirs->{$_} = catfile($out_dir, $_, "snpcheck") } keys %{$opt->{SAMPLES}};
+    map { $dirs->{$_} = catfile($dirs->{out}, $_, "snpcheck") } keys %{$opt->{SAMPLES}};
 
     make_path(values %{$dirs}, { error => \my $errors });
     my $messages = join ", ", map { join ": ", each $_ } @{$errors};
     die "Couldn't create output directories: $messages" if $messages;
 
-    my $done_file = catfile($dirs->{log}, "PostStats.done");
+    # weird relative path requirement
+    $dirs->{exoncov} = abs2rel(catfile($dirs->{out}, "exoncov"), $dirs->{tmp});
 
+    my $done_file = catfile($dirs->{log}, "PostStats.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
