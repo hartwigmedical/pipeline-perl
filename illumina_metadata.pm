@@ -11,7 +11,7 @@ use JSON;
 use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse portalName linkArtefact writeLinks);
+our @EXPORT_OK = qw(parse metaSampleName linkArtefact writeLinks);
 
 
 sub readJson {
@@ -50,20 +50,19 @@ sub parse {
     }
 }
 
-sub portalName {
+sub metaSampleName {
     my ($sample, $opt) = @_;
 
     my %name_map = reverse %{parse($opt, { required => 0 })};
     $name_map{$sample} //= "sample";
-    my $portal_name = ucfirst ($name_map{$sample} =~ tr/_/ /r);
-    return $portal_name;
+    return $name_map{$sample};
 }
 
 sub linkArtefact {
-    my ($source_path, $portal_name, $opt) = @_;
+    my ($source_path, $canonical_name, $opt) = @_;
 
     $opt->{LINKS} = {} if not exists $opt->{LINKS};
-    $opt->{LINKS}->{$portal_name} = $source_path;
+    $opt->{LINKS}->{$canonical_name} = $source_path;
     return;
 }
 

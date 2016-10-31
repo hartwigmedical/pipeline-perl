@@ -55,7 +55,8 @@ sub runAnnotateVariants {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
 
-    illumina_metadata::linkArtefact($annotated_vcf, "Germline VCF", $opt);
+    illumina_metadata::linkArtefact($annotated_vcf, "germline_vcf", $opt);
+    illumina_metadata::linkArtefact("${annotated_vcf}.idx", "germline_vcf_index", $opt);
 
     return;
 }

@@ -636,9 +636,9 @@ sub copyConfigAndScripts {
 sub linkBamArtefacts {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $bam_path = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-        my $portal_name = illumina_metadata::portalName($sample, $opt);
-        illumina_metadata::linkArtefact($bam_path, "${portal_name} BAM", $opt);
-        illumina_metadata::linkArtefact("${bam_path}.bai", "${portal_name} BAI", $opt);
+        my $sample_name = illumina_metadata::metaSampleName($sample, $opt);
+        illumina_metadata::linkArtefact($bam_path, "${sample_name}_bam", $opt);
+        illumina_metadata::linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
     }
     return;
 }
