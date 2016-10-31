@@ -194,347 +194,6 @@ sub readConfig {
     return;
 }
 
-sub checkConfig {
-    my ($opt) = @_;
-    my %opt = %{$opt};
-
-    my $checkFailed = 0;
-
-    ### Input and Output
-    if (!$opt{INIFILE}) { say "ERROR: No INIFILE option found in config files."; $checkFailed = 1; }
-    if (!$opt{OUTPUT_DIR}) { say "ERROR: No OUTPUT_DIR found in config files."; $checkFailed = 1; }
-    if (!($opt{FASTQ} || $opt{BAM})) { say "ERROR: No FASTQ or BAM files found in config files."; $checkFailed = 1; }
-    if (!$opt{MAIL}) { say "ERROR: No MAIL address specified in config files."; $checkFailed = 1; }
-
-    ### Cluster settings
-    if (!$opt{CLUSTER_PATH}) { say "ERROR: No CLUSTER_PATH option found in config files."; $checkFailed = 1; }
-    if (!$opt{CLUSTER_TMP}) { say "ERROR: No CLUSTER_TMP option found in config files."; $checkFailed = 1; }
-    if (!$opt{CLUSTER_RESERVATION}) { say "ERROR: No CLUSTER_RESERVATION option found in config files."; $checkFailed = 1; }
-    if (!$opt{CLUSTER_PROJECT}) { say "ERROR: No CLUSTER_PROJECT option found in config files."; $checkFailed = 1; }
-
-    ### Module Yes or No
-    if (!$opt{PRESTATS}) { say "ERROR: No PRESTATS option found in config files."; $checkFailed = 1; }
-    if (!$opt{MAPPING}) { say "ERROR: No MAPPING option found in config files."; $checkFailed = 1; }
-    if (!$opt{POSTSTATS}) { say "ERROR: No POSTSTATS option found in config files."; $checkFailed = 1; }
-    if (!$opt{INDELREALIGNMENT}) { say "ERROR: No INDELREALIGNMENT option found in config files."; $checkFailed = 1; }
-    if (!$opt{BASEQUALITYRECAL}) { say "ERROR: No BASEQUALITYRECAL option found in config files."; $checkFailed = 1; }
-    if (!$opt{VARIANT_CALLING}) { say "ERROR: No VARIANT_CALLING option found in config files."; $checkFailed = 1; }
-    if (!$opt{FILTER_VARIANTS}) { say "ERROR: No FILTER_VARIANTS option found in config files."; $checkFailed = 1; }
-    if (!$opt{SOMATIC_VARIANTS}) { say "ERROR: No SOMATIC_VARIANTS option found in config files."; $checkFailed = 1; }
-    if (!$opt{COPY_NUMBER}) { say "ERROR: No COPY_NUMBER option found in config files."; $checkFailed = 1; }
-    if (!$opt{BAF}) { say "ERROR: No BAF option found in config files."; $checkFailed = 1; }
-    if (!$opt{ANNOTATE_VARIANTS}) { say "ERROR: No ANNOTATE_VARIANTS option found in config files."; $checkFailed = 1; }
-    if (!$opt{KINSHIP}) { say "ERROR: No KINSHIP option found in config files."; $checkFailed = 1; }
-    if (!$opt{FINALIZE}) { say "ERROR: No FINALIZE option found in config files."; $checkFailed = 1; }
-
-    ### Module Settings / tools
-    if (!$opt{GENOME}) { say "ERROR: No GENOME option found in config files."; $checkFailed = 1; }
-    elsif (!-f $opt{GENOME}) { say "ERROR: $opt{GENOME} does not exist"}
-    if (!$opt{SAMBAMBA_PATH}) { say "ERROR: No SAMBAMBA_PATH option found in config files."; $checkFailed = 1; }
-    if (!$opt{QUEUE_PATH}) { say "ERROR: No QUEUE_PATH option found in config files."; $checkFailed = 1; }
-
-    ## PRESTATS
-    if ($opt{PRESTATS} && $opt{PRESTATS} eq "yes") {
-        if (!$opt{FASTQC_PATH}) { say "ERROR: No FASTQC_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{PRESTATS_THREADS}) { say "ERROR: No PRESTATS_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{PRESTATS_MEM}) { say "ERROR: No PRESTATS_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{PRESTATS_QUEUE}) { say "ERROR: No PRESTATS_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{PRESTATS_TIME}) { say "ERROR: No PRESTATS_TIME option found in config files."; $checkFailed = 1; }
-    }
-
-    ## MAPPING
-    if ($opt{MAPPING} && $opt{MAPPING} eq "yes") {
-        if (!$opt{BWA_PATH}) { say "ERROR: No BWA_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{MAPPING_THREADS}) { say "ERROR: No MAPPING_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{MAPPING_MEM}) { say "ERROR: No MAPPING_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{MAPPING_QUEUE}) { say "ERROR: No MAPPING_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{MAPPING_TIME}) { say "ERROR: No MAPPING_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{MAPPING_SETTINGS}) { say "ERROR: No MAPPING_SETTINGS option found in config files."; $checkFailed = 1; }
-
-        if (!$opt{MARKDUP_QUEUE}) { say "ERROR: No MARKDUP_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{MARKDUP_TIME}) { say "ERROR: No MARKDUP_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{MARKDUP_THREADS}) { say "ERROR: No MARKDUP_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{MARKDUP_MEM}) { say "ERROR: No MARKDUP_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{MARKDUP_OVERFLOW_LIST_SIZE}) { say "ERROR: No MARKDUP_OVERFLOW_LIST_SIZE option found in config files."; $checkFailed = 1; }
-    }
-
-    if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
-    if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
-    if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
-    if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
-
-    ## POSTSTATS
-    if ($opt{POSTSTATS} && $opt{POSTSTATS} eq "yes") {
-        if (!$opt{BAMMETRICS_PATH}) { say "ERROR: No BAMMETRICS_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{PICARD_PATH}) { say "ERROR: No PICARD_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{POSTSTATS_THREADS}) { say "ERROR: No POSTSTATS_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{POSTSTATS_MEM}) { say "ERROR: No POSTSTATS_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{POSTSTATS_QUEUE}) { say "ERROR: No POSTSTATS_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{POSTSTATS_TIME}) { say "ERROR: No POSTSTATS_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{EXONCALLCOV}) { say "ERROR: No EXONCALLCOV option found in config files."; $checkFailed = 1; }
-        if ($opt{EXONCALLCOV} eq "yes") {
-            if (!$opt{EXONCALLCOV_QUEUE}) { say "ERROR: No EXONCALLCOV_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_TIME}) { say "ERROR: No EXONCALLCOV_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_MEM}) { say "ERROR: No EXONCALLCOV_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_PATH}) { say "ERROR: No EXONCALLCOV_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_BED}) { say "ERROR: No EXONCALLCOV_BED option found in config files."; $checkFailed = 1; }
-            if ($opt{EXONCALLCOV_BED} && !-f $opt{EXONCALLCOV_BED}) { say "ERROR: $opt{EXONCALLCOV_BED} does not exist."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_PREF}) { say "ERROR: No EXONCALLCOV_PREF option found in config files."; $checkFailed = 1; }
-            if ($opt{EXONCALLCOV_PREF} && !-f $opt{EXONCALLCOV_PREF}) { say "ERROR: $opt{EXONCALLCOV_PREF} does not exist."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_PANEL}) { say "ERROR: No EXONCALLCOV_PANEL option found in config files."; $checkFailed = 1; }
-            if ($opt{EXONCALLCOV_PANEL} && !-f $opt{EXONCALLCOV_PANEL}) { say "ERROR: $opt{EXONCALLCOV_PANEL} does not exist."; $checkFailed = 1; }
-            if (!$opt{EXONCALLCOV_ENS}) { say "ERROR: No EXONCALLCOV_ENS option found in config files."; $checkFailed = 1; }
-            if ($opt{EXONCALLCOV_ENS} && !-f $opt{EXONCALLCOV_ENS}) { say "ERROR: $opt{EXONCALLCOV_ENS} does not exist."; $checkFailed = 1; }
-        }
-    }
-
-    ## INDELREALIGNMENT
-    if ($opt{INDELREALIGNMENT} && $opt{INDELREALIGNMENT} eq "yes") {
-        if (!$opt{BAMUTIL_PATH}) { say "ERROR: No BAMUTIL_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MASTER_QUEUE}) { say "ERROR: No REALIGNMENT_MASTER_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MASTER_THREADS}) { say "ERROR: No REALIGNMENT_MASTER_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MASTER_TIME}) { say "ERROR: No REALIGNMENT_MASTER_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MASTER_MEM}) { say "ERROR: No REALIGNMENT_MASTER_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_QUEUE}) { say "ERROR: No REALIGNMENT_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_THREADS}) { say "ERROR: No REALIGNMENT_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MEM}) { say "ERROR: No REALIGNMENT_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_TIME}) { say "ERROR: No REALIGNMENT_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_MERGETHREADS}) { say "ERROR: No REALIGNMENT_MERGETHREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_SCALA}) { say "ERROR: No REALIGNMENT_SCALA option found in config files."; $checkFailed = 1; }
-        if (!$opt{REALIGNMENT_SCATTER}) { say "ERROR: No REALIGNMENT_SCATTER option found in config files."; $checkFailed = 1; }
-        if ($opt{REALIGNMENT_KNOWN} && grep { !-f } split "\t", $opt{REALIGNMENT_KNOWN}) { say "ERROR: Some of $opt{REALIGNMENT_KNOWN} do not exist."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
-    }
-
-    ## BASEQUALITYRECAL
-    if ($opt{BASEQUALITYRECAL} && $opt{BASEQUALITYRECAL} eq "yes") {
-        if (!$opt{BASERECALIBRATION_MASTER_QUEUE}) { say "ERROR: No BASERECALIBRATION_MASTER_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_MASTER_TIME}) { say "ERROR: No BASERECALIBRATION_MASTER_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_MASTER_THREADS}) { say "ERROR: No BASERECALIBRATION_MASTER_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_MASTER_MEM}) { say "ERROR: No BASERECALIBRATION_MASTER_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_QUEUE}) { say "ERROR: No BASERECALIBRATION_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_THREADS}) { say "ERROR: No BASERECALIBRATION_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_MEM}) { say "ERROR: No BASERECALIBRATION_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_TIME}) { say "ERROR: No BASERECALIBRATION_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_SCALA}) { say "ERROR: No BASERECALIBRATION_SCALA option found in config files."; $checkFailed = 1; }
-        if (!$opt{BASERECALIBRATION_SCATTER}) { say "ERROR: No BASERECALIBRATION_SCATTER option found in config files."; $checkFailed = 1; }
-        if ($opt{BASERECALIBRATION_KNOWN} && grep { !-f } split "\t", $opt{BASERECALIBRATION_KNOWN}) { say "ERROR: Some of $opt{BASERECALIBRATION_KNOWN} do not exist."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_QUEUE}) { say "ERROR: No FLAGSTAT_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_THREADS}) { say "ERROR: No FLAGSTAT_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_MEM}) { say "ERROR: No FLAGSTAT_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{FLAGSTAT_TIME}) { say "ERROR: No FLAGSTAT_TIME option found in config files."; $checkFailed = 1; }
-    }
-
-    ## VARIANT_CALLING
-    if ($opt{VARIANT_CALLING} && $opt{VARIANT_CALLING} eq "yes") {
-        if (!$opt{CALLING_MASTER_QUEUE}) { say "ERROR: No CALLING_MASTER_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_MASTER_TIME}) { say "ERROR: No CALLING_MASTER_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_MASTER_THREADS}) { say "ERROR: No CALLING_MASTER_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_MASTER_MEM}) { say "ERROR: No CALLING_MASTER_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_QUEUE}) { say "ERROR: No CALLING_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_THREADS}) { say "ERROR: No CALLING_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_MEM}) { say "ERROR: No CALLING_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_TIME}) { say "ERROR: No CALLING_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_SCATTER}) { say "ERROR: No CALLING_SCATTER option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_GVCF}) { say "ERROR: No CALLING_GVCF option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_SCALA}) { say "ERROR: No CALLING_SCALA option found in config files."; $checkFailed = 1; }
-        if ($opt{CALLING_UGMODE}) {
-            if ($opt{CALLING_UGMODE} ne "SNP" and $opt{CALLING_UGMODE} ne "INDEL" and $opt{CALLING_UGMODE} ne "BOTH") { say "ERROR: UGMODE: $opt{CALLING_UGMODE} does not exist use SNP, INDEL or BOTH"; $checkFailed = 1; }
-        }
-        if (!$opt{CALLING_STANDCALLCONF}) { say "ERROR: No CALLING_STANDCALLCONF option found in config files."; $checkFailed = 1; }
-        if (!$opt{CALLING_STANDEMITCONF}) { say "ERROR: No CALLING_STANDEMITCONF option found in config files."; $checkFailed = 1; }
-        if ($opt{CALLING_TARGETS} && !-f $opt{CALLING_TARGETS}) { say "ERROR: $opt{CALLING_TARGETS} does not exist"; $checkFailed = 1; }
-        if ($opt{CALLING_DBSNP} && !-f $opt{CALLING_DBSNP}) { say "ERROR: $opt{CALLING_DBSNP} does not exist"; $checkFailed = 1; }
-    }
-
-    ## FILTER_VARIANTS
-    if ($opt{FILTER_VARIANTS} && $opt{FILTER_VARIANTS} eq "yes") {
-        if (!$opt{FILTER_MASTER_QUEUE}) { say "ERROR: No FILTER_MASTER_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_MASTER_TIME}) { say "ERROR: No FILTER_MASTER_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_MASTER_THREADS}) { say "ERROR: No FILTER_MASTER_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_MASTER_MEM}) { say "ERROR: No FILTER_MASTER_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_QUEUE}) { say "ERROR: No FILTER_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_THREADS}) { say "ERROR: No FILTER_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_MEM}) { say "ERROR: No FILTER_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_TIME}) { say "ERROR: No FILTER_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_SCATTER}) { say "ERROR: No FILTER_SCATTER option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_SCALA}) { say "ERROR: No FILTER_SCALA option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_SNPTYPES}) { say "ERROR: No FILTER_SNPTYPES option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_SNPNAME}) { say "ERROR: No FILTER_SNPNAME option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_SNPEXPR}) { say "ERROR: No FILTER_SNPEXPR  option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_INDELTYPES}) { say "ERROR: No FILTER_INDELTYPES option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_INDELNAME}) { say "ERROR: No FILTER_INDELNAME option found in config files."; $checkFailed = 1; }
-        if (!$opt{FILTER_INDELEXPR}) { say "ERROR: No FILTER_INDELEXPR option found in config files."; $checkFailed = 1; }
-    }
-
-    ## SOMATIC_VARIANTS
-    if ($opt{SOMATIC_VARIANTS} && $opt{SOMATIC_VARIANTS} eq "yes") {
-        if (!$opt{VCFTOOLS_PATH}) { say "ERROR: No VCFTOOLS_PATH found in .ini file"; $checkFailed = 1; }
-        if (!$opt{SAMTOOLS_PATH}) { say "ERROR: No SAMTOOLS_PATH option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_TARGETS} && !-f $opt{SOMVAR_TARGETS}) { say "ERROR: $opt{SOMVAR_TARGETS} does not exist"; $checkFailed = 1; }
-        if (!$opt{SOMVAR_STRELKA}) { say "ERROR: No SOMVAR_STRELKA option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_STRELKA} && $opt{SOMVAR_STRELKA} eq "yes") {
-            if (!$opt{STRELKA_PATH}) { say "ERROR: No STRELKA_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{STRELKA_INI}) { say "ERROR: No STRELKA_INI option found in config files."; $checkFailed = 1; }
-            if (!$opt{STRELKA_QUEUE}) { say "ERROR: No STRELKA_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{STRELKA_THREADS}) { say "ERROR: No STRELKA_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{STRELKA_MEM}) { say "ERROR: No STRELKA_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{STRELKA_TIME}) { say "ERROR: No STRELKA_TIME option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{SOMVAR_VARSCAN}) { say "ERROR: No SOMVAR_VARSCAN option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_VARSCAN} && $opt{SOMVAR_VARSCAN} eq "yes") {
-            if (!$opt{VARSCAN_PATH}) { say "ERROR: No VARSCAN_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{PBGZIP_PATH}) { say "ERROR: No PBGZIP_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{TABIX_PATH}) { say "ERROR: No TABIX_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_QUEUE}) { say "ERROR: No VARSCAN_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_THREADS}) { say "ERROR: No VARSCAN_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_TIME}) { say "ERROR: No VARSCAN_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_MEM}) { say "ERROR: No VARSCAN_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_SETTINGS}) { say "ERROR: No VARSCAN_SETTINGS option found in config files."; $checkFailed = 1; }
-            if (!$opt{VARSCAN_POSTSETTINGS}) { say "ERROR: No VARSCAN_POSTSETTINGS option found in config files."; $checkFailed = 1; }
-            if (!$opt{PILEUP_QUEUE}) { say "ERROR: No PILEUP_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{PILEUP_DIVISOR}) { say "ERROR: No PILEUP_DIVISOR option found in config files."; $checkFailed = 1; }
-            if (!$opt{PILEUP_THREADS}) { say "ERROR: No PILEUP_THREADS option found in config files."; $checkFailed = 1; }
-            elsif ($opt{PILEUP_THREADS} < $opt{PILEUP_DIVISOR}) { say "ERROR: PILEUP_THREADS ($opt{PILEUP_THREADS}) must be at least PILEUP_DIVISOR ($opt{PILEUP_DIVISOR})."; $checkFailed = 1; }
-            if (!$opt{PILEUP_MEM}) { say "ERROR: No PILEUP_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{PILEUP_TIME}) { say "ERROR: No PILEUP_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{FINALIZE_KEEP_PILEUP}) { say "ERROR: No FINALIZE_KEEP_PILEUP found in .ini file"; $checkFailed = 1; }
-        }
-        if (!$opt{SOMVAR_FREEBAYES}) { say "ERROR: No SOMVAR_FREEBAYES option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_FREEBAYES} && $opt{SOMVAR_FREEBAYES} eq "yes") {
-            if (!$opt{FREEBAYES_PATH}) { say "ERROR: No FREEBAYES_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{VCFLIB_PATH}) { say "ERROR: No VCFLIB_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_QUEUE}) { say "ERROR: No FREEBAYES_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_THREADS}) { say "ERROR: No FREEBAYES_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_MEM}) { say "ERROR: No FREEBAYES_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_TIME}) { say "ERROR: No FREEBAYES_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_SETTINGS}) { say "ERROR: No FREEBAYES_SETTINGS option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEBAYES_SOMATICFILTER}) { say "ERROR: No FREEBAYES_SOMATICFILTER option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{SOMVAR_MUTECT}) { say "ERROR: No SOMVAR_MUTECT option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_MUTECT} && $opt{SOMVAR_MUTECT} eq "yes") {
-            if (!$opt{MUTECT_PATH}) { say "ERROR: No MUTECT_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{MUTECT_QUEUE}) { say "ERROR: No MUTECT_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{MUTECT_THREADS}) { say "ERROR: No MUTECT_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{MUTECT_MEM}) { say "ERROR: No MUTECT_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{MUTECT_TIME}) { say "ERROR: No MUTECT_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{MUTECT_COSMIC}) { say "ERROR: No MUTECT_COSMIC option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{SOMVARMERGE_QUEUE}) { say "ERROR: No SOMVARMERGE_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{SOMVARMERGE_THREADS}) { say "ERROR: No SOMVARMERGE_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{SOMVARMERGE_MEM}) { say "ERROR: No SOMVARMERGE_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{SOMVARMERGE_TIME}) { say "ERROR: No SOMVARMERGE_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{SOMVAR_ANNOTATE}) { say "ERROR: No SOMVAR_ANNOTATE option found in config files."; $checkFailed = 1; }
-        if ($opt{SOMVAR_ANNOTATE} && $opt{SOMVAR_ANNOTATE} eq "yes") {
-            if (!$opt{ANNOTATE_DB}) { say "ERROR: No ANNOTATE_DB option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_FLAGS}) { say "ERROR: No ANNOTATE_FLAGS option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_IDNAME}) { say "ERROR: No ANNOTATE_IDNAME option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_IDDB}) { say "ERROR: No ANNOTATE_IDDB option found in config files."; $checkFailed = 1; }
-            if (!$opt{CALLING_DBSNP}) { say "ERROR: No CALLING_DBSNP option found in config files."; $checkFailed = 1; }
-        }
-    }
-
-    ## COPY_NUMBER
-    if ($opt{COPY_NUMBER} && $opt{COPY_NUMBER} eq "yes") {
-        if (!$opt{CNVCHECK_QUEUE}) { say "ERROR: No CNVCHECK_QUEUE in config files."; $checkFailed = 1; }
-        if (!$opt{CNVCHECK_THREADS}) { say "ERROR: No CNVCHECK_THREADS  in config files."; $checkFailed = 1; }
-        if (!$opt{CNVCHECK_MEM}) { say "ERROR: No CNVCHECK_MEM in config files."; $checkFailed = 1; }
-        if (!$opt{CNVCHECK_TIME}) { say "ERROR: No CNVCHECK_TIME in config files."; $checkFailed = 1; }
-        if (!$opt{CNV_MODE}) { say "ERROR: No CNV_MODE in config files."; $checkFailed = 1; }
-        if (!$opt{CNV_FREEC}) { say "ERROR: No CNV_FREEC  in config files."; $checkFailed = 1; }
-        if ($opt{CNV_FREEC} eq "yes") {
-            if (!$opt{FREEC_PATH}) { say "ERROR: No FREEC_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_QUEUE}) { say "ERROR: No FREEC_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_THREADS}) { say "ERROR: No FREEC_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_MEM}) { say "ERROR: No FREEC_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_TIME}) { say "ERROR: No FREEC_TIME option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_CHRLENFILE}) { say "ERROR: No FREEC_CHRLENFILE option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_CHRFILES}) { say "ERROR: No FREEC_CHRFILES option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_PLOIDY}) { say "ERROR: No FREEC_PLOIDY option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_WINDOW}) { say "ERROR: No FREEC_WINDOW option found in config files."; $checkFailed = 1; }
-            if (!$opt{FREEC_TELOCENTROMERIC}) { say "ERROR: No FREEC_TELOCENTROMERIC option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{CNV_QDNASEQ}) { say "ERROR: No CNV_QDNASEQ in config files."; $checkFailed = 1; }
-        if ($opt{CNV_QDNASEQ} eq "yes") {
-            if (!$opt{QDNASEQ_PATH}) { say "ERROR: No QDNASEQ_PATH option found in config files."; $checkFailed = 1; }
-            if (!$opt{QDNASEQ_QUEUE}) { say "ERROR: No QDNASEQ_QUEUE option found in config files."; $checkFailed = 1; }
-            if (!$opt{QDNASEQ_THREADS}) { say "ERROR: No QDNASEQ_THREADS option found in config files."; $checkFailed = 1; }
-            if (!$opt{QDNASEQ_MEM}) { say "ERROR: No QDNASEQ_MEM option found in config files."; $checkFailed = 1; }
-            if (!$opt{QDNASEQ_TIME}) { say "ERROR: No QDNASEQ_TIME option found in config files."; $checkFailed = 1; }
-        }
-    }
-
-    ##BAF Analysis
-    if ($opt{BAF} && $opt{BAF} eq "yes") {
-        if (!$opt{BAF_QUEUE}) { say "ERROR: No BAF_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{BAF_THREADS}) { say "ERROR: No BAF_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{BAF_MEM}) { say "ERROR: No BAF_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{BAF_TIME}) { say "ERROR: No BAF_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{BIOVCF_PATH}) { say "ERROR: No BIOVCF_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{BAF_SNPS}) { say "ERROR: No BAF_SNPS option found in config files."; $checkFailed = 1; }
-    }
-
-    ## ANNOTATE_VARIANTS
-    if ($opt{ANNOTATE_VARIANTS} && $opt{ANNOTATE_VARIANTS} eq "yes") {
-        if (!$opt{SNPEFF_PATH}) { say "ERROR: No SNPEFF_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{IGVTOOLS_PATH}) { say "ERROR: No IGVTOOLS_PATH option found in config files."; $checkFailed = 1; }
-        if (!$opt{ANNOTATE_QUEUE}) { say "ERROR: No ANNOTATE_QUEUE option found in config files."; $checkFailed = 1; }
-        if (!$opt{ANNOTATE_THREADS}) { say "ERROR: No ANNOTATE_THREADS option found in config files."; $checkFailed = 1; }
-        if (!$opt{ANNOTATE_MEM}) { say "ERROR: No ANNOTATE_MEM option found in config files."; $checkFailed = 1; }
-        if (!$opt{ANNOTATE_TIME}) { say "ERROR: No ANNOTATE_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{ANNOTATE_SNPEFF}) { say "ERROR: No ANNOTATE_SNPEFF option found in config files."; $checkFailed = 1; }
-        if ($opt{ANNOTATE_SNPEFF} eq "yes") {
-            if (!$opt{ANNOTATE_DB}) { say "ERROR: No ANNOTATE_DB option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_FLAGS}) { say "ERROR: No ANNOTATE_FLAGS option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{ANNOTATE_SNPSIFT}) { say "ERROR: No ANNOTATE_SNPSIFT option found in config files."; $checkFailed = 1; }
-        if ($opt{ANNOTATE_SNPSIFT} eq "yes") {
-            if (!$opt{ANNOTATE_DBNSFP}) { say "ERROR: No ANNOTATE_DBNSFP option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_DBNSFP} && !-f $opt{ANNOTATE_DBNSFP}) { say "ERROR: $opt{ANNOTATE_DBNSFP} does not exist"; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_FIELDS}) { say "ERROR: No ANNOTATE_FIELDS option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{ANNOTATE_FREQUENCIES}) { say "ERROR: No ANNOTATE_FREQUENCIES option found in config files."; $checkFailed = 1; }
-        if ($opt{ANNOTATE_FREQUENCIES} eq "yes") {
-            if (!$opt{ANNOTATE_FREQNAME}) { say "ERROR: No ANNOTATE_FREQNAME option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_FREQDB}) { say "ERROR: No ANNOTATE_FREQDB option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_FREQDB} && !-f $opt{ANNOTATE_FREQDB}) { say "ERROR: $opt{ANNOTATE_FREQDB} does not exist"; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_FREQINFO}) { say "ERROR: No ANNOTATE_FREQINFO option found in config files."; $checkFailed = 1; }
-        }
-        if (!$opt{ANNOTATE_IDFIELD}) { say "ERROR: No ANNOTATE_IDFIELD option found in config files."; $checkFailed = 1; }
-            if ($opt{ANNOTATE_IDFIELD} eq "yes") {
-            if (!$opt{ANNOTATE_IDNAME}) { say "ERROR: No ANNOTATE_IDNAME option found in config files."; $checkFailed = 1; }
-            if (!$opt{ANNOTATE_IDDB}) { say "ERROR: No ANNOTATE_IDDB option found in config files."; $checkFailed = 1; }
-            elsif ($opt{ANNOTATE_IDDB} && !-f $opt{ANNOTATE_IDDB}) { say "ERROR: $opt{ANNOTATE_IDDB} does not exist"; $checkFailed = 1; }
-        }
-    }
-
-    ## KINSHIP
-    if ($opt{KINSHIP} && $opt{KINSHIP} eq "yes") {
-        if (!$opt{KINSHIP_QUEUE}) { say "ERROR: No KINSHIP_QUEUE found in .ini file"; $checkFailed = 1; }
-        if (!$opt{KINSHIP_THREADS}) { say "ERROR: No KINSHIP_THREADS found in .ini file"; $checkFailed = 1; }
-        if (!$opt{KINSHIP_MEM}) { say "ERROR: No KINSHIP_MEM found in .ini file"; $checkFailed = 1; }
-        if (!$opt{KINSHIP_TIME}) { say "ERROR: No KINSHIP_TIME option found in config files."; $checkFailed = 1; }
-        if (!$opt{PLINK_PATH}) { say "ERROR: No PLINK_PATH found in .ini file"; $checkFailed = 1; }
-        if (!$opt{KING_PATH}) { say "ERROR: No KING_PATH found in .ini file"; $checkFailed = 1; }
-        if (!$opt{VCFTOOLS_PATH}) { say "ERROR: No VCFTOOLS_PATH found in .ini file"; $checkFailed = 1; }
-    }
-
-    ## FINALIZE
-    if ($opt{FINALIZE} && $opt{FINALIZE} eq "yes") {
-        if (!$opt{FINALIZE_QUEUE}) { say "ERROR: No FINALIZE_QUEUE found in .ini file"; $checkFailed = 1; }
-        if (!$opt{FINALIZE_THREADS}) { say "ERROR: No FINALIZE_THREADS found in .ini file"; $checkFailed = 1; }
-        if (!$opt{FINALIZE_MEM}) { say "ERROR: No FINALIZE_MEM found in .ini file"; $checkFailed = 1; }
-        if (!$opt{FINALIZE_TIME}) { say "ERROR: No FINALIZE_TIME found in .ini file"; $checkFailed = 1; }
-    }
-
-    die "One or more options not found or invalid in config files" if $checkFailed;
-    $opt->{RUN_NAME} = basename($opt{OUTPUT_DIR});
-    return;
-}
-
 sub lockRun {
     my ($dir) = @_;
     my $lock_file = catfile($dir, "run.lock");
@@ -586,4 +245,357 @@ sub linkBamArtefacts {
         illumina_metadata::linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
     }
     return;
+}
+
+sub checkConfig {
+    my ($opt) = @_;
+
+    my @errors = @{applyChecks(configChecks(), $opt)};
+    if (@errors) {
+        foreach my $error (@errors) {
+            warn "ERROR: $error";
+        }
+        die "One or more options not found or invalid in config files";
+    }
+    $opt->{RUN_NAME} = basename($opt->{OUTPUT_DIR});
+    return;
+}
+
+sub applyChecks {
+    my ($checks, $opt) = @_;
+
+    my @errors;
+    while (my ($key, $checker) = each %{$checks}) {
+        my $error = &$checker($key, $opt->{$key}, $opt);
+        if (ref $error eq "ARRAY") {
+            push @errors, @{$error};
+        } else {
+            push @errors, $error if $error;
+        }
+    }
+    return \@errors;
+}
+
+sub configChecks {
+    # pseudo-DSL to de-duplicate the checks
+    my $key_not_present = sub { not defined $_[1] and return "No $_[0] option found in config files" };
+    my $missing_file = sub { not -f $_[1] and return "$_[0] file $_[1] does not exist" };
+    my $missing_optional_file = sub { not &$key_not_present and &$missing_file };
+    my $missing_optional_files = sub { join " and\n", grep { $_ } map { &$missing_optional_file($_[0], $_) } split /\t/, $_[1] };
+    my $invalid_choice = sub {
+        my ($choices) = @_;
+        return sub {
+            my ($key, $choice) = @_;
+            defined $choice and not grep { /^$choice$/ } @{$choices} and return "$key must be one of " . join ", ", @{$choices}
+        };
+    };
+    my $key_not_present_and_not_present = sub {
+        my @alt_keys = @_;
+        return sub {
+            my ($key, $value, $opt) = @_;
+            not defined $value and not grep { defined $opt->{$_} } @alt_keys and return "No $key or " . join(", ", @alt_keys) . " found in config files";
+        };
+    };
+    my $if_enabled = sub {
+        my ($more_checks) = @_;
+        return sub {
+            my ($key, $value, $opt) = @_;
+            defined $value and $value eq "yes" and return applyChecks($more_checks, $opt);
+        };
+    };
+    my $compare = sub {
+        my ($other_key, $func, $name) = @_;
+        return sub {
+            my ($key, $value, $opt) = @_;
+            my $other_value = $opt->{$other_key};
+            &$key_not_present or not &$func($value, $other_value) and return "$key ($value) must be $name $other_key ($other_value)";
+        };
+    };
+
+    return {
+        INIFILE => $key_not_present,
+        OUTPUT_DIR => $key_not_present,
+        FASTQ => &$key_not_present_and_not_present('BAM'),
+        MAIL => $key_not_present,
+        CLUSTER_PATH => $key_not_present,
+        CLUSTER_TMP => $key_not_present,
+        CLUSTER_RESERVATION => $key_not_present,
+        CLUSTER_PROJECT => $key_not_present,
+        PRESTATS => $key_not_present,
+        MAPPING => $key_not_present,
+        POSTSTATS => $key_not_present,
+        INDELREALIGNMENT => $key_not_present,
+        BASEQUALITYRECAL => $key_not_present,
+        VARIANT_CALLING => $key_not_present,
+        FILTER_VARIANTS => $key_not_present,
+        SOMATIC_VARIANTS => $key_not_present,
+        COPY_NUMBER => $key_not_present,
+        BAF => $key_not_present,
+        ANNOTATE_VARIANTS => $key_not_present,
+        KINSHIP => $key_not_present,
+        FINALIZE => $key_not_present,
+        GENOME => $missing_file,
+        SAMBAMBA_PATH => $key_not_present,
+        QUEUE_PATH => $key_not_present,
+        PRESTATS => &$if_enabled({
+            FASTQC_PATH => $key_not_present,
+            PRESTATS_THREADS => $key_not_present,
+            PRESTATS_MEM => $key_not_present,
+            PRESTATS_QUEUE => $key_not_present,
+            PRESTATS_TIME => $key_not_present,
+        }),
+        MAPPING => &$if_enabled({
+            BWA_PATH => $key_not_present,
+            MAPPING_THREADS => $key_not_present,
+            MAPPING_MEM => $key_not_present,
+            MAPPING_QUEUE => $key_not_present,
+            MAPPING_TIME => $key_not_present,
+            MAPPING_SETTINGS => $key_not_present,
+
+            MARKDUP_QUEUE => $key_not_present,
+            MARKDUP_TIME => $key_not_present,
+            MARKDUP_THREADS => $key_not_present,
+            MARKDUP_MEM => $key_not_present,
+            MARKDUP_OVERFLOW_LIST_SIZE => $key_not_present,
+        }),
+        FLAGSTAT_QUEUE => $key_not_present,
+        FLAGSTAT_THREADS => $key_not_present,
+        FLAGSTAT_MEM => $key_not_present,
+        FLAGSTAT_TIME => $key_not_present,
+        POSTSTATS => &$if_enabled({
+            BAMMETRICS_PATH => $key_not_present,
+            PICARD_PATH => $key_not_present,
+            POSTSTATS_THREADS => $key_not_present,
+            POSTSTATS_MEM => $key_not_present,
+            POSTSTATS_QUEUE => $key_not_present,
+            POSTSTATS_TIME => $key_not_present,
+            EXONCALLCOV => $key_not_present,
+            EXONCALLCOV => &$if_enabled({
+                EXONCALLCOV_QUEUE => $key_not_present,
+                EXONCALLCOV_TIME => $key_not_present,
+                EXONCALLCOV_MEM => $key_not_present,
+                EXONCALLCOV_PATH => $key_not_present,
+                EXONCALLCOV_BED => $missing_file,
+                EXONCALLCOV_PREF => $missing_file,
+                EXONCALLCOV_PANEL => $missing_file,
+                EXONCALLCOV_ENS => $missing_file,
+            }),
+        }),
+        INDELREALIGNMENT => &$if_enabled({
+            BAMUTIL_PATH => $key_not_present,
+            REALIGNMENT_MASTER_QUEUE => $key_not_present,
+            REALIGNMENT_MASTER_THREADS => $key_not_present,
+            REALIGNMENT_MASTER_TIME => $key_not_present,
+            REALIGNMENT_MASTER_MEM => $key_not_present,
+            REALIGNMENT_QUEUE => $key_not_present,
+            REALIGNMENT_THREADS => $key_not_present,
+            REALIGNMENT_MEM => $key_not_present,
+            REALIGNMENT_TIME => $key_not_present,
+            REALIGNMENT_MERGETHREADS => $key_not_present,
+            REALIGNMENT_SCALA => $key_not_present,
+            REALIGNMENT_SCATTER => $key_not_present,
+            REALIGNMENT_KNOWN => $missing_optional_files,
+            FLAGSTAT_QUEUE => $key_not_present,
+            FLAGSTAT_THREADS => $key_not_present,
+            FLAGSTAT_MEM => $key_not_present,
+            FLAGSTAT_TIME => $key_not_present,
+        }),
+        BASEQUALITYRECAL => &$if_enabled({
+            BASERECALIBRATION_MASTER_QUEUE => $key_not_present,
+            BASERECALIBRATION_MASTER_TIME => $key_not_present,
+            BASERECALIBRATION_MASTER_THREADS => $key_not_present,
+            BASERECALIBRATION_MASTER_MEM => $key_not_present,
+            BASERECALIBRATION_QUEUE => $key_not_present,
+            BASERECALIBRATION_THREADS => $key_not_present,
+            BASERECALIBRATION_MEM => $key_not_present,
+            BASERECALIBRATION_TIME => $key_not_present,
+            BASERECALIBRATION_SCALA => $key_not_present,
+            BASERECALIBRATION_SCATTER => $key_not_present,
+            BASERECALIBRATION_KNOWN => $missing_optional_files,
+            FLAGSTAT_QUEUE => $key_not_present,
+            FLAGSTAT_THREADS => $key_not_present,
+            FLAGSTAT_MEM => $key_not_present,
+            FLAGSTAT_TIME => $key_not_present,
+        }),
+        VARIANT_CALLING => &$if_enabled({
+            CALLING_MASTER_QUEUE => $key_not_present,
+            CALLING_MASTER_TIME => $key_not_present,
+            CALLING_MASTER_THREADS => $key_not_present,
+            CALLING_MASTER_MEM => $key_not_present,
+            CALLING_QUEUE => $key_not_present,
+            CALLING_THREADS => $key_not_present,
+            CALLING_MEM => $key_not_present,
+            CALLING_TIME => $key_not_present,
+            CALLING_SCATTER => $key_not_present,
+            CALLING_GVCF => $key_not_present,
+            CALLING_SCALA => $key_not_present,
+            CALLING_UGMODE => &$invalid_choice(["SNP", "INDEL", "BOTH"]),
+            CALLING_STANDCALLCONF => $key_not_present,
+            CALLING_STANDEMITCONF => $key_not_present,
+            CALLING_TARGETS => $missing_optional_file,
+            CALLING_DBSNP => $missing_optional_file,
+        }),
+        FILTER_VARIANTS => &$if_enabled({
+            FILTER_MASTER_QUEUE => $key_not_present,
+            FILTER_MASTER_TIME => $key_not_present,
+            FILTER_MASTER_THREADS => $key_not_present,
+            FILTER_MASTER_MEM => $key_not_present,
+            FILTER_QUEUE => $key_not_present,
+            FILTER_THREADS => $key_not_present,
+            FILTER_MEM => $key_not_present,
+            FILTER_TIME => $key_not_present,
+            FILTER_SCATTER => $key_not_present,
+            FILTER_SCALA => $key_not_present,
+            FILTER_SNPTYPES => $key_not_present,
+            FILTER_SNPNAME => $key_not_present,
+            FILTER_SNPEXPR => $key_not_present,
+            FILTER_INDELTYPES => $key_not_present,
+            FILTER_INDELNAME => $key_not_present,
+            FILTER_INDELEXPR => $key_not_present,
+        }),
+        SOMATIC_VARIANTS => &$if_enabled({
+            VCFTOOLS_PATH => $key_not_present,
+            SAMTOOLS_PATH => $key_not_present,
+            SOMVAR_TARGETS => $missing_optional_file,
+            SOMVAR_STRELKA => $key_not_present,
+            SOMVAR_STRELKA => &$if_enabled({
+                STRELKA_PATH => $key_not_present,
+                STRELKA_INI => $key_not_present,
+                STRELKA_QUEUE => $key_not_present,
+                STRELKA_THREADS => $key_not_present,
+                STRELKA_MEM => $key_not_present,
+                STRELKA_TIME => $key_not_present,
+            }),
+            SOMVAR_VARSCAN => $key_not_present,
+            SOMVAR_VARSCAN => &$if_enabled({
+                VARSCAN_PATH => $key_not_present,
+                PBGZIP_PATH => $key_not_present,
+                TABIX_PATH => $key_not_present,
+                VARSCAN_QUEUE => $key_not_present,
+                VARSCAN_THREADS => $key_not_present,
+                VARSCAN_TIME => $key_not_present,
+                VARSCAN_MEM => $key_not_present,
+                VARSCAN_SETTINGS => $key_not_present,
+                VARSCAN_POSTSETTINGS => $key_not_present,
+                PILEUP_QUEUE => $key_not_present,
+                PILEUP_DIVISOR => $key_not_present,
+                PILEUP_THREADS => &$compare('PILEUP_DIVISOR', sub { $_[0] >= $_[1] }, "greater than or equal to"),
+                PILEUP_MEM => $key_not_present,
+                PILEUP_TIME => $key_not_present,
+                FINALIZE_KEEP_PILEUP => $key_not_present,
+            }),
+            SOMVAR_FREEBAYES => $key_not_present,
+            SOMVAR_FREEBAYES => &$if_enabled({
+                FREEBAYES_PATH => $key_not_present,
+                VCFLIB_PATH => $key_not_present,
+                FREEBAYES_QUEUE => $key_not_present,
+                FREEBAYES_THREADS => $key_not_present,
+                FREEBAYES_MEM => $key_not_present,
+                FREEBAYES_TIME => $key_not_present,
+                FREEBAYES_SETTINGS => $key_not_present,
+                FREEBAYES_SOMATICFILTER => $key_not_present,
+            }),
+            SOMVAR_MUTECT => $key_not_present,
+            SOMVAR_MUTECT => &$if_enabled({
+                MUTECT_PATH => $key_not_present,
+                MUTECT_QUEUE => $key_not_present,
+                MUTECT_THREADS => $key_not_present,
+                MUTECT_MEM => $key_not_present,
+                MUTECT_TIME => $key_not_present,
+                MUTECT_COSMIC => $key_not_present,
+            }),
+            SOMVARMERGE_QUEUE => $key_not_present,
+            SOMVARMERGE_THREADS => $key_not_present,
+            SOMVARMERGE_MEM => $key_not_present,
+            SOMVARMERGE_TIME => $key_not_present,
+            SOMVAR_ANNOTATE => $key_not_present,
+            SOMVAR_ANNOTATE => &$if_enabled({
+                ANNOTATE_DB => $key_not_present,
+                ANNOTATE_FLAGS => $key_not_present,
+                ANNOTATE_IDNAME => $key_not_present,
+                ANNOTATE_IDDB => $key_not_present,
+                CALLING_DBSNP => $key_not_present,
+            }),
+        }),
+        COPY_NUMBER => &$if_enabled({
+            CNVCHECK_QUEUE => $key_not_present,
+            CNVCHECK_THREADS => $key_not_present,
+            CNVCHECK_MEM => $key_not_present,
+            CNVCHECK_TIME => $key_not_present,
+            CNV_MODE => $key_not_present,
+            CNV_FREEC => $key_not_present,
+            CNV_FREEC => &$if_enabled({
+                FREEC_PATH => $key_not_present,
+                FREEC_QUEUE => $key_not_present,
+                FREEC_THREADS => $key_not_present,
+                FREEC_MEM => $key_not_present,
+                FREEC_TIME => $key_not_present,
+                FREEC_CHRLENFILE => $key_not_present,
+                FREEC_CHRFILES => $key_not_present,
+                FREEC_PLOIDY => $key_not_present,
+                FREEC_WINDOW => $key_not_present,
+                FREEC_TELOCENTROMERIC => $key_not_present,
+            }),
+            CNV_QDNASEQ => $key_not_present,
+            CNV_QDNASEQ => &$if_enabled({
+                QDNASEQ_PATH => $key_not_present,
+                QDNASEQ_QUEUE => $key_not_present,
+                QDNASEQ_THREADS => $key_not_present,
+                QDNASEQ_MEM => $key_not_present,
+                QDNASEQ_TIME => $key_not_present,
+            }),
+        }),
+        BAF => &$if_enabled({
+            BAF_QUEUE => $key_not_present,
+            BAF_THREADS => $key_not_present,
+            BAF_MEM => $key_not_present,
+            BAF_TIME => $key_not_present,
+            BIOVCF_PATH => $key_not_present,
+            BAF_SNPS => $key_not_present,
+        }),
+        ANNOTATE_VARIANTS => &$if_enabled({
+            SNPEFF_PATH => $key_not_present,
+            IGVTOOLS_PATH => $key_not_present,
+            ANNOTATE_QUEUE => $key_not_present,
+            ANNOTATE_THREADS => $key_not_present,
+            ANNOTATE_MEM => $key_not_present,
+            ANNOTATE_TIME => $key_not_present,
+            ANNOTATE_SNPEFF => $key_not_present,
+            ANNOTATE_SNPEFF => &$if_enabled({
+                ANNOTATE_DB => $key_not_present,
+                ANNOTATE_FLAGS => $key_not_present,
+            }),
+            ANNOTATE_SNPSIFT => $key_not_present,
+            ANNOTATE_SNPSIFT => &$if_enabled({
+                ANNOTATE_DBNSFP => $missing_file,
+                ANNOTATE_FIELDS => $key_not_present,
+            }),
+            ANNOTATE_FREQUENCIES => $key_not_present,
+            ANNOTATE_FREQUENCIES => &$if_enabled({
+                ANNOTATE_FREQNAME => $key_not_present,
+                ANNOTATE_FREQDB => $missing_file,
+                ANNOTATE_FREQINFO => $key_not_present,
+            }),
+            ANNOTATE_IDFIELD => $key_not_present,
+            ANNOTATE_IDFIELD => &$if_enabled({
+                ANNOTATE_IDNAME => $key_not_present,
+                ANNOTATE_IDDB => $missing_file,
+            }),
+        }),
+        KINSHIP => &$if_enabled({
+            KINSHIP_QUEUE => $key_not_present,
+            KINSHIP_THREADS => $key_not_present,
+            KINSHIP_MEM => $key_not_present,
+            KINSHIP_TIME => $key_not_present,
+            PLINK_PATH => $key_not_present,
+            KING_PATH => $key_not_present,
+            VCFTOOLS_PATH => $key_not_present,
+        }),
+        FINALIZE => &$if_enabled({
+            FINALIZE_QUEUE => $key_not_present,
+            FINALIZE_THREADS => $key_not_present,
+            FINALIZE_MEM => $key_not_present,
+            FINALIZE_TIME => $key_not_present,
+        }),
+    };
 }
