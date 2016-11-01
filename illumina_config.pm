@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+package illumina_config;
 
 use FindBin;
 use lib "$FindBin::Bin";
