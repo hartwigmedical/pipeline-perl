@@ -15,7 +15,7 @@ our @EXPORT_OK = qw(
                        sliceBam
                        flagstatBam
                        diffBams
-                       prePostBamSliceAndDiff
+                       prePostSliceAndDiffBams
                        bamOperationWithSliceChecks
                );
 

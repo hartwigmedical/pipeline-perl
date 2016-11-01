@@ -10,6 +10,7 @@ use File::Spec::Functions;
 use illumina_sge qw(jobNative qsubJava);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
+use illumina_metadata;
 
 
 sub runFilterVariants {
