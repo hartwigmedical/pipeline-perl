@@ -9,3 +9,15 @@ equivalent_modules = discipline
 
 [InputOutput::RequireBriefOpen]
 lines = 20
+
+# no thanks
+[-ErrorHandling::RequireUseOfExceptions]
+
+# no thanks
+[-ValuesAndExpressions::ProhibitAccessOfPrivateData]
+
+# we declare a sufficient perl version dependency but this policy doesn't see it
+[-Compatibility::ProhibitThreeArgumentOpen]
+
+# doesn't work with File::Spec::Functions, could just be explicit and re-enable this
+[-Subroutines::ProhibitCallsToUndeclaredSubs]

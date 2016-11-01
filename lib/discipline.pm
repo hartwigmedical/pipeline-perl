@@ -57,7 +57,7 @@ sub import {
     # autodie->import;
 
     # intuitive, modern inheritence model
-    mro::set_mro(scalar caller(), 'c3');
+    mro::set_mro(scalar caller(), 'c3'); ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
     return;
 }
 

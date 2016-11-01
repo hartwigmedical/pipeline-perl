@@ -24,6 +24,7 @@ my $build = Module::Build->new(
     },
     build_requires => {
         'Test::Compile' => 0,
+        'Task::Perl::Critic' => 0,
         'Test::Perl::Critic' => 0,
         'Test::Prereq::Build' => '< 2.0',
     }

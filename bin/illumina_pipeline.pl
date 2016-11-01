@@ -152,7 +152,9 @@ sub createOutputDirs {
 sub lockRun {
     my ($dir) = @_;
     my $lock_file = catfile($dir, "run.lock");
+    ## no critic (Bangs::ProhibitBitwiseOperators)
     sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
+    ## use critic
     close $fh;
     return;
 }

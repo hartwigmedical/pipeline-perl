@@ -80,9 +80,11 @@ sub setupLogging {
     my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
     open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
     open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
+    ## no critic (Modules::RequireExplicitInclusion)
     STDOUT->autoflush(1);
     STDERR->autoflush(1);
     $out_fh->autoflush(1);
+    ## use critic
     return;
 }
 
@@ -122,7 +124,7 @@ sub copyConfigAndScripts {
 }
 
 sub configChecks {
-    # pseudo-DSL to de-duplicate the checks
+    # pseudo-DSL to de-duplicate checks
     my $key_not_present = sub { not defined $_[1] and return "No $_[0] option found in config files" };
     my $missing_file = sub { &$key_not_present or not -f $_[1] and return "$_[0] file $_[1] does not exist" };
     my $missing_optional_file = sub { not &$key_not_present and &$missing_file };

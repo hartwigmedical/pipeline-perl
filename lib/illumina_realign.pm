@@ -9,6 +9,9 @@ use File::Spec::Functions;
 
 use illumina_jobs qw(bamOperationWithSliceChecks);
 
+use parent qw(Exporter);
+our @EXPORT_OK = qw(runRealignment);
+
 
 sub runRealignment {
     my ($opt) = @_;

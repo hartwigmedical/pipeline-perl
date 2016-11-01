@@ -11,6 +11,9 @@ use illumina_sge qw(qsubJava);
 use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 
+use parent qw(Exporter);
+our @EXPORT_OK = qw(runBAF);
+
 
 sub runBAF {
     my ($opt) = @_;

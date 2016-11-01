@@ -12,6 +12,9 @@ use illumina_jobs qw(getJobId);
 use illumina_template qw(from_template);
 use illumina_metadata;
 
+use parent qw(Exporter);
+our @EXPORT_OK = qw(runVariantCalling);
+
 
 sub runVariantCalling {
     my ($opt) = @_;
