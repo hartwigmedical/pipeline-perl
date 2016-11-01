@@ -358,8 +358,8 @@ sub configChecks {
                 ANNOTATE_DB => $key_not_present,
                 ANNOTATE_FLAGS => $key_not_present,
                 ANNOTATE_IDNAME => $key_not_present,
-                ANNOTATE_IDDB => $key_not_present,
-                CALLING_DBSNP => $key_not_present,
+                ANNOTATE_IDDB => $missing_file,
+                CALLING_DBSNP => $missing_file,
             }),
         }),
         COPY_NUMBER => &$if_enabled({
