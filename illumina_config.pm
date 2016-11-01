@@ -124,7 +124,7 @@ sub copyConfigAndScripts {
 sub configChecks {
     # pseudo-DSL to de-duplicate the checks
     my $key_not_present = sub { not defined $_[1] and return "No $_[0] option found in config files" };
-    my $missing_file = sub { not -f $_[1] and return "$_[0] file $_[1] does not exist" };
+    my $missing_file = sub { &$key_not_present or not -f $_[1] and return "$_[0] file $_[1] does not exist" };
     my $missing_optional_file = sub { not &$key_not_present and &$missing_file };
     my $missing_optional_files = sub { join " and\n", grep { $_ } map { &$missing_optional_file($_[0], $_) } split /\t/, $_[1] };
     my $invalid_choice = sub {
