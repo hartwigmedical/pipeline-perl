@@ -1,4 +1,5 @@
 severity = 4
+verbose = 11
 
 [TestingAndDebugging::RequireUseStrict]
 equivalent_modules = discipline
