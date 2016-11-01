@@ -15,7 +15,7 @@ function handle_error() {
     local lineno=$1 && shift
     local command=$1 && shift
 
-    echo "$0: line $lineno: $command: exit code $ret" >> "[% opt.OUTPUT_DIR %]/logs/unhandled_job_errors"
+    echo "$(date) $(hostname) $0: line $lineno: $command: exit code $ret" >> "[% opt.OUTPUT_DIR %]/logs/unhandled_job_errors"
 
     if [[ "[% mode %]" == "strict" ]]; then
         exit 100
