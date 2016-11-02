@@ -162,7 +162,7 @@ sub bamOperationWithSliceChecks {
         job_native => jobNative($opt, uc $job_template),
         known_files => $known_files);
 
-    next unless $job_id;
+    return unless $job_id;
 
     my $flagstat_job_id = flagstatBam(
         $sample,
