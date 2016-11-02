@@ -1,7 +1,6 @@
 package illumina_prestats;
 
-use FindBin;
-use lib "$FindBin::Bin";
+use FindBin::libs;
 use discipline;
 
 use File::Basename;

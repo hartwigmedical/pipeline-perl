@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
-use FindBin;
-use lib "$FindBin::Bin";
+use FindBin::libs;
 use discipline;
 
 use Cwd qw(abs_path);

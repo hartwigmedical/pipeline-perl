@@ -1,19 +1,26 @@
 package illumina_config;
 
-use FindBin;
-use lib "$FindBin::Bin";
+use FindBin::libs;
 use discipline;
 
 use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec::Functions;
 use File::Copy::Recursive qw(rcopy);
+use FindBin;
 use IO::Pipe;
 use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(readConfig checkConfig setupLogging recordGitVersion copyConfigAndScripts);
+our @EXPORT_OK = qw(
+                       readConfig
+                       checkConfig
+                       setupLogging
+                       recordGitVersion
+                       copyConfigAndScripts
+                       pipelinePath
+               );
 
 
 sub readConfig {
@@ -27,7 +34,7 @@ sub readConfig {
         warn "Key '$key' is missing a value - is it badly formatted?" if not defined $val;
 
         if ($key eq 'INIFILE') {
-            $val = catfile(dirname(abs_path($0)), $val) unless file_name_is_absolute($val);
+            $val = catfile(pipelinePath(), $val) unless file_name_is_absolute($val);
             push @{$opt->{$key}}, $val;
             readConfig($val, $opt);
         } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
@@ -91,7 +98,7 @@ sub setupLogging {
 sub recordGitVersion {
     my ($opt) = @_;
 
-    my $git_dir = catfile(dirname(abs_path($0)), ".git");
+    my $git_dir = catfile(pipelinePath(), ".git");
     $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
     chomp $opt->{VERSION};
     return;
@@ -100,7 +107,7 @@ sub recordGitVersion {
 sub copyConfigAndScripts {
     my ($opt) = @_;
 
-    my $pipeline_path = dirname(abs_path($0));
+    my $pipeline_path = pipelinePath();
     my $slice_dir = catfile($pipeline_path, "settings", "slicing");
     my $strelka_dir = catfile($pipeline_path, "settings", "strelka");
     my $script_dir = catfile($pipeline_path, "scripts");
@@ -445,6 +452,11 @@ sub configChecks {
             FINALIZE_TIME => $key_not_present,
         }),
     };
+}
+
+# do NOT depend on this from jobs
+sub pipelinePath {
+    return catfile($FindBin::Bin, updir());
 }
 
 1;
