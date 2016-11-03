@@ -32,8 +32,8 @@ class BaseRecalibration extends QScript {
   }
 
   def script() {
-    val baseRecalibrator = new BaseRecalibration with BR_Arguments
-    val baseRecalibratorSecond = new BaseRecalibration with BR_Arguments
+    val baseRecalibrator = new BaseRecalibrator with BR_Arguments
+    val baseRecalibratorSecond = new BaseRecalibrator with BR_Arguments
     val analyzeCovariates = new AnalyzeCovariates with BR_Arguments
     val printReads = new PrintReads with BR_Arguments
 
