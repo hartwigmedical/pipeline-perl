@@ -3,12 +3,9 @@ package org.broadinstitute.gatk.queue.qscripts
 import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 
-class Realigner extends QScript {
-  // Create an alias 'qscript' to be able to access variables in the Realigner.
-  // 'qscript' is now the same as 'Realigner.this'
+class BaseRecalibrator extends QScript {
   qscript =>
 
-  // Required arguments.  All initialized to empty values.
   @Input(doc="The reference file for the bam files.", shortName="R", required=true)
   var referenceFile: File = _
 
@@ -24,7 +21,6 @@ class Realigner extends QScript {
   @Argument(doc="Number of scatters", shortName="nsc", required=true)
   var numScatters: Int = _
 
-  // Optional arguments
   @Input(doc="Database of known polymorphic sites to skip over in the recalibration algorithm", shortName="knownSites", required=false)
   var knownFiles: List[File] = Nil
 
