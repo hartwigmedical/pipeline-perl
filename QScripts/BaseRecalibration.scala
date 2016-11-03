@@ -3,7 +3,7 @@ package org.broadinstitute.gatk.queue.qscripts
 import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 
-class BaseRecalibrator extends QScript {
+class BaseRecalibration extends QScript {
   qscript =>
 
   @Input(doc="The reference file for the bam files.", shortName="R", required=true)
@@ -32,8 +32,8 @@ class BaseRecalibrator extends QScript {
   }
 
   def script() {
-    val baseRecalibrator = new BaseRecalibrator with BR_Arguments
-    val baseRecalibratorSecond = new BaseRecalibrator with BR_Arguments
+    val baseRecalibrator = new BaseRecalibration with BR_Arguments
+    val baseRecalibratorSecond = new BaseRecalibration with BR_Arguments
     val analyzeCovariates = new AnalyzeCovariates with BR_Arguments
     val printReads = new PrintReads with BR_Arguments
 
