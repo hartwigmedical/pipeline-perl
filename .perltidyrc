@@ -1,0 +1,32 @@
+# if the changes failing the test look sane, you can use:
+# find . -name '*.[pP][mlL]' | xargs perltidy
+# otherwise see http://perltidy.sourceforge.net/perltidy.html
+
+--continuation-indentation=4
+
+--paren-tightness=2
+--brace-tightness=2
+--block-brace-tightness=0
+--nospace-for-semicolon
+
+--cuddled-else
+
+--maximum-consecutive-blank-lines=2
+--blank-lines-before-packages=2
+
+--minimum-space-to-comment=1
+--static-side-comments
+
+--stack-opening-hash-brace
+--opening-token-right
+--opening-brace-always-on-right
+--maximum-fields-per-table=1
+
+--ignore-side-comment-lengths
+--maximum-line-length=0
+
+--no-valign
+
+--backup-and-modify-in-place
+--backup-file-extension=/
+--iterations=2
