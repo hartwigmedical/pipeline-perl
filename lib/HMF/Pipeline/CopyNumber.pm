@@ -1,4 +1,4 @@
-package illumina_copyNumber;
+package HMF::Pipeline::CopyNumber;
 
 use FindBin::libs;
 use discipline;
@@ -7,23 +7,23 @@ use File::Basename;
 use File::Spec::Functions;
 use File::Path qw(make_path);
 
-use illumina_sge qw(qsubTemplate);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runCopyNumberTools);
+our @EXPORT_OK = qw(run);
 
 
-sub runCopyNumberTools {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING COPY NUMBER TOOLS ###";
 
     my $check_cnv_jobs = [];
     if ($opt->{CNV_MODE} eq "sample_control") {
-        my $metadata = illumina_metadata::parse($opt);
+        my $metadata = HMF::Pipeline::Metadata::parse($opt);
         my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
         my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
@@ -82,10 +82,10 @@ sub runSampleCnv {
     }
 
     # check is separated from run, could have more/different CNV tools
-    my $job_id = "CnvCheck_${sample}_" . getJobId();
+    my $job_id = "CnvCheck_${sample}_" . getId();
     my $bash_file = catfile($cnv_dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "CnvCheck.sh.tt", $bash_file,
         cnv_name => $cnv_name,
         dirs => $cnv_dirs,
@@ -119,7 +119,7 @@ sub runFreec {
     my @mappabilityTracks;
     @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
     my $config_file = catfile($dirs->{freec}{out}, "freec_config.txt");
-    from_template(
+    writeFromTemplate(
         "FreecConfig.tt", $config_file,
         sample_bam => $sample_bam,
         control_bam => $control_bam,
@@ -128,11 +128,11 @@ sub runFreec {
         opt => $opt,
     );
 
-    my $job_id = "Freec_${sample_name}_" . getJobId();
+    my $job_id = "Freec_${sample_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $sample_bam_name = fileparse($sample_bam);
 
-    from_template(
+    writeFromTemplate(
         "Freec.sh.tt", $bash_file,
         sample_name => $sample_name,
         sample_bam => $sample_bam,
@@ -166,10 +166,10 @@ sub runQDNAseq {
         make_path($dirs->{qdnaseq}{out}) or die "Couldn't create directory $dirs->{qdnaseq}{out}: $!";
     }
 
-    my $job_id = "QDNAseq_${sample_name}_" . getJobId();
+    my $job_id = "QDNAseq_${sample_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "QDNAseq.sh.tt", $bash_file,
         sample_name => $sample_name,
         sample_bam => $sample_bam,

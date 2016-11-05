@@ -1,4 +1,4 @@
-package illumina_baf;
+package HMF::Pipeline::Baf;
 
 use FindBin::libs;
 use discipline;
@@ -6,15 +6,15 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
+use HMF::Pipeline::Sge qw(qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runBAF);
+our @EXPORT_OK = qw(run);
 
 
-sub runBAF {
+sub run {
     my ($opt) = @_;
     my @baf_jobs;
 
@@ -34,7 +34,7 @@ sub runBAF {
         if (-f $done_file) {
             say "WARNING: $done_file exists, skipping BAF analysis for $sample";
         } else {
-            my $job_id = "BAF_$sample\_" . getJobId();
+            my $job_id = "BAF_$sample\_" . getId();
             my $bash_file = catfile($baf_dirs->{job}, "${job_id}.sh");
             my $output_vcf = "${sample}_BAF_SNPS.vcf";
             my $output_baf = "${sample}_BAF.txt";
@@ -66,7 +66,7 @@ sub runBAF {
                 $create_baf_plots = 1;
             }
 
-            from_template(
+            writeFromTemplate(
                 "BAF.sh.tt", $bash_file,
                 sample => $sample,
                 sample_bam => $sample_bam,

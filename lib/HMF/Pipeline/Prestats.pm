@@ -1,4 +1,4 @@
-package illumina_prestats;
+package HMF::Pipeline::Prestats;
 
 use FindBin::libs;
 use discipline;
@@ -6,15 +6,15 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(qsubTemplate);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
+use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runPreStats);
+our @EXPORT_OK = qw(run);
 
 
-sub runPreStats {
+sub run {
     my ($opt) = @_;
 
     say "### SCHEDULING PRESTATS ###";
@@ -29,9 +29,9 @@ sub runPreStats {
         my $log_dir = catfile($sample_dir, "logs");
         my $done_file = catfile($log_dir, "PreStats_${sample_name}.done");
         if (!-f $done_file) {
-            my $job_id = "PreStats_${core_name}_" . getJobId();
+            my $job_id = "PreStats_${core_name}_" . getId();
             my $bash_file = catfile($sample_dir, "jobs", "${job_id}.sh");
-            from_template(
+            writeFromTemplate(
                 "PreStats.sh.tt", $bash_file,
                 sample_name => $sample_name,
                 core_name => $core_name,

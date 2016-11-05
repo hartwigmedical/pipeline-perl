@@ -1,4 +1,4 @@
-package illumina_finalize;
+package HMF::Pipeline::Finalize;
 
 use FindBin::libs;
 use discipline;
@@ -6,27 +6,27 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(qsubTemplate);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runFinalize);
+our @EXPORT_OK = qw(run);
 
 
-sub runFinalize {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING PIPELINE FINALIZE ####";
 
-    my $job_id = "$opt->{RUN_NAME}_" . getJobId();
+    my $job_id = "$opt->{RUN_NAME}_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "Finalize_${job_id}.sh");
     my $log_file = catfile($opt->{OUTPUT_DIR}, "logs", "PipelineCheck.log");
 
     my $joint_name = "";
     if ($opt->{SOMATIC_VARIANTS} eq "yes" || ($opt->{COPY_NUMBER} eq "yes" && $opt->{CNV_MODE} eq "sample_control")) {
-        my $metadata = illumina_metadata::parse($opt);
+        my $metadata = HMF::Pipeline::Metadata::parse($opt);
         my $ref_sample = $metadata->{ref_sample};
         my $tumor_sample = $metadata->{tumor_sample};
         $joint_name = "${ref_sample}_${tumor_sample}";
@@ -35,7 +35,7 @@ sub runFinalize {
     my @runningJobs = map { @$_ }
         grep { defined } @{$opt->{RUNNING_JOBS}}{"baf", "prestats", keys %{$opt->{SAMPLES}}, "slicing", "poststats", "somvar", "cnv", "kinship"};
 
-    from_template(
+    writeFromTemplate(
         "Finalize.sh.tt", $bash_file,
         joint_name => $joint_name,
         log_file => $log_file,

@@ -10,10 +10,10 @@ use File::Path qw(make_path);
 use File::Spec::Functions;
 use File::Find::Rule;
 
-use illumina_template qw(from_template);
+use HMF::Pipeline::Template qw(writeFromTemplate);
 
 
-my $settingsDir = catfile(dirname(abs_path($0)), "settings");
+my $settingsDir = catfile(dirname(abs_path($0)), updir(), "settings");
 exit interactive() if @ARGV == 0;
 
 GetOptions(
@@ -73,7 +73,7 @@ sub createConfig {
         ->in(@{$bamDirs});                    #
 
     my $configFile = catfile($outputDir, "settings.config");
-    from_template(
+    writeFromTemplate(
         "Config.tt", $configFile,
         iniFile => $iniFile,
         outputDir => $outputDir,
@@ -84,17 +84,17 @@ sub createConfig {
     );
 
     if ($run) {
-        my $pipeline = catfile(dirname(abs_path($0)), "illumina_pipeline.pl");
+        my $pipeline = catfile(dirname(abs_path($0)), "pipeline.pl");
         return system "$pipeline $configFile";
     }
     return 0;
 }
 
 sub usage {
-    say "Usage: perl illumina_createConfig.pl";
+    say "Usage: $0";
     say "";
     say "Advanced usage:";
-    say "illumina_createConfig.pl REQUIRED_ARGUMENTS [-run]";
+    say "$0 REQUIRED_ARGUMENTS [-run]";
     say "";
     say "Required INI file:";
     say "";

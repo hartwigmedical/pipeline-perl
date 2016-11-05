@@ -1,4 +1,4 @@
-package illumina_sge;
+package HMF::Pipeline::Sge;
 
 use FindBin;
 use lib "$FindBin::Bin";

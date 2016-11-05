@@ -1,4 +1,4 @@
-package illumina_germlineAnnotation;
+package HMF::Pipeline::GermlineAnnotation;
 
 use FindBin::libs;
 use discipline;
@@ -6,22 +6,22 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runAnnotateVariants);
+our @EXPORT_OK = qw(run);
 
 
-sub runAnnotateVariants {
+sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING VARIANT ANNOTATION ###";
+    say "\n### SCHEDULING GERMLINE ANNOTATION ###";
 
     my @running_jobs;
-    my $job_id = "GermlineAnnotation_" . getJobId();
+    my $job_id = "GermlineAnnotation_" . getId();
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantAnnotation.done") {
@@ -37,7 +37,7 @@ sub runAnnotateVariants {
     my $stdout = catfile($log_dir, "GermlineAnnotation_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineAnnotation_$opt->{RUN_NAME}.err");
 
-    from_template(
+    writeFromTemplate(
         "GermlineAnnotation.sh.tt", $bash_file,
         in_vcf => $in_vcf,
         pre_annotated_vcf => $pre_annotated_vcf,
@@ -62,8 +62,8 @@ sub runAnnotateVariants {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
 
-    illumina_metadata::linkArtefact($annotated_vcf, "germline_vcf", $opt);
-    illumina_metadata::linkArtefact("${annotated_vcf}.idx", "germline_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkArtefact($annotated_vcf, "germline_vcf", $opt);
+    HMF::Pipeline::Metadata::linkArtefact("${annotated_vcf}.idx", "germline_vcf_index", $opt);
 
     return;
 }

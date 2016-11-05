@@ -1,4 +1,4 @@
-package illumina_realign;
+package HMF::Pipeline::Realignment;
 
 use FindBin::libs;
 use discipline;
@@ -6,13 +6,13 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_jobs qw(bamOperationWithSliceChecks);
+use HMF::Pipeline::Job::Bam;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runRealignment);
+our @EXPORT_OK = qw(run);
 
 
-sub runRealignment {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING INDELREALIGNMENT ###";
@@ -22,7 +22,7 @@ sub runRealignment {
     $known_files = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        bamOperationWithSliceChecks("Realignment", $sample, $known_files, "realigned", "realign", $opt);
+        HMF::Pipeline::Job::Bam::operationWithSliceChecks("Realignment", $sample, $known_files, "realigned", "realign", $opt);
     }
     return;
 }

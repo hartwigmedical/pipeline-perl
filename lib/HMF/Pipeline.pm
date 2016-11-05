@@ -8,75 +8,50 @@ use File::Basename;
 use File::Path qw(make_path);
 use File::Spec::Functions;
 
-use illumina_metadata;
-use illumina_prestats;
-use illumina_mapping;
-use illumina_poststats;
-use illumina_realign;
-use illumina_baseRecal;
-use illumina_germlineCalling;
-use illumina_germlineFiltering;
-use illumina_germlineAnnotation;
-use illumina_somaticVariants;
-use illumina_copyNumber;
-use illumina_baf;
-use illumina_kinship;
-use illumina_finalize;
+use HMF::Pipeline::Metadata;
+use HMF::Pipeline::Prestats;
+use HMF::Pipeline::Mapping;
+use HMF::Pipeline::Poststats;
+use HMF::Pipeline::Realignment;
+use HMF::Pipeline::BaseRecalibration;
+use HMF::Pipeline::GermlineCalling;
+use HMF::Pipeline::GermlineFiltering;
+use HMF::Pipeline::GermlineAnnotation;
+use HMF::Pipeline::SomaticVariants;
+use HMF::Pipeline::CopyNumber;
+use HMF::Pipeline::Baf;
+use HMF::Pipeline::Kinship;
+use HMF::Pipeline::Finalize;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(getSamples createOutputDirs lockRun runPipeline);
+our @EXPORT_OK = qw(createOutputDirs lockRun run);
 our $VERSION = 'v1.11';
 
 
-sub runPipeline {
+sub run {
     my ($opt) = @_;
 
     if ($opt->{FASTQ}) {
-        illumina_prestats::runPreStats($opt) if $opt->{PRESTATS} eq "yes";
-        illumina_mapping::runMapping($opt) if $opt->{MAPPING} eq "yes";
+        HMF::Pipeline::Prestats::run($opt) if $opt->{PRESTATS} eq "yes";
+        HMF::Pipeline::Mapping::run($opt) if $opt->{MAPPING} eq "yes";
     } elsif ($opt->{BAM}) {
-        illumina_mapping::runBamPrep($opt);
+        HMF::Pipeline::Mapping::runBamPrep($opt);
     }
 
     if ($opt->{FASTQ} or $opt->{BAM}) {
-        illumina_poststats::runPostStats($opt) if $opt->{POSTSTATS} eq "yes";
-        illumina_realign::runRealignment($opt) if $opt->{INDELREALIGNMENT} eq "yes";
-        illumina_baseRecal::runBaseRecalibration($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
+        HMF::Pipeline::Poststats::run($opt) if $opt->{POSTSTATS} eq "yes";
+        HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
+        HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         linkBamArtefacts($opt);
-        illumina_somaticVariants::runSomaticVariantCallers($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
-        illumina_copyNumber::runCopyNumberTools($opt) if $opt->{COPY_NUMBER} eq "yes";
-        illumina_baf::runBAF($opt) if $opt->{BAF} eq "yes";
-        illumina_germlineCalling::runVariantCalling($opt) if $opt->{VARIANT_CALLING} eq "yes";
-        illumina_germlineFiltering::runFilterVariants($opt) if $opt->{FILTER_VARIANTS} eq "yes";
-        illumina_germlineAnnotation::runAnnotateVariants($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
-        illumina_kinship::runKinship($opt) if $opt->{KINSHIP} eq "yes";
-        illumina_finalize::runFinalize($opt) if $opt->{FINALIZE} eq "yes";
-        illumina_metadata::writeLinks($opt);
-    }
-    return;
-}
-
-sub getSamples {
-    my ($opt) = @_;
-
-    $opt->{SAMPLES} = {};
-
-    if ($opt->{FASTQ}) {
-        foreach my $input_file (keys %{$opt->{FASTQ}}) {
-            my $fastqFile = fileparse($input_file);
-            my ($sampleName) = split "_", $fastqFile;
-            $opt->{SAMPLES}->{$sampleName} = $input_file;
-            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
-        }
-    }
-
-    if ($opt->{BAM}) {
-        foreach my $input_file (keys %{$opt->{BAM}}) {
-            my $sampleName = illumina_mapping::verifyBam($input_file, $opt);
-            not exists $opt->{SAMPLES}->{$sampleName} or die "sample $sampleName from $input_file already used by $opt->{SAMPLES}->{$sampleName}";
-            $opt->{SAMPLES}->{$sampleName} = $input_file;
-            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
-        }
+        HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
+        HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
+        HMF::Pipeline::Baf::run($opt) if $opt->{BAF} eq "yes";
+        HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
+        HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
+        HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
+        HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
+        HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
+        HMF::Pipeline::Metadata::writeLinks($opt);
     }
     return;
 }
@@ -147,9 +122,9 @@ sub linkBamArtefacts {
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $bam_path = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-        my $sample_name = illumina_metadata::metaSampleName($sample, $opt);
-        illumina_metadata::linkArtefact($bam_path, "${sample_name}_bam", $opt);
-        illumina_metadata::linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
+        my $sample_name = HMF::Pipeline::Metadata::metaSampleName($sample, $opt);
+        HMF::Pipeline::Metadata::linkArtefact($bam_path, "${sample_name}_bam", $opt);
+        HMF::Pipeline::Metadata::linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
     }
     return;
 }

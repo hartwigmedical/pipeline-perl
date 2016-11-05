@@ -1,4 +1,4 @@
-package illumina_germlineFiltering;
+package HMF::Pipeline::GermlineFiltering;
 
 use FindBin::libs;
 use discipline;
@@ -6,19 +6,19 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(jobNative qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(jobNative qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runFilterVariants);
+our @EXPORT_OK = qw(run);
 
 
-sub runFilterVariants {
+sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING VARIANT FILTRATION ###";
+    say "\n### SCHEDULING GERMLINE FILTERING ###";
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineFilter.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantFilter.done") {
@@ -40,13 +40,13 @@ sub runFilterVariants {
         die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
     }
 
-    my $job_id = "GermlineFilter_" . getJobId();
+    my $job_id = "GermlineFiltering_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $stdout = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.err");
 
-    from_template(
+    writeFromTemplate(
         "GermlineFiltering.sh.tt", $bash_file,
         snp_types => \@snp_types,
         snp_filter_names => \@snp_filter_names,
@@ -78,8 +78,8 @@ sub runFilterVariants {
 
     # dependent GermlineFilter.scala, could fix to be explicit
     my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
-    illumina_metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
-    illumina_metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
+    HMF::Pipeline::Metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
 
     return;
 }

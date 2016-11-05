@@ -1,21 +1,21 @@
-package illumina_template;
+package HMF::Pipeline::Template;
 
 use FindBin::libs;
 use discipline;
 
 use Carp;
+use Env qw($TEMPLATES);
 use File::Spec::Functions;
 use FindBin;
 use Template;
-use Env qw($TEMPLATES);
 
-use illumina_config qw(pipelinePath);
+use HMF::Pipeline::Config;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(from_template);
+our @EXPORT_OK = qw(writeFromTemplate);
 
 
-sub from_template {
+sub writeFromTemplate {
     my ($name, $output_file, %data) = @_;
 
     my $t = Template->new(INCLUDE_PATH => templateDir(), STRICT => 1);
@@ -26,7 +26,9 @@ sub from_template {
 }
 
 sub templateDir {
-    my $source_template_dir = catfile(pipelinePath(), "templates");
+    ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
+    my $source_template_dir = catfile(HMF::Pipeline::Config::pipelinePath(), "templates");
+    ## use critic
     return $TEMPLATES ? $TEMPLATES : $source_template_dir;
 }
 

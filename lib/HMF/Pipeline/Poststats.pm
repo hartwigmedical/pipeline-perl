@@ -1,4 +1,4 @@
-package illumina_poststats;
+package HMF::Pipeline::Poststats;
 
 use FindBin::libs;
 use discipline;
@@ -7,16 +7,16 @@ use File::Basename;
 use File::Spec::Functions qw(:ALL);
 use File::Path qw(make_path);
 
-use illumina_sge qw(qsubTemplate);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runPostStats);
+our @EXPORT_OK = qw(run);
 
 
-sub runPostStats {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING POSTSTATS ###";
@@ -55,13 +55,13 @@ sub runPostStats {
     my @designs;
     @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
 
-    my $job_id = "PostStats_" . getJobId();
-    my $job_id_check = "PostStatsCheck_" . getJobId();
+    my $job_id = "PostStats_" . getId();
+    my $job_id_check = "PostStatsCheck_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $stdout = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.out");
     my $stderr = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.err");
 
-    from_template(
+    writeFromTemplate(
         "PostStats.sh.tt", $bash_file,
         sample_bams => $sample_bams,
         designs => \@designs,
@@ -79,7 +79,7 @@ sub runPostStats {
     }
 
     $bash_file = catfile($dirs->{job}, "${job_id_check}.sh");
-    from_template(
+    writeFromTemplate(
         "PostStatsCheck.sh.tt", $bash_file,
         designs => \@designs,
         sample_bams => $sample_bams,
@@ -92,7 +92,7 @@ sub runPostStats {
 
     # dependent on implicit bamMetrics naming
     my $metrics_path = catfile($opt->{OUTPUT_DIR}, "QCStats", "$opt->{RUN_NAME}.bamMetrics.pdf");
-    illumina_metadata::linkArtefact($metrics_path, "qc", $opt);
+    HMF::Pipeline::Metadata::linkArtefact($metrics_path, "qc", $opt);
 
     return;
 }

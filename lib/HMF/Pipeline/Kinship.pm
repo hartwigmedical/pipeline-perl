@@ -1,4 +1,4 @@
-package illumina_kinship;
+package HMF::Pipeline::Kinship;
 
 use FindBin::libs;
 use discipline;
@@ -6,15 +6,15 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
+use HMF::Pipeline::Sge qw(qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runKinship);
+our @EXPORT_OK = qw(run);
 
 
-sub runKinship {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING KINSHIP ####";
@@ -27,12 +27,12 @@ sub runKinship {
     }
 
     my $vcf = "$opt->{RUN_NAME}.filtered_variants.vcf";
-    my $job_id = "Kinship_" . getJobId();
+    my $job_id = "Kinship_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $stdout = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.err");
 
-    from_template(
+    writeFromTemplate(
         "Kinship.sh.tt", $bash_file,
         vcf => $vcf,
         opt => $opt,

@@ -1,64 +1,180 @@
-package illumina_config;
+package HMF::Pipeline::Config::Validate;
 
 use FindBin::libs;
 use discipline;
 
+use Carp;
 use File::Basename;
 use File::Spec::Functions;
-use File::Copy::Recursive qw(rcopy);
-use FindBin;
-use Getopt::Long;
-use IO::Pipe;
-use POSIX qw(strftime);
-use Time::HiRes qw(gettimeofday);
+use List::MoreUtils qw(zip);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(
-    readConfig
-    checkConfig
-    setupLogging
-    recordGitVersion
-    copyConfigAndScripts
-    pipelinePath
-);
+our @EXPORT_OK = qw(parseFastqName verifyConfig verifyBam verifyBai verifyFlagstat);
 
 
-sub readConfig {
-    my ($configurationFile, $opt) = @_;
+sub parseFastqName {
+    my ($input_file) = @_;
+    my $name = fileparse($input_file);
+    (my $R1 = $input_file) =~ s/_R2/_R1/;
+    (my $R2 = $input_file) =~ s/_R1/_R2/;
 
-    open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
-    while (<$fh>) {
-        chomp;
-        next if m/^#/ or not $_;
-        my ($key, $val) = split "\t", $_, 2;
-        warn "Key '$key' is missing a value - is it badly formatted?" if not defined $val;
+    my $fastQPattern = qr/^(?<sampleName>[^_]+)
+                          _(?<flowcellID>[^_]+)
+                          _(?<index>[^_]+)
+                          _(?<lane>[^_]+)
+                          _(?<tag>R1|R2)
+                          _(?<suffix>[^\.]+)
+                          (?<ext>\.fastq\.gz)$
+                         /x;
+    $name =~ $fastQPattern or confess "ERROR: FASTQ filename '$name' must match regex '$fastQPattern' (for example: SAMPLENAME_FLOWCELLID_S1_L001_R1_001.fastq.gz)\n";
 
-        if ($key eq 'INIFILE') {
-            $val = catfile(pipelinePath(), $val) unless file_name_is_absolute($val);
-            push @{$opt->{$key}}, $val;
-            readConfig($val, $opt);
-        } elsif ($key eq 'FASTQ' or $key eq 'BAM') {
-            $opt->{$key}->{$val} = 1;
-        } else {
-            $opt->{$key} = $val;
-        }
+    return {
+        R1 => $R1,
+        R2 => $R2,
+        coreName => "$+{sampleName}_$+{flowcellID}_$+{index}_$+{lane}_$+{suffix}",
+        %+,
+    };
+}
+
+sub verifyBam {
+    my ($bam_file, $opt) = @_;
+
+    -f $bam_file or confess "ERROR: $bam_file does not exist";
+    (my $sample = fileparse($bam_file)) =~ s/\.bam$//;
+
+    my $headers = bamHeaders($bam_file, $opt);
+    my @read_groups = grep { $_->{name} eq '@RG' } @$headers;
+
+    my @sample_names = map { $_->{tags}{SM} } @read_groups;
+    confess "too many samples in BAM $bam_file: @sample_names" if keys {map { $_ => 1 } @sample_names} > 1;
+    warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
+    $sample = $sample_names[0] if @sample_names;
+
+    my %header_contigs = map { $_->{tags}{SN} => $_->{tags}{LN} } grep { $_->{name} eq '@SQ' } @$headers;
+    verifyContigs(\%header_contigs, refGenomeContigs($opt));
+    verifyReadGroups(\@read_groups, bamReads($bam_file, 1000, $opt));
+
+    return $sample;
+}
+
+sub verifyBai {
+    my ($bai_file, $bam_file, $opt) = @_;
+
+    (-f $bai_file && -M $bam_file > -M $bai_file) or return 0;
+
+    # this check does not happen if the .bai is missing/old, so re-implemented in the job :(
+    my $headers = bamHeaders($bam_file, $opt);
+    my %header_contigs = map { $_->{tags}{SN} => $_->{tags}{LN} } grep { $_->{name} eq '@SQ' } @$headers;
+    verifyContigs(indexContigs($bam_file, $opt), \%header_contigs);
+    return 1;
+}
+
+sub verifyFlagstat {
+    my ($flagstat_file, $bam_file) = @_;
+
+    return -f $flagstat_file && -M $bam_file > -M $flagstat_file;
+}
+
+sub bamHeaders {
+    my ($bam_file, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+
+    my @lines = qx($samtools view -H $bam_file);
+    $? == 0 or confess "could not read BAM headers from $bam_file";
+
+    chomp @lines;
+    my @fields = grep { @$_[0] ne '@CO' } map { [ split /\t/ ] } @lines;
+    #<<< no perltidy
+    my @headers = map {
+        name => shift $_,
+        tags => {map { split /:/, $_, 2 } @$_},
+    }, @fields;
+    #>>> no perltidy
+    return \@headers;
+}
+
+sub bamReads {
+    my ($bam_file, $num_lines, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+
+    my @lines = qx($samtools view $bam_file | head -$num_lines);
+    chomp @lines;
+
+    my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
+    my @fields = map { [ split "\t", $_, @field_names ] } @lines;
+    my @reads = map { +{zip @field_names, @$_} } @fields;
+    #<<< no perltidy
+    map {
+        $_->{tags} = {
+            map {
+                shift @$_ => {
+                    type => shift @$_,
+                    value => shift @$_,}
+            } map { [ split ":" ] } split "\t", $_->{tags}}
+    } @reads;
+    #>>> no perltidy
+    return \@reads;
+}
+
+sub refGenomeContigs {
+    my ($opt) = @_;
+
+    my $fasta_file = "$opt->{GENOME}.fai";
+    my @lines = qx(cat $fasta_file);
+    $? == 0 or confess "could not read from $fasta_file";
+
+    return contigLengths(\@lines);
+}
+
+sub indexContigs {
+    my ($bam_file, $opt) = @_;
+
+    my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
+    my @lines = qx($samtools idxstats $bam_file);
+    $? == 0 or confess "could not read index stats from $bam_file";
+
+    my $contigs = contigLengths(\@lines);
+    delete $contigs->{'*'};
+    return $contigs;
+}
+
+sub contigLengths {
+    my ($lines) = @_;
+
+    chomp @$lines;
+    my %contigs = map { splice [ split "\t" ], 0, 2 } @$lines;
+    return \%contigs;
+}
+
+sub verifyContigs {
+    my ($contigs, $ref_contigs) = @_;
+
+    my @warnings;
+    while (my ($key, $value) = each $contigs) {
+        push @warnings, "contig $key missing" and next if not exists $ref_contigs->{$key};
+        push @warnings, "contig $key length $value does not match $ref_contigs->{$key}" if $value != $ref_contigs->{$key};
     }
-    close $fh;
+    warn $_ foreach @warnings;
+    confess "contigs do not match" if @warnings;
     return;
 }
 
-sub checkConfig {
+sub verifyReadGroups {
+    my ($read_groups, $bam_reads) = @_;
+
+    my %header_rgids = map { $_->{tags}{ID} => 1 } @$read_groups;
+    my %reads_rgids = map { $_->{tags}{RG}{value} => 1 } @$bam_reads;
+    my @unknown_rgids = grep { not exists $header_rgids{$_} } keys %reads_rgids;
+    confess "read group IDs from read tags not in BAM header:\n\t" . join "\n\t", @unknown_rgids if @unknown_rgids;
+    return;
+}
+
+sub verifyConfig {
     my ($opt) = @_;
 
-    my @errors = @{applyChecks(configChecks(), $opt)};
-    if (@errors) {
-        foreach my $error (@errors) {
-            warn "ERROR: $error";
-        }
-        die "One or more options not found or invalid in config files";
-    }
-    $opt->{RUN_NAME} = basename($opt->{OUTPUT_DIR});
-    return;
+    return applyChecks(configChecks(), $opt);
 }
 
 sub applyChecks {
@@ -74,60 +190,6 @@ sub applyChecks {
         }
     }
     return \@errors;
-}
-
-sub setupLogging {
-    my ($output_dir) = @_;
-
-    my ($seconds, $microseconds) = gettimeofday;
-    my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
-    my $out_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
-    my $err_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
-    my $out_fh = IO::Pipe->new()->writer("tee $out_file") or die "Couldn't tee to $out_file: $!";
-    my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
-    open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
-    open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
-    ## no critic (Modules::RequireExplicitInclusion)
-    STDOUT->autoflush(1);
-    STDERR->autoflush(1);
-    $out_fh->autoflush(1);
-    ## use critic
-    return;
-}
-
-sub recordGitVersion {
-    my ($opt) = @_;
-
-    my $git_dir = catfile(pipelinePath(), ".git");
-    $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
-    chomp $opt->{VERSION};
-    return;
-}
-
-sub copyConfigAndScripts {
-    my ($opt) = @_;
-
-    my $pipeline_path = pipelinePath();
-    my $slice_dir = catfile($pipeline_path, "settings", "slicing");
-    my $strelka_dir = catfile($pipeline_path, "settings", "strelka");
-    my $script_dir = catfile($pipeline_path, "scripts");
-    my $qscript_dir = catfile($pipeline_path, "QScripts");
-
-    rcopy $slice_dir, catfile($opt->{OUTPUT_DIR}, "settings", "slicing") or die "Failed to copy slice settings $slice_dir: $!";
-    rcopy $strelka_dir, catfile($opt->{OUTPUT_DIR}, "settings", "strelka") or die "Failed to copy Strelka settings $strelka_dir: $!";
-    rcopy $script_dir, catfile($opt->{OUTPUT_DIR}, "scripts") or die "Failed to copy scripts $script_dir: $!";
-    rcopy $qscript_dir, catfile($opt->{OUTPUT_DIR}, "QScripts") or die "Failed to copy QScripts $qscript_dir: $!";
-    foreach my $ini_file (@{$opt->{INIFILE}}) {
-        rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
-        rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "settings") or die "Failed to copy INI file $ini_file: $!";
-    }
-
-    my $final_ini = catfile($opt->{OUTPUT_DIR}, "logs", "final.ini");
-    open my $fh, ">", $final_ini or die "Couldn't open $final_ini: $!";
-    say $fh join "\n", map { "$_\t$opt->{$_}" } grep { defined $opt->{$_} and not ref $opt->{$_} } sort keys %{$opt};
-    close $fh;
-
-    return;
 }
 
 sub configChecks {
@@ -480,11 +542,6 @@ sub configChecks {
             }
         ),
     };
-}
-
-# do NOT depend on this from jobs
-sub pipelinePath {
-    return catfile($FindBin::Bin, updir());
 }
 
 1;

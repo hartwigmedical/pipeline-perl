@@ -1,4 +1,4 @@
-package illumina_somaticVariants;
+package HMF::Pipeline::SomaticVariants;
 
 use FindBin::libs;
 use discipline;
@@ -8,16 +8,16 @@ use File::Basename;
 use File::Spec::Functions;
 use Carp;
 
-use illumina_sge qw(qsubTemplate qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runSomaticVariantCallers);
+our @EXPORT_OK = qw(run);
 
 
-sub runSomaticVariantCallers {
+sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING SOMATIC VARIANT CALLERS ###";
@@ -33,7 +33,7 @@ sub runSomaticVariantCallers {
 
     $opt->{RUNNING_JOBS}->{'pileup'} = \@pileup_jobs;
 
-    my $metadata = illumina_metadata::parse($opt);
+    my $metadata = HMF::Pipeline::Metadata::parse($opt);
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
     my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
 
@@ -112,10 +112,10 @@ sub mergeSomatics {
     my $out_vcf = catfile($dirs->{out}, "${somatic_name}_merged_somatics.vcf");
 
     my $hold_jid;
-    my $job_id = "SomaticMerge_${tumor_sample}_" . getJobId();
+    my $job_id = "SomaticMerge_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "SomaticMerging.sh.tt", $bash_file,
         inputs => \@inputs,
         out_vcf => $out_vcf,
@@ -135,10 +135,10 @@ sub mergeSomatics {
         $out_vcf = catfile($dirs->{out}, "${somatic_name}_filtered_merged_somatics.vcf");
 
         $hold_jid = $job_id;
-        $job_id = "SomaticFilter_${tumor_sample}_" . getJobId();
+        $job_id = "SomaticFiltering_${tumor_sample}_" . getId();
         $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-        from_template(
+        writeFromTemplate(
             "SomaticFiltering.sh.tt", $bash_file,
             in_vcf => $in_vcf,
             out_vcf => $out_vcf,
@@ -156,10 +156,10 @@ sub mergeSomatics {
         (my $basename = $out_vcf) =~ s/\.vcf$//;
         $out_vcf = "${basename}_annotated.vcf";
         $hold_jid = $job_id;
-        $job_id = "SomaticAnnotate_${tumor_sample}_" . getJobId();
+        $job_id = "SomaticAnnotate_${tumor_sample}_" . getId();
         $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-        from_template(
+        writeFromTemplate(
             "SomaticAnnotation.sh.tt", $bash_file,
             basename => $basename,
             finalvcf => $out_vcf,
@@ -174,10 +174,10 @@ sub mergeSomatics {
     $in_vcf = $out_vcf;
     $out_vcf =~ s/\.vcf$/_melted.vcf/;
     $hold_jid = $job_id;
-    $job_id = "SomaticMelt_${tumor_sample}_" . getJobId();
+    $job_id = "SomaticMelt_${tumor_sample}_" . getId();
     $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "SomaticMelting.sh.tt", $bash_file,
         pre_annotate_vcf => $pre_annotate_vcf,
         in_vcf => $in_vcf,
@@ -191,8 +191,8 @@ sub mergeSomatics {
     $qsub = qsubJava($opt, "SOMVARMERGE");
     system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
-    illumina_metadata::linkArtefact($out_vcf, "somatic_vcf", $opt);
-    illumina_metadata::linkArtefact("${out_vcf}.idx", "somatic_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkArtefact($out_vcf, "somatic_vcf", $opt);
+    HMF::Pipeline::Metadata::linkArtefact("${out_vcf}.idx", "somatic_vcf_index", $opt);
 
     return $job_id;
 }
@@ -209,10 +209,10 @@ sub runStrelka {
         return;
     }
 
-    my $job_id = "STR_${tumor_sample}_" . getJobId();
+    my $job_id = "STR_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "Strelka.sh.tt", $bash_file,
         ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
@@ -235,7 +235,7 @@ sub runPileup {
 
     my $bam = $opt->{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
-    my $job_id = "PileUp_${sample}_" . getJobId();
+    my $job_id = "PileUp_${sample}_" . getId();
 
     my $done_file = catfile($opt->{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
     if (-f $done_file) {
@@ -246,7 +246,7 @@ sub runPileup {
     my $log_dir = catfile($opt->{OUTPUT_DIR}, $sample, "logs");
     my $bash_file = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "PileUp.sh.tt", $bash_file,
         sample => $sample,
         bam => $bam,
@@ -286,11 +286,11 @@ sub runVarscan {
     my @chrs = @{getChromosomes($opt)};
     my @varscan_jobs;
     foreach my $chr (@chrs) {
-        my $job_id = "VS_${tumor_sample}_${chr}_" . getJobId();
+        my $job_id = "VS_${tumor_sample}_${chr}_" . getId();
         my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
         my $output_name = "${somatic_name}_${chr}";
 
-        from_template(
+        writeFromTemplate(
             "Varscan.sh.tt", $bash_file,
             chr => $chr,
             output_name => $output_name,
@@ -313,10 +313,10 @@ sub runVarscan {
     my @snp_vcfs = map { "${somatic_name}_${_}.snp.vcf" } @chrs;
     my @indel_vcfs = map { "${somatic_name}_${_}.indel.vcf" } @chrs;
 
-    my $job_id = "VS_${tumor_sample}_" . getJobId();
+    my $job_id = "VS_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "VarscanPS.sh.tt", $bash_file,
         ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
@@ -361,11 +361,11 @@ sub runFreeBayes {
     my @chrs = @{getChromosomes($opt)};
     my @freebayes_jobs;
     foreach my $chr (@chrs) {
-        my $job_id = "FB_${tumor_sample}_${chr}_" . getJobId();
+        my $job_id = "FB_${tumor_sample}_${chr}_" . getId();
         my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
         my $output_name = "${somatic_name}_${chr}";
 
-        from_template(
+        writeFromTemplate(
             "Freebayes.sh.tt", $bash_file,
             chr => $chr,
             tumor_sample_bam => $tumor_sample_bam,
@@ -387,10 +387,10 @@ sub runFreeBayes {
 
     my @snp_vcfs = map { "${somatic_name}_${_}.vcf" } @chrs;
 
-    my $job_id = "FB_${tumor_sample}_" . getJobId();
+    my $job_id = "FB_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "FreebayesPostProcess.sh.tt", $bash_file,
         snp_vcfs => \@snp_vcfs,
         ref_sample_bam => $ref_sample_bam,
@@ -432,11 +432,11 @@ sub runMutect {
     my @chrs = @{getChromosomes($opt)};
     my @mutect_jobs;
     foreach my $chr (@chrs) {
-        my $job_id = "MUT_${tumor_sample}_${chr}_" . getJobId();
+        my $job_id = "MUT_${tumor_sample}_${chr}_" . getId();
         my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
         my $output_name = "${somatic_name}_${chr}";
 
-        from_template(
+        writeFromTemplate(
             "Mutect.sh.tt", $bash_file,
             chr => $chr,
             tumor_sample_bam => $tumor_sample_bam,
@@ -457,10 +457,10 @@ sub runMutect {
 
     my @vcfs = map { "${somatic_name}_${_}_mutect.vcf" } @chrs;
 
-    my $job_id = "MUT_${tumor_sample}_" . getJobId();
+    my $job_id = "MUT_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template(
+    writeFromTemplate(
         "MutectCF.sh.tt", $bash_file,
         vcfs => \@vcfs,
         ref_sample_bam => $ref_sample_bam,

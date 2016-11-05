@@ -1,4 +1,4 @@
-package illumina_germlineCalling;
+package HMF::Pipeline::GermlineCalling;
 
 use FindBin::libs;
 use discipline;
@@ -6,19 +6,19 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use illumina_sge qw(jobNative qsubJava);
-use illumina_jobs qw(getJobId);
-use illumina_template qw(from_template);
-use illumina_metadata;
+use HMF::Pipeline::Sge qw(jobNative qsubJava);
+use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(runVariantCalling);
+our @EXPORT_OK = qw(run);
 
 
-sub runVariantCalling {
+sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING VARIANT CALLING ###";
+    say "\n### SCHEDULING GERMLINE CALLING ###";
 
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineCaller.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantCaller.done") {
@@ -39,13 +39,13 @@ sub runVariantCalling {
         push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
     }
 
-    my $job_id = "GermlineCalling_" . getJobId();
+    my $job_id = "GermlineCalling_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $stdout = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.err");
 
-    from_template(
+    writeFromTemplate(
         "GermlineCalling.sh.tt", $bash_file,
         gvcf_dir => $gvcf_dir,
         sample_bams => \@sample_bams,
@@ -77,14 +77,14 @@ sub linkArtefacts {
             my $bam_file = $opt->{BAM_FILES}->{$sample};
             (my $gvcf_file = $bam_file) =~ s/\.bam$/.g.vcf.gz/;
             my $gvcf_path = catfile($gvcf_dir, $gvcf_file);
-            my $sample_name = illumina_metadata::metaSampleName($sample, $opt);
-            illumina_metadata::linkArtefact($gvcf_path, "${sample_name}_gvcf", $opt);
-            illumina_metadata::linkArtefact("${gvcf_path}.tbi", "${sample_name}_gvcf_index", $opt);
+            my $sample_name = HMF::Pipeline::Metadata::metaSampleName($sample, $opt);
+            HMF::Pipeline::Metadata::linkArtefact($gvcf_path, "${sample_name}_gvcf", $opt);
+            HMF::Pipeline::Metadata::linkArtefact("${gvcf_path}.tbi", "${sample_name}_gvcf_index", $opt);
         }
     }
     my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.raw_variants.vcf");
-    illumina_metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
-    illumina_metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
+    HMF::Pipeline::Metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
     return;
 }
 

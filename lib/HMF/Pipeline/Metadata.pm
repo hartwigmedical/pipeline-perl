@@ -1,4 +1,4 @@
-package illumina_metadata;
+package HMF::Pipeline::Metadata;
 
 use FindBin::libs;
 use discipline;
@@ -10,7 +10,7 @@ use JSON;
 use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse metaSampleName linkArtefact writeLinks);
+our @EXPORT_OK = qw(parse linkArtefact metaSampleName writeLinks);
 
 
 sub readJson {
