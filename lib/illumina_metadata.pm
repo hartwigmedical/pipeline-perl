@@ -30,7 +30,7 @@ sub readJson {
 sub writeJson {
     my ($path, $data) = @_;
 
-    my $json = to_json($data, { utf8 => 1, pretty => 1 });
+    my $json = to_json($data, {utf8 => 1, pretty => 1});
     open my $json_fh, ">:encoding(UTF-8)", $path or confess "Can't open $path: $!";
     print $json_fh $json;
     close $json_fh;
@@ -52,7 +52,7 @@ sub parse {
 sub metaSampleName {
     my ($sample, $opt) = @_;
 
-    my %name_map = reverse %{parse($opt, { required => 0 })};
+    my %name_map = reverse %{parse($opt, {required => 0})};
     $name_map{$sample} //= "sample";
     return $name_map{$sample};
 }

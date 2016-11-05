@@ -45,11 +45,13 @@ sub runVariantCalling {
     my $stdout = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.err");
 
-    from_template("GermlineCalling.sh.tt", $bash_file,
-                  gvcf_dir => $gvcf_dir,
-                  sample_bams => \@sample_bams,
-                  job_native => jobNative($opt, "CALLING"),
-                  opt => $opt);
+    from_template(
+        "GermlineCalling.sh.tt", $bash_file,
+        gvcf_dir => $gvcf_dir,
+        sample_bams => \@sample_bams,
+        job_native => jobNative($opt, "CALLING"),
+        opt => $opt,
+    );
 
     my $qsub = qsubJava($opt, "CALLING_MASTER");
     if (@running_jobs) {

@@ -9,14 +9,14 @@ use POSIX qw(tmpnam);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
-                       getJobId
-                       fromTemplate
-                       sliceBam
-                       flagstatBam
-                       diffBams
-                       prePostSliceAndDiffBams
-                       bamOperationWithSliceChecks
-               );
+    getJobId
+    fromTemplate
+    sliceBam
+    flagstatBam
+    diffBams
+    prePostSliceAndDiffBams
+    bamOperationWithSliceChecks
+);
 
 use illumina_sge qw(qsubTemplate jobNative qsubJava);
 use illumina_template qw(from_template);
@@ -43,10 +43,12 @@ sub fromTemplate {
     my $job_id = "${name}${suffix}_" . getJobId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template("${name}.sh.tt", $bash_file,
-                  dirs => $dirs,
-                  opt => $opt,
-                  %params);
+    from_template(
+        "${name}.sh.tt", $bash_file,
+        dirs => $dirs,
+        opt => $opt,
+        %params,
+    );
 
     my $stdout = catfile($dirs->{log}, "${name}${suffix}.out");
     my $stderr = catfile($dirs->{log}, "${name}${suffix}.err");
@@ -70,7 +72,8 @@ sub sliceBam {
         sample_bam => $sample_bam,
         input_bam => catfile($dirs->{mapping}, $sample_bam),
         bed_file => catfile($opt->{OUTPUT_DIR}, "settings", "slicing", $bed_name),
-        sliced_bam => catfile($dirs->{mapping}, $sliced_bam));
+        sliced_bam => catfile($dirs->{mapping}, $sliced_bam),
+    );
 }
 
 sub flagstatBam {
@@ -85,7 +88,8 @@ sub flagstatBam {
         $opt,
         sample => $sample,
         sample_bam_path => $sample_bam_path,
-        sample_flagstat_path => $sample_flagstat_path);
+        sample_flagstat_path => $sample_flagstat_path,
+    );
 }
 
 sub diffBams {
@@ -102,7 +106,8 @@ sub diffBams {
         diff_name => $diff_name,
         input_bam1 => catfile($dirs->{mapping}, $input_bam1),
         input_bam2 => catfile($dirs->{mapping}, $input_bam2),
-        output_diff => catfile($dirs->{mapping}, $diff_name));
+        output_diff => catfile($dirs->{mapping}, $diff_name),
+    );
 }
 
 sub prePostSliceAndDiffBams {
@@ -118,10 +123,10 @@ sub prePostSliceAndDiffBams {
 
     my $pre_job_id = sliceBam($sample, $pre_bam, $pre_sliced_bam, "HealthCheck_Slicing.bed", $hold_jids, $dirs, $opt);
     my $post_job_id = sliceBam($sample, $post_bam, $post_sliced_bam, "HealthCheck_Slicing.bed", $hold_jids, $dirs, $opt);
-    my $diff_job_id = diffBams($sample, $pre_sliced_bam, $post_sliced_bam, $pre_post_diff, [$pre_job_id, $post_job_id], $dirs, $opt);
+    my $diff_job_id = diffBams($sample, $pre_sliced_bam, $post_sliced_bam, $pre_post_diff, [ $pre_job_id, $post_job_id ], $dirs, $opt);
     my $flagstat_job_id = flagstatBam($sample, $post_sliced_bam_path, $post_sliced_flagstat_path, [$post_job_id], $dirs, $opt);
 
-    return [$diff_job_id, $flagstat_job_id];
+    return [ $diff_job_id, $flagstat_job_id ];
 }
 
 sub bamOperationWithSliceChecks {
@@ -159,17 +164,12 @@ sub bamOperationWithSliceChecks {
         sample_bam => $sample_bam,
         sample_bam_path => $sample_bam_path,
         job_native => jobNative($opt, uc $job_template),
-        known_files => $known_files);
+        known_files => $known_files,
+    );
 
     return unless $job_id;
 
-    my $flagstat_job_id = flagstatBam(
-        $sample,
-        catfile($dirs->{tmp}, $post_bam),
-        catfile($dirs->{mapping}, $post_flagstat),
-        [$job_id],
-        $dirs,
-        $opt);
+    my $flagstat_job_id = flagstatBam($sample, catfile($dirs->{tmp}, $post_bam), catfile($dirs->{mapping}, $post_flagstat), [$job_id], $dirs, $opt);
 
     my $check_job_id = fromTemplate(
         "ReadCountCheck",
@@ -183,27 +183,14 @@ sub bamOperationWithSliceChecks {
         post_flagstat_path => catfile($dirs->{mapping}, $post_flagstat),
         post_bam => $post_bam,
         post_bai => $post_bai,
-        success_template => "${job_template}Success.tt");
+        success_template => "${job_template}Success.tt",
+    );
 
     push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
 
-    my $qc_job_ids = prePostSliceAndDiffBams(
-        $sample,
-        $slice_tag,
-        $sample_bam,
-        $post_bam,
-        [$check_job_id],
-        $dirs,
-        $opt);
+    my $qc_job_ids = prePostSliceAndDiffBams($sample, $slice_tag, $sample_bam, $post_bam, [$check_job_id], $dirs, $opt);
 
-    my $cpct_job_id = sliceBam(
-        $sample,
-        $post_bam,
-        $cpct_sliced_bam,
-        "CPCT_Slicing.bed",
-        [$check_job_id],
-        $dirs,
-        $opt);
+    my $cpct_job_id = sliceBam($sample, $post_bam, $cpct_sliced_bam, "CPCT_Slicing.bed", [$check_job_id], $dirs, $opt);
 
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
     return;

@@ -16,17 +16,17 @@ use illumina_template qw(from_template);
 my $settingsDir = catfile(dirname(abs_path($0)), "settings");
 exit interactive() if @ARGV == 0;
 
-GetOptions("iniFile|i=s" => \my $iniFile,
-           "iniPath|ip=s" => \my $iniPath,
-           "outputDir|o=s" => \my $outputDir,
-           "fastqDir|f=s" => \my @fastqDirs,
-           "bamDir|b=s" => \my @bamDirs,
-           "vcfFile|v=s" => \my $vcfFile,
-           "mail|m=s" => \my $mail,
-           "help|h" => \my $help,
-           "run" => \my $run
-          )
-or die usage();
+GetOptions(
+    "iniFile|i=s" => \my $iniFile,
+    "iniPath|ip=s" => \my $iniPath,
+    "outputDir|o=s" => \my $outputDir,
+    "fastqDir|f=s" => \my @fastqDirs,
+    "bamDir|b=s" => \my @bamDirs,
+    "vcfFile|v=s" => \my $vcfFile,
+    "mail|m=s" => \my $mail,
+    "help|h" => \my $help,
+    "run" => \my $run,
+) or die usage();
 
 usage() if $help || !($iniFile || $iniPath) || !$outputDir || !(@fastqDirs || @bamDirs || $vcfFile) || !$mail;
 
@@ -45,9 +45,9 @@ sub getIniFiles {
     my ($iniDir) = @_;
 
     -d $iniDir or die "Can't get INI files from $iniDir: $!";
-    my @iniFiles = File::Find::Rule->file()
-        ->name("*.ini")
-        ->in($iniDir);
+    my @iniFiles = File::Find::Rule->file() #
+        ->name("*.ini")                     #
+        ->in($iniDir);                      #
     while (my ($iniIndex, $iniFile) = each @iniFiles) {
         say "\t${iniIndex}:\t${iniFile}";
     }
@@ -65,21 +65,23 @@ sub createConfig {
     map { die "$_ does not exist" if not -d } @{$bamDirs};
     die "$vcfFile does not exist" if $vcfFile and not -f $vcfFile;
 
-    my @fastqFiles = File::Find::Rule->file()
-        ->name("*.fastq.gz")
-        ->in(@{$fastqDirs});
-    my @bamFiles = File::Find::Rule->file()
-        ->name("*.bam")
-        ->in(@{$bamDirs});
+    my @fastqFiles = File::Find::Rule->file() #
+        ->name("*.fastq.gz")                  #
+        ->in(@{$fastqDirs});                  #
+    my @bamFiles = File::Find::Rule->file()   #
+        ->name("*.bam")                       #
+        ->in(@{$bamDirs});                    #
 
     my $configFile = catfile($outputDir, "settings.config");
-    from_template("Config.tt", $configFile,
-                  iniFile => $iniFile,
-                  outputDir => $outputDir,
-                  mail => $mail,
-                  fastqFiles => \@fastqFiles,
-                  bamFiles => \@bamFiles,
-                  vcfFiles => [$vcfFile]);
+    from_template(
+        "Config.tt", $configFile,
+        iniFile => $iniFile,
+        outputDir => $outputDir,
+        mail => $mail,
+        fastqFiles => \@fastqFiles,
+        bamFiles => \@bamFiles,
+        vcfFiles => [$vcfFile],
+    );
 
     if ($run) {
         my $pipeline = catfile(dirname(abs_path($0)), "illumina_pipeline.pl");

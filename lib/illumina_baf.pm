@@ -34,7 +34,7 @@ sub runBAF {
         if (-f $done_file) {
             say "WARNING: $done_file exists, skipping BAF analysis for $sample";
         } else {
-            my $job_id = "BAF_$sample\_".getJobId();
+            my $job_id = "BAF_$sample\_" . getJobId();
             my $bash_file = catfile($baf_dirs->{job}, "${job_id}.sh");
             my $output_vcf = "${sample}_BAF_SNPS.vcf";
             my $output_baf = "${sample}_BAF.txt";
@@ -66,17 +66,19 @@ sub runBAF {
                 $create_baf_plots = 1;
             }
 
-            from_template("BAF.sh.tt", $bash_file,
-                          sample => $sample,
-                          sample_bam => $sample_bam,
-                          output_vcf => $output_vcf,
-                          output_baf => $output_baf,
-                          output_bafplot => $output_bafplot,
-                          run_unified_genotyper => $run_unified_genotyper,
-                          create_baf_file => $create_baf_file,
-                          create_baf_plots => $create_baf_plots,
-                          dirs => $baf_dirs,
-                          opt => $opt);
+            from_template(
+                "BAF.sh.tt", $bash_file,
+                sample => $sample,
+                sample_bam => $sample_bam,
+                output_vcf => $output_vcf,
+                output_baf => $output_baf,
+                output_bafplot => $output_bafplot,
+                run_unified_genotyper => $run_unified_genotyper,
+                create_baf_file => $create_baf_file,
+                create_baf_plots => $create_baf_plots,
+                dirs => $baf_dirs,
+                opt => $opt,
+            );
 
             my $qsub = qsubJava($opt, "BAF");
             if (@running_jobs) {

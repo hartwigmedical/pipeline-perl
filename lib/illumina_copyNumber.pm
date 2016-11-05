@@ -51,7 +51,7 @@ sub runSampleCnv {
         job => catfile($out_dir, "jobs"),
     };
 
-    make_path(values %{$cnv_dirs}, { error => \my $errors });
+    make_path(values %{$cnv_dirs}, {error => \my $errors});
     my $messages = join ", ", map { join ": ", each $_ } @{$errors};
     die "Couldn't create copy number output directories: $messages" if $messages;
 
@@ -85,14 +85,16 @@ sub runSampleCnv {
     my $job_id = "CnvCheck_${sample}_" . getJobId();
     my $bash_file = catfile($cnv_dirs->{job}, "${job_id}.sh");
 
-    from_template("CnvCheck.sh.tt", $bash_file,
-                  cnv_name => $cnv_name,
-                  dirs => $cnv_dirs,
-                  opt => $opt);
+    from_template(
+        "CnvCheck.sh.tt", $bash_file,
+        cnv_name => $cnv_name,
+        dirs => $cnv_dirs,
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "CNVCHECK");
     if (@cnv_jobs) {
-        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) ." $bash_file";
+        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) . " $bash_file";
     } else {
         system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id $bash_file";
     }
@@ -117,25 +119,29 @@ sub runFreec {
     my @mappabilityTracks;
     @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
     my $config_file = catfile($dirs->{freec}{out}, "freec_config.txt");
-    from_template("FreecConfig.tt", $config_file,
-                  sample_bam => $sample_bam,
-                  control_bam => $control_bam,
-                  mappabilityTracks => \@mappabilityTracks,
-                  dirs => $dirs,
-                  opt => $opt);
+    from_template(
+        "FreecConfig.tt", $config_file,
+        sample_bam => $sample_bam,
+        control_bam => $control_bam,
+        mappabilityTracks => \@mappabilityTracks,
+        dirs => $dirs,
+        opt => $opt,
+    );
 
     my $job_id = "Freec_${sample_name}_" . getJobId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $sample_bam_name = fileparse($sample_bam);
 
-    from_template("Freec.sh.tt", $bash_file,
-                  sample_name => $sample_name,
-                  sample_bam => $sample_bam,
-                  control_bam => $control_bam,
-                  sample_bam_name => $sample_bam_name,
-                  config_file => $config_file,
-                  dirs => $dirs,
-                  opt => $opt);
+    from_template(
+        "Freec.sh.tt", $bash_file,
+        sample_name => $sample_name,
+        sample_bam => $sample_bam,
+        control_bam => $control_bam,
+        sample_bam_name => $sample_bam_name,
+        config_file => $config_file,
+        dirs => $dirs,
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "FREEC");
     if (@{$running_jobs}) {
@@ -163,11 +169,13 @@ sub runQDNAseq {
     my $job_id = "QDNAseq_${sample_name}_" . getJobId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    from_template("QDNAseq.sh.tt", $bash_file,
-                  sample_name => $sample_name,
-                  sample_bam => $sample_bam,
-                  dirs => $dirs,
-                  opt => $opt);
+    from_template(
+        "QDNAseq.sh.tt", $bash_file,
+        sample_name => $sample_name,
+        sample_bam => $sample_bam,
+        dirs => $dirs,
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "QDNASEQ");
     if (@{$running_jobs}) {

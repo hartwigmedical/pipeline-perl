@@ -30,7 +30,7 @@ sub runPostStats {
     };
     map { $dirs->{$_} = catfile($dirs->{out}, $_, "snpcheck") } keys %{$opt->{SAMPLES}};
 
-    make_path(values %{$dirs}, { error => \my $errors });
+    make_path(values %{$dirs}, {error => \my $errors});
     my $messages = join ", ", map { join ": ", each $_ } @{$errors};
     die "Couldn't create output directories: $messages" if $messages;
 
@@ -61,13 +61,15 @@ sub runPostStats {
     my $stdout = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.out");
     my $stderr = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.err");
 
-    from_template("PostStats.sh.tt", $bash_file,
-                  sample_bams => $sample_bams,
-                  designs => \@designs,
-                  job_id => $job_id,
-                  job_id_check => $job_id_check,
-                  dirs => $dirs,
-                  opt => $opt);
+    from_template(
+        "PostStats.sh.tt", $bash_file,
+        sample_bams => $sample_bams,
+        designs => \@designs,
+        job_id => $job_id,
+        job_id_check => $job_id_check,
+        dirs => $dirs,
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "POSTSTATS");
     if (@running_jobs) {
@@ -77,11 +79,13 @@ sub runPostStats {
     }
 
     $bash_file = catfile($dirs->{job}, "${job_id_check}.sh");
-    from_template("PostStatsCheck.sh.tt", $bash_file,
-                  designs => \@designs,
-                  sample_bams => $sample_bams,
-                  dirs => $dirs,
-                  opt => $opt);
+    from_template(
+        "PostStatsCheck.sh.tt", $bash_file,
+        designs => \@designs,
+        sample_bams => $sample_bams,
+        dirs => $dirs,
+        opt => $opt,
+    );
     system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];

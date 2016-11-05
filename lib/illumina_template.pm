@@ -23,7 +23,7 @@ sub from_template {
     $t->process($name, \%data, \*$tout) or confess $t->error();
     close $tout;
     return;
-};
+}
 
 sub templateDir {
     my $source_template_dir = catfile(pipelinePath(), "templates");

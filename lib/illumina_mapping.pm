@@ -83,11 +83,7 @@ sub addDirectories {
 sub createIndividualMappingJobs {
     my ($opt, $metadata, $samples) = @_;
 
-    my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA',
-                                                   $metadata->{coreName},
-                                                   $metadata->{sampleName},
-                                                   $metadata->{sampleName},
-                                                   $metadata->{flowcellID});
+    my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA', $metadata->{coreName}, $metadata->{sampleName}, $metadata->{sampleName}, $metadata->{flowcellID});
 
     my %jid = (
         mapping => "Map_$metadata->{coreName}_" . getJobId(),
@@ -101,7 +97,7 @@ sub createIndividualMappingJobs {
     push @{$samples->{$metadata->{sampleName}}->{jobs}}, {
         job_id => $jid{check_clean},
         file => catfile($dirs->{mapping}, "$metadata->{coreName}_sorted.bam"),
-    };
+        };
 
     my $done_file = catfile($dirs->{mapping}, "$metadata->{coreName}.done");
     if (-f $done_file) {
@@ -118,17 +114,19 @@ sub createIndividualMappingJobs {
         say $metadata->{R2} ? "\t$metadata->{R1}\n\t$metadata->{R2}" : "\t$metadata->{R1}";
 
         my $bash_file = catfile($dirs->{job}, "$jid{mapping}.sh");
-        from_template("PerLaneMap.sh.tt", $bash_file,
-                      coreName => $metadata->{coreName},
-                      sampleName => $metadata->{sampleName},
-                      R1 => $metadata->{R1},
-                      R2 => $metadata->{R2},
-                      RG_ID => $RG_ID,
-                      RG_SM => $RG_SM,
-                      RG_PL => $RG_PL,
-                      RG_LB => $RG_LB,
-                      RG_PU => $RG_PU,
-                      opt => $opt);
+        from_template(
+            "PerLaneMap.sh.tt", $bash_file,
+            coreName => $metadata->{coreName},
+            sampleName => $metadata->{sampleName},
+            R1 => $metadata->{R1},
+            R2 => $metadata->{R2},
+            RG_ID => $RG_ID,
+            RG_SM => $RG_SM,
+            RG_PL => $RG_PL,
+            RG_LB => $RG_LB,
+            RG_PU => $RG_PU,
+            opt => $opt,
+        );
 
         my $qsub = qsubTemplate($opt, "MAPPING");
         system("$qsub -o $stdout -e $stderr -N $jid{mapping} $bash_file");
@@ -138,10 +136,12 @@ sub createIndividualMappingJobs {
 
     if (!-s "${core_file}.flagstat") {
         my $bash_file = catfile($dirs->{job}, "$jid{mapping_flagstat}.sh");
-        from_template("PerLaneMapFS.sh.tt", $bash_file,
-                      sampleName => $metadata->{sampleName},
-                      coreName => $metadata->{coreName},
-                      opt => $opt);
+        from_template(
+            "PerLaneMapFS.sh.tt", $bash_file,
+            sampleName => $metadata->{sampleName},
+            coreName => $metadata->{coreName},
+            opt => $opt,
+        );
 
         my $qsub = qsubTemplate($opt, "FLAGSTAT");
         system("$qsub -o $stdout -e $stderr -N $jid{mapping_flagstat} -hold_jid $jid{mapping} $bash_file");
@@ -151,10 +151,12 @@ sub createIndividualMappingJobs {
 
     if (!-s "${core_file}_sorted.bam") {
         my $bash_file = catfile($dirs->{job}, "$jid{sort}.sh");
-        from_template("PerLaneSort.sh.tt", $bash_file,
-                      coreName => $metadata->{coreName},
-                      sampleName => $metadata->{sampleName},
-                      opt => $opt);
+        from_template(
+            "PerLaneSort.sh.tt", $bash_file,
+            coreName => $metadata->{coreName},
+            sampleName => $metadata->{sampleName},
+            opt => $opt,
+        );
 
         my $qsub = qsubTemplate($opt, "MAPPING");
         system("$qsub -o $stdout -e $stderr -N $jid{sort} -hold_jid $jid{mapping} $bash_file");
@@ -164,10 +166,12 @@ sub createIndividualMappingJobs {
 
     if (!-s "${core_file}_sorted.flagstat") {
         my $bash_file = catfile($dirs->{job}, "$jid{sort_flagstat}.sh");
-        from_template("PerLaneSortFS.sh.tt", $bash_file,
-                      sampleName => $metadata->{sampleName},
-                      coreName => $metadata->{coreName},
-                      opt => $opt);
+        from_template(
+            "PerLaneSortFS.sh.tt", $bash_file,
+            sampleName => $metadata->{sampleName},
+            coreName => $metadata->{coreName},
+            opt => $opt,
+        );
 
         my $qsub = qsubTemplate($opt, "FLAGSTAT");
         system("$qsub -o $stdout -e $stderr -N $jid{sort_flagstat} -hold_jid $jid{sort} $bash_file");
@@ -176,10 +180,12 @@ sub createIndividualMappingJobs {
     }
 
     my $bash_file = catfile($dirs->{job}, "$jid{check_clean}.sh");
-    from_template("PerLaneCheckAndClean.sh.tt", $bash_file,
-                  sampleName => $metadata->{sampleName},
-                  coreName => $metadata->{coreName},
-                  opt => $opt);
+    from_template(
+        "PerLaneCheckAndClean.sh.tt", $bash_file,
+        sampleName => $metadata->{sampleName},
+        coreName => $metadata->{coreName},
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "MAPPING");
     system("$qsub -o $stdout -e $stderr -N $jid{check_clean} -hold_jid $jid{mapping_flagstat},$jid{sort_flagstat} $bash_file");
@@ -240,13 +246,15 @@ sub runBamPrep {
         my $log_dir = catfile($opt->{OUTPUT_DIR}, $sample, "logs");
         my $bash_file = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "$job_id.sh");
 
-        from_template("PrepBam.sh.tt", $bash_file,
-                      sample => $sample,
-                      sample_bam => $sample_bam,
-                      sample_bai => $sample_bai,
-                      sample_flagstat => $sample_flagstat,
-                      log_dir => $log_dir,
-                      opt => $opt);
+        from_template(
+            "PrepBam.sh.tt", $bash_file,
+            sample => $sample,
+            sample_bam => $sample_bam,
+            sample_bai => $sample_bai,
+            sample_flagstat => $sample_flagstat,
+            log_dir => $log_dir,
+            opt => $opt,
+        );
 
         my $qsub = qsubTemplate($opt, "MAPPING");
         system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
@@ -265,7 +273,7 @@ sub verifyBam {
     my @read_groups = grep { $_->{name} eq '@RG' } @$headers;
 
     my @sample_names = map { $_->{tags}{SM} } @read_groups;
-    confess "too many samples in BAM $bam_file: @sample_names" if keys { map { $_ => 1 } @sample_names } > 1;
+    confess "too many samples in BAM $bam_file: @sample_names" if keys {map { $_ => 1 } @sample_names} > 1;
     warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
     $sample = $sample_names[0] if @sample_names;
 
@@ -304,10 +312,12 @@ sub bamHeaders {
 
     chomp @lines;
     my @fields = grep { @$_[0] ne '@CO' } map { [ split /\t/ ] } @lines;
+    #<<< no perltidy
     my @headers = map {
         name => shift $_,
-        tags => { map { split /:/, $_, 2 } @$_ },
+        tags => {map { split /:/, $_, 2 } @$_},
     }, @fields;
+    #>>> no perltidy
     return \@headers;
 }
 
@@ -321,17 +331,17 @@ sub bamReads {
 
     my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
     my @fields = map { [ split "\t", $_, @field_names ] } @lines;
-    my @reads = map { +{ zip @field_names, @$_ } } @fields;
+    my @reads = map { +{zip @field_names, @$_} } @fields;
+    #<<< no perltidy
     map {
-            $_->{tags} = {
-                    map {
-                            shift @$_ => {
-                                    type => shift @$_,
-                                    value => shift @$_,
-                            }
-                    } map { [ split ":" ] } split "\t", $_->{tags}
-                }
+        $_->{tags} = {
+            map {
+                shift @$_ => {
+                    type => shift @$_,
+                    value => shift @$_,}
+            } map { [ split ":" ] } split "\t", $_->{tags}}
     } @reads;
+    #>>> no perltidy
     return \@reads;
 }
 

@@ -26,7 +26,7 @@ sub import {
 
     # disagree that these should be allowed for the reasons given
     my @DISAGREE_NONFATAL = grep { exists $warnings::Offsets{$_} } (
-        'newline',      # stat on nonexistent file with a newline in it
+        'newline', # stat on nonexistent file with a newline in it
         'experimental', # no reason for these to be fatal
         'deprecated',   # unfortunately can't make these fatal
         'portable',     # everything worked fine here, just may not elsewhere

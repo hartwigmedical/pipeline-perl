@@ -33,20 +33,14 @@ sub runFinalize {
     }
 
     my @runningJobs = map { @$_ }
-        grep { defined } @{$opt->{RUNNING_JOBS}}{"baf",
-                                                 "prestats",
-                                                 keys %{$opt->{SAMPLES}},
-                                                 "slicing",
-                                                 "poststats",
-                                                 "somvar",
-                                                 "cnv",
-                                                 "kinship"
-                                             };
+        grep { defined } @{$opt->{RUNNING_JOBS}}{"baf", "prestats", keys %{$opt->{SAMPLES}}, "slicing", "poststats", "somvar", "cnv", "kinship"};
 
-    from_template("Finalize.sh.tt", $bash_file,
-                  joint_name => $joint_name,
-                  log_file => $log_file,
-                  opt => $opt);
+    from_template(
+        "Finalize.sh.tt", $bash_file,
+        joint_name => $joint_name,
+        log_file => $log_file,
+        opt => $opt,
+    );
 
     my $qsub = qsubTemplate($opt, "FINALIZE");
     if (@runningJobs) {

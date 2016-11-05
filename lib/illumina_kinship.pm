@@ -32,9 +32,11 @@ sub runKinship {
     my $stdout = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.err");
 
-    from_template("Kinship.sh.tt", $bash_file,
-                  vcf => $vcf,
-                  opt => $opt);
+    from_template(
+        "Kinship.sh.tt", $bash_file,
+        vcf => $vcf,
+        opt => $opt,
+    );
 
     my @runningJobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

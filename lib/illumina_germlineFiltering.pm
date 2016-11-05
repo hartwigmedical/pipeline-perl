@@ -46,15 +46,17 @@ sub runFilterVariants {
     my $stdout = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.err");
 
-    from_template("GermlineFiltering.sh.tt", $bash_file,
-                  snp_types => \@snp_types,
-                  snp_filter_names => \@snp_filter_names,
-                  snp_filter_exprs => \@snp_filter_exprs,
-                  indel_types => \@indel_types,
-                  indel_filter_names => \@indel_filter_names,
-                  indel_filter_exprs => \@indel_filter_exprs,
-                  job_native => jobNative($opt, "FILTER"),
-                  opt => $opt);
+    from_template(
+        "GermlineFiltering.sh.tt", $bash_file,
+        snp_types => \@snp_types,
+        snp_filter_names => \@snp_filter_names,
+        snp_filter_exprs => \@snp_filter_exprs,
+        indel_types => \@indel_types,
+        indel_filter_names => \@indel_filter_names,
+        indel_filter_exprs => \@indel_filter_exprs,
+        job_native => jobNative($opt, "FILTER"),
+        opt => $opt,
+    );
 
     my @running_jobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {

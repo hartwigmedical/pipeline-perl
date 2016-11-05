@@ -37,11 +37,13 @@ sub runAnnotateVariants {
     my $stdout = catfile($log_dir, "GermlineAnnotation_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "GermlineAnnotation_$opt->{RUN_NAME}.err");
 
-    from_template("GermlineAnnotation.sh.tt", $bash_file,
-                  in_vcf => $in_vcf,
-                  pre_annotated_vcf => $pre_annotated_vcf,
-                  annotated_vcf => $annotated_vcf,
-                  opt => $opt);
+    from_template(
+        "GermlineAnnotation.sh.tt", $bash_file,
+        in_vcf => $in_vcf,
+        pre_annotated_vcf => $pre_annotated_vcf,
+        annotated_vcf => $annotated_vcf,
+        opt => $opt,
+    );
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         if (exists $opt->{RUNNING_JOBS}->{$sample} && @{$opt->{RUNNING_JOBS}->{$sample}}) {

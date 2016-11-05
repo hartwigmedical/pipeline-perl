@@ -7,7 +7,7 @@ use Module::Build;
 
 my $build = Module::Build->new(
     module_name => 'HMF::Pipeline',
-    license  => 'mit',
+    license => 'mit',
     requires => {
         'perl' => '5.16.0',
         'strictures' => '2.0',
