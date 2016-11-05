@@ -3,11 +3,11 @@ package illumina_config;
 use FindBin::libs;
 use discipline;
 
-use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec::Functions;
 use File::Copy::Recursive qw(rcopy);
 use FindBin;
+use Getopt::Long;
 use IO::Pipe;
 use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
