@@ -6,12 +6,13 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=Freebayes
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Freebayes
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 cd [% dirs.freebayes.out %]
-if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
+if [ -s "[% tumor_sample_bam %]" ] && [ -s "[% ref_sample_bam %]" ]
 then
     echo "Start Freebayes   $(date)    [% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
     [% INCLUDE Status.tt step=chr status="processing" %]

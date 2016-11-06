@@ -5,7 +5,7 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
-use POSIX qw(tmpnam);
+use File::Temp qw(tmpnam);
 
 use HMF::Pipeline::Template qw(writeFromTemplate);
 
@@ -17,7 +17,8 @@ our @EXPORT_OK = qw(
 
 
 sub getId {
-    my $id = fileparse(tmpnam());
+    my $name = tmpnam();
+    my $id = fileparse($name);
     $id =~ s#(file|tmp\.[0-9]+\.)##;
     return $id;
 }
@@ -28,14 +29,13 @@ sub fromTemplate {
     my $suffix = "";
     $suffix = "_${sample}" if $sample;
 
-    my $done_file = catfile($dirs->{log}, "${name}${suffix}.done");
-    if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
-        return;
-    }
-
     my $job_id = "${name}${suffix}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
+    my $done_file = catfile($dirs->{log}, "${name}${suffix}.done");
+    if (-f $done_file) {
+        say "WARNING: $done_file exists, skipping $job_id";
+        return;
+    }
 
     writeFromTemplate(
         "${name}.sh.tt", $bash_file,

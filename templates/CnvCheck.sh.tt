@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=CnvCheck
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=CnvCheck
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=cnv_name status="processing" %]
 
@@ -27,7 +28,7 @@ then
     [% INCLUDE Status.tt step=cnv_name status="success" %]
 else
     [% INCLUDE Status.tt step=cnv_name status="failed" %]
-    fail "${cnv_name} has missing done files, copy number check failed"
+    fail "[% cnv_name %] has missing done files, copy number check failed"
 fi
 
 echo "End ${JOB_NAME}		$(date)	[% cnv_name %]	$(uname -n)" >> [% dirs.log %]/check.log

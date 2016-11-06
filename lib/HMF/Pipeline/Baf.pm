@@ -6,6 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
+use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Sge qw(qsubJava);
 use HMF::Pipeline::Job qw(getId);
 use HMF::Pipeline::Template qw(writeFromTemplate);
@@ -22,20 +23,15 @@ sub run {
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
-        my $baf_dirs = {
-            out => $out_dir,
-            log => catfile($out_dir, "logs"),
-            tmp => catfile($out_dir, "tmp"),
-            job => catfile($out_dir, "jobs"),
-        };
-        my $sample_bam = catfile($baf_dirs->{out}, "mapping", $opt->{BAM_FILES}->{$sample});
+        my $dirs = createDirs($out_dir);
+        my $sample_bam = catfile($dirs->{out}, "mapping", $opt->{BAM_FILES}->{$sample});
 
-        my $done_file = catfile($baf_dirs->{log}, "BAF_${sample}.done");
+        my $job_id = "BAF_$sample\_" . getId();
+        my $done_file = catfile($dirs->{log}, "BAF_${sample}.done");
         if (-f $done_file) {
-            say "WARNING: $done_file exists, skipping BAF analysis for $sample";
+            say "WARNING: $done_file exists, skipping $job_id";
         } else {
-            my $job_id = "BAF_$sample\_" . getId();
-            my $bash_file = catfile($baf_dirs->{job}, "${job_id}.sh");
+            my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
             my $output_vcf = "${sample}_BAF_SNPS.vcf";
             my $output_baf = "${sample}_BAF.txt";
             my $output_bafplot = "${sample}_BAF.pdf";
@@ -44,7 +40,7 @@ sub run {
             push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
 
             my $run_unified_genotyper = 0;
-            $done_file = catfile($baf_dirs->{log}, "BAF_UG_${sample}.done");
+            $done_file = catfile($dirs->{log}, "BAF_UG_${sample}.done");
             if (-f $done_file) {
                 say "WARNING: $done_file exists, skipping Unified Genotyper for $sample";
             } else {
@@ -52,14 +48,14 @@ sub run {
             }
 
             my $create_baf_file = 0;
-            $done_file = catfile($baf_dirs->{log}, "BAF_FILE_${sample}.done");
+            $done_file = catfile($dirs->{log}, "BAF_FILE_${sample}.done");
             if (-f $done_file) {
                 say "WARNING: $done_file exists, skipping BAF file for $sample";
             } else {
                 $create_baf_file = 1;
             }
             my $create_baf_plots = 0;
-            $done_file = catfile($baf_dirs->{log}, "BAF_PLOT_${sample}.done");
+            $done_file = catfile($dirs->{log}, "BAF_PLOT_${sample}.done");
             if (-f $done_file) {
                 say "WARNING: $done_file exists, skipping BAF plot for $sample";
             } else {
@@ -76,15 +72,15 @@ sub run {
                 run_unified_genotyper => $run_unified_genotyper,
                 create_baf_file => $create_baf_file,
                 create_baf_plots => $create_baf_plots,
-                dirs => $baf_dirs,
+                dirs => $dirs,
                 opt => $opt,
             );
 
             my $qsub = qsubJava($opt, "BAF");
             if (@running_jobs) {
-                system "$qsub -o $baf_dirs->{log}/BAF_${sample}.out -e $baf_dirs->{log}/BAF_${sample}.err -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
+                system "$qsub -o $dirs->{log}/BAF_${sample}.out -e $dirs->{log}/BAF_${sample}.err -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
             } else {
-                system "$qsub -o $baf_dirs->{log}/BAF_${sample}.out -e $baf_dirs->{log}/BAF_${sample}.err -N $job_id $bash_file";
+                system "$qsub -o $dirs->{log}/BAF_${sample}.out -e $dirs->{log}/BAF_${sample}.err -N $job_id $bash_file";
             }
             push @baf_jobs, $job_id;
         }

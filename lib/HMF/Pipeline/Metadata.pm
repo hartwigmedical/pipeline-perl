@@ -30,7 +30,7 @@ sub readJson {
 sub writeJson {
     my ($path, $data) = @_;
 
-    my $json = to_json($data, {utf8 => 1, pretty => 1});
+    my $json = to_json($data, {utf8 => 1, pretty => 1, canonical => 1});
     open my $json_fh, ">:encoding(UTF-8)", $path or confess "Can't open $path: $!";
     print $json_fh $json;
     close $json_fh;
@@ -42,7 +42,7 @@ sub parse {
     $parse_opts //= {};
 
     my $metadata_path = catfile($opt->{OUTPUT_DIR}, "metadata");
-    if (-z $metadata_path and exists $parse_opts->{required} and not $parse_opts->{required}) {
+    if (not -s $metadata_path and exists $parse_opts->{required} and not $parse_opts->{required}) {
         return {};
     } else {
         return readJson($metadata_path);

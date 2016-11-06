@@ -20,9 +20,10 @@ sub run {
 
     say "\n### SCHEDULING GERMLINE CALLING ###";
 
+    my $job_id = "GermlineCalling_" . getId();
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineCaller.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantCaller.done") {
-        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping";
+        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping $job_id";
         return;
     }
 
@@ -39,7 +40,6 @@ sub run {
         push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
     }
 
-    my $job_id = "GermlineCalling_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $stdout = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.out");

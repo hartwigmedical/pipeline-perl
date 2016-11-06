@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=GermlineCalling
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=GermlineCalling
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
@@ -63,7 +64,8 @@ else
     fail "One or more input bam files do not exist."
 fi
 
-if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].raw_variants.vcf.done ]; then
+if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].raw_variants.vcf.done ]
+then
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf [% opt.OUTPUT_DIR %]/
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf.idx [% opt.OUTPUT_DIR %]/
     [% IF opt.CALLING_GVCF == 'yes' %]

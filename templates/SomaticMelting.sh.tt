@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=SomaticMelt
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=SomaticMelt
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
@@ -20,7 +21,7 @@ echo "Start Melt	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
 tail_input="$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)"
 tail_output="$(tail -n 1 [% out_vcf %] | cut -f 1,2)"
-if [ -s [% pre_annotate_vcf %] -a -s [% out_vcf %] -a "$tail_input" == "$tail_output" ]
+if [ -s [% pre_annotate_vcf %] ] && [ -s [% out_vcf %] ] && [ "$tail_input" == "$tail_output" ]
 then
     touch [% dirs.log %]/[% somatic_name %].done
     [% INCLUDE Status.tt step="" status="success" %]

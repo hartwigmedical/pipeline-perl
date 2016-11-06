@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=Kinship
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Kinship
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
@@ -24,7 +25,8 @@ echo "Start Kinship	$(date)	[% vcf %]	$(uname -n)" >> logs/[% opt.RUN_NAME %].lo
 cp tmp/king.kin0 [% opt.RUN_NAME %].kinship
 mv tmp/plink.log logs/
 
-if [ -s [% opt.RUN_NAME %].kinship ]; then
+if [ -s [% opt.RUN_NAME %].kinship ]
+then
     touch logs/Kinship.done
     [% INCLUDE Status.tt step="" status="success" %]
 else

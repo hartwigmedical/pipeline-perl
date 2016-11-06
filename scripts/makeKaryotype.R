@@ -96,4 +96,3 @@ make_plot <- function(filename) {
 
 # Make plot
 make_plot(ratiofile)
-

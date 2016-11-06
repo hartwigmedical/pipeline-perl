@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=PrepBam
-export JOB_SET="[% sample %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=PrepBam
+JOB_SET="[% sample %]"
+JOB_START=$(date +%s)
 
 cd [% dirs.out %]
 
@@ -34,7 +35,8 @@ then
         read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% sample_bam %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
         contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
 
-        if [ -n "$contig_diff" ]; then
+        if [ -n "$contig_diff" ]
+        then
             [% INCLUDE Status.tt step="" status="failed" %]
             fail "[% sample_bam %] header contigs do not match read contigs:\n\n${contig_diff}"
         else

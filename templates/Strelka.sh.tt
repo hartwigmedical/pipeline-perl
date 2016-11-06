@@ -6,11 +6,12 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=Strelka
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Strelka
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
-if [ -s [% tumor_sample_bam %] -a -s [% ref_sample_bam %] ]
+if [ -s [% tumor_sample_bam %] ] && [ -s [% ref_sample_bam %] ]
 then
     echo "Start Strelka  $(date)   [% ref_sample_bam %]  [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/strelka.log
 

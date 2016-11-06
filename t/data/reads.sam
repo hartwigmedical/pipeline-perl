@@ -1,0 +1,6 @@
+@SQ	SN:1	LN:2
+@SQ	SN:2	LN:3
+@RG	ID:id1	SM:samplename
+@RG	ID:id2	SM:samplename
+seq	0	1	1	30	1=	*	0	0	=	*	RG:Z:id1
+seq	0	1	2	30	1=	*	0	0	=	*	RG:Z:id2

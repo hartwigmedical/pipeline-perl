@@ -13,6 +13,7 @@
 
 --maximum-consecutive-blank-lines=2
 --blank-lines-before-packages=2
+--no-blanks-before-comments
 
 --minimum-space-to-comment=1
 --static-side-comments

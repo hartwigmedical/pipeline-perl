@@ -45,9 +45,9 @@ sub verifyBam {
     my $headers = bamHeaders($bam_file, $opt);
     my @read_groups = grep { $_->{name} eq '@RG' } @$headers;
 
-    my @sample_names = map { $_->{tags}{SM} } @read_groups;
-    confess "too many samples in BAM $bam_file: @sample_names" if keys {map { $_ => 1 } @sample_names} > 1;
-    warn "missing sample name in BAM $bam_file, using file name" unless @sample_names;
+    my @sample_names = map { $_->{tags}{SM} } grep { $_->{tags}->{SM} } @read_groups;
+    confess "too many samples in BAM $bam_file: @sample_names" if keys %{{map { $_ => 1 } @sample_names}} > 1;
+    warn "missing sample name (\@RG SM tag) in BAM $bam_file, using file name" unless @sample_names;
     $sample = $sample_names[0] if @sample_names;
 
     my %header_contigs = map { $_->{tags}{SN} => $_->{tags}{LN} } grep { $_->{name} eq '@SQ' } @$headers;
@@ -81,13 +81,13 @@ sub bamHeaders {
     my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
 
     my @lines = qx($samtools view -H $bam_file);
-    $? == 0 or confess "could not read BAM headers from $bam_file";
+    $? == 0 or confess "could not parse BAM headers from $bam_file";
 
     chomp @lines;
     my @fields = grep { @$_[0] ne '@CO' } map { [ split /\t/ ] } @lines;
     #<<< no perltidy
     my @headers = map {
-        name => shift $_,
+        name => shift @$_,
         tags => {map { split /:/, $_, 2 } @$_},
     }, @fields;
     #>>> no perltidy
@@ -99,7 +99,8 @@ sub bamReads {
 
     my $samtools = catfile($opt->{SAMTOOLS_PATH}, "samtools");
 
-    my @lines = qx($samtools view $bam_file | head -$num_lines);
+    my @lines = qx(bash -c "set -o pipefail; $samtools view $bam_file | head -$num_lines");
+    $? == 0 or ($? >> 8) == 141 or confess "could not parse BAM reads from $bam_file";
     chomp @lines;
 
     my @field_names = qw(qname flag rname pos mapq cigar rnext pnext tlen seq qual tags);
@@ -144,7 +145,7 @@ sub contigLengths {
     my ($lines) = @_;
 
     chomp @$lines;
-    my %contigs = map { splice [ split "\t" ], 0, 2 } @$lines;
+    my %contigs = map { splice @{[ split "\t" ]}, 0, 2 } @$lines;
     return \%contigs;
 }
 
@@ -152,13 +153,14 @@ sub verifyContigs {
     my ($contigs, $ref_contigs) = @_;
 
     my @warnings;
-    while (my ($key, $value) = each $contigs) {
+    foreach my $key (sort keys %{$contigs}) {
+        my $value = $contigs->{$key};
         push @warnings, "contig $key missing" and next if not exists $ref_contigs->{$key};
         push @warnings, "contig $key length $value does not match $ref_contigs->{$key}" if $value != $ref_contigs->{$key};
     }
     warn $_ foreach @warnings;
     confess "contigs do not match" if @warnings;
-    return;
+    return 1;
 }
 
 sub verifyReadGroups {
@@ -168,7 +170,7 @@ sub verifyReadGroups {
     my %reads_rgids = map { $_->{tags}{RG}{value} => 1 } @$bam_reads;
     my @unknown_rgids = grep { not exists $header_rgids{$_} } keys %reads_rgids;
     confess "read group IDs from read tags not in BAM header:\n\t" . join "\n\t", @unknown_rgids if @unknown_rgids;
-    return;
+    return 1;
 }
 
 sub verifyConfig {
@@ -193,354 +195,387 @@ sub applyChecks {
 }
 
 sub configChecks {
-
-    # pseudo-DSL to de-duplicate checks
-    my $key_not_present = sub { not defined $_[1] and return "No $_[0] option found in config files" };
-    my $missing_file = sub { &$key_not_present or not -f $_[1] and return "$_[0] file $_[1] does not exist" };
-    my $missing_optional_file = sub { not &$key_not_present and &$missing_file };
-    my $missing_optional_files = sub {
-        join " and\n", grep { $_ } map { &$missing_optional_file($_[0], $_) } split /\t/, $_[1];
-    };
-    my $invalid_choice = sub {
-        my ($choices) = @_;
-        return sub {
-            my ($key, $choice) = @_;
-            defined $choice and not grep { /^$choice$/ } @{$choices} and return "$key must be one of " . join ", ", @{$choices};
-        };
-    };
-    my $key_not_present_and_not_present = sub {
-        my @alt_keys = @_;
-        return sub {
-            my ($key, $value, $opt) = @_;
-            not defined $value and not grep { defined $opt->{$_} } @alt_keys and return "No $key or " . join(", ", @alt_keys) . " found in config files";
-        };
-    };
-    my $if_enabled = sub {
-        my ($more_checks) = @_;
-        return sub {
-            my ($key, $value, $opt) = @_;
-            defined $value and $value eq "yes" and return applyChecks($more_checks, $opt);
-        };
-    };
-    my $compare = sub {
-        my ($other_key, $func, $name) = @_;
-        return sub {
-            my ($key, $value, $opt) = @_;
-            my $other_value = $opt->{$other_key};
-            &$key_not_present or not &$func($value, $other_value) and return "$key ($value) must be $name $other_key ($other_value)";
-        };
-    };
-
     return {
-        INIFILE => $key_not_present,
-        OUTPUT_DIR => $key_not_present,
-        FASTQ => &$key_not_present_and_not_present('BAM'),
-        MAIL => $key_not_present,
-        CLUSTER_PATH => $key_not_present,
-        CLUSTER_TMP => $key_not_present,
-        CLUSTER_RESERVATION => $key_not_present,
-        CLUSTER_PROJECT => $key_not_present,
-        PRESTATS => $key_not_present,
-        MAPPING => $key_not_present,
-        POSTSTATS => $key_not_present,
-        INDELREALIGNMENT => $key_not_present,
-        BASEQUALITYRECAL => $key_not_present,
-        VARIANT_CALLING => $key_not_present,
-        FILTER_VARIANTS => $key_not_present,
-        SOMATIC_VARIANTS => $key_not_present,
-        COPY_NUMBER => $key_not_present,
-        BAF => $key_not_present,
-        ANNOTATE_VARIANTS => $key_not_present,
-        KINSHIP => $key_not_present,
-        FINALIZE => $key_not_present,
-        GENOME => $missing_file,
-        SAMBAMBA_PATH => $key_not_present,
-        QUEUE_PATH => $key_not_present,
-        PRESTATS => &$if_enabled({
-                FASTQC_PATH => $key_not_present,
-                PRESTATS_THREADS => $key_not_present,
-                PRESTATS_MEM => $key_not_present,
-                PRESTATS_QUEUE => $key_not_present,
-                PRESTATS_TIME => $key_not_present,
+        INIFILE => \&key_not_present,
+        OUTPUT_DIR => \&key_not_present,
+        FASTQ => key_not_present_and_not_present("BAM"),
+        MAIL => \&key_not_present,
+        CLUSTER_PATH => \&missing_directory,
+        CLUSTER_TMP => \&key_not_present,
+        CLUSTER_RESERVATION => \&key_not_present,
+        CLUSTER_PROJECT => \&key_not_present,
+        PRESTATS => \&key_not_present,
+        MAPPING => \&key_not_present,
+        POSTSTATS => \&key_not_present,
+        INDELREALIGNMENT => \&key_not_present,
+        BASEQUALITYRECAL => \&key_not_present,
+        VARIANT_CALLING => \&key_not_present,
+        FILTER_VARIANTS => \&key_not_present,
+        SOMATIC_VARIANTS => \&key_not_present,
+        COPY_NUMBER => \&key_not_present,
+        BAF => \&key_not_present,
+        ANNOTATE_VARIANTS => \&key_not_present,
+        KINSHIP => \&key_not_present,
+        FINALIZE => \&key_not_present,
+        GENOME => \&missing_file,
+        SAMBAMBA_PATH => \&missing_directory,
+        QUEUE_PATH => \&missing_directory,
+        PRESTATS => if_enabled({
+                FASTQC_PATH => \&missing_directory,
+                PRESTATS_THREADS => \&key_not_present,
+                PRESTATS_MEM => \&key_not_present,
+                PRESTATS_QUEUE => \&key_not_present,
+                PRESTATS_TIME => \&key_not_present,
             }
         ),
-        MAPPING => &$if_enabled({
-                BWA_PATH => $key_not_present,
-                MAPPING_THREADS => $key_not_present,
-                MAPPING_MEM => $key_not_present,
-                MAPPING_QUEUE => $key_not_present,
-                MAPPING_TIME => $key_not_present,
-                MAPPING_SETTINGS => $key_not_present,
+        MAPPING => if_enabled({
+                BWA_PATH => \&missing_directory,
+                MAPPING_THREADS => \&key_not_present,
+                MAPPING_MEM => \&key_not_present,
+                MAPPING_QUEUE => \&key_not_present,
+                MAPPING_TIME => \&key_not_present,
+                MAPPING_SETTINGS => \&key_not_present,
 
-                MARKDUP_QUEUE => $key_not_present,
-                MARKDUP_TIME => $key_not_present,
-                MARKDUP_THREADS => $key_not_present,
-                MARKDUP_MEM => $key_not_present,
-                MARKDUP_OVERFLOW_LIST_SIZE => $key_not_present,
+                MARKDUP_QUEUE => \&key_not_present,
+                MARKDUP_TIME => \&key_not_present,
+                MARKDUP_THREADS => \&key_not_present,
+                MARKDUP_MEM => \&key_not_present,
+                MARKDUP_OVERFLOW_LIST_SIZE => \&key_not_present,
             }
         ),
-        FLAGSTAT_QUEUE => $key_not_present,
-        FLAGSTAT_THREADS => $key_not_present,
-        FLAGSTAT_MEM => $key_not_present,
-        FLAGSTAT_TIME => $key_not_present,
-        POSTSTATS => &$if_enabled({
-                BAMMETRICS_PATH => $key_not_present,
-                PICARD_PATH => $key_not_present,
-                POSTSTATS_THREADS => $key_not_present,
-                POSTSTATS_MEM => $key_not_present,
-                POSTSTATS_QUEUE => $key_not_present,
-                POSTSTATS_TIME => $key_not_present,
-                EXONCALLCOV => $key_not_present,
-                EXONCALLCOV => &$if_enabled({
-                        EXONCALLCOV_QUEUE => $key_not_present,
-                        EXONCALLCOV_TIME => $key_not_present,
-                        EXONCALLCOV_MEM => $key_not_present,
-                        EXONCALLCOV_PATH => $key_not_present,
-                        EXONCALLCOV_BED => $missing_file,
-                        EXONCALLCOV_PREF => $missing_file,
-                        EXONCALLCOV_PANEL => $missing_file,
-                        EXONCALLCOV_ENS => $missing_file,
+        FLAGSTAT_QUEUE => \&key_not_present,
+        FLAGSTAT_THREADS => \&key_not_present,
+        FLAGSTAT_MEM => \&key_not_present,
+        FLAGSTAT_TIME => \&key_not_present,
+        POSTSTATS => if_enabled({
+                BAMMETRICS_PATH => \&missing_directory,
+                PICARD_PATH => \&missing_directory,
+                POSTSTATS_THREADS => \&key_not_present,
+                POSTSTATS_MEM => \&key_not_present,
+                POSTSTATS_QUEUE => \&key_not_present,
+                POSTSTATS_TIME => \&key_not_present,
+                EXONCALLCOV => \&key_not_present,
+                EXONCALLCOV => if_enabled({
+                        EXONCALLCOV_QUEUE => \&key_not_present,
+                        EXONCALLCOV_TIME => \&key_not_present,
+                        EXONCALLCOV_MEM => \&key_not_present,
+                        EXONCALLCOV_PATH => \&missing_directory,
+                        EXONCALLCOV_BED => \&missing_file,
+                        EXONCALLCOV_PREF => \&missing_file,
+                        EXONCALLCOV_PANEL => \&missing_file,
+                        EXONCALLCOV_ENS => \&missing_file,
                     }
                 ),
             }
         ),
-        INDELREALIGNMENT => &$if_enabled({
-                BAMUTIL_PATH => $key_not_present,
-                REALIGNMENT_MASTER_QUEUE => $key_not_present,
-                REALIGNMENT_MASTER_THREADS => $key_not_present,
-                REALIGNMENT_MASTER_TIME => $key_not_present,
-                REALIGNMENT_MASTER_MEM => $key_not_present,
-                REALIGNMENT_QUEUE => $key_not_present,
-                REALIGNMENT_THREADS => $key_not_present,
-                REALIGNMENT_MEM => $key_not_present,
-                REALIGNMENT_TIME => $key_not_present,
-                REALIGNMENT_MERGETHREADS => $key_not_present,
-                REALIGNMENT_SCALA => $key_not_present,
-                REALIGNMENT_SCATTER => $key_not_present,
-                REALIGNMENT_KNOWN => $missing_optional_files,
-                FLAGSTAT_QUEUE => $key_not_present,
-                FLAGSTAT_THREADS => $key_not_present,
-                FLAGSTAT_MEM => $key_not_present,
-                FLAGSTAT_TIME => $key_not_present,
+        INDELREALIGNMENT => if_enabled({
+                BAMUTIL_PATH => \&missing_directory,
+                REALIGNMENT_MASTER_QUEUE => \&key_not_present,
+                REALIGNMENT_MASTER_THREADS => \&key_not_present,
+                REALIGNMENT_MASTER_TIME => \&key_not_present,
+                REALIGNMENT_MASTER_MEM => \&key_not_present,
+                REALIGNMENT_QUEUE => \&key_not_present,
+                REALIGNMENT_THREADS => \&key_not_present,
+                REALIGNMENT_MEM => \&key_not_present,
+                REALIGNMENT_TIME => \&key_not_present,
+                REALIGNMENT_MERGETHREADS => \&key_not_present,
+                REALIGNMENT_SCALA => \&key_not_present,
+                REALIGNMENT_SCATTER => \&key_not_present,
+                REALIGNMENT_KNOWN => \&missing_optional_files,
+                FLAGSTAT_QUEUE => \&key_not_present,
+                FLAGSTAT_THREADS => \&key_not_present,
+                FLAGSTAT_MEM => \&key_not_present,
+                FLAGSTAT_TIME => \&key_not_present,
             }
         ),
-        BASEQUALITYRECAL => &$if_enabled({
-                BASERECALIBRATION_MASTER_QUEUE => $key_not_present,
-                BASERECALIBRATION_MASTER_TIME => $key_not_present,
-                BASERECALIBRATION_MASTER_THREADS => $key_not_present,
-                BASERECALIBRATION_MASTER_MEM => $key_not_present,
-                BASERECALIBRATION_QUEUE => $key_not_present,
-                BASERECALIBRATION_THREADS => $key_not_present,
-                BASERECALIBRATION_MEM => $key_not_present,
-                BASERECALIBRATION_TIME => $key_not_present,
-                BASERECALIBRATION_SCALA => $key_not_present,
-                BASERECALIBRATION_SCATTER => $key_not_present,
-                BASERECALIBRATION_KNOWN => $missing_optional_files,
-                FLAGSTAT_QUEUE => $key_not_present,
-                FLAGSTAT_THREADS => $key_not_present,
-                FLAGSTAT_MEM => $key_not_present,
-                FLAGSTAT_TIME => $key_not_present,
+        BASEQUALITYRECAL => if_enabled({
+                BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,
+                BASERECALIBRATION_MASTER_TIME => \&key_not_present,
+                BASERECALIBRATION_MASTER_THREADS => \&key_not_present,
+                BASERECALIBRATION_MASTER_MEM => \&key_not_present,
+                BASERECALIBRATION_QUEUE => \&key_not_present,
+                BASERECALIBRATION_THREADS => \&key_not_present,
+                BASERECALIBRATION_MEM => \&key_not_present,
+                BASERECALIBRATION_TIME => \&key_not_present,
+                BASERECALIBRATION_SCALA => \&key_not_present,
+                BASERECALIBRATION_SCATTER => \&key_not_present,
+                BASERECALIBRATION_KNOWN => \&missing_optional_files,
+                FLAGSTAT_QUEUE => \&key_not_present,
+                FLAGSTAT_THREADS => \&key_not_present,
+                FLAGSTAT_MEM => \&key_not_present,
+                FLAGSTAT_TIME => \&key_not_present,
             }
         ),
-        VARIANT_CALLING => &$if_enabled({
-                CALLING_MASTER_QUEUE => $key_not_present,
-                CALLING_MASTER_TIME => $key_not_present,
-                CALLING_MASTER_THREADS => $key_not_present,
-                CALLING_MASTER_MEM => $key_not_present,
-                CALLING_QUEUE => $key_not_present,
-                CALLING_THREADS => $key_not_present,
-                CALLING_MEM => $key_not_present,
-                CALLING_TIME => $key_not_present,
-                CALLING_SCATTER => $key_not_present,
-                CALLING_GVCF => $key_not_present,
-                CALLING_SCALA => $key_not_present,
-                CALLING_UGMODE => &$invalid_choice([ "SNP", "INDEL", "BOTH" ]),
-                CALLING_STANDCALLCONF => $key_not_present,
-                CALLING_STANDEMITCONF => $key_not_present,
-                CALLING_TARGETS => $missing_optional_file,
-                CALLING_DBSNP => $missing_optional_file,
+        VARIANT_CALLING => if_enabled({
+                CALLING_MASTER_QUEUE => \&key_not_present,
+                CALLING_MASTER_TIME => \&key_not_present,
+                CALLING_MASTER_THREADS => \&key_not_present,
+                CALLING_MASTER_MEM => \&key_not_present,
+                CALLING_QUEUE => \&key_not_present,
+                CALLING_THREADS => \&key_not_present,
+                CALLING_MEM => \&key_not_present,
+                CALLING_TIME => \&key_not_present,
+                CALLING_SCATTER => \&key_not_present,
+                CALLING_GVCF => \&key_not_present,
+                CALLING_SCALA => \&key_not_present,
+                CALLING_UGMODE => invalid_choice([ "SNP", "INDEL", "BOTH" ]),
+                CALLING_STANDCALLCONF => \&key_not_present,
+                CALLING_STANDEMITCONF => \&key_not_present,
+                CALLING_TARGETS => \&missing_optional_file,
+                CALLING_DBSNP => \&missing_optional_file,
             }
         ),
-        FILTER_VARIANTS => &$if_enabled({
-                FILTER_MASTER_QUEUE => $key_not_present,
-                FILTER_MASTER_TIME => $key_not_present,
-                FILTER_MASTER_THREADS => $key_not_present,
-                FILTER_MASTER_MEM => $key_not_present,
-                FILTER_QUEUE => $key_not_present,
-                FILTER_THREADS => $key_not_present,
-                FILTER_MEM => $key_not_present,
-                FILTER_TIME => $key_not_present,
-                FILTER_SCATTER => $key_not_present,
-                FILTER_SCALA => $key_not_present,
-                FILTER_SNPTYPES => $key_not_present,
-                FILTER_SNPNAME => $key_not_present,
-                FILTER_SNPEXPR => $key_not_present,
-                FILTER_INDELTYPES => $key_not_present,
-                FILTER_INDELNAME => $key_not_present,
-                FILTER_INDELEXPR => $key_not_present,
+        FILTER_VARIANTS => if_enabled({
+                FILTER_MASTER_QUEUE => \&key_not_present,
+                FILTER_MASTER_TIME => \&key_not_present,
+                FILTER_MASTER_THREADS => \&key_not_present,
+                FILTER_MASTER_MEM => \&key_not_present,
+                FILTER_QUEUE => \&key_not_present,
+                FILTER_THREADS => \&key_not_present,
+                FILTER_MEM => \&key_not_present,
+                FILTER_TIME => \&key_not_present,
+                FILTER_SCATTER => \&key_not_present,
+                FILTER_SCALA => \&key_not_present,
+                FILTER_SNPTYPES => \&key_not_present,
+                FILTER_SNPNAME => \&key_not_present,
+                FILTER_SNPEXPR => \&key_not_present,
+                FILTER_INDELTYPES => \&key_not_present,
+                FILTER_INDELNAME => \&key_not_present,
+                FILTER_INDELEXPR => \&key_not_present,
             }
         ),
-        SOMATIC_VARIANTS => &$if_enabled({
-                VCFTOOLS_PATH => $key_not_present,
-                SAMTOOLS_PATH => $key_not_present,
-                SOMVAR_TARGETS => $missing_optional_file,
-                SOMVAR_STRELKA => $key_not_present,
-                SOMVAR_STRELKA => &$if_enabled({
-                        STRELKA_PATH => $key_not_present,
-                        STRELKA_INI => $key_not_present,
-                        STRELKA_QUEUE => $key_not_present,
-                        STRELKA_THREADS => $key_not_present,
-                        STRELKA_MEM => $key_not_present,
-                        STRELKA_TIME => $key_not_present,
+        SOMATIC_VARIANTS => if_enabled({
+                VCFTOOLS_PATH => \&missing_directory,
+                SAMTOOLS_PATH => \&missing_directory,
+                SOMVAR_TARGETS => \&missing_optional_file,
+                SOMVAR_STRELKA => \&key_not_present,
+                SOMVAR_STRELKA => if_enabled({
+                        STRELKA_PATH => \&missing_directory,
+                        STRELKA_INI => \&key_not_present,
+                        STRELKA_QUEUE => \&key_not_present,
+                        STRELKA_THREADS => \&key_not_present,
+                        STRELKA_MEM => \&key_not_present,
+                        STRELKA_TIME => \&key_not_present,
                     }
                 ),
-                SOMVAR_VARSCAN => $key_not_present,
-                SOMVAR_VARSCAN => &$if_enabled({
-                        VARSCAN_PATH => $key_not_present,
-                        PBGZIP_PATH => $key_not_present,
-                        TABIX_PATH => $key_not_present,
-                        VARSCAN_QUEUE => $key_not_present,
-                        VARSCAN_THREADS => $key_not_present,
-                        VARSCAN_TIME => $key_not_present,
-                        VARSCAN_MEM => $key_not_present,
-                        VARSCAN_SETTINGS => $key_not_present,
-                        VARSCAN_POSTSETTINGS => $key_not_present,
-                        PILEUP_QUEUE => $key_not_present,
-                        PILEUP_DIVISOR => $key_not_present,
-                        PILEUP_THREADS => &$compare('PILEUP_DIVISOR', sub { $_[0] >= $_[1] }, "greater than or equal to"),
-                        PILEUP_MEM => $key_not_present,
-                        PILEUP_TIME => $key_not_present,
-                        FINALIZE_KEEP_PILEUP => $key_not_present,
+                SOMVAR_VARSCAN => \&key_not_present,
+                SOMVAR_VARSCAN => if_enabled({
+                        VARSCAN_PATH => \&missing_file,
+                        PBGZIP_PATH => \&missing_directory,
+                        TABIX_PATH => \&missing_directory,
+                        VARSCAN_QUEUE => \&key_not_present,
+                        VARSCAN_THREADS => \&key_not_present,
+                        VARSCAN_TIME => \&key_not_present,
+                        VARSCAN_MEM => \&key_not_present,
+                        VARSCAN_SETTINGS => \&key_not_present,
+                        VARSCAN_POSTSETTINGS => \&key_not_present,
+                        PILEUP_QUEUE => \&key_not_present,
+                        PILEUP_DIVISOR => \&key_not_present,
+                        PILEUP_THREADS => compare_to("PILEUP_DIVISOR", sub { $_[0] >= $_[1] }, "greater than or equal to"),
+                        PILEUP_MEM => \&key_not_present,
+                        PILEUP_TIME => \&key_not_present,
+                        FINALIZE_KEEP_PILEUP => \&key_not_present,
                     }
                 ),
-                SOMVAR_FREEBAYES => $key_not_present,
-                SOMVAR_FREEBAYES => &$if_enabled({
-                        FREEBAYES_PATH => $key_not_present,
-                        VCFLIB_PATH => $key_not_present,
-                        FREEBAYES_QUEUE => $key_not_present,
-                        FREEBAYES_THREADS => $key_not_present,
-                        FREEBAYES_MEM => $key_not_present,
-                        FREEBAYES_TIME => $key_not_present,
-                        FREEBAYES_SETTINGS => $key_not_present,
-                        FREEBAYES_SOMATICFILTER => $key_not_present,
+                SOMVAR_FREEBAYES => \&key_not_present,
+                SOMVAR_FREEBAYES => if_enabled({
+                        FREEBAYES_PATH => \&missing_directory,
+                        VCFLIB_PATH => \&missing_directory,
+                        FREEBAYES_QUEUE => \&key_not_present,
+                        FREEBAYES_THREADS => \&key_not_present,
+                        FREEBAYES_MEM => \&key_not_present,
+                        FREEBAYES_TIME => \&key_not_present,
+                        FREEBAYES_SETTINGS => \&key_not_present,
+                        FREEBAYES_SOMATICFILTER => \&key_not_present,
                     }
                 ),
-                SOMVAR_MUTECT => $key_not_present,
-                SOMVAR_MUTECT => &$if_enabled({
-                        MUTECT_PATH => $key_not_present,
-                        MUTECT_QUEUE => $key_not_present,
-                        MUTECT_THREADS => $key_not_present,
-                        MUTECT_MEM => $key_not_present,
-                        MUTECT_TIME => $key_not_present,
-                        MUTECT_COSMIC => $key_not_present,
+                SOMVAR_MUTECT => \&key_not_present,
+                SOMVAR_MUTECT => if_enabled({
+                        MUTECT_PATH => \&missing_directory,
+                        MUTECT_QUEUE => \&key_not_present,
+                        MUTECT_THREADS => \&key_not_present,
+                        MUTECT_MEM => \&key_not_present,
+                        MUTECT_TIME => \&key_not_present,
+                        MUTECT_COSMIC => \&key_not_present,
                     }
                 ),
-                SOMVARMERGE_QUEUE => $key_not_present,
-                SOMVARMERGE_THREADS => $key_not_present,
-                SOMVARMERGE_MEM => $key_not_present,
-                SOMVARMERGE_TIME => $key_not_present,
-                SOMVAR_ANNOTATE => $key_not_present,
-                SOMVAR_ANNOTATE => &$if_enabled({
-                        ANNOTATE_DB => $key_not_present,
-                        ANNOTATE_FLAGS => $key_not_present,
-                        ANNOTATE_IDNAME => $key_not_present,
-                        ANNOTATE_IDDB => $missing_file,
-                        CALLING_DBSNP => $missing_file,
-                    }
-                ),
-            }
-        ),
-        COPY_NUMBER => &$if_enabled({
-                CNVCHECK_QUEUE => $key_not_present,
-                CNVCHECK_THREADS => $key_not_present,
-                CNVCHECK_MEM => $key_not_present,
-                CNVCHECK_TIME => $key_not_present,
-                CNV_MODE => $key_not_present,
-                CNV_FREEC => $key_not_present,
-                CNV_FREEC => &$if_enabled({
-                        FREEC_PATH => $key_not_present,
-                        FREEC_QUEUE => $key_not_present,
-                        FREEC_THREADS => $key_not_present,
-                        FREEC_MEM => $key_not_present,
-                        FREEC_TIME => $key_not_present,
-                        FREEC_CHRLENFILE => $key_not_present,
-                        FREEC_CHRFILES => $key_not_present,
-                        FREEC_PLOIDY => $key_not_present,
-                        FREEC_WINDOW => $key_not_present,
-                        FREEC_TELOCENTROMERIC => $key_not_present,
-                    }
-                ),
-                CNV_QDNASEQ => $key_not_present,
-                CNV_QDNASEQ => &$if_enabled({
-                        QDNASEQ_PATH => $key_not_present,
-                        QDNASEQ_QUEUE => $key_not_present,
-                        QDNASEQ_THREADS => $key_not_present,
-                        QDNASEQ_MEM => $key_not_present,
-                        QDNASEQ_TIME => $key_not_present,
+                SOMVARMERGE_QUEUE => \&key_not_present,
+                SOMVARMERGE_THREADS => \&key_not_present,
+                SOMVARMERGE_MEM => \&key_not_present,
+                SOMVARMERGE_TIME => \&key_not_present,
+                SOMVAR_ANNOTATE => \&key_not_present,
+                SOMVAR_ANNOTATE => if_enabled({
+                        ANNOTATE_DB => \&key_not_present,
+                        ANNOTATE_FLAGS => \&key_not_present,
+                        ANNOTATE_IDNAME => \&key_not_present,
+                        ANNOTATE_IDDB => \&missing_file,
+                        CALLING_DBSNP => \&missing_file,
                     }
                 ),
             }
         ),
-        BAF => &$if_enabled({
-                BAF_QUEUE => $key_not_present,
-                BAF_THREADS => $key_not_present,
-                BAF_MEM => $key_not_present,
-                BAF_TIME => $key_not_present,
-                BIOVCF_PATH => $key_not_present,
-                BAF_SNPS => $key_not_present,
-            }
-        ),
-        ANNOTATE_VARIANTS => &$if_enabled({
-                SNPEFF_PATH => $key_not_present,
-                IGVTOOLS_PATH => $key_not_present,
-                ANNOTATE_QUEUE => $key_not_present,
-                ANNOTATE_THREADS => $key_not_present,
-                ANNOTATE_MEM => $key_not_present,
-                ANNOTATE_TIME => $key_not_present,
-                ANNOTATE_SNPEFF => $key_not_present,
-                ANNOTATE_SNPEFF => &$if_enabled({
-                        ANNOTATE_DB => $key_not_present,
-                        ANNOTATE_FLAGS => $key_not_present,
+        COPY_NUMBER => if_enabled({
+                CNVCHECK_QUEUE => \&key_not_present,
+                CNVCHECK_THREADS => \&key_not_present,
+                CNVCHECK_MEM => \&key_not_present,
+                CNVCHECK_TIME => \&key_not_present,
+                CNV_MODE => \&key_not_present,
+                CNV_FREEC => \&key_not_present,
+                CNV_FREEC => if_enabled({
+                        FREEC_PATH => \&missing_directory,
+                        FREEC_QUEUE => \&key_not_present,
+                        FREEC_THREADS => \&key_not_present,
+                        FREEC_MEM => \&key_not_present,
+                        FREEC_TIME => \&key_not_present,
+                        FREEC_CHRLENFILE => \&key_not_present,
+                        FREEC_CHRFILES => \&key_not_present,
+                        FREEC_PLOIDY => \&key_not_present,
+                        FREEC_WINDOW => \&key_not_present,
+                        FREEC_TELOCENTROMERIC => \&key_not_present,
                     }
                 ),
-                ANNOTATE_SNPSIFT => $key_not_present,
-                ANNOTATE_SNPSIFT => &$if_enabled({
-                        ANNOTATE_DBNSFP => $missing_file,
-                        ANNOTATE_FIELDS => $key_not_present,
-                    }
-                ),
-                ANNOTATE_FREQUENCIES => $key_not_present,
-                ANNOTATE_FREQUENCIES => &$if_enabled({
-                        ANNOTATE_FREQNAME => $key_not_present,
-                        ANNOTATE_FREQDB => $missing_file,
-                        ANNOTATE_FREQINFO => $key_not_present,
-                    }
-                ),
-                ANNOTATE_IDFIELD => $key_not_present,
-                ANNOTATE_IDFIELD => &$if_enabled({
-                        ANNOTATE_IDNAME => $key_not_present,
-                        ANNOTATE_IDDB => $missing_file,
+                CNV_QDNASEQ => \&key_not_present,
+                CNV_QDNASEQ => if_enabled({
+                        QDNASEQ_PATH => \&missing_directory,
+                        QDNASEQ_QUEUE => \&key_not_present,
+                        QDNASEQ_THREADS => \&key_not_present,
+                        QDNASEQ_MEM => \&key_not_present,
+                        QDNASEQ_TIME => \&key_not_present,
                     }
                 ),
             }
         ),
-        KINSHIP => &$if_enabled({
-                KINSHIP_QUEUE => $key_not_present,
-                KINSHIP_THREADS => $key_not_present,
-                KINSHIP_MEM => $key_not_present,
-                KINSHIP_TIME => $key_not_present,
-                PLINK_PATH => $key_not_present,
-                KING_PATH => $key_not_present,
-                VCFTOOLS_PATH => $key_not_present,
+        BAF => if_enabled({
+                BAF_QUEUE => \&key_not_present,
+                BAF_THREADS => \&key_not_present,
+                BAF_MEM => \&key_not_present,
+                BAF_TIME => \&key_not_present,
+                BIOVCF_PATH => \&missing_directory,
+                BAF_SNPS => \&key_not_present,
             }
         ),
-        FINALIZE => &$if_enabled({
-                FINALIZE_QUEUE => $key_not_present,
-                FINALIZE_THREADS => $key_not_present,
-                FINALIZE_MEM => $key_not_present,
-                FINALIZE_TIME => $key_not_present,
+        ANNOTATE_VARIANTS => if_enabled({
+                SNPEFF_PATH => \&missing_directory,
+                IGVTOOLS_PATH => \&missing_directory,
+                ANNOTATE_QUEUE => \&key_not_present,
+                ANNOTATE_THREADS => \&key_not_present,
+                ANNOTATE_MEM => \&key_not_present,
+                ANNOTATE_TIME => \&key_not_present,
+                ANNOTATE_SNPEFF => \&key_not_present,
+                ANNOTATE_SNPEFF => if_enabled({
+                        ANNOTATE_DB => \&key_not_present,
+                        ANNOTATE_FLAGS => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_SNPSIFT => \&key_not_present,
+                ANNOTATE_SNPSIFT => if_enabled({
+                        ANNOTATE_DBNSFP => \&missing_file,
+                        ANNOTATE_FIELDS => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_FREQUENCIES => \&key_not_present,
+                ANNOTATE_FREQUENCIES => if_enabled({
+                        ANNOTATE_FREQNAME => \&key_not_present,
+                        ANNOTATE_FREQDB => \&missing_file,
+                        ANNOTATE_FREQINFO => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_IDFIELD => \&key_not_present,
+                ANNOTATE_IDFIELD => if_enabled({
+                        ANNOTATE_IDNAME => \&key_not_present,
+                        ANNOTATE_IDDB => \&missing_file,
+                    }
+                ),
             }
         ),
+        KINSHIP => if_enabled({
+                KINSHIP_QUEUE => \&key_not_present,
+                KINSHIP_THREADS => \&key_not_present,
+                KINSHIP_MEM => \&key_not_present,
+                KINSHIP_TIME => \&key_not_present,
+                PLINK_PATH => \&missing_directory,
+                KING_PATH => \&missing_directory,
+                VCFTOOLS_PATH => \&missing_directory,
+            }
+        ),
+        FINALIZE => if_enabled({
+                FINALIZE_QUEUE => \&key_not_present,
+                FINALIZE_THREADS => \&key_not_present,
+                FINALIZE_MEM => \&key_not_present,
+                FINALIZE_TIME => \&key_not_present,
+            }
+        ),
+    };
+}
+
+sub if_enabled {
+    my ($more_checks) = @_;
+
+    return sub {
+        my ($key, $value, $opt) = @_;
+        not key_not_present($key, $value) and $value eq "yes" and return applyChecks($more_checks, $opt);
+    };
+}
+
+sub key_not_present {
+    my ($key, $value) = @_;
+
+    not defined $value and return "No $key option found in config files";
+    return;
+}
+
+sub missing_file {
+    my ($key, $value) = @_;
+
+    return (key_not_present($key, $value) or not -f $value and "$key file $value does not exist");
+}
+
+sub missing_optional_file {
+    my ($key, $value) = @_;
+
+    return (not key_not_present($key, $value) and missing_file($key, $value));
+}
+
+sub missing_optional_files {
+    my ($key, $value) = @_;
+
+    return (not key_not_present($key, $value) and join " and\n", grep { $_ } map { missing_optional_file($key, $_) } split /\t/, $value);
+}
+
+sub missing_directory {
+    my ($key, $value) = @_;
+
+    return (key_not_present($key, $value) or not -d $value and "$key directory $value does not exist");
+}
+
+sub invalid_choice {
+    my ($choices) = @_;
+
+    return sub {
+        my ($key, $choice) = @_;
+        defined $choice and not grep { /^$choice$/ } @{$choices} and return "$key must be one of " . join ", ", @{$choices};
+    };
+}
+
+sub key_not_present_and_not_present {
+    my (@alt_keys) = @_;
+
+    return sub {
+        my ($key, $value, $opt) = @_;
+        not defined $value and not grep { defined $opt->{$_} } @alt_keys and return "No $key or " . join(", ", @alt_keys) . " found in config files";
+    };
+}
+
+sub compare_to {
+    my ($other_key, $func, $name) = @_;
+
+    return sub {
+        my ($key, $value, $opt) = @_;
+        my $other_value = $opt->{$other_key};
+        key_not_present($key, $value)
+            or key_not_present($other_key, $other_value)
+            or not &$func($value, $other_value)
+            and return "$key ($value) must be $name $other_key ($other_value)";
     };
 }
 

@@ -6,9 +6,10 @@
 
 #[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=ReadCountCheck
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=ReadCountCheck
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
@@ -17,7 +18,7 @@ if [ -s "[% pre_flagstat_path %]" ] && [ -s "[% post_flagstat_path %]" ]
 then
     pre_read_count=$(awk '/d+/ { print $1; exit }' "[% pre_flagstat_path %]")
     post_read_count=$(awk '/d+/ { print $1; exit }' "[% post_flagstat_path %]")
-    if [ $pre_read_count -eq $post_read_count ]
+    if [ "$pre_read_count" -eq "$post_read_count" ]
     then
         mv [% dirs.tmp %]/[% post_bam %] [% dirs.mapping %]
         mv [% dirs.tmp %]/[% post_bai %] [% dirs.mapping %]/[% post_bam %].bai

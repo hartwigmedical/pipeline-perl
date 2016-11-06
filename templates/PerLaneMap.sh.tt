@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=Map
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Map
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
@@ -24,7 +25,8 @@ echo "Start mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/
    2>>[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log | [% opt.SAMBAMBA_PATH %]/sambamba view -t [% opt.MAPPING_THREADS %] --format=bam -S -o [% coreName %].bam.tmp /dev/stdin
 [% END %]
 
-if grep -Fq '[main] Real time:' [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log; then
+if grep -Fq '[main] Real time:' "[% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa_log"
+then
     mv [% coreName %].bam.tmp [% coreName %].bam
     touch [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% coreName %]_bwa.done
   

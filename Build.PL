@@ -23,11 +23,19 @@ my $build = Module::Build->new(
         'Template' => 0,
     },
     build_requires => {
+        'Devel::Cover' => 0,
+        'File::Touch' => 0,
+        'Test::Cmd' => 0,
         'Test::Compile' => 0,
+        'Test::Fatal' => 0,
+        'Test::File' => 0,
+        'Test::Files' => 0,
+        'Test::Output' => 0,
         'Task::Perl::Critic' => 0,
         'Test::Perl::Critic' => 0,
         'Test::PerlTidy' => 0,
         'Test::Prereq::Build' => '< 2.0',
+        'Test::Warn' => 0,
     }
 );
 

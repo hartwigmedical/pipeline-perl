@@ -1,0 +1,4 @@
+@SQ	SN:1	LN:0
+@RG	ID:id	SM:samplename
+seq	0	ref	1	30	1=	*	0	0	=	*	RG:Z:id
+seq	0	ref	2	30	1=	*	0	0	=	*	RG:Z:missing

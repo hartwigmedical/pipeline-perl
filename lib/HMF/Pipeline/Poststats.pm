@@ -26,9 +26,10 @@ sub run {
     # weird relative path requirement
     $dirs->{exoncov} = abs2rel(catfile($dirs->{out}, "exoncov"), $dirs->{tmp});
 
+    my $job_id = "PostStats_" . getId();
     my $done_file = catfile($dirs->{log}, "PostStats.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -44,7 +45,6 @@ sub run {
     my @designs;
     @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
 
-    my $job_id = "PostStats_" . getId();
     my $job_id_check = "PostStatsCheck_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $stdout = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.out");

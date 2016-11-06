@@ -22,7 +22,7 @@ HMF::Pipeline::run($opt);
 
 sub usage {
     warn <<"END";
-    Usage: $0 configurationFile.conf
+Usage: $0 configurationFile.conf
 END
     exit;
 }

@@ -55,9 +55,10 @@ sub runSampleCnv {
 
     say "\n$cnv_name \t $control_bam \t $sample_bam";
 
+    my $job_id = "CnvCheck_${sample}_" . getId();
     my $done_file = catfile($dirs->{log}, "${cnv_name}.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -73,8 +74,6 @@ sub runSampleCnv {
         push @cnv_jobs, $qdnaseq_job if $qdnaseq_job;
     }
 
-    # check is separated from run, could have more/different CNV tools
-    my $job_id = "CnvCheck_${sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(
@@ -97,9 +96,10 @@ sub runSampleCnv {
 sub runFreec {
     my ($sample_name, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) = @_;
 
+    my $job_id = "Freec_${sample_name}_" . getId();
     my $done_file = catfile($dirs->{log}, "freec.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -117,7 +117,6 @@ sub runFreec {
         opt => $opt,
     );
 
-    my $job_id = "Freec_${sample_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
     my $sample_bam_name = fileparse($sample_bam);
 
@@ -144,15 +143,15 @@ sub runFreec {
 sub runQDNAseq {
     my ($sample_name, $sample_bam, $running_jobs, $dirs, $opt) = @_;
 
+    my $job_id = "QDNAseq_${sample_name}_" . getId();
     my $done_file = catfile($dirs->{log}, "qdnaseq.done");
     if (-e $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
     $dirs->{qdnaseq}{out} = addSubDir($dirs, "qdnaseq");
 
-    my $job_id = "QDNAseq_${sample_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(

@@ -193,13 +193,13 @@ sub runStrelka {
 
     $dirs->{strelka}->{out} = catfile($dirs->{out}, "strelka");
 
+    my $job_id = "STR_${tumor_sample}_" . getId();
     my $done_file = catfile($dirs->{log}, "strelka.done");
     if (-f $done_file) {
-        say "WARNING: $done_file, skipping";
+        say "WARNING: $done_file, skipping $job_id";
         return;
     }
 
-    my $job_id = "STR_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(
@@ -225,11 +225,11 @@ sub runPileup {
 
     my $bam = $opt->{BAM_FILES}->{$sample};
     (my $pileup = $bam) =~ s/\.bam/\.pileup/;
-    my $job_id = "PileUp_${sample}_" . getId();
 
+    my $job_id = "PileUp_${sample}_" . getId();
     my $done_file = catfile($opt->{OUTPUT_DIR}, $sample, "logs", "Pileup_${sample}.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return $job_id;
     }
 
@@ -260,9 +260,10 @@ sub runVarscan {
 
     $dirs->{varscan}->{out} = addSubDir($dirs, "varscan");
 
+    my $job_id = "VS_${tumor_sample}_" . getId();
     my $done_file = catfile($dirs->{log}, "varscan.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -299,7 +300,6 @@ sub runVarscan {
     my @snp_vcfs = map { "${somatic_name}_${_}.snp.vcf" } @chrs;
     my @indel_vcfs = map { "${somatic_name}_${_}.indel.vcf" } @chrs;
 
-    my $job_id = "VS_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(
@@ -331,9 +331,10 @@ sub runFreeBayes {
     $dirs->{freebayes}->{out} = addSubDir($dirs, "freebayes");
     $dirs->{freebayes}->{tmp} = addSubDir($dirs->{freebayes}, "tmp");
 
+    my $job_id = "FB_${tumor_sample}_" . getId();
     my $done_file = catfile($dirs->{log}, "freebayes.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -366,7 +367,6 @@ sub runFreeBayes {
 
     my @snp_vcfs = map { "${somatic_name}_${_}.vcf" } @chrs;
 
-    my $job_id = "FB_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(
@@ -395,9 +395,10 @@ sub runMutect {
     $dirs->{mutect}->{out} = addSubDir($dirs, "mutect");
     $dirs->{mutect}->{tmp} = addSubDir($dirs->{mutect}, "tmp");
 
+    my $job_id = "MUT_${tumor_sample}_" . getId();
     my $done_file = catfile($dirs->{log}, "mutect.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
@@ -429,7 +430,6 @@ sub runMutect {
 
     my @vcfs = map { "${somatic_name}_${_}_mutect.vcf" } @chrs;
 
-    my $job_id = "MUT_${tumor_sample}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(

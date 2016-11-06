@@ -20,9 +20,10 @@ sub run {
 
     say "\n### SCHEDULING GERMLINE FILTERING ###";
 
+    my $job_id = "GermlineFiltering_" . getId();
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineFilter.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantFilter.done") {
-        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping";
+        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineFilter.done exists, skipping $job_id";
         return;
     }
 
@@ -40,7 +41,6 @@ sub run {
         die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
     }
 
-    my $job_id = "GermlineFiltering_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $stdout = catfile($log_dir, "GermlineFiltering_$opt->{RUN_NAME}.out");

@@ -6,6 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
+use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Job qw(getId);
 use HMF::Pipeline::Template qw(writeFromTemplate);
@@ -21,8 +22,9 @@ sub run {
     say "\n### SCHEDULING PIPELINE FINALIZE ####";
 
     my $job_id = "$opt->{RUN_NAME}_" . getId();
-    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "Finalize_${job_id}.sh");
-    my $log_file = catfile($opt->{OUTPUT_DIR}, "logs", "PipelineCheck.log");
+    my $dirs = createDirs($opt->{OUTPUT_DIR});
+    my $bash_file = catfile($dirs->{job}, "Finalize_${job_id}.sh");
+    my $log_file = catfile($dirs->{log}, "PipelineCheck.log");
 
     my $joint_name = "";
     if ($opt->{SOMATIC_VARIANTS} eq "yes" || ($opt->{COPY_NUMBER} eq "yes" && $opt->{CNV_MODE} eq "sample_control")) {
@@ -32,8 +34,17 @@ sub run {
         $joint_name = "${ref_sample}_${tumor_sample}";
     }
 
-    my @runningJobs = map { @$_ }
-        grep { defined } @{$opt->{RUNNING_JOBS}}{"baf", "prestats", keys %{$opt->{SAMPLES}}, "slicing", "poststats", "somvar", "cnv", "kinship"};
+    my @running_jobs = map { @$_ } grep { defined } @{$opt->{RUNNING_JOBS}}{
+        # flatten all registered jobs into one list
+        "baf",
+        "prestats",
+        keys %{$opt->{SAMPLES}},
+        "slicing",
+        "poststats",
+        "somvar",
+        "cnv",
+        "kinship"
+    };
 
     writeFromTemplate(
         "Finalize.sh.tt", $bash_file,
@@ -43,8 +54,8 @@ sub run {
     );
 
     my $qsub = qsubTemplate($opt, "FINALIZE");
-    if (@runningJobs) {
-        system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} -hold_jid " . join(",", @runningJobs) . " $bash_file";
+    if (@running_jobs) {
+        system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} $bash_file";
     }

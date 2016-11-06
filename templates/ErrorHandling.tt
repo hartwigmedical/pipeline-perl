@@ -1,11 +1,13 @@
 # note: http://mywiki.wooledge.org/BashFAQ/105
 
 set -o errtrace
-if [[ "[% mode %]" == "strict" ]]; then
+if [[ "[% mode %]" == "strict" ]]
+then
     set -o pipefail
     set -o nounset
     set -o errexit
-elif [[ "[% mode %]" == "harsh" ]]; then
+elif [[ "[% mode %]" == "harsh" ]]
+then
     set -o pipefail
     set -o nounset
 fi
@@ -17,7 +19,8 @@ function handle_error() {
 
     echo "$(date) $(hostname) $0: line $lineno: $command: exit code $ret" >> "[% opt.OUTPUT_DIR %]/logs/unhandled_job_errors"
 
-    if [[ "[% mode %]" == "strict" ]]; then
+    if [[ "[% mode %]" == "strict" ]]
+    then
         exit 100
     fi
 }
@@ -40,7 +43,8 @@ trap 'cleanup' EXIT
 
 function fail() {
     echo -e "ERROR: $*" >&2
-    if [[ "[% mode %]" == "strict" ]]; then
+    if [[ "[% mode %]" == "strict" ]]
+    then
         exit 100
     fi
 }

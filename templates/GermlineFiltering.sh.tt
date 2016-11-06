@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME="GermlineFiltering"
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME="GermlineFiltering"
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 
@@ -16,7 +17,8 @@ cd [% opt.OUTPUT_DIR %]/tmp
 
 echo "Start germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 
-if [ -s [% opt.OUTPUT_DIR %]/[% opt.RUN_NAME %].raw_variants.vcf ]; then
+if [ -s [% opt.OUTPUT_DIR %]/[% opt.RUN_NAME %].raw_variants.vcf ]
+then
     [% INCLUDE Status.tt step="" status="processing" %]
   
     java -Xmx[% opt.FILTER_MASTER_MEM %]G -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
@@ -57,7 +59,8 @@ else
     fail "[% opt.RUN_NAME %].raw_variants.vcf does not exist."
 fi
 
-if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].filtered_variants.vcf.done ]; then
+if [ -f [% opt.OUTPUT_DIR %]/tmp/.[% opt.RUN_NAME %].filtered_variants.vcf.done ]
+then
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].filtered_variants.vcf [% opt.OUTPUT_DIR %]/
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].filtered_variants.vcf.idx [% opt.OUTPUT_DIR %]/
     touch [% opt.OUTPUT_DIR %]/logs/GermlineFilter.done

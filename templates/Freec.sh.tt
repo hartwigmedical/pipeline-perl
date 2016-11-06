@@ -6,13 +6,14 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=Freec
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Freec
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample_name status="processing" %]
 
-if [ -s [% sample_bam %] [% IF control_bam %]-a -s [% control_bam %] [% END %]]
+if [ -s [% sample_bam %] [% IF control_bam %]] && [ -s [% control_bam %] [% END %]]
 then
     echo "Start ${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> [% dirs.log %]/freec.log
 
@@ -23,11 +24,11 @@ then
     ratio_file="[% sample_bam_name %]_ratio.txt"
     if [ -s "$ratio_file" ]
     then
-        cat [% opt.FREEC_PATH %]/makeGraph.R | R --slave --args 2 $ratio_file
+        R --slave --args 2 $ratio_file < [% opt.FREEC_PATH %]/makeGraph.R
         if [ -s "$cnv_file" ]
         then
-            cat [% opt.FREEC_PATH %]/assess_significance.R | R --slave --args $cnv_file $ratio_file
-            cat [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R | R --slave --args 2 24 4 500000 $ratio_file
+            R --slave --args $cnv_file $ratio_file < [% opt.FREEC_PATH %]/assess_significance.R
+            R --slave --args 2 24 4 500000 $ratio_file < [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R
         else
             echo "No copy number variants found, skipping post-processing"
         fi

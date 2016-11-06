@@ -22,10 +22,9 @@ sub run {
 
     my @running_jobs;
     my $job_id = "GermlineAnnotation_" . getId();
-
     # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
     if (-f "$opt->{OUTPUT_DIR}/logs/GermlineAnnotation.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantAnnotation.done") {
-        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping";
+        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineAnnotation.done exists, skipping $job_id";
         return;
     }
 

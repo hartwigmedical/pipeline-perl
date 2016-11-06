@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME=QDNAseq
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=QDNAseq
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample_name status="processing" %]
 
@@ -19,7 +20,7 @@ then
 
     Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
 
-    if [ -s "[% dirs.qdnaseq.out %]/[% sample_name %]"*.vcf ] \
+    if [ -s "[% dirs.qdnaseq.out %]/$(basename -s .bam [% sample_bam %]).vcf" ] \
        && [ -s "[% dirs.qdnaseq.out %]/calls.png" ] \
        && [ -s "[% dirs.qdnaseq.out %]/copyNumberSegmented.png" ]
     then

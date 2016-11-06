@@ -26,9 +26,12 @@ GetOptions(
     "mail|m=s" => \my $mail,
     "help|h" => \my $help,
     "run" => \my $run,
-) or die usage();
+    )
+    or warn usage()
+    and exit 1;
 
-usage() if $help || !($iniFile || $iniPath) || !$outputDir || !(@fastqDirs || @bamDirs || $vcfFile) || !$mail;
+say usage() and exit if $help;
+warn usage() and exit 1 if not($iniFile or $iniPath) or not $outputDir or not(@fastqDirs or @bamDirs or $vcfFile) or not $mail;
 
 my $ini;
 if ($iniFile) {
@@ -48,9 +51,6 @@ sub getIniFiles {
     my @iniFiles = File::Find::Rule->file() #
         ->name("*.ini")                     #
         ->in($iniDir);                      #
-    while (my ($iniIndex, $iniFile) = each @iniFiles) {
-        say "\t${iniIndex}:\t${iniFile}";
-    }
     return \@iniFiles;
 }
 
@@ -91,36 +91,44 @@ sub createConfig {
 }
 
 sub usage {
-    say "Usage: $0";
-    say "";
-    say "Advanced usage:";
-    say "$0 REQUIRED_ARGUMENTS [-run]";
-    say "";
-    say "Required INI file:";
-    say "";
-    say "\t-i, --inifile settings.ini";
-    say "\t-ip, --inipath /path/to/settings.ini";
-    say "";
-    say "Required input data:";
-    say "";
-    say "\t-f, --fastqdir /fastqFolder";
-    say "\t-b, --bamdir /bamFolder";
-    say "\t-v, --vcfFile vcfFile.vcf";
-    say "";
-    say "Required output config:";
-    say "";
-    say "\t-o, --outputdir /path/to/outputDir";
-    say "\t-m, --mail example\@mail.nl";
-    say "";
-    say "Available INI files: (use -i)";
-    getIniFiles($settingsDir);
-    exit;
+    my @iniFiles = @{getIniFiles($settingsDir)};
+    my @usage = (
+        "Usage: $0",
+        "",
+        "Advanced usage:",
+        "$0 REQUIRED_ARGUMENTS [-run]",
+        "",
+        "Required INI file:",
+        "",
+        "\t-i, --inifile settings.ini",
+        "\t-ip, --inipath /path/to/settings.ini",
+        "",
+        "Required input data:",
+        "",
+        "\t-f, --fastqdir /fastqFolder",
+        "\t-b, --bamdir /bamFolder",
+        "\t-v, --vcfFile vcfFile.vcf",
+        "",
+        "Required output config:",
+        "",
+        "\t-o, --outputdir /path/to/outputDir",
+        "\t-m, --mail example\@mail.nl",
+        "",
+        "Available INI files: (use -i)",
+
+        map { "\t$_:\t$iniFiles[$_]" } 0 .. $#iniFiles,
+    );
+    return join "\n", @usage;
 }
 
 sub interactive {
     say "Using interactive mode";
     say "Available INI files:";
+
     my @iniFiles = @{getIniFiles($settingsDir)};
+    while (my ($iniIndex, $iniFile) = each @iniFiles) {
+        say "\t${iniIndex}:\t${iniFile}";
+    }
 
     print "Choose setting file [index]: ";
     chomp(my $iniIndex = <>);

@@ -32,11 +32,19 @@ sub parse {
     my ($configurationFile, $opt) = @_;
 
     open my $fh, "<", $configurationFile or die "Couldn't open $configurationFile: $!";
+    parseFile($fh, $opt);
+    close $fh;
+    return;
+}
+
+sub parseFile {
+    my ($fh, $opt) = @_;
+
     while (<$fh>) {
         chomp;
         next if m/^#/ or not $_;
         my ($key, $val) = split "\t", $_, 2;
-        warn "Key '$key' is missing a value - is it badly formatted?" if not defined $val;
+        die "Key '$key' is missing a value - is it badly formatted?" if not defined $val;
 
         if ($key eq 'INIFILE') {
             $val = catfile(pipelinePath(), $val) unless file_name_is_absolute($val);
@@ -48,7 +56,6 @@ sub parse {
             $opt->{$key} = $val;
         }
     }
-    close $fh;
     return;
 }
 
@@ -80,7 +87,7 @@ sub createDirs {
     };
 
     make_path(values %{$dirs}, {error => \my $errors});
-    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
+    my $messages = join ", ", map { join ": ", each %{$_} } @{$errors};
     die "Couldn't create directories: $messages" if $messages;
 
     return $dirs;
@@ -118,7 +125,7 @@ sub addSamples {
     $opt->{SAMPLES} = {};
 
     if ($opt->{FASTQ}) {
-        foreach my $input_file (keys %{$opt->{FASTQ}}) {
+        foreach my $input_file (sort keys %{$opt->{FASTQ}}) {
             my $fastqFile = fileparse($input_file);
             my ($sampleName) = split "_", $fastqFile;
             $opt->{SAMPLES}->{$sampleName} = $input_file;
@@ -127,9 +134,9 @@ sub addSamples {
     }
 
     if ($opt->{BAM}) {
-        foreach my $input_file (keys %{$opt->{BAM}}) {
+        foreach my $input_file (sort keys %{$opt->{BAM}}) {
             my $sampleName = verifyBam($input_file, $opt);
-            not exists $opt->{SAMPLES}->{$sampleName} or die "sample $sampleName from $input_file already used by $opt->{SAMPLES}->{$sampleName}";
+            not exists $opt->{SAMPLES}->{$sampleName} or die "sample '$sampleName' from $input_file already used by $opt->{SAMPLES}->{$sampleName}";
             $opt->{SAMPLES}->{$sampleName} = $input_file;
             @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
         }

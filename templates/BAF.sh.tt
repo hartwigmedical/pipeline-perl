@@ -6,9 +6,10 @@
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
-export JOB_NAME="BAF"
-export JOB_SET="[% opt.RUN_NAME %]"
-export JOB_START=$(date +%s)
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME="BAF"
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
 
 bash [% opt.CLUSTER_PATH %]/settings.sh
 cd [% dirs.tmp %]
@@ -16,10 +17,11 @@ cd [% dirs.tmp %]
 [% IF run_unified_genotyper == 1 %]
 echo "Start Unified Genotyper	$(date)	$(uname -n)" >> [% dirs.log %]/BAF_[% sample %].log
 
-if [ -s [% sample_bam %] ]; then
+if [ -s [% sample_bam %] ]
+then
     [% INCLUDE Status.tt step="UNIFIED_GENOTYPER" status="processing" %]
   
-    java -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp/ -Xmx[% opt.BAF_MEM %]G -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
+    java -Djava.io.tmpdir=[% dirs.tmp %] -Xmx[% opt.BAF_MEM %]G -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
         -T UnifiedGenotyper -R [% opt.GENOME %] -L [% opt.BAF_SNPS %] -I [% sample_bam %] -o [% output_vcf %] --output_mode EMIT_ALL_SITES
 else
     fail "Sample BAM file does not exist."
@@ -27,7 +29,8 @@ fi
 
 tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
 tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
-if [ "$tail_output" == "$tail_input" ]; then
+if [ "$tail_output" == "$tail_input" ]
+then
     mv [% output_vcf %] [% dirs.out %]
     mv [% output_vcf %].idx [% dirs.out %]
     touch [% dirs.log %]/BAF_UG_[% sample %].done
@@ -43,12 +46,15 @@ echo "End Unified Genotyper	$(date)	$(uname -n)" >> [% dirs.log %]/BAF_[% sample
 [% IF create_baf_file == 1 %]
 echo "Start Make BAF file	$(date)	$(uname -n)" >> [% dirs.log %]/BAF_[% sample %].log
 
-if [ -s [% dirs.out %]/[% output_vcf %] -a -e [% dirs.log %]/BAF_UG_[% sample %].done ]; then
+if [ -s "[% dirs.out %]/[% output_vcf %]" ] && [ -e "[% dirs.log %]/BAF_UG_[% sample %].done" ]
+then
     [% INCLUDE Status.tt step="BAF_FILE" status="processing" %]
   
-    cat [% dirs.out %]/[% output_vcf %] | [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
-        --sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]'  \
-        --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' > [% output_baf %]
+    [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
+        --sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
+        --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' \
+        < [% dirs.out %]/[% output_vcf %] \
+        > [% output_baf %]
 
     mv [% output_baf %] [% dirs.out %]
     touch [% dirs.log %]/BAF_FILE_[% sample %].done
@@ -63,7 +69,9 @@ fi
 
 [% IF create_baf_plots == 1 %]
 echo "Start BAF plotting	$(date)	$(uname -n)" >> [% dirs.log %]/BAF_[% sample %].log
-if [ -s [% dirs.out %]/[% output_baf %] -a -e [% dirs.log %]/BAF_FILE_[% sample %].done ]; then
+if [ -s "[% dirs.out %]/[% output_baf %]" ] \
+    && [ -e "[% dirs.log %]/BAF_FILE_[% sample %].done" ]
+then
     [% INCLUDE Status.tt step="BAF_PLOTS" status="processing" %]
   
     Rscript [% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R [% dirs.tmp %] [% dirs.out %]/[% output_baf %]
@@ -71,7 +79,8 @@ else
     fail "Sample BAF file and BAF done files do not exist."
 fi
 
-if [ -s [% output_bafplot %] ]; then
+if [ -s "[% output_bafplot %]" ]
+then
     mv [% output_bafplot %] [% dirs.out %]
     touch [% dirs.log %]/BAF_PLOT_[% sample %].done
   
@@ -83,7 +92,10 @@ fi
 echo "End Make BAF plot	$(date)	$(uname -n)" >> [% dirs.log %]/BAF_[% sample %].log
 [% END %]
 
-if [ -e [% dirs.log %]/BAF_UG_[% sample %].done -a -e [% dirs.log %]/BAF_FILE_[% sample %].done -a -e [% dirs.log %]/BAF_PLOT_[% sample %].done ]; then
+if [ -e "[% dirs.log %]/BAF_UG_[% sample %].done" ] \
+    && [ -e "[% dirs.log %]/BAF_FILE_[% sample %].done" ] \
+    && [ -e "[% dirs.log %]/BAF_PLOT_[% sample %].done" ]
+then
     touch [% dirs.log %]/BAF_[% sample %].done
   
     [% INCLUDE Status.tt step="" status="success" %]

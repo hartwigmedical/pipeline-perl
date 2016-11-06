@@ -30,9 +30,9 @@ sub run {
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample_name);
         my $dirs = createDirs($out_dir, qc => "QCStats");
 
+        my $job_id = "PreStats_${core_name}_" . getId();
         my $done_file = catfile($dirs->{log}, "PreStats_${sample_name}.done");
         if (!-f $done_file) {
-            my $job_id = "PreStats_${core_name}_" . getId();
             my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
             writeFromTemplate(
@@ -48,7 +48,7 @@ sub run {
             system("$qsub -o $dirs->{log}/PreStat_${core_name}.out -e $dirs->{log}/PreStats_${core_name}.err -N $job_id $bash_file");
             push @{$opt->{RUNNING_JOBS}->{prestats}}, $job_id;
         } else {
-            say "\tWARNING: $done_file exists, skipping";
+            say "\tWARNING: $done_file exists, skipping $job_id";
         }
     }
     return;

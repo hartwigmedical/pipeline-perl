@@ -19,15 +19,15 @@ sub run {
 
     say "\n### SCHEDULING KINSHIP ####";
 
+    my $job_id = "Kinship_" . getId();
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
     my $done_file = catfile($log_dir, "Kinship.done");
     if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
+        say "WARNING: $done_file exists, skipping $job_id";
         return;
     }
 
     my $vcf = "$opt->{RUN_NAME}.filtered_variants.vcf";
-    my $job_id = "Kinship_" . getId();
     my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
     my $stdout = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.out");
     my $stderr = catfile($log_dir, "Kinship_$opt->{RUN_NAME}.err");
