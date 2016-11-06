@@ -10,11 +10,11 @@ export JOB_NAME=PrepBam
 export JOB_SET="[% sample %]"
 export JOB_START=$(date +%s)
 
-cd [% opt.OUTPUT_DIR %]/[% sample %]
+cd [% dirs.out %]
 
-if [ -s [% sample_bam  %] ]
+if [ -s [% sample_bam %] ]
 then
-    echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% log_dir %]/[% sample %].log
+    echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
     if [ ! -s [% sample_bai %] ]
     then
@@ -49,4 +49,4 @@ else
     fail "[% sample_bam %] does not exist."
 fi
 
-echo "End ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% log_dir %]/[% sample %].log
+echo "End ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

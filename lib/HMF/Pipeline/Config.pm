@@ -4,8 +4,9 @@ use FindBin::libs;
 use discipline;
 
 use File::Basename;
-use File::Spec::Functions;
 use File::Copy::Recursive qw(rcopy);
+use File::Path qw(make_path);
+use File::Spec::Functions;
 use FindBin;
 use Getopt::Long;
 use IO::Pipe;
@@ -18,8 +19,10 @@ use parent qw(Exporter);
 our @EXPORT_OK = qw(
     parse
     validate
-    addSamples
+    createDirs
+    addSubDir
     setupLogging
+    addSamples
     recordGitVersion
     copyConfigAndScripts
 );
@@ -63,6 +66,52 @@ sub validate {
     return;
 }
 
+sub createDirs {
+    my ($output_dir, %extra_dirs) = @_;
+
+    foreach (@extra_dirs{keys %extra_dirs}) { $_ = catfile($output_dir, $_) }
+
+    my $dirs = {
+        out => $output_dir,
+        tmp => catfile($output_dir, "tmp"),
+        log => catfile($output_dir, "logs"),
+        job => catfile($output_dir, "jobs"),
+        %extra_dirs,
+    };
+
+    make_path(values %{$dirs}, {error => \my $errors});
+    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
+    die "Couldn't create directories: $messages" if $messages;
+
+    return $dirs;
+}
+
+sub addSubDir {
+    my ($dirs, $dir) = @_;
+    my $out_dir = catfile($dirs->{out}, $dir);
+    make_path($out_dir) or die "Couldn't create directory ${out_dir}: $!";
+    return $out_dir;
+}
+
+sub setupLogging {
+    my ($output_dir) = @_;
+
+    my ($seconds, $microseconds) = gettimeofday;
+    my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
+    my $out_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
+    my $err_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
+    my $out_fh = IO::Pipe->new()->writer("tee $out_file") or die "Couldn't tee to $out_file: $!";
+    my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
+    open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
+    open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
+    ## no critic (Modules::RequireExplicitInclusion)
+    STDOUT->autoflush(1);
+    STDERR->autoflush(1);
+    $out_fh->autoflush(1);
+    ## use critic
+    return;
+}
+
 sub addSamples {
     my ($opt) = @_;
 
@@ -85,25 +134,6 @@ sub addSamples {
             @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
         }
     }
-    return;
-}
-
-sub setupLogging {
-    my ($output_dir) = @_;
-
-    my ($seconds, $microseconds) = gettimeofday;
-    my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
-    my $out_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
-    my $err_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
-    my $out_fh = IO::Pipe->new()->writer("tee $out_file") or die "Couldn't tee to $out_file: $!";
-    my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
-    open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
-    open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
-    ## no critic (Modules::RequireExplicitInclusion)
-    STDOUT->autoflush(1);
-    STDERR->autoflush(1);
-    $out_fh->autoflush(1);
-    ## use critic
     return;
 }
 

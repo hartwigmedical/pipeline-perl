@@ -5,8 +5,8 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions qw(:ALL);
-use File::Path qw(make_path);
 
+use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Job qw(getId);
 use HMF::Pipeline::Template qw(writeFromTemplate);
@@ -21,19 +21,8 @@ sub run {
 
     say "\n### SCHEDULING POSTSTATS ###";
 
-    my $out_dir = catfile($opt->{OUTPUT_DIR}, "QCStats");
-    my $dirs = {
-        out => $out_dir,
-        tmp => catfile($opt->{OUTPUT_DIR}, "tmp"),
-        log => catfile($opt->{OUTPUT_DIR}, "logs"),
-        job => catfile($opt->{OUTPUT_DIR}, "jobs"),
-    };
-    map { $dirs->{$_} = catfile($dirs->{out}, $_, "snpcheck") } keys %{$opt->{SAMPLES}};
-
-    make_path(values %{$dirs}, {error => \my $errors});
-    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
-    die "Couldn't create output directories: $messages" if $messages;
-
+    my %snp_check_dirs = map { $_ => catfile($_, "snpcheck") } keys %{$opt->{SAMPLES}};
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, out => "QCStats", %snp_check_dirs);
     # weird relative path requirement
     $dirs->{exoncov} = abs2rel(catfile($dirs->{out}, "exoncov"), $dirs->{tmp});
 
@@ -48,7 +37,7 @@ sub run {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         $sample_bams->{$sample} = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
         if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
-            push(@running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}}));
+            push @running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
         }
     }
 
@@ -91,7 +80,7 @@ sub run {
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
 
     # dependent on implicit bamMetrics naming
-    my $metrics_path = catfile($opt->{OUTPUT_DIR}, "QCStats", "$opt->{RUN_NAME}.bamMetrics.pdf");
+    my $metrics_path = catfile($dirs->{out}, "$opt->{RUN_NAME}.bamMetrics.pdf");
     HMF::Pipeline::Metadata::linkArtefact($metrics_path, "qc", $opt);
 
     return;

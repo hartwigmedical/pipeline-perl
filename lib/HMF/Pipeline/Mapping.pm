@@ -5,6 +5,7 @@ use discipline;
 
 use File::Spec::Functions;
 
+use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Job qw(getId);
@@ -34,7 +35,8 @@ sub run {
             $opt->{SINGLE_END} = 1;
         }
 
-        addDirectories($samples, $opt->{OUTPUT_DIR}, $fastq->{sampleName});
+        my $out_dir = catfile($opt->{OUTPUT_DIR}, $fastq->{sampleName});
+        $samples->{$fastq->{sampleName}}->{dirs} = createDirs($out_dir, mapping => "mapping");
         say "Creating $samples->{$fastq->{sampleName}}{dirs}{mapping}/$fastq->{coreName}_sorted.bam with:";
         createIndividualMappingJobs($opt, $fastq, $samples);
     }
@@ -62,19 +64,6 @@ sub run {
         system("$qsub -o $stdout -e $stderr -N $job_id -hold_jid $hold_jids $bash_file");
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
-    return;
-}
-
-sub addDirectories {
-    my ($samples, $run_dir, $sample_name) = @_;
-
-    my $out_dir = catfile($run_dir, $sample_name);
-    $samples->{$sample_name}->{dirs} = {
-        out => $out_dir,
-        log => catfile($out_dir, "logs"),
-        job => catfile($out_dir, "jobs"),
-        mapping => catfile($out_dir, "mapping"),
-    };
     return;
 }
 
@@ -198,14 +187,17 @@ sub runBamPrep {
     say "\n### SCHEDULING BAM PREP ###";
 
     while (my ($sample, $input_bam) = each %{$opt->{SAMPLES}}) {
+        my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
+        my $dirs = createDirs($out_dir, mapping => "mapping");
+
         (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;
         (my $input_flagstat = $input_bam) =~ s/\.bam$/.flagstat/;
 
         my $bam_file = "${sample}.bam";
         $opt->{BAM_FILES}->{$sample} = $bam_file;
-        my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $bam_file);
-        my $sample_bai = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", "${sample}.bam.bai");
-        my $sample_flagstat = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", "${sample}.flagstat");
+        my $sample_bam = catfile($dirs->{mapping}, $bam_file);
+        my $sample_bai = catfile($dirs->{mapping}, "${sample}.bam.bai");
+        my $sample_flagstat = catfile($dirs->{mapping}, "${sample}.flagstat");
 
         my $bai_good = verifyBai($input_bai, $input_bam, $opt);
         my $flagstat_good = verifyFlagstat($input_flagstat, $input_bam);
@@ -217,8 +209,7 @@ sub runBamPrep {
         next if $bai_good and $flagstat_good;
 
         my $job_id = "PrepBam_${sample}_" . getId();
-        my $log_dir = catfile($opt->{OUTPUT_DIR}, $sample, "logs");
-        my $bash_file = catfile($opt->{OUTPUT_DIR}, $sample, "jobs", "$job_id.sh");
+        my $bash_file = catfile($dirs->{job}, "$job_id.sh");
 
         writeFromTemplate(
             "PrepBam.sh.tt", $bash_file,
@@ -226,12 +217,12 @@ sub runBamPrep {
             sample_bam => $sample_bam,
             sample_bai => $sample_bai,
             sample_flagstat => $sample_flagstat,
-            log_dir => $log_dir,
+            dirs => $dirs,
             opt => $opt,
         );
 
         my $qsub = qsubTemplate($opt, "MAPPING");
-        system "$qsub -o $log_dir/PrepBam_${sample}.out -e $log_dir/PrepBam_${sample}.err -N $job_id $bash_file";
+        system "$qsub -o $dirs->{log}/PrepBam_${sample}.out -e $dirs->{log}/PrepBam_${sample}.err -N $job_id $bash_file";
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return;

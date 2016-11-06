@@ -5,10 +5,10 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
-use File::Path qw(make_path);
 
-use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Config qw(createDirs addSubDir);
 use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Template qw(writeFromTemplate);
 use HMF::Pipeline::Metadata;
 
@@ -45,15 +45,7 @@ sub runSampleCnv {
     my ($sample, $control, $cnv_name, $check_cnv_jobs, $opt) = @_;
 
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "copyNumber", $cnv_name);
-    my $cnv_dirs = {
-        out => $out_dir,
-        log => catfile($out_dir, "logs"),
-        job => catfile($out_dir, "jobs"),
-    };
-
-    make_path(values %{$cnv_dirs}, {error => \my $errors});
-    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
-    die "Couldn't create copy number output directories: $messages" if $messages;
+    my $dirs = createDirs($out_dir);
 
     my $running_jobs = [];
     push @{$running_jobs}, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
@@ -63,7 +55,7 @@ sub runSampleCnv {
 
     say "\n$cnv_name \t $control_bam \t $sample_bam";
 
-    my $done_file = catfile($cnv_dirs->{log}, "${cnv_name}.done");
+    my $done_file = catfile($dirs->{log}, "${cnv_name}.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
@@ -72,31 +64,31 @@ sub runSampleCnv {
     my @cnv_jobs;
     if ($opt->{CNV_FREEC} eq "yes") {
         say "\n###SCHEDULING FREEC####";
-        my $freec_job = runFreec($sample, $sample_bam, $control_bam, $running_jobs, $cnv_dirs, $opt);
+        my $freec_job = runFreec($sample, $sample_bam, $control_bam, $running_jobs, $dirs, $opt);
         push @cnv_jobs, $freec_job if $freec_job;
     }
     if ($opt->{CNV_QDNASEQ} eq "yes") {
         say "\n###SCHEDULING QDNASEQ####";
-        my $qdnaseq_job = runQDNAseq($sample, $sample_bam, $running_jobs, $cnv_dirs, $opt);
+        my $qdnaseq_job = runQDNAseq($sample, $sample_bam, $running_jobs, $dirs, $opt);
         push @cnv_jobs, $qdnaseq_job if $qdnaseq_job;
     }
 
     # check is separated from run, could have more/different CNV tools
     my $job_id = "CnvCheck_${sample}_" . getId();
-    my $bash_file = catfile($cnv_dirs->{job}, "${job_id}.sh");
+    my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     writeFromTemplate(
         "CnvCheck.sh.tt", $bash_file,
         cnv_name => $cnv_name,
-        dirs => $cnv_dirs,
+        dirs => $dirs,
         opt => $opt,
     );
 
     my $qsub = qsubTemplate($opt, "CNVCHECK");
     if (@cnv_jobs) {
-        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) . " $bash_file";
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid " . join(",", @cnv_jobs) . " $bash_file";
     } else {
-        system "$qsub -o $cnv_dirs->{log} -e $cnv_dirs->{log} -N $job_id $bash_file";
+        system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id $bash_file";
     }
     push @{$check_cnv_jobs}, $job_id;
     return;
@@ -111,10 +103,7 @@ sub runFreec {
         return;
     }
 
-    $dirs->{freec}{out} = catfile($dirs->{out}, "freec");
-    if (!-d $dirs->{freec}{out}) {
-        make_path($dirs->{freec}{out}) or die "Couldn't create directory $dirs->{freec}{out}: $!";
-    }
+    $dirs->{freec}{out} = addSubDir($dirs, "freec");
 
     my @mappabilityTracks;
     @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
@@ -161,10 +150,7 @@ sub runQDNAseq {
         return;
     }
 
-    $dirs->{qdnaseq}{out} = catfile($dirs->{out}, "qdnaseq");
-    if (!-e $dirs->{qdnaseq}{out}) {
-        make_path($dirs->{qdnaseq}{out}) or die "Couldn't create directory $dirs->{qdnaseq}{out}: $!";
-    }
+    $dirs->{qdnaseq}{out} = addSubDir($dirs, "qdnaseq");
 
     my $job_id = "QDNAseq_${sample_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");

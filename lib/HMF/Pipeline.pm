@@ -5,7 +5,6 @@ use discipline;
 
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 use File::Basename;
-use File::Path qw(make_path);
 use File::Spec::Functions;
 
 use HMF::Pipeline::Metadata;
@@ -24,7 +23,7 @@ use HMF::Pipeline::Kinship;
 use HMF::Pipeline::Finalize;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(createOutputDirs lockRun run);
+our @EXPORT_OK = qw(lockRun run);
 our $VERSION = 'v1.11';
 
 
@@ -52,57 +51,6 @@ sub run {
         HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
         HMF::Pipeline::Metadata::writeLinks($opt);
-    }
-    return;
-}
-
-sub createOutputDirs {
-    my ($output_dir, $samples) = @_;
-
-    if (!-d $output_dir) {
-        make_path($output_dir) or die "Couldn't create directory ${output_dir}: $!";
-    }
-
-    if (!-d "${output_dir}/QCStats") {
-        mkdir("${output_dir}/QCStats") or die "Couldn't create directory ${output_dir}/QCStats: $!";
-    }
-
-    if (!-d "${output_dir}/jobs") {
-        mkdir("${output_dir}/jobs") or die "Couldn't create directory ${output_dir}/jobs: $!";
-    }
-
-    if (!-d "${output_dir}/logs") {
-        mkdir("${output_dir}/logs") or die "Couldn't create directory ${output_dir}/logs: $!";
-    }
-
-    if (!-d "${output_dir}/tmp") {
-        mkdir("${output_dir}/tmp") or die "Couldn't create directory ${output_dir}/tmp: $!";
-    }
-
-    foreach my $sample (keys %{$samples}) {
-        if (!-d "${output_dir}/$sample") {
-            mkdir("${output_dir}/$sample") or die "Couldn't create directory ${output_dir}/$sample: $!";
-        }
-
-        if (!-d "${output_dir}/$sample/mapping") {
-            mkdir("${output_dir}/$sample/mapping") or die "Couldn't create directory ${output_dir}/$sample/mapping: $!";
-        }
-
-        if (!-d "${output_dir}/$sample/QCStats") {
-            mkdir("${output_dir}/$sample/QCStats") or die "Couldn't create directory ${output_dir}/$sample/QCStats: $!";
-        }
-
-        if (!-d "${output_dir}/$sample/jobs") {
-            mkdir("${output_dir}/$sample/jobs") or die "Couldn't create directory ${output_dir}/$sample/jobs: $!";
-        }
-
-        if (!-d "${output_dir}/$sample/logs") {
-            mkdir("${output_dir}/$sample/logs") or die "Couldn't create directory ${output_dir}/$sample/logs: $!";
-        }
-
-        if (!-d "${output_dir}/$sample/tmp") {
-            mkdir("${output_dir}/$sample/tmp") or die "Couldn't create directory ${output_dir}/$sample/tmp: $!";
-        }
     }
     return;
 }

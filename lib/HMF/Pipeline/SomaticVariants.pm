@@ -3,13 +3,13 @@ package HMF::Pipeline::SomaticVariants;
 use FindBin::libs;
 use discipline;
 
-use File::Path qw(make_path);
 use File::Basename;
 use File::Spec::Functions;
 use Carp;
 
-use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
+use HMF::Pipeline::Config qw(createDirs addSubDir);
 use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
 use HMF::Pipeline::Template qw(writeFromTemplate);
 use HMF::Pipeline::Metadata;
 
@@ -30,7 +30,6 @@ sub run {
             push @pileup_jobs, $pileup_job;
         }
     }
-
     $opt->{RUNNING_JOBS}->{'pileup'} = \@pileup_jobs;
 
     my $metadata = HMF::Pipeline::Metadata::parse($opt);
@@ -42,16 +41,7 @@ sub run {
 
     my $somatic_name = "${ref_sample}_${tumor_sample}";
     my $out_dir = catfile($opt->{OUTPUT_DIR}, "somaticVariants", $somatic_name);
-    my %dirs = (
-        out => $out_dir,
-        tmp => catfile($out_dir, "tmp"),
-        log => catfile($out_dir, "logs"),
-        job => catfile($out_dir, "jobs"),
-    );
-
-    make_path(values %dirs, {error => \my $errors});
-    my $messages = join ", ", map { join ": ", each $_ } @{$errors};
-    die "Couldn't create somatic output directories: $messages" if $messages;
+    my $dirs = createDirs($out_dir);
 
     my @running_jobs;
     push @running_jobs, @{$opt->{RUNNING_JOBS}->{$tumor_sample}} if @{$opt->{RUNNING_JOBS}->{$tumor_sample}};
@@ -61,7 +51,7 @@ sub run {
 
     say "\n$somatic_name \t $ref_sample_bam \t $tumor_sample_bam";
 
-    my $done_file = catfile($dirs{log}, "${somatic_name}.done");
+    my $done_file = catfile($dirs->{log}, "${somatic_name}.done");
     if (-f $done_file) {
         say "WARNING: $done_file exists, skipping";
         return;
@@ -70,29 +60,29 @@ sub run {
     my @somvar_jobs;
     if ($opt->{SOMVAR_STRELKA} eq "yes") {
         say "\n###SCHEDULING STRELKA####";
-        my $strelka_job = runStrelka($tumor_sample, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%dirs, $opt);
+        my $strelka_job = runStrelka($tumor_sample, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $strelka_job if $strelka_job;
     }
 
     if ($opt->{SOMVAR_VARSCAN} eq "yes") {
         say "\n###SCHEDULING VARSCAN####";
-        my $varscan_job = runVarscan($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%dirs, $opt);
+        my $varscan_job = runVarscan($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $varscan_job if $varscan_job;
     }
 
     if ($opt->{SOMVAR_FREEBAYES} eq "yes") {
         say "\n###SCHEDULING FREEBAYES####";
-        my $freebayes_job = runFreeBayes($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%dirs, $opt);
+        my $freebayes_job = runFreeBayes($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $freebayes_job if $freebayes_job;
     }
 
     if ($opt->{SOMVAR_MUTECT} eq "yes") {
         say "\n###SCHEDULING MUTECT####";
-        my $mutect_job = runMutect($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, \%dirs, $opt);
+        my $mutect_job = runMutect($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $mutect_job if $mutect_job;
     }
 
-    my $job_id = mergeSomatics($tumor_sample, $somatic_name, \@somvar_jobs, \%dirs, $opt);
+    my $job_id = mergeSomatics($tumor_sample, $somatic_name, \@somvar_jobs, $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
     return;
 }
@@ -268,11 +258,7 @@ sub runVarscan {
     my @running_jobs = @{$running_jobs};
     push @running_jobs, @{$opt->{RUNNING_JOBS}->{'pileup'}};
 
-    $dirs->{varscan}->{out} = catfile($dirs->{out}, "varscan");
-
-    if (!-d $dirs->{varscan}->{out}) {
-        make_path($dirs->{varscan}->{out}) or die "Couldn't create directory $dirs->{varscan}->{out}: $!";
-    }
+    $dirs->{varscan}->{out} = addSubDir($dirs, "varscan");
 
     my $done_file = catfile($dirs->{log}, "varscan.done");
     if (-f $done_file) {
@@ -342,15 +328,8 @@ sub runFreeBayes {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
 
-    $dirs->{freebayes}->{out} = catfile($dirs->{out}, "freebayes");
-    $dirs->{freebayes}->{tmp} = catfile($dirs->{freebayes}->{out}, "tmp");
-
-    if (!-d $dirs->{freebayes}->{out}) {
-        make_path($dirs->{freebayes}->{out}) or die "Couldn't create directory $dirs->{freebayes}->{out}: $!";
-    }
-    if (!-d $dirs->{freebayes}->{tmp}) {
-        make_path($dirs->{freebayes}->{tmp}) or die "Couldn't create directory $dirs->{freebayes}->{tmp}: $!";
-    }
+    $dirs->{freebayes}->{out} = addSubDir($dirs, "freebayes");
+    $dirs->{freebayes}->{tmp} = addSubDir($dirs->{freebayes}, "tmp");
 
     my $done_file = catfile($dirs->{log}, "freebayes.done");
     if (-f $done_file) {
@@ -413,15 +392,8 @@ sub runMutect {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
 
-    $dirs->{mutect}->{out} = catfile($dirs->{out}, "mutect");
-    $dirs->{mutect}->{tmp} = catfile($dirs->{mutect}->{out}, "tmp");
-
-    if (!-d $dirs->{mutect}->{out}) {
-        make_path($dirs->{mutect}->{out}) or die "Couldn't create directory $dirs->{mutect}->{out}: $!";
-    }
-    if (!-d $dirs->{mutect}->{tmp}) {
-        make_path($dirs->{mutect}->{tmp}) or die "Couldn't create directory $dirs->{mutect}->{tmp}: $!";
-    }
+    $dirs->{mutect}->{out} = addSubDir($dirs, "mutect");
+    $dirs->{mutect}->{tmp} = addSubDir($dirs->{mutect}, "tmp");
 
     my $done_file = catfile($dirs->{log}, "mutect.done");
     if (-f $done_file) {

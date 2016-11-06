@@ -5,6 +5,7 @@ use discipline;
 
 use File::Spec::Functions;
 
+use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Job qw(fromTemplate);
 use HMF::Pipeline::Sge qw(qsubTemplate jobNative qsubJava);
 
@@ -102,14 +103,7 @@ sub operationWithSliceChecks {
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
     my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
-    my $dirs = {
-        out => $out_dir,
-        log => catfile($out_dir, "logs"),
-        tmp => catfile($out_dir, "tmp"),
-        job => catfile($out_dir, "jobs"),
-        mapping => catfile($out_dir, "mapping"),
-    };
-
+    my $dirs = createDirs($out_dir, mapping => "mapping");
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
     say "\t${sample_bam_path}";
 
