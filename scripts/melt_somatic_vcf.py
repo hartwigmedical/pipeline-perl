@@ -98,11 +98,6 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                     variant_dp_counts = []
                     caller_count = 0  # used for CSP info field
 
-                    if len(ref) == 1 and len(max(alts, key=len)) == 1:
-                        variant_type = 'snp'
-                    else:
-                        variant_type = 'indel'
-
                     # Setup gt format indexes
                     variant_gt_format = variant[8].split(':')
                     dp_index = variant_gt_format.index('DP')
@@ -128,34 +123,47 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                         if '0' in variant_call[gt_index]:
                             ref_support += 1
 
-                        # Collect AD
-                        if somatic_caller == 'freebayes':
-                            # freebayes_example.vcf:##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
-                            ro_index = variant_gt_format.index('RO')
-                            ref_ad.append(float(variant_call[ro_index]))
-                        elif somatic_caller == 'mutect':
-                            # mutect_example.vcf:##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
-                            if 'AD' in variant_gt_format:
-                                ad_index = variant_gt_format.index('AD')
-                                ref_ad.append(float(variant_call[ad_index].split(',')[0]))
-                            else:  # AD NOT ALWAYS present.   Should use RD = (1-FA)*DP, AD = FA * DP  in this case
-                                freq = float(variant_call[variant_gt_format.index('FA')])
-                                variant_dp = float(variant_call[dp_index])
-                                ref_ad.append((1 - freq) * variant_dp)
-                        elif somatic_caller == 'varscan':
-                            # varscan_example.vcf:##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
-                            rd_index = variant_gt_format.index('RD')
-                            ref_ad.append(float(variant_call[rd_index]))
-                        elif somatic_caller == 'strelka':
-                            if variant_type == 'snp':
-                                # strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
-                                # strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
-                                # strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
-                                # strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
-                                ref_ad.append(float(variant_call[variant_gt_format.index(ref + 'U')].split(',')[0]))
-                            elif variant_type == 'indel':
-                                # strelka_example.vcf:##FORMAT=<ID=TAR,Number=2,Type=Integer,Description="Reads strongly supporting alternate allele for tiers 1,2"> == REF
-                                ref_ad.append(float(variant_call[variant_gt_format.index('TAR')].split(',')[0]))
+                        try:
+                            # Collect AD
+                            if somatic_caller == 'freebayes':
+                                # freebayes_example.vcf:##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+                                ro_index = variant_gt_format.index('RO')
+                                ref_ad.append(float(variant_call[ro_index]))
+                            elif somatic_caller == 'mutect':
+                                # mutect_example.vcf:##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+                                if 'AD' in variant_gt_format:
+                                    ad_index = variant_gt_format.index('AD')
+                                    ref_ad.append(float(variant_call[ad_index].split(',')[0]))
+                                else:  # AD NOT ALWAYS present.   Should use RD = (1-FA)*DP, AD = FA * DP  in this case
+                                    freq = float(variant_call[variant_gt_format.index('FA')])
+                                    variant_dp = float(variant_call[dp_index])
+                                    ref_ad.append((1 - freq) * variant_dp)
+                            elif somatic_caller == 'varscan':
+                                # varscan_example.vcf:##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
+                                rd_index = variant_gt_format.index('RD')
+                                ref_ad.append(float(variant_call[rd_index]))
+                            elif somatic_caller == 'strelka':
+                                variant_call = variant_calls[tumor_sample_index].split(':')
+                                variant_call_gt = variant_call[gt_index].split('/')
+                                called_alts = [ alt for (alt_index, alt) in enumerate(alts) if str(alt_index + 1) in variant_call_gt ]
+                                # TODO: what about both?
+                                if len(ref) == 1 and len(max(called_alts, key=len)) == 1:
+                                    variant_type = 'snp'
+                                else:
+                                    variant_type = 'indel'
+
+                                if variant_type == 'snp':
+                                    # strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+                                    # strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+                                    # strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+                                    # strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+                                    ref_ad.append(float(variant_call[variant_gt_format.index(ref + 'U')].split(',')[0]))
+                                elif variant_type == 'indel':
+                                    # strelka_example.vcf:##FORMAT=<ID=TAR,Number=2,Type=Integer,Description="Reads strongly supporting alternate allele for tiers 1,2"> == REF
+                                    ref_ad.append(float(variant_call[variant_gt_format.index('TAR')].split(',')[0]))
+                        except ValueError as e:
+                            print >>sys.stderr, "Error processing variant for {} (sample {}: {}):\n{}".format(somatic_caller, tumor_sample_index, samples[tumor_sample_index], "\n".join(variant))
+                            raise e
 
                     # Check support for each alternative allele among callers
                     alts_support = []  # used for ACS info field
@@ -177,43 +185,57 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                             if str(alt_allele_num) in variant_call_gt:
                                 alt_support += 1
 
-                            # Collect AD
-                            if somatic_caller == 'freebayes':
-                                # freebayes_example.vcf:##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
-                                # GATK combineVariants does not change AO field if the order of alt alleles is changed. Therefore in some cases an incorrect AO value is selected.
-                                variant_ao_index = variant_gt_format.index('AO')
-                                variant_ao = variant_call[variant_ao_index].split(',')
-                                gt_alt_index = min(alt_index, len(variant_ao) - 1)
-                                alt_ad.append(float(variant_ao[gt_alt_index]))
-                            elif somatic_caller == 'mutect':
-                                # mutect_example.vcf:##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
-                                if 'AD' in variant_gt_format:
-                                    ad_index = variant_gt_format.index('AD')
-                                    alt_ad.append(float(variant_call[ad_index].split(',')[alt_allele_num]))
-                                else:  # AD NOT ALWAYS present. Should use RD = (1-FA)*DP, AD = FA * DP  in this case
-                                    freq = float(variant_call[variant_gt_format.index('FA')])
-                                    variant_dp = float(variant_call[dp_index])
-                                    alt_ad.append(freq * variant_dp)
-                            elif somatic_caller == 'varscan':
-                                # varscan_example.vcf:##FORMAT=<ID=AD,Number=1,Type=Integer,Description="Depth of variant-supporting bases (reads2)">
-                                if 'AD' in variant_gt_format:
-                                    ad_index = variant_gt_format.index('AD')
-                                    alt_ad.append(float(variant_call[ad_index]))
-                                else:
-                                    # AD NOT ALWAYS present for varscan.  use FREQ * DP in this case
-                                    freq = float(variant_call[variant_gt_format.index('FREQ')].rstrip('%')) / 100
-                                    variant_dp = float(variant_call[dp_index])
-                                    alt_ad.append(freq * variant_dp)
-                            elif somatic_caller == 'strelka':
-                                if variant_type == 'snp':
-                                    # strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
-                                    # strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
-                                    # strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
-                                    # strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
-                                    alt_ad.append(float(variant_call[variant_gt_format.index(alt + 'U')].split(',')[0]))
-                                else:
-                                    # strelka_example.vcf:##FORMAT=<ID=TIR,Number=2,Type=Integer,Description="Reads strongly supporting indel allele for tiers 1,2"> == ALT
-                                    alt_ad.append(float(variant_call[variant_gt_format.index('TIR')].split(',')[0]))
+                            try:
+                                # Collect AD
+                                if somatic_caller == 'freebayes':
+                                    # freebayes_example.vcf:##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+                                    # GATK combineVariants does not change AO field if the order of alt alleles is changed. Therefore in some cases an incorrect AO value is selected.
+                                    variant_ao_index = variant_gt_format.index('AO')
+                                    variant_ao = variant_call[variant_ao_index].split(',')
+                                    gt_alt_index = min(alt_index, len(variant_ao) - 1)
+                                    alt_ad.append(float(variant_ao[gt_alt_index]))
+                                elif somatic_caller == 'mutect':
+                                    # mutect_example.vcf:##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+                                    if 'AD' in variant_gt_format:
+                                        ad_index = variant_gt_format.index('AD')
+                                        alt_ad.append(float(variant_call[ad_index].split(',')[alt_allele_num]))
+                                    else:  # AD NOT ALWAYS present. Should use RD = (1-FA)*DP, AD = FA * DP  in this case
+                                        freq = float(variant_call[variant_gt_format.index('FA')])
+                                        variant_dp = float(variant_call[dp_index])
+                                        alt_ad.append(freq * variant_dp)
+                                elif somatic_caller == 'varscan':
+                                    # varscan_example.vcf:##FORMAT=<ID=AD,Number=1,Type=Integer,Description="Depth of variant-supporting bases (reads2)">
+                                    if 'AD' in variant_gt_format:
+                                        ad_index = variant_gt_format.index('AD')
+                                        alt_ad.append(float(variant_call[ad_index]))
+                                    else:
+                                        # AD NOT ALWAYS present for varscan.  use FREQ * DP in this case
+                                        freq = float(variant_call[variant_gt_format.index('FREQ')].rstrip('%')) / 100
+                                        variant_dp = float(variant_call[dp_index])
+                                        alt_ad.append(freq * variant_dp)
+                                elif somatic_caller == 'strelka':
+                                    if len(ref) == 1 and len(alt) == 1:
+                                        variant_type = 'snp'
+                                    else:
+                                        variant_type = 'indel'
+                                    try:
+                                        if variant_type == 'snp':
+                                            # strelka_example.vcf:##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+                                            # strelka_example.vcf:##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+                                            # strelka_example.vcf:##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+                                            # strelka_example.vcf:##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+                                            alt_ad.append(float(variant_call[variant_gt_format.index(alt + 'U')].split(',')[0]))
+                                        elif variant_type == 'indel':
+                                            # strelka_example.vcf:##FORMAT=<ID=TIR,Number=2,Type=Integer,Description="Reads strongly supporting indel allele for tiers 1,2"> == ALT
+                                            alt_ad.append(float(variant_call[variant_gt_format.index('TIR')].split(',')[0]))
+                                    except ValueError as e:
+                                        if str(alt_allele_num) in variant_call_gt:
+                                            raise e
+                                        else:
+                                            pass
+                            except ValueError as e:
+                                print >>sys.stderr, "Error processing variant for {} (sample {}: {}):\n{}".format(somatic_caller, tumor_sample_index, samples[tumor_sample_index], "\n".join(variant))
+                                raise e
 
                         # Store results
                         alts_support.append(alt_support)
@@ -232,7 +254,10 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                     for alt_index, alt_support in enumerate(alts_support):
                         if alt_support:
                             gt.append(str(alt_index + 1))
-                        ad.append(int(round(sum(alts_ad[alt_index]) / len(alts_ad[alt_index]))))
+                        if len(alts_ad[alt_index]) != 0:
+                            ad.append(int(round(sum(alts_ad[alt_index]) / len(alts_ad[alt_index]))))
+                        else:
+                            ad.append('0')
 
                     # Correct hom calls
                     if len(gt) == 1:
