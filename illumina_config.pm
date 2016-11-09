@@ -115,7 +115,7 @@ sub copyConfigAndScripts {
 
     my $final_ini = catfile($opt->{OUTPUT_DIR}, "logs", "final.ini");
     open my $fh, ">", $final_ini or die "Couldn't open $final_ini: $!";
-    say $fh join "\n", map { "$_\t$opt->{$_}" if defined $opt->{$_} } keys %{$opt};
+    say $fh join "\n", map { "$_\t$opt->{$_}" } grep { defined $opt->{$_} and not ref $opt->{$_} } sort keys %{$opt};
     close $fh;
 
     return;
