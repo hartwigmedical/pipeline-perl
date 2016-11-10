@@ -19,6 +19,7 @@ use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::SomaticVariants;
 use HMF::Pipeline::CopyNumber;
 use HMF::Pipeline::Baf;
+use HMF::Pipeline::CallableLoci;
 use HMF::Pipeline::Kinship;
 use HMF::Pipeline::Finalize;
 
@@ -45,6 +46,7 @@ sub run {
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
         HMF::Pipeline::Baf::run($opt) if $opt->{BAF} eq "yes";
+        HMF::Pipeline::CallableLoci::run($opt) if $opt->{CALLABLE_LOCI} eq "yes";
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
         HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";

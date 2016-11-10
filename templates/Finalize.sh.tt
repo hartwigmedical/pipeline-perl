@@ -61,6 +61,9 @@ check_step "[% sample %]" "[% sample %]" "BaseRecalibration"
 [% IF opt.BAF == "yes" -%]
 check_step "[% sample %]" "[% sample %]" "BAF"
 [% END -%]
+[% IF opt.CALLABLE_LOCI == "yes" -%]
+check_step "[% sample %]" "[% sample %]" "CallableLoci"
+[% END -%]
 echo >> [% log_file %]
 [% END -%]
 

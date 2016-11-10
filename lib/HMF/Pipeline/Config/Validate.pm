@@ -214,6 +214,7 @@ sub configChecks {
         SOMATIC_VARIANTS => \&key_not_present,
         COPY_NUMBER => \&key_not_present,
         BAF => \&key_not_present,
+        CALLABLE_LOCI => \&key_not_present,
         ANNOTATE_VARIANTS => \&key_not_present,
         KINSHIP => \&key_not_present,
         FINALIZE => \&key_not_present,
@@ -452,6 +453,18 @@ sub configChecks {
                 BAF_TIME => \&key_not_present,
                 BIOVCF_PATH => \&missing_directory,
                 BAF_SNPS => \&key_not_present,
+            }
+        ),
+        CALLABLE_LOCI => if_enabled({
+                CALLABLE_LOCI_QUEUE => \&key_not_present,
+                CALLABLE_LOCI_TIME => \&key_not_present,
+                CALLABLE_LOCI_THREADS => \&key_not_present,
+                CALLABLE_LOCI_MEM => \&key_not_present,
+                CALLABLE_LOCI_BASEQUALITY => \&key_not_present,
+                CALLABLE_LOCI_MAPQUALITY => \&key_not_present,
+                CALLABLE_LOCI_DEPTH => \&key_not_present,
+                CALLABLE_LOCI_DEPTHLOWMAPQ => \&key_not_present,
+                CALLING_TARGETS => \&missing_optional_file,
             }
         ),
         ANNOTATE_VARIANTS => if_enabled({
