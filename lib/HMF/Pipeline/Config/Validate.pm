@@ -204,23 +204,12 @@ sub configChecks {
         CLUSTER_TMP => \&key_not_present,
         CLUSTER_RESERVATION => \&key_not_present,
         CLUSTER_PROJECT => \&key_not_present,
-        PRESTATS => \&key_not_present,
-        MAPPING => \&key_not_present,
-        POSTSTATS => \&key_not_present,
-        INDELREALIGNMENT => \&key_not_present,
-        BASEQUALITYRECAL => \&key_not_present,
-        VARIANT_CALLING => \&key_not_present,
-        FILTER_VARIANTS => \&key_not_present,
-        SOMATIC_VARIANTS => \&key_not_present,
-        COPY_NUMBER => \&key_not_present,
-        BAF => \&key_not_present,
-        CALLABLE_LOCI => \&key_not_present,
-        ANNOTATE_VARIANTS => \&key_not_present,
-        KINSHIP => \&key_not_present,
-        FINALIZE => \&key_not_present,
         GENOME => \&missing_file,
-        SAMBAMBA_PATH => \&missing_directory,
         QUEUE_PATH => \&missing_directory,
+        # these are required for BAM input, regardless of settings
+        SAMTOOLS_PATH => \&missing_directory,
+        SAMBAMBA_PATH => \&missing_directory,
+        MAPPING_THREADS => \&key_not_present,
         PRESTATS => if_enabled({
                 FASTQC_PATH => \&missing_directory,
                 PRESTATS_THREADS => \&key_not_present,
@@ -236,18 +225,17 @@ sub configChecks {
                 MAPPING_QUEUE => \&key_not_present,
                 MAPPING_TIME => \&key_not_present,
                 MAPPING_SETTINGS => \&key_not_present,
-
                 MARKDUP_QUEUE => \&key_not_present,
                 MARKDUP_TIME => \&key_not_present,
                 MARKDUP_THREADS => \&key_not_present,
                 MARKDUP_MEM => \&key_not_present,
                 MARKDUP_OVERFLOW_LIST_SIZE => \&key_not_present,
+                FLAGSTAT_QUEUE => \&key_not_present,
+                FLAGSTAT_THREADS => \&key_not_present,
+                FLAGSTAT_MEM => \&key_not_present,
+                FLAGSTAT_TIME => \&key_not_present,
             }
         ),
-        FLAGSTAT_QUEUE => \&key_not_present,
-        FLAGSTAT_THREADS => \&key_not_present,
-        FLAGSTAT_MEM => \&key_not_present,
-        FLAGSTAT_TIME => \&key_not_present,
         POSTSTATS => if_enabled({
                 BAMMETRICS_PATH => \&missing_directory,
                 PICARD_PATH => \&missing_directory,
@@ -526,7 +514,7 @@ sub if_enabled {
 
     return sub {
         my ($key, $value, $opt) = @_;
-        not key_not_present($key, $value) and $value eq "yes" and return applyChecks($more_checks, $opt);
+        key_not_present($key, $value) or $value eq "yes" and return applyChecks($more_checks, $opt);
     };
 }
 

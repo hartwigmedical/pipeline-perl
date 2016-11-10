@@ -375,8 +375,8 @@ is_deeply(
         },
         {},
     ),
-    [],
-    "no other checks if not present"
+    ["No KEY option found in config files"],
+    "detects missing key with other checks"
 );
 
 
