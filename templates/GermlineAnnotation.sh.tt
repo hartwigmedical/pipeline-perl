@@ -153,6 +153,7 @@ tail_output="$(tail -n 1 [% out_vcf %] | cut -f 1,2)"
 if [ -s [% pre_annotated_vcf %] -a -s [% out_vcf %] -a "$tail_input" == "$tail_output" ]; then
     mv "[% out_vcf %]" "[% annotated_vcf %]"
     ln -rs "[% annotated_vcf %]" "[% out_vcf %]"
+    ln -rs "[% annotated_vcf %].idx" "[% out_vcf %].idx"
     touch [% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done
     [% INCLUDE Status.tt step="" status="success" %]
 else
