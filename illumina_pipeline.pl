@@ -51,8 +51,8 @@ sub runPipeline {
     if ($opt->{FASTQ} or $opt->{BAM}) {
         illumina_poststats::runPostStats($opt) if $opt->{POSTSTATS} eq "yes";
         illumina_realign::runRealignment($opt) if $opt->{INDELREALIGNMENT} eq "yes";
-        illumina_baseRecal::runBaseRecalibration($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         linkBamArtefacts($opt);
+        illumina_baseRecal::runBaseRecalibration($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         illumina_somaticVariants::runSomaticVariantCallers($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         illumina_copyNumber::runCopyNumberTools($opt) if $opt->{COPY_NUMBER} eq "yes";
         illumina_baf::runBAF($opt) if $opt->{BAF} eq "yes";
