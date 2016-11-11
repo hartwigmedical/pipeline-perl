@@ -59,25 +59,25 @@ sub run {
 
     my @somvar_jobs;
     if ($opt->{SOMVAR_STRELKA} eq "yes") {
-        say "\n###SCHEDULING STRELKA####";
+        say "\n### SCHEDULING STRELKA ###";
         my $strelka_job = runStrelka($tumor_sample, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $strelka_job if $strelka_job;
     }
 
     if ($opt->{SOMVAR_VARSCAN} eq "yes") {
-        say "\n###SCHEDULING VARSCAN####";
+        say "\n### SCHEDULING VARSCAN ###";
         my $varscan_job = runVarscan($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $varscan_job if $varscan_job;
     }
 
     if ($opt->{SOMVAR_FREEBAYES} eq "yes") {
-        say "\n###SCHEDULING FREEBAYES####";
+        say "\n### SCHEDULING FREEBAYES ###";
         my $freebayes_job = runFreeBayes($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $freebayes_job if $freebayes_job;
     }
 
     if ($opt->{SOMVAR_MUTECT} eq "yes") {
-        say "\n###SCHEDULING MUTECT####";
+        say "\n### SCHEDULING MUTECT ###";
         my $mutect_job = runMutect($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, \@running_jobs, $dirs, $opt);
         push @somvar_jobs, $mutect_job if $mutect_job;
     }
@@ -90,7 +90,7 @@ sub run {
 sub mergeSomatics {
     my ($tumor_sample, $somatic_name, $somvar_jobs, $dirs, $opt) = @_;
 
-    say "\n###SCHEDULING MERGE SOMATIC VCFS####";
+    say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
 
     my @inputs;
     push @inputs, "-V:strelka strelka/passed.somatic.merged.vcf" if $opt->{SOMVAR_STRELKA} eq "yes";

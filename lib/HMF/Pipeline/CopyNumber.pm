@@ -64,12 +64,12 @@ sub runSampleCnv {
 
     my @cnv_jobs;
     if ($opt->{CNV_FREEC} eq "yes") {
-        say "\n###SCHEDULING FREEC####";
+        say "\n### SCHEDULING FREEC ###";
         my $freec_job = runFreec($sample, $sample_bam, $control_bam, $running_jobs, $dirs, $opt);
         push @cnv_jobs, $freec_job if $freec_job;
     }
     if ($opt->{CNV_QDNASEQ} eq "yes") {
-        say "\n###SCHEDULING QDNASEQ####";
+        say "\n### SCHEDULING QDNASEQ ###";
         my $qdnaseq_job = runQDNAseq($sample, $sample_bam, $running_jobs, $dirs, $opt);
         push @cnv_jobs, $qdnaseq_job if $qdnaseq_job;
     }

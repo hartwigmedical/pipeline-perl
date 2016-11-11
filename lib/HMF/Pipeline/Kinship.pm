@@ -17,7 +17,7 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING KINSHIP ####";
+    say "\n### SCHEDULING KINSHIP ###";
 
     my $job_id = "Kinship_" . getId();
     my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");

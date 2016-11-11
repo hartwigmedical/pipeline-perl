@@ -19,7 +19,7 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING PIPELINE FINALIZE ####";
+    say "\n### SCHEDULING PIPELINE FINALIZE ###";
 
     my $job_id = "$opt->{RUN_NAME}_" . getId();
     my $dirs = createDirs($opt->{OUTPUT_DIR});
