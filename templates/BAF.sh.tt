@@ -21,8 +21,14 @@ if [ -s [% sample_bam %] ]
 then
     [% INCLUDE Status.tt step="UNIFIED_GENOTYPER" status="processing" %]
   
-    java -Djava.io.tmpdir=[% dirs.tmp %] -Xmx[% opt.BAF_MEM %]G -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
-        -T UnifiedGenotyper -R [% opt.GENOME %] -L [% opt.BAF_SNPS %] -I [% sample_bam %] -o [% output_vcf %] --output_mode EMIT_ALL_SITES
+    java -Xmx[% opt.BAF_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
+        -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
+        -T UnifiedGenotyper \
+        -R [% opt.GENOME %] \
+        -L [% opt.BAF_SNPS %] \
+        -I [% sample_bam %] \
+        -o [% output_vcf %] \
+        --output_mode EMIT_ALL_SITES
 else
     fail "Sample BAM file does not exist."
 fi
@@ -50,8 +56,11 @@ if [ -s "[% dirs.out %]/[% output_vcf %]" ] && [ -e "[% dirs.log %]/BAF_UG_[% sa
 then
     [% INCLUDE Status.tt step="BAF_FILE" status="processing" %]
   
-    [% opt.BIOVCF_PATH %]/bio-vcf --num-threads [% opt.BAF_THREADS %] -i \
-        --sfilter '!s.empty? and s.dp>=20' --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
+    [% opt.BIOVCF_PATH %]/bio-vcf \
+        --num-threads [% opt.BAF_THREADS %] \
+        -i \
+        --sfilter '!s.empty? and s.dp>=20' \
+        --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
         --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' \
         < [% dirs.out %]/[% output_vcf %] \
         > [% output_baf %]
