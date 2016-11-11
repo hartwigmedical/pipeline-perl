@@ -41,8 +41,8 @@ sub run {
     if ($opt->{FASTQ} or $opt->{BAM}) {
         HMF::Pipeline::Poststats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
-        HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         linkBamArtefacts($opt);
+        HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
         HMF::Pipeline::Baf::run($opt) if $opt->{BAF} eq "yes";
