@@ -16,34 +16,28 @@ log_start "[% joint_name %]" "freebayes.log"
 
 cd "[% dirs.freebayes.out %]"
 
-if \
-   [% FOREACH input_vcf IN input_vcfs %]
-   [ -s "[% input_vcf %]" ] && \
-   [%- END %]
-   true
+if [ -s "[% input_vcf %]" ]
 then
     [% INCLUDE Status.tt step="" status="processing" %]
 
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% input_vcfs.join(' ') %] > "[% joint_name %].vcf"
-    uniq [% dirs.freebayes.out %]/[% joint_name %].vcf > [% dirs.freebayes.out %]/[% joint_name %].uniq.vcf
-    mv [% dirs.freebayes.out %]/[% joint_name %].uniq.vcf [% dirs.freebayes.out %]/[% joint_name %].vcf
-
-    # Filter based on BCBIO filters
-    [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py \
-        -v [% dirs.freebayes.out %]/[% joint_name %].vcf \
-        | java -Xmx[% opt.FREEBAYES_MEM %]G \
-            -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
-            filter "[% opt.FREEBAYES_SOMATICFILTER %]" \
-            > "[% dirs.freebayes.out %]/[% joint_name %]_somatic_filtered_unnormalized.vcf"
-
-    [% opt.VT_PATH %]/vt normalize \
-        -r "[% opt.GENOME %]" \
-        "[% dirs.freebayes.out %]/[% joint_name %]_somatic_filtered_unnormalized.vcf" \
-        -o "[% final_vcf %]"
+    java -Xmx[% opt.FREEBAYES_MEM %]G \
+        -jar "[% opt.SNPEFF_PATH %]/SnpSift.jar" \
+        filter "[% opt.FREEBAYES_SOMATICFILTER %]" \
+        "[% input_vcf %]" \
+        | [% opt.BCFTOOLS_PATH %]/bcftools view -a - \
+        | [% opt.VCFLIB_PATH %]/vcfallelicprimitives -t DECOMPOSED --keep-geno \
+        | [% opt.VCFLIB_PATH %]/vcffixup - \
+        | [% opt.VCFLIB_PATH %]/vcfstreamsort \
+        | [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py \
+        | [% opt.VCFLIB_PATH %]/vcfuniqalleles \
+        | [% opt.VT_PATH %]/vt normalize - \
+            -q \
+            -r "[% opt.GENOME %]" \
+            -o "[% final_vcf %]"
 
     if [ -s "[% final_vcf %]" ]
     then
-        rm -r [% dirs.freebayes.tmp %] [% input_vcfs.join(' ') %]
+        rm -r [% dirs.freebayes.tmp %]
 
         ## Check on complete output!!!
         touch "[% done_file %]"

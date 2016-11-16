@@ -8,6 +8,7 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs addSubDir getChromosomes sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Job::Vcf qw(concat);
 use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
 
@@ -65,13 +66,14 @@ sub mergeSomatics {
     HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt);
     return unless $master_done_file;
 
+    my $qsub = qsubJava($opt, "SOMVARMERGE");
     my $in_vcf;
     my $out_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");
     my $job_id = fromTemplate(
         "SomaticMerging",
         undef,
         0,
-        qsubJava($opt, "SOMVARMERGE"),
+        $qsub,
         $somvar_jobs,
         $dirs,
         $opt,
@@ -87,7 +89,7 @@ sub mergeSomatics {
             "SomaticFiltering",
             undef,
             0,
-            qsubJava($opt, "SOMVARMERGE"),
+            $qsub,
             [$job_id],
             $dirs,
             $opt,
@@ -105,7 +107,7 @@ sub mergeSomatics {
             "SomaticAnnotation",
             undef,
             0,
-            qsubJava($opt, "SOMVARMERGE"),
+            $qsub,
             [$job_id],
             $dirs,
             $opt,
@@ -118,7 +120,7 @@ sub mergeSomatics {
         "SomaticMelting",
         undef,
         0,
-        qsubJava($opt, "SOMVARMERGE"),
+        $qsub,
         [$job_id],
         $dirs,
         $opt,
@@ -166,6 +168,8 @@ sub runVarscan {
     my $final_vcf = catfile($dirs->{varscan}->{out}, "${joint_name}.merged.Somatic.hc.vcf");
 
     my $done_file = checkReportedDoneFile("Varscan", undef, $dirs, $opt) or return (undef, $final_vcf);
+    my $qsub = qsubJava($opt, "VARSCAN");
+
     my (@chr_jobs, @chr_snp_vcfs, @chr_indel_vcfs);
     foreach my $chr (@{getChromosomes($opt)}) {
         my $snp_vcf = "${joint_name}_${chr}.snp.vcf";
@@ -175,7 +179,7 @@ sub runVarscan {
             "Varscan",
             $chr,
             0,
-            qsubJava($opt, "VARSCAN"),
+            $qsub,
             [ @{$running_jobs}, @{$opt->{RUNNING_JOBS}->{pileup}} ],
             $dirs,
             $opt,
@@ -194,7 +198,7 @@ sub runVarscan {
         "VarscanPostProcess",
         undef,
         0,
-        qsubJava($opt, "VARSCAN"),
+        $qsub,
         \@chr_jobs,
         $dirs,
         $opt,
@@ -217,14 +221,16 @@ sub runFreebayes {
     my $final_vcf = catfile($dirs->{freebayes}->{out}, "${joint_name}_somatic_filtered.vcf");
 
     my $done_file = checkReportedDoneFile("Freebayes", undef, $dirs, $opt) or return (undef, $final_vcf);
+    my $qsub = qsubJava($opt, "FREEBAYES");
+
     my (@chr_jobs, @chr_vcfs);
     foreach my $chr (@{getChromosomes($opt)}) {
-        my $output_vcf = catfile($dirs->{freebayes}->{out}, "${joint_name}_${chr}.vcf");
+        my $output_vcf = catfile($dirs->{freebayes}->{tmp}, "${joint_name}_${chr}.vcf");
         my $job_id = fromTemplate(
             "Freebayes",
             $chr,
             0,
-            qsubJava($opt, "FREEBAYES"),
+            $qsub,
             $running_jobs,
             $dirs,
             $opt,
@@ -237,19 +243,22 @@ sub runFreebayes {
         push @chr_vcfs, $output_vcf;
     }
 
+    my $concat_vcf = catfile($dirs->{freebayes}->{out}, "${joint_name}.vcf");
+    my $concat_job_id = concat(\@chr_vcfs, $concat_vcf, $joint_name, "FREEBAYES", \@chr_jobs, $dirs, $opt);
+
     my $post_job_id = fromTemplate(
         "FreebayesPostProcess",
         undef,
         0,
-        qsubJava($opt, "FREEBAYES"),
-        \@chr_jobs,
+        $qsub,
+        [$concat_job_id],
         $dirs,
         $opt,
         joint_name => $joint_name,
-        input_vcfs => \@chr_vcfs,
+        input_vcf => $concat_vcf,
         final_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, $concat_job_id, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
 }
 
@@ -263,6 +272,8 @@ sub runMutect {
     my $final_vcf = catfile($dirs->{mutect}->{out}, "${joint_name}_mutect_passed.vcf");
 
     my $done_file = checkReportedDoneFile("Mutect", undef, $dirs, $opt) or return (undef, $final_vcf);
+    my $qsub = qsubJava($opt, "MUTECT");
+
     my (@chr_jobs, @chr_vcfs);
     foreach my $chr (@{getChromosomes($opt)}) {
         my $output_vcf = catfile($dirs->{mutect}->{tmp}, "${joint_name}_${chr}.vcf");
@@ -270,7 +281,7 @@ sub runMutect {
             "Mutect",
             $chr,
             0,
-            qsubJava($opt, "MUTECT"),
+            $qsub,
             $running_jobs,
             $dirs,
             $opt,
@@ -287,7 +298,7 @@ sub runMutect {
         "MutectPostProcess",
         undef,
         0,
-        qsubJava($opt, "MUTECT"),
+        $qsub,
         \@chr_jobs,
         $dirs,
         $opt,

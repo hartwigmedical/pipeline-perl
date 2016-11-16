@@ -109,7 +109,7 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
 
                     for somatic_caller, tumor_sample_index in tumor_samples_index.iteritems():
                         # Skip no calls
-                        if variant_calls[tumor_sample_index] == './.':
+                        if variant_calls[tumor_sample_index].replace('|', '/') == './.':
                             continue
 
                         variant_call = variant_calls[tumor_sample_index].split(':')
@@ -144,7 +144,7 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
                                 ref_ad.append(float(variant_call[rd_index]))
                             elif somatic_caller == 'strelka':
                                 variant_call = variant_calls[tumor_sample_index].split(':')
-                                variant_call_gt = variant_call[gt_index].split('/')
+                                variant_call_gt = variant_call[gt_index].replace('|', '/').split('/')
                                 called_alts = [ alt for (alt_index, alt) in enumerate(alts) if str(alt_index + 1) in variant_call_gt ]
                                 # TODO: what about both?
                                 if len(ref) == 1 and len(max(called_alts, key=len)) == 1:
@@ -175,13 +175,13 @@ def melt_somatic_vcf(vcf_file, remove_filtered, tumor_sample):
 
                         for somatic_caller, tumor_sample_index in tumor_samples_index.iteritems():
                             # Skip no calls
-                            if variant_calls[tumor_sample_index] == './.':
+                            if variant_calls[tumor_sample_index].replace('|', '/') == './.':
                                 continue
 
                             variant_call = variant_calls[tumor_sample_index].split(':')
 
                             # Check support for alt allele call
-                            variant_call_gt = variant_call[gt_index].split('/')
+                            variant_call_gt = variant_call[gt_index].replace('|', '/').split('/')
                             if str(alt_allele_num) in variant_call_gt:
                                 alt_support += 1
 

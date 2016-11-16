@@ -22,7 +22,7 @@ sub run {
     my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
-    my $annotated_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.annotated.vcf");
+    my $annotated_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.annotated.vcf");
     my $job_id = fromTemplate(
         "GermlineAnnotation",
         undef,

@@ -29,10 +29,9 @@ FREQ_RATIO_THRESHOLD = 2.7
 
 
 def customFilterFreebayes(vcf_file):
-    with open(vcf_file, "r") as f:
-        stripped_lines = (line.strip("\n") for line in f)
-        somatic_lines = (line for line in stripped_lines if _check_line(line))
-        print("\n".join(somatic_lines))
+    stripped_lines = (line.strip("\n") for line in vcf_file)
+    somatic_lines = (line for line in stripped_lines if _check_line(line))
+    print("\n".join(somatic_lines))
 
 
 def _check_line(line):
@@ -121,12 +120,12 @@ def _location(item):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     required_named = parser.add_argument_group("required named arguments")
-    required_named.add_argument("-v", "--vcf_file", help="path/to/file.vcf", required=True)
+    required_named.add_argument("-v", "--vcf_file", nargs="?", type=argparse.FileType('r'), default=sys.stdin, help="path/to/file.vcf")
     optional_named = parser.add_argument_group("optional named arguments")
-    optional_named.add_argument("-d", "--debug", action="store_true", help="debug logging")
+    optional_named.add_argument("-d", "--debug", action="store_true", help="extra debug logging")
 
     args = parser.parse_args()
     customFilterFreebayes(args.vcf_file)
