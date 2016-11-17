@@ -30,13 +30,15 @@ java -Xmx[% opt.STRELKA_MEM %]G \
     -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
+
 awk -F'\t' -v OFS='\t' '
     /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
     /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
     { print }' \
     "[% final_vcf %]" \
-    > temp.vcf
+    | [% opt.OUTPUT_DIR %]/scripts/filterStrelka.py \
+        > "[% final_vcf %].tmp"
 
-mv temp.vcf "[% final_vcf %]"
+mv "[% final_vcf %].tmp" "[% final_vcf %]"
 rm -r chromosomes/
 success
