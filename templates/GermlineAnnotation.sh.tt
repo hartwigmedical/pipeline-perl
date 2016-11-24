@@ -17,9 +17,9 @@ cd [% opt.OUTPUT_DIR %]
 echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-
     [% out_vcf = in_vcf %]
     [% out_vcf = out_vcf.replace('.vcf', '_snpEff.vcf') %]
+    rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
     if [ -s [% in_vcf %] ]; then
     [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="processing" %]
@@ -46,6 +46,7 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
 [% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
     [% out_vcf = in_vcf %]
     [% out_vcf = out_vcf.replace('.vcf', '_snpSift.vcf') %]
+    rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
     if [ -s [% in_vcf %] ]; then
     [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="processing" %]
@@ -79,6 +80,8 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     [% out_vcf = in_vcf %]
     [% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
     [% out_vcf = out_vcf.replace('.vcf', suffix) %]
+    rm -f "[% out_vcf %]" "[% out_vcf %].idx"
+
     if [ -s [% in_vcf %] ]; then
     [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="processing" %]
     
@@ -109,6 +112,8 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     [% out_vcf = in_vcf %]
     [% suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' %]
     [% out_vcf = out_vcf.replace('.vcf', suffix) %]
+    rm -f "[% out_vcf %]" "[% out_vcf %].idx"
+
     if [ -s [% in_vcf %] ]; then
         [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="processing" %]
 

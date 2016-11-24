@@ -15,6 +15,7 @@ export JOB_START=$(date +%s)
 in_vcf="[% basename %].vcf"
 basename="[% basename %]_snpEff"
 out_vcf="$basename.vcf"
+rm -f "$out_vcf" "$out_vcf.idx"
 
 cd "[% dirs.out %]"
 echo "Start Annotate	$(date)	$in_vcf	$(uname -n)" >> [% dirs.log %]/merge.log
@@ -32,6 +33,7 @@ then
     in_vcf="$out_vcf"
     basename+="_dbSNP"
     out_vcf="$basename.vcf"
+    rm -f "$out_vcf" "$out_vcf.idx"
 
     java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
         -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
@@ -49,6 +51,7 @@ then
         in_vcf="$out_vcf"
         basename+="_[% opt.ANNOTATE_IDNAME %]"
         out_vcf="$basename.vcf"
+        rm -f "$out_vcf" "$out_vcf.idx"
 
         java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
             -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
@@ -64,7 +67,9 @@ then
         then
             rm "$in_vcf" "$in_vcf.idx"
             mv "$out_vcf" "[% finalvcf %]"
+            mv "$out_vcf.idx" "[% finalvcf %].idx"
             ln -rs "[% finalvcf %]" "$out_vcf"
+            ln -rs "[% finalvcf %].idx" "$out_vcf.idx"
             [% INCLUDE Status.tt step="" status="success" %]
         else
             [% INCLUDE Status.tt step="" status="failed" %]
