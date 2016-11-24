@@ -16,6 +16,7 @@ cd "[% dirs.out %]"
 echo "Start Melt	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
 [% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t [% tumor_sample %] -v [% in_vcf %] > [% out_vcf %]
+[% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
 
 tail_input="$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)"
 tail_output="$(tail -n 1 [% out_vcf %] | cut -f 1,2)"
