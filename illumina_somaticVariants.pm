@@ -182,6 +182,7 @@ sub mergeSomatics {
     system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id -hold_jid $hold_jid $bash_file";
 
     illumina_metadata::linkArtefact($out_vcf, "somatic_vcf", $opt);
+    illumina_metadata::linkArtefact("${out_vcf}.idx", "somatic_vcf_index", $opt);
 
     return $job_id;
 }
