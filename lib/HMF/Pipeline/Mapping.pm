@@ -7,6 +7,7 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
+use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Job qw(getId);
 use HMF::Pipeline::Template qw(writeFromTemplate);
@@ -53,15 +54,27 @@ sub run {
         }
 
         my $bams = join " ", map { $_->{file} } @{$info->{jobs}};
+        my $output_bam = catfile($info->{dirs}->{mapping}, "${sample}_dedup.bam");
+        my $output_flagstat = catfile($info->{dirs}->{mapping}, "${sample}_dedup.flagstat");
         my $hold_jids = join ",", map { $_->{job_id} } @{$info->{jobs}};
         my $job_id = "MergeMarkdup_${sample}_" . getId();
         my $bash_file = catfile($info->{dirs}->{job}, "${job_id}.sh");
 
-        writeFromTemplate("MergeMarkdup.sh.tt", $bash_file, sample => $sample, bams => $bams, opt => $opt);
+        writeFromTemplate(
+            "MergeMarkdup.sh.tt", $bash_file,
+            sample => $sample,
+            bams => $bams,
+            output_bam => $output_bam,
+            output_flagstat => $output_flagstat,
+            dirs => $info->{dirs},
+            opt => $opt
+        );
+
         my $qsub = qsubTemplate($opt, "MARKDUP");
         my $stdout = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.out");
         my $stderr = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.err");
         system("$qsub -o $stdout -e $stderr -N $job_id -hold_jid $hold_jids $bash_file");
+
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return;

@@ -15,7 +15,7 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 
-echo "Start merge	$(date)	[% sample %]	$(uname -n)" >> logs/[% sample %].log
+echo "Start merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 bam_errors=""
 # shellcheck disable=SC2043
@@ -32,13 +32,22 @@ then
     [% INCLUDE Status.tt step=sample status="failed" %]
     fail "merging failed due to incomplete BAM-file(s):\n${bam_errors}"
 else
-    echo "Start markdup	$(date)	[% sample %].bam	$(uname -n)" >> logs/[% sample %].log
+    echo "Start markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
     ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
-    [% opt.SAMBAMBA_PATH %]/sambamba markdup --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] -t [% opt.MARKDUP_THREADS %] [% bams %]  mapping/[% sample %]_dedup.tmp.bam
-    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.MARKDUP_THREADS %] mapping/[% sample %]_dedup.tmp.bam > mapping/[% sample %]_dedup.flagstat
+    [% opt.SAMBAMBA_PATH %]/sambamba markdup \
+        --tmpdir=[% dirs.tmp %] \
+        --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] \
+        -t [% opt.MARKDUP_THREADS %] \
+        [% bams %] \
+        [% dirs.mapping %]/[% sample %]_dedup.tmp.bam
 
-    echo "End markdup	$(date)	[% sample %].bam	$(uname -n)" >> logs/[% sample %].log
+    [% opt.SAMBAMBA_PATH %]/sambamba flagstat \
+        -t [% opt.MARKDUP_THREADS %] \
+        [% dirs.mapping %]/[% sample %]_dedup.tmp.bam \
+        > [% output_flagstat %]
+
+    echo "End markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
     [% INCLUDE Status.tt step=sample status="finished" %]
 fi
@@ -50,30 +59,30 @@ JOB_NAME=MergeMarkdupCleanup
 # shellcheck disable=SC2016
 total_reads=$(find mapping -name '*_sorted.flagstat' -print0 | xargs -r0 awk '/d+/ { total += $1; nextfile } END { print total }')
 
-if [ -s "mapping/[% sample %]_dedup.flagstat" ]
+if [ -s "[% output_flagstat %]" ]
 then
-    dedup_reads=$(awk '/d+/ { print $1; exit }' "mapping/[% sample %]_dedup.flagstat")
+    dedup_reads=$(awk '/d+/ { print $1; exit }' "[% output_flagstat %]")
     if [ "$dedup_reads" -eq "$total_reads" ]
     then
-        rm -f "mapping/[% sample %].bam"
-        rm -f "mapping/[% sample %].bam.bai"
-        mv mapping/[% sample %]_dedup.tmp.bam mapping/[% sample %]_dedup.bam
-        mv mapping/[% sample %]_dedup.tmp.bam.bai mapping/[% sample %]_dedup.bam.bai
+        rm -f "[% dirs.mapping %]/[% sample %].bam"
+        rm -f "[% dirs.mapping %]/[% sample %].bam.bai"
+        mv [% dirs.mapping %]/[% sample %]_dedup.tmp.bam [% output_bam %]
+        mv [% dirs.mapping %]/[% sample %]_dedup.tmp.bam.bai [% output_bam %].bai
         shopt -s nullglob
-        for bam_file in mapping/*_sorted.bam; do
+        for bam_file in [% dirs.mapping %]/*_sorted.bam; do
             rm "$bam_file"
             rm "$bam_file.bai"
         done
 
-        touch logs/Mapping_[% sample %].done
+        touch [% dirs.log %]/Mapping_[% sample %].done
         [% INCLUDE Status.tt step=sample status="success" %]
     else
         [% INCLUDE Status.tt step=sample status="failed" %]
-        fail "read counts from *_sorted.flagstat files and mapping/[% sample %]_dedup.flagstat do not match"
+        fail "read counts from *_sorted.flagstat files and [% output_flagstat %] do not match"
     fi
 else
     [% INCLUDE Status.tt step=sample status="failed" %]
-    fail "mapping/[% sample %]_dedup.flagstat is empty."
+    fail "[% output_flagstat %] is empty."
 fi
 
-echo "End merge	$(date)	[% sample %]	$(uname -n)" >> logs/[% sample %].log
+echo "End merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
