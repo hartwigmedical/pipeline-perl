@@ -58,10 +58,12 @@ sub run {
     );
 
     my $qsub = qsubTemplate($opt, "FINALIZE");
+    my $stdout = catfile($dirs->{log}, "Finalize_$opt->{RUN_NAME}.out");
+    my $stderr = catfile($dirs->{log}, "Finalize_$opt->{RUN_NAME}.err");
     if (@running_jobs) {
-        system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} -hold_jid " . join(",", @running_jobs) . " $bash_file";
+        system "$qsub -o $stdout -e $stderr -N Finalize_${job_id} -hold_jid " . join(",", @running_jobs) . " $bash_file";
     } else {
-        system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} $bash_file";
+        system "$qsub -o $stdout -e $stderr -N Finalize_${job_id} $bash_file";
     }
 
     HMF::Pipeline::Metadata::linkArtefact($extras_tar, "extras_tar", $opt) if $opt->{EXTRAS};
