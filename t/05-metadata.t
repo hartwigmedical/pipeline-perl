@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Metadata qw(parse metaSampleName linkArtefact writeLinks);
+use HMF::Pipeline::Metadata qw(parse metaSampleName linkArtefact linkExtraArtefact writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -43,6 +43,11 @@ linkArtefact("filename_b", "artefact_b", $opt);
 ok(exists $opt->{LINKS}, "links stored in \$opt");
 is($opt->{LINKS}->{artefact_a}, "filename_a", "artefact filename stored");
 is($opt->{LINKS}->{artefact_b}, "filename_b", "another artefact filename stored");
+
+linkExtraArtefact(catfile($temp_dir, "filename_a"), $opt);
+linkExtraArtefact(catfile($temp_dir, "filename_b"), $opt);
+ok(exists $opt->{EXTRAS}, "extra links stored in \$opt");
+is_deeply($opt->{EXTRAS}, [ "filename_a", "filename_b" ], "extra artefact filenames stored");
 
 make_path(catfile($temp_dir, "logs"));
 writeLinks($opt);

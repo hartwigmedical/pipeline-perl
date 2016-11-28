@@ -137,6 +137,13 @@ sub runFreec {
     } else {
         system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id $bash_file";
     }
+
+    # dependent on implicit FREEC naming
+    (my $output_base = $opt->{BAM_FILES}->{$sample_name}) =~ s/\.bam$//;
+    foreach my $artefact ("${output_base}.bam_ratio_karyotype.pdf", "${output_base}.bam_ratio.txt.png", "${output_base}.bam_CNVs.p.value.txt") {
+        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{freec}->{out}, $artefact), $opt);
+    }
+
     return $job_id;
 }
 
@@ -168,6 +175,13 @@ sub runQDNAseq {
     } else {
         system "$qsub -o $dirs->{log} -e $dirs->{log} -N $job_id $bash_file";
     }
+
+    # dependent on implicit QDNAseq naming
+    (my $output_vcf = $opt->{BAM_FILES}->{$sample_name}) =~ s/\.bam$/.vcf/;
+    foreach my $artefact ($output_vcf, "calls.igv", "copynumber.igv", "segments.igv") {
+        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{qdnaseq}->{out}, $artefact), $opt);
+    }
+
     return $job_id;
 }
 

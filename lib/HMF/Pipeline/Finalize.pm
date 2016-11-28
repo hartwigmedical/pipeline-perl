@@ -25,6 +25,8 @@ sub run {
     my $dirs = createDirs($opt->{OUTPUT_DIR});
     my $bash_file = catfile($dirs->{job}, "Finalize_${job_id}.sh");
     my $log_file = catfile($dirs->{log}, "PipelineCheck.log");
+    my $extras_tar = catfile($dirs->{out}, "$opt->{RUN_NAME}_extras.tar.gz");
+    my $extras_zip = catfile($dirs->{out}, "$opt->{RUN_NAME}_extras.zip");
 
     my $joint_name = "";
     if ($opt->{SOMATIC_VARIANTS} eq "yes" || ($opt->{COPY_NUMBER} eq "yes" && $opt->{CNV_MODE} eq "sample_control")) {
@@ -43,12 +45,14 @@ sub run {
         "poststats",
         "somvar",
         "cnv",
-        "kinship"
+        "kinship",
     };
 
     writeFromTemplate(
         "Finalize.sh.tt", $bash_file,
         joint_name => $joint_name,
+        extras_tar => $extras_tar,
+        extras_zip => $extras_zip,
         log_file => $log_file,
         opt => $opt,
     );
@@ -59,6 +63,10 @@ sub run {
     } else {
         system "$qsub -o /dev/null -e /dev/null -N Finalize_${job_id} $bash_file";
     }
+
+    HMF::Pipeline::Metadata::linkArtefact($extras_tar, "extras_tar", $opt) if $opt->{EXTRAS};
+    HMF::Pipeline::Metadata::linkArtefact($extras_zip, "extras_zip", $opt) if $opt->{EXTRAS};
+
     return;
 }
 

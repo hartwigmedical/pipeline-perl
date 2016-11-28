@@ -8,6 +8,7 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Job qw(getId fromTemplate);
+use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubJava);
 
 use parent qw(Exporter);
@@ -23,6 +24,8 @@ sub run {
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
         my $dirs = createDirs($out_dir, mapping => "mapping");
         my $sample_bam = catfile($dirs->{mapping}, $opt->{BAM_FILES}->{$sample});
+        my $output_bed = "${sample}_CallableLoci.bed";
+        my $output_summary = "${sample}_CallableLoci.txt";
 
         my $job_id = fromTemplate(
             "CallableLoci",
@@ -33,11 +36,16 @@ sub run {
             $opt,
             sample => $sample,
             sample_bam => $sample_bam,
-            output_bed => "${sample}_CallableLoci.bed",
-            output_summary => "${sample}_CallableLoci.txt",
+            output_bed => $output_bed,
+            output_summary => $output_summary,
         );
+        next if not $job_id;
 
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id if $job_id;
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
+
+        foreach my $artefact ($output_bed, $output_summary) {
+            linkExtraArtefact(catfile($dirs->{out}, $artefact), $opt);
+        }
     }
     return;
 }

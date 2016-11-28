@@ -10,7 +10,7 @@ use JSON;
 use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse linkArtefact metaSampleName writeLinks);
+our @EXPORT_OK = qw(parse linkArtefact linkExtraArtefact metaSampleName writeLinks);
 
 
 sub readJson {
@@ -62,6 +62,14 @@ sub linkArtefact {
 
     $opt->{LINKS} = {} if not exists $opt->{LINKS};
     $opt->{LINKS}->{$canonical_name} = $source_path;
+    return;
+}
+
+sub linkExtraArtefact {
+    my ($source_path, $opt) = @_;
+
+    $opt->{EXTRAS} = [] if not exists $opt->{EXTRAS};
+    push @{$opt->{EXTRAS}}, abs2rel($source_path, $opt->{OUTPUT_DIR});
     return;
 }
 

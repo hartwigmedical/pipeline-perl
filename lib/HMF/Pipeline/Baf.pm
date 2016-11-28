@@ -9,6 +9,7 @@ use File::Spec::Functions;
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Sge qw(qsubJava);
 use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Template qw(writeFromTemplate);
 
 use parent qw(Exporter);
@@ -82,7 +83,12 @@ sub run {
             } else {
                 system "$qsub -o $dirs->{log}/BAF_${sample}.out -e $dirs->{log}/BAF_${sample}.err -N $job_id $bash_file";
             }
+
             push @baf_jobs, $job_id;
+
+            foreach my $artefact ($output_vcf, "${output_vcf}.idx", $output_baf, $output_bafplot) {
+                linkExtraArtefact(catfile($dirs->{out}, $artefact), $opt);
+            }
         }
     }
     $opt->{RUNNING_JOBS}->{'baf'} = \@baf_jobs;
