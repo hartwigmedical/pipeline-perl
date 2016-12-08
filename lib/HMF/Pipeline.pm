@@ -61,7 +61,9 @@ sub lockRun {
     my ($dir) = @_;
     my $lock_file = catfile($dir, "run.lock");
     ## no critic (Bangs::ProhibitBitwiseOperators)
-    sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL or die "Couldn't obtain lock file, are you *sure* there are no more jobs running? (error: $!)";
+    sysopen my $fh, $lock_file, O_WRONLY | O_CREAT | O_EXCL
+        or die "Couldn't obtain lock file (error: $!), are you *sure* there are no more jobs running? You MUST check qstat!
+Jobs could have been scheduled before the error, or by external tools (GATK etc.)";
     ## use critic
     close $fh;
     return $lock_file;

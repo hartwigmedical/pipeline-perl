@@ -17,6 +17,9 @@ my $lock_file = lockRun($temp_dir);
 file_exists_ok($lock_file);
 
 my $exception = exception { lockRun($temp_dir) };
-like($exception, qr/\QCouldn't obtain lock file, are you *sure* there are no more jobs running?\E/, 'fails on already locked run');
+like(
+    $exception, qr/\QCouldn't obtain lock file (error: $!), are you *sure* there are no more jobs running? You MUST check qstat!
+Jobs could have been scheduled before the error, or by external tools (GATK etc.)\E/, 'fails on already locked run'
+);
 
 done_testing();
