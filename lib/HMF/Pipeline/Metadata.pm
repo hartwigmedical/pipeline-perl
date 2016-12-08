@@ -52,7 +52,9 @@ sub parse {
 sub metaSampleName {
     my ($sample, $opt) = @_;
 
-    my %name_map = reverse %{parse($opt, {required => 0})};
+    my $metadata = parse($opt, {required => 0});
+    defined $metadata->{$_} or delete $metadata->{$_} for keys %{$metadata};
+    my %name_map = reverse %{$metadata};
     $name_map{$sample} //= "sample";
     return $name_map{$sample};
 }

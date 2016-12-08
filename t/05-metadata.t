@@ -22,6 +22,7 @@ HMF::Pipeline::Metadata::writeJson(
     $metadata_path, {
         test_sample_a => "filename_a",
         test_sample_b => "filename_b",
+        random_unused_key => undef,
     }
 );
 
@@ -30,6 +31,7 @@ is_deeply(
     $metadata, {
         test_sample_a => "filename_a",
         test_sample_b => "filename_b",
+        random_unused_key => undef,
     },
     "reads metadata"
 );
