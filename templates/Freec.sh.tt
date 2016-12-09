@@ -28,7 +28,7 @@ then
         if [ -s "$cnv_file" ]
         then
             R --slave --args $cnv_file $ratio_file < [% opt.FREEC_PATH %]/assess_significance.R
-            R --slave --args 2 24 4 500000 $ratio_file < [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R
+            R --slave --args 2 4 500000 $ratio_file < [% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R
         else
             echo "No copy number variants found, skipping post-processing"
         fi
