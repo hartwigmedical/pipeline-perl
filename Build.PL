@@ -27,6 +27,7 @@ my $build = Module::Build->new(
         'File::Touch' => 0,
         'Test::Cmd' => 0,
         'Test::Compile' => 0,
+        'Test::Dir' => 0,
         'Test::Fatal' => 0,
         'Test::File' => 0,
         'Test::Files' => 0,

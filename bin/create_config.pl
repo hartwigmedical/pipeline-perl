@@ -57,9 +57,7 @@ sub getIniFiles {
 sub createConfig {
     my ($iniFile, $outputDir, $fastqDirs, $bamDirs, $vcfFile, $mail, $run) = @_;
 
-    if (!-d $outputDir) {
-        make_path($outputDir) or die "Couldn't create directory $outputDir: $!";
-    }
+    make_path($outputDir);
 
     map { die "$_ does not exist" if not -d } @{$fastqDirs};
     map { die "$_ does not exist" if not -d } @{$bamDirs};

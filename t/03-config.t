@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use File::Spec::Functions;
+use File::Temp;
+use Test::Dir;
 use Test::Fatal;
 use Test::More;
 
@@ -133,5 +135,68 @@ SKIP: {
     $exception = exception { HMF::Pipeline::Config::addSamples($opt) };
     like($exception, qr/sample 'empty' from $other_path already used by $path/, "refuses duplicate BAM sample") or diag explain $opt;
 }
+
+my $temp_dir = File::Temp->newdir();
+my ($test_path_a, $test_path_b);
+
+$test_path_a = catfile($temp_dir, "dir_a");
+HMF::Pipeline::Config::makePaths($test_path_a);
+dir_exists_ok($test_path_a, "makes single path");
+
+HMF::Pipeline::Config::makePaths($test_path_a);
+dir_exists_ok($test_path_a, "makes pre-existing path");
+
+$test_path_a = catfile($temp_dir, "dir_a");
+$test_path_a = catfile($temp_dir, "dir_b");
+HMF::Pipeline::Config::makePaths($test_path_a, $test_path_b);
+dir_exists_ok($test_path_a, "makes first path");
+dir_exists_ok($test_path_a, "makes second path");
+
+$test_path_a = catfile($temp_dir, "nested", "dir_a");
+HMF::Pipeline::Config::makePaths($test_path_a);
+dir_exists_ok($test_path_a, "makes nested path");
+
+$temp_dir = File::Temp->newdir();
+chmod 0000, $temp_dir;
+$test_path_a = catfile($temp_dir, "dir_a");
+$exception = exception { HMF::Pipeline::Config::makePaths($test_path_a) };
+dir_not_exists_ok($test_path_a, "no directory on failure");
+like($exception, qr(Couldn't create directories: .*/dir_a: Permission denied), "fails when directory cannot be created");
+
+$temp_dir = File::Temp->newdir();
+my $output_dir = catfile($temp_dir, "module");
+
+my $dirs = HMF::Pipeline::Config::createDirs($output_dir, extra => "extra_dir", nested => catfile("base", "nested_dir"));
+is_deeply(
+    $dirs, {
+        out => $output_dir,
+        tmp => catfile($output_dir, "tmp"),
+        log => catfile($output_dir, "logs"),
+        job => catfile($output_dir, "jobs"),
+        extra => catfile($output_dir, "extra_dir"),
+        nested => catfile($output_dir, "base", "nested_dir"),
+    },
+    "returns standard and extra directory mapping"
+);
+dir_exists_ok($output_dir, "makes out dir");
+dir_exists_ok(catfile($output_dir, "tmp"), "makes tmp dir");
+dir_exists_ok(catfile($output_dir, "logs"), "makes log dir");
+dir_exists_ok(catfile($output_dir, "jobs"), "makes job dir");
+dir_exists_ok(catfile($output_dir, "extra_dir"), "makes extra dir");
+dir_exists_ok(catfile($output_dir, "base", "nested_dir"), "makes nested extra dir");
+
+my $subdir;
+
+$subdir = HMF::Pipeline::Config::addSubDir($dirs, "subdir");
+is($subdir, catfile($output_dir, "subdir"), "returns sub-directory");
+dir_exists_ok(catfile($output_dir, "subdir"), "adds sub-directory");
+
+$subdir = HMF::Pipeline::Config::addSubDir($dirs, "subdir");
+is($subdir, catfile($output_dir, "subdir"), "returns already-existing sub-directory");
+dir_exists_ok(catfile($output_dir, "subdir"), "adds already-existing sub-directory");
+
+$subdir = HMF::Pipeline::Config::addSubDir($dirs, catfile("base", "subdir"));
+is($subdir, catfile($output_dir, "base", "subdir"), "returns nested sub-directory");
+dir_exists_ok(catfile($output_dir, "base", "subdir"), "adds nested sub-directory");
 
 done_testing();

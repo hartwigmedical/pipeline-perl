@@ -73,6 +73,15 @@ sub validate {
     return;
 }
 
+sub makePaths {
+    my (@dirs) = @_;
+
+    make_path(@dirs, {error => \my $errors});
+    my $messages = join ", ", map { join ": ", each %{$_} } @{$errors};
+    die "Couldn't create directories: $messages" if $messages;
+    return;
+}
+
 sub createDirs {
     my ($output_dir, %extra_dirs) = @_;
 
@@ -85,18 +94,14 @@ sub createDirs {
         job => catfile($output_dir, "jobs"),
         %extra_dirs,
     };
-
-    make_path(values %{$dirs}, {error => \my $errors});
-    my $messages = join ", ", map { join ": ", each %{$_} } @{$errors};
-    die "Couldn't create directories: $messages" if $messages;
-
+    makePaths(values %{$dirs});
     return $dirs;
 }
 
 sub addSubDir {
     my ($dirs, $dir) = @_;
     my $out_dir = catfile($dirs->{out}, $dir);
-    make_path($out_dir) or die "Couldn't create directory ${out_dir}: $!";
+    makePaths($out_dir);
     return $out_dir;
 }
 
