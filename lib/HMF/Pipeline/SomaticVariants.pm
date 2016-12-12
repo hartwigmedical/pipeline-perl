@@ -5,9 +5,8 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
-use Carp;
 
-use HMF::Pipeline::Config qw(createDirs addSubDir);
+use HMF::Pipeline::Config qw(createDirs addSubDir getChromosomes);
 use HMF::Pipeline::Job qw(getId);
 use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
 use HMF::Pipeline::Template qw(writeFromTemplate);
@@ -450,21 +449,6 @@ sub runMutect {
     }
 
     return $job_id;
-}
-
-sub getChromosomes {
-    my ($opt) = @_;
-
-    (my $dict_file = $opt->{GENOME}) =~ s/\.fasta$/.dict/;
-    my @chrs;
-    open my $fh, "<", $dict_file or confess "could not open $dict_file: $!";
-    while (<$fh>) {
-        chomp;
-        push @chrs, $1 if /SN:(\w+)\s*LN:(\d+)/;
-    }
-    close $fh;
-
-    return \@chrs;
 }
 
 1;

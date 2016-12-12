@@ -96,6 +96,26 @@ check_step "copyNumber/[% sample %]" "" "[% sample %]"
 [% END -%]
 [% END -%]
 
+[% IF opt.SV_CALLING == "yes" -%]
+echo "SV calling:" >> [% log_file %]
+[% IF opt.SV_DELLY -%]
+[% FOR type IN opt.DELLY_SVTYPE %]
+check_step "structuralVariants/delly" "[% type %]" "Delly"
+[% END -%]
+[% END -%]
+
+[% IF opt.SV_MANTA -%]
+[% IF opt.SV_MODE == "sample_control" -%]
+check_step "structuralVariants/manta" "[% joint_name %]" "Manta"
+[% ELSIF opt.SV_MODE == "sample" -%]
+[% FOREACH sample IN opt.SAMPLES.keys -%]
+check_step "structuralVariants/manta" "[% sample %]" "Manta"
+[% END -%]
+[% END -%]
+[% END -%]
+
+[% END -%]
+
 [% IF opt.KINSHIP == "yes" -%]
 check_step "." "" Kinship
 [% END -%]

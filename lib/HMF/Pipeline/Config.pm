@@ -3,6 +3,7 @@ package HMF::Pipeline::Config;
 use FindBin::libs;
 use discipline;
 
+use Carp;
 use File::Basename;
 use File::Copy::Recursive qw(rcopy);
 use File::Path qw(make_path);
@@ -14,6 +15,7 @@ use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
 
 use HMF::Pipeline::Config::Validate qw(verifyConfig verifyBam);
+use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
@@ -23,8 +25,12 @@ our @EXPORT_OK = qw(
     addSubDir
     setupLogging
     addSamples
+    sampleBamAndJobs
+    sampleBamsAndJobs
+    sampleControlBamsAndJobs
     recordGitVersion
     copyConfigAndScripts
+    getChromosomes
 );
 
 
@@ -149,6 +155,47 @@ sub addSamples {
     return;
 }
 
+sub sampleBamAndJobs {
+    my ($sample, $opt) = @_;
+
+    my $bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+    say "\n$sample \t $bam";
+
+    return ($bam, $opt->{RUNNING_JOBS}->{$sample});
+}
+
+sub sampleBamsAndJobs {
+    my ($opt) = @_;
+
+    my $all_bams = [];
+    my $all_jobs = [];
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        my ($bam, $jobs) = sampleBamAndJobs($sample, $opt);
+        push @{$all_bams}, $bam;
+        push @{$all_jobs}, @{$jobs};
+    }
+    return ($all_bams, $all_jobs);
+}
+
+sub sampleControlBamsAndJobs {
+    my ($opt) = @_;
+
+    my $metadata = HMF::Pipeline::Metadata::parse($opt);
+    my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
+    my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+
+    $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
+    $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
+
+    my $joint_name = "${ref_sample}_${tumor_sample}";
+
+    my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
+    my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
+
+    say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
+    return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
+}
+
 sub recordGitVersion {
     my ($opt) = @_;
 
@@ -187,6 +234,21 @@ sub copyConfigAndScripts {
 # do NOT depend on this from jobs
 sub pipelinePath {
     return catfile($FindBin::Bin, updir());
+}
+
+sub getChromosomes {
+    my ($opt) = @_;
+
+    (my $dict_file = $opt->{GENOME}) =~ s/\.fasta$/.dict/;
+    my @chrs;
+    open my $fh, "<", $dict_file or confess "could not open $dict_file: $!";
+    while (<$fh>) {
+        chomp;
+        push @chrs, $1 if /SN:(\w+)\s*LN:(\d+)/;
+    }
+    close $fh;
+
+    return \@chrs;
 }
 
 1;

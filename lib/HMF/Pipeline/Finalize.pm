@@ -45,6 +45,7 @@ sub run {
         "poststats",
         "somvar",
         "cnv",
+        "sv",
         "kinship",
     };
 

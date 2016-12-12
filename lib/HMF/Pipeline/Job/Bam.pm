@@ -3,6 +3,7 @@ package HMF::Pipeline::Job::Bam;
 use FindBin::libs;
 use discipline;
 
+use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs);
@@ -22,9 +23,10 @@ our @EXPORT_OK = qw(
 sub slice {
     my ($sample, $sample_bam, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
 
+    my $slice_name = fileparse($sliced_bam);
     return fromTemplate(
         "SliceBam",
-        $sliced_bam,
+        $slice_name,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -40,9 +42,10 @@ sub slice {
 sub flagstat {
     my ($sample, $sample_bam_path, $sample_flagstat_path, $hold_jids, $dirs, $opt) = @_;
 
+    my $flagstat_name = fileparse($sample_flagstat_path);
     return fromTemplate(
         "Flagstat",
-        $sample_flagstat_path,
+        $flagstat_name,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,

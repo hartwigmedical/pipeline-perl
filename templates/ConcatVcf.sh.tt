@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=ConcatVcf
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=step status="processing" %]
+
+echo "Start ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
+
+if true \
+    [%- FOR vcf_file IN vcf_files %]
+    && [ -s [% vcf_file %] ] \
+    [%- END %]
+    ;
+then
+    [% opt.VCFTOOLS_PATH %]/vcf-concat [% vcf_files.join(' ') %] > "[% output_vcf %]"
+
+    [% INCLUDE Status.tt step=step status="success" %]
+else
+    [% INCLUDE Status.tt step=step status="failed" %]
+    fail "One or more input VCF does not exist or is empty."
+fi
+
+echo "End ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"

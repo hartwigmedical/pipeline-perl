@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Delly
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
+
+[% INCLUDE Status.tt step=step status="processing" %]
+
+echo "Start ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log
+
+export OMP_NUM_THREADS=$(([% opt.DELLY_THREADS %] * 2))
+
+[% opt.DELLY_PATH %]/delly call \
+    -t [% type %] \
+    -g [% opt.GENOME %] \
+    [%- TRY %]
+    [%- IF exclude_file.defined %]
+    -x [% exclude_file %] \
+    [%- END -%]
+    [%- CATCH var.undef -%]
+    [%- END %]
+    -q [% opt.DELLY_MAPQUAL %] \
+    -s [% opt.DELLY_MAD %] \
+    -u [% opt.DELLY_GENO_QUAL %] \
+    [%- IF opt.exists('DELLY_VCF_GENO') %]
+    -v [% opt.DELLY_VCF_GENO %] \
+    [%- END %]
+    -o [% output_vcf %] \
+    [% sample_bams.join(' ') %]
+
+final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
+if [ "$final_log_line" == "Done." ]
+then
+    # output VCF will not exist if no variants are found; make minimal valid VCF
+    if [ ! -s "[% output_vcf %]" ]
+    then
+        echo -e "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" > "[% output_vcf %]"
+    fi
+
+    # TRA format needs normalizing
+    if [ "[% type %]" == "TRA" ]
+    then
+        [% opt.OUTPUT_DIR %]/scripts/convert_delly_TRA.pl "[% output_vcf %]" "[% output_vcf %].tmp"
+
+        final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
+        if [ "$final_log_line" == "Done." ]
+        then
+           mv [% output_vcf %].tmp [% output_vcf %]
+        else
+           [% INCLUDE Status.tt step=step status="failed" %]
+           fail "TRA conversion final log line is $final_log_line"
+        fi
+    fi
+
+    touch "[% dirs.log %]/Delly_[% step %].done"
+    [% INCLUDE Status.tt step=step status="success" %]
+else
+    [% INCLUDE Status.tt step=step status="failed" %]
+    fail "Delly final log line is $final_log_line"
+fi
+    
+echo "End ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log

@@ -434,6 +434,36 @@ sub configChecks {
                 ),
             }
         ),
+        SV_CALLING => if_enabled({
+                SV_MODE => \&key_not_present,
+                SV_MANTA => if_enabled({
+                        MANTA_PATH => \&missing_directory,
+                        MANTA_QUEUE => \&key_not_present,
+                        MANTA_THREADS => \&key_not_present,
+                        MANTA_MEM => \&key_not_present,
+                        MANTA_TIME => \&key_not_present,
+                    }
+                ),
+                SV_DELLY => if_enabled({
+                        DELLY_PATH => \&missing_directory,
+                        DELLY_QUEUE => \&key_not_present,
+                        DELLY_THREADS => \&key_not_present,
+                        DELLY_MEM => \&key_not_present,
+                        DELLY_TIME => \&key_not_present,
+                        DELLY_MERGE_QUEUE => \&key_not_present,
+                        DELLY_MERGE_TIME => \&key_not_present,
+                        DELLY_MERGE_THREADS => \&key_not_present,
+                        DELLY_MERGE_MEM => \&key_not_present,
+                        DELLY_SVTYPE => \&key_not_present,
+                        DELLY_SPLIT => \&key_not_present,
+                        DELLY_MAPQUAL => \&key_not_present,
+                        DELLY_MAD => \&key_not_present,
+                        DELLY_VCF_GENO => \&missing_optional_file,
+                        DELLY_GENO_QUAL => \&key_not_present,
+                    }
+                ),
+            }
+        ),
         BAF => if_enabled({
                 BAF_QUEUE => \&key_not_present,
                 BAF_THREADS => \&key_not_present,

@@ -20,6 +20,7 @@ my $build = Module::Build->new(
         'FindBin::libs' => 0,
         'JSON' => 0,
         'List::MoreUtils' => 0,
+        'Sort::Key::Natural' => 0,
         'Template' => 0,
     },
     build_requires => {
