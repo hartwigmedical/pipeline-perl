@@ -24,7 +24,7 @@ sub slice {
 
     return fromTemplate(
         "SliceBam",
-        $sample,
+        $sliced_bam,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -42,7 +42,7 @@ sub flagstat {
 
     return fromTemplate(
         "Flagstat",
-        $sample,
+        $sample_flagstat_path,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -58,7 +58,7 @@ sub diff {
 
     return fromTemplate(
         "DiffBams",
-        $sample,
+        $diff_name,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
