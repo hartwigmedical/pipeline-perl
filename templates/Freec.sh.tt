@@ -17,6 +17,9 @@ if [ -s [% sample_bam %] [% IF control_bam %]] && [ -s [% control_bam %] [% END 
 then
     echo "Start ${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> [% dirs.log %]/freec.log
 
+    PATH=[% opt.SAMTOOLS_PATH %]:$PATH
+    export PATH
+
     [% opt.FREEC_PATH %]/freec -conf [% config_file %]
 
     cd [% dirs.freec.out %]

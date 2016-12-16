@@ -2,6 +2,7 @@
 chrLenFile=[% opt.FREEC_CHRLENFILE %]
 ploidy=2
 samtools=[% opt.SAMTOOLS_PATH %]/samtools
+sambamba=[% opt.SAMBAMBA_PATH %]/sambamba
 chrFiles=[% opt.FREEC_CHRFILES %]
 window=[% opt.FREEC_WINDOW %]
 maxThreads=[% opt.FREEC_THREADS %]
