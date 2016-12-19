@@ -29,7 +29,7 @@ sub run {
             push @pileup_jobs, $pileup_job;
         }
     }
-    $opt->{RUNNING_JOBS}->{'pileup'} = \@pileup_jobs;
+    $opt->{RUNNING_JOBS}->{pileup} = \@pileup_jobs;
 
     my $metadata = HMF::Pipeline::Metadata::parse($opt);
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
@@ -255,7 +255,7 @@ sub runPileup {
 sub runVarscan {
     my ($tumor_sample, $somatic_name, $tumor_sample_bam, $ref_sample_bam, $running_jobs, $dirs, $opt) = @_;
     my @running_jobs = @{$running_jobs};
-    push @running_jobs, @{$opt->{RUNNING_JOBS}->{'pileup'}};
+    push @running_jobs, @{$opt->{RUNNING_JOBS}->{pileup}};
 
     $dirs->{varscan}->{out} = addSubDir($dirs, "varscan");
 
@@ -266,8 +266,8 @@ sub runVarscan {
         return;
     }
 
-    (my $tumor_sample_pileup = $tumor_sample_bam) =~ s/\.bam$/\.pileup\.gz/;
-    (my $ref_sample_pileup = $ref_sample_bam) =~ s/\.bam$/\.pileup\.gz/;
+    (my $tumor_sample_pileup = $tumor_sample_bam) =~ s/\.bam$/.pileup.gz/;
+    (my $ref_sample_pileup = $ref_sample_bam) =~ s/\.bam$/.pileup.gz/;
 
     my @chrs = @{getChromosomes($opt)};
     my @varscan_jobs;

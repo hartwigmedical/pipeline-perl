@@ -17,10 +17,10 @@ echo "Start PreStats	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% s
 
 [% INCLUDE Status.tt step=core_name status="processing" %]
 
-[% opt.FASTQC_PATH %]/fastqc [% input %] -o [% dirs.qc %] --noextract -t 1
+[% opt.FASTQC_PATH %]/fastqc [% input_path %] -o [% dirs.qc %] --noextract -t 1
 
 [% INCLUDE Status.tt step=core_name status="finished" %]
 
-touch logs/PreStats_[% sample_name %].done
+touch [% done_file %]
 
 echo "End PreStats	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log

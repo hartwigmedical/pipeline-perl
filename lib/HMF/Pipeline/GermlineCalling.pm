@@ -6,9 +6,9 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
+use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordPerSampleJob);
 use HMF::Pipeline::Sge qw(jobNative qsubJava);
-use HMF::Pipeline::Job qw(getId);
-use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Job qw(fromTemplate getId);
 use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
@@ -20,51 +20,22 @@ sub run {
 
     say "\n### SCHEDULING GERMLINE CALLING ###";
 
-    my $job_id = "GermlineCalling_" . getId();
-    # maintain backward-compatibility with old naming for now, useful for re-running somatics without re-running germline
-    if (-f "$opt->{OUTPUT_DIR}/logs/GermlineCaller.done" || -f "$opt->{OUTPUT_DIR}/logs/VariantCaller.done") {
-        say "WARNING: $opt->{OUTPUT_DIR}/logs/GermlineCaller.done exists, skipping $job_id";
-        return;
-    }
+    my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, gvcf => "gvcf");
 
-    my $gvcf_dir = catfile($opt->{OUTPUT_DIR}, "gvcf");
-    if ((!-d $gvcf_dir && $opt->{CALLING_GVCF} eq "yes")) {
-        mkdir($gvcf_dir) or die "Couldn't create directory $gvcf_dir: $!";
-    }
-
-    my @sample_bams;
-    my @running_jobs;
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $sample_bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-        push @sample_bams, $sample_bam;
-        push @running_jobs, @{$opt->{RUNNING_JOBS}->{$sample}} if @{$opt->{RUNNING_JOBS}->{$sample}};
-    }
-
-    my $bash_file = catfile($opt->{OUTPUT_DIR}, "jobs", "${job_id}.sh");
-    my $log_dir = catfile($opt->{OUTPUT_DIR}, "logs");
-    my $stdout = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.out");
-    my $stderr = catfile($log_dir, "GermlineCaller_$opt->{RUN_NAME}.err");
-
-    writeFromTemplate(
-        "GermlineCalling.sh.tt", $bash_file,
-        gvcf_dir => $gvcf_dir,
-        sample_bams => \@sample_bams,
+    my $job_id = fromTemplate(
+        "GermlineCalling",
+        undef,
+        qsubJava($opt, "CALLING_MASTER"),
+        $running_jobs,
+        $dirs,
+        $opt,
+        sample_bams => [ values %{$sample_bams} ],
         job_native => jobNative($opt, "CALLING"),
-        opt => $opt,
     );
 
-    my $qsub = qsubJava($opt, "CALLING_MASTER");
-    if (@running_jobs) {
-        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
-    } else {
-        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
-    }
-
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
-    }
-
-    linkArtefacts($gvcf_dir, $opt);
+    linkArtefacts($dirs->{gvcf}, $opt);
+    recordPerSampleJob($opt, $job_id) if $job_id;
     return;
 }
 

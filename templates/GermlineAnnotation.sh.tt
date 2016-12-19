@@ -11,11 +11,9 @@ JOB_NAME="GermlineAnnotation"
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-bash [% opt.CLUSTER_PATH %]/settings.sh
+cd [% dirs.out %]
 
-cd [% opt.OUTPUT_DIR %]
-
-echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
     [% out_vcf = in_vcf %]
@@ -26,7 +24,7 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     then
         [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="processing" %]
     
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
+        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
             -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
             -c [% opt.SNPEFF_PATH %]/snpEff.config \
             [% opt.ANNOTATE_DB %] \
@@ -54,7 +52,7 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     then
         [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="processing" %]
     
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
+        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
             -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
             dbnsfp \
             -v \
@@ -90,7 +88,7 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     then
         [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="processing" %]
     
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
+        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
             -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
             -T VariantAnnotator \
             -nt [% opt.ANNOTATE_THREADS %] \
@@ -124,7 +122,7 @@ echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% 
     then
         [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="processing" %]
 
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% opt.OUTPUT_DIR %]/tmp \
+        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
             -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
             annotate \
             -tabix \
@@ -169,11 +167,12 @@ then
     mv "[% out_vcf %].idx" "[% annotated_vcf %].idx"
     ln -rs "[% annotated_vcf %]" "[% out_vcf %]"
     ln -rs "[% annotated_vcf %].idx" "[% out_vcf %].idx"
-    touch [% opt.OUTPUT_DIR %]/logs/GermlineAnnotation.done
+
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
     fail "Annotated VCF does not exist or last position differs from pre-annotation VCF"
 fi
 
-echo "End germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/logs/[% opt.RUN_NAME %].log
+echo "End germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

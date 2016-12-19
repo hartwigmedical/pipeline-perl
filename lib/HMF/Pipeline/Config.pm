@@ -14,7 +14,7 @@ use IO::Pipe;
 use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
 
-use HMF::Pipeline::Config::Validate qw(verifyConfig verifyBam);
+use HMF::Pipeline::Config::Validate qw(parseFastqName verifyConfig verifyBam);
 use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
@@ -25,9 +25,11 @@ our @EXPORT_OK = qw(
     addSubDir
     setupLogging
     addSamples
+    recordPerSampleJob
     sampleBamAndJobs
     sampleBamsAndJobs
     sampleControlBamsAndJobs
+    allRunningJobs
     recordGitVersion
     copyConfigAndScripts
     getChromosomes
@@ -136,21 +138,29 @@ sub addSamples {
     $opt->{SAMPLES} = {};
 
     if ($opt->{FASTQ}) {
-        foreach my $input_file (sort keys %{$opt->{FASTQ}}) {
-            my $fastqFile = fileparse($input_file);
-            my ($sampleName) = split "_", $fastqFile;
-            $opt->{SAMPLES}->{$sampleName} = $input_file;
-            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
+        foreach my $input_path (sort keys %{$opt->{FASTQ}}) {
+            my $sample_name = parseFastqName($input_path)->{sampleName};
+            $opt->{SAMPLES}->{$sample_name} = [] if not exists $opt->{SAMPLES}->{$sample_name};
+            push @{$opt->{SAMPLES}->{$sample_name}}, $input_path;
+            @{$opt->{RUNNING_JOBS}->{$sample_name}} = ();
         }
     }
 
     if ($opt->{BAM}) {
-        foreach my $input_file (sort keys %{$opt->{BAM}}) {
-            my $sampleName = verifyBam($input_file, $opt);
-            not exists $opt->{SAMPLES}->{$sampleName} or die "sample '$sampleName' from $input_file already used by $opt->{SAMPLES}->{$sampleName}";
-            $opt->{SAMPLES}->{$sampleName} = $input_file;
-            @{$opt->{RUNNING_JOBS}->{$sampleName}} = ();
+        foreach my $input_path (sort keys %{$opt->{BAM}}) {
+            my $sample_name = verifyBam($input_path, $opt);
+            not exists $opt->{SAMPLES}->{$sample_name} or die "sample '$sample_name' from $input_path already used by $opt->{SAMPLES}->{$sample_name}[0]";
+            $opt->{SAMPLES}->{$sample_name} = [$input_path];
+            @{$opt->{RUNNING_JOBS}->{$sample_name}} = ();
         }
+    }
+    return;
+}
+
+sub recordPerSampleJob {
+    my ($opt, $job_id) = @_;
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return;
 }
@@ -159,19 +169,17 @@ sub sampleBamAndJobs {
     my ($sample, $opt) = @_;
 
     my $bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-    say "\n$sample \t $bam";
-
     return ($bam, $opt->{RUNNING_JOBS}->{$sample});
 }
 
 sub sampleBamsAndJobs {
     my ($opt) = @_;
 
-    my $all_bams = [];
+    my $all_bams = {};
     my $all_jobs = [];
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my ($bam, $jobs) = sampleBamAndJobs($sample, $opt);
-        push @{$all_bams}, $bam;
+        $all_bams->{$sample} = $bam;
         push @{$all_jobs}, @{$jobs};
     }
     return ($all_bams, $all_jobs);
@@ -180,20 +188,35 @@ sub sampleBamsAndJobs {
 sub sampleControlBamsAndJobs {
     my ($opt) = @_;
 
-    my $metadata = HMF::Pipeline::Metadata::parse($opt);
-    my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
-    my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+    my ($ref_sample, $tumor_sample, $joint_name) = HMF::Pipeline::Metadata::sampleControlNames($opt);
 
     $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
     $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
 
-    my $joint_name = "${ref_sample}_${tumor_sample}";
-
     my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
     my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
 
-    say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
     return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
+}
+
+sub allRunningJobs {
+    my ($opt) = @_;
+
+    # is this split into modules actually required anywhere?
+    # surely better to use *all* keys instead of a hard-coded list?
+    my @running_jobs = map { @$_ } grep { defined } @{$opt->{RUNNING_JOBS}}{
+        # flatten registered jobs into one list
+        "baf",
+        "prestats",
+        keys %{$opt->{SAMPLES}},
+        "slicing",
+        "poststats",
+        "somvar",
+        "cnv",
+        "sv",
+        "kinship",
+    };
+    return \@running_jobs;
 }
 
 sub recordGitVersion {

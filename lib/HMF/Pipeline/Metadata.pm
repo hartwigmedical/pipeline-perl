@@ -10,7 +10,14 @@ use JSON;
 use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse linkArtefact linkExtraArtefact metaSampleName writeLinks);
+our @EXPORT_OK = qw(
+    parse
+    linkArtefact
+    linkExtraArtefact
+    metaSampleName
+    sampleControlNames
+    writeLinks
+);
 
 
 sub readJson {
@@ -57,6 +64,16 @@ sub metaSampleName {
     my %name_map = reverse %{$metadata};
     $name_map{$sample} //= "sample";
     return $name_map{$sample};
+}
+
+sub sampleControlNames {
+    my ($opt) = @_;
+
+    my $metadata = parse($opt);
+    my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
+    my $tumor_sample = $metadata->{tumor_sample} or die "metadata missing tumor_sample";
+    my $joint_name = "${ref_sample}_${tumor_sample}";
+    return ($ref_sample, $tumor_sample, $joint_name);
 }
 
 sub linkArtefact {

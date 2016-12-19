@@ -71,10 +71,10 @@ echo >> [% log_file %]
 check_step "." "" "PostStats"
 [% END -%]
 [% IF opt.VARIANT_CALLING == "yes" -%]
-check_step "." "" "GermlineCaller" "VariantCaller"
+check_step "." "" "GermlineCalling" "GermlineCaller" "VariantCaller"
 [% END -%]
 [% IF opt.FILTER_VARIANTS == "yes" -%]
-check_step "." "" "GermlineFilter" "VariantFilter"
+check_step "." "" "GermlineFiltering" "GermlineFilter" "VariantFilter"
 [% END -%]
 [% IF opt.ANNOTATE_VARIANTS == "yes" -%]
 check_step "." "" "GermlineAnnotation" "VariantAnnotation"

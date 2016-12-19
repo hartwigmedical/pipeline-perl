@@ -69,11 +69,12 @@ then
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf [% opt.OUTPUT_DIR %]/
     mv [% opt.OUTPUT_DIR %]/tmp/[% opt.RUN_NAME %].raw_variants.vcf.idx [% opt.OUTPUT_DIR %]/
     [% IF opt.CALLING_GVCF == 'yes' %]
-    mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz [% gvcf_dir %]
-    mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% gvcf_dir %]
+    mkdir -p [% dirs.gvcf %]
+    mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz [% dirs.gvcf %]
+    mv [% opt.OUTPUT_DIR %]/tmp/*.g.vcf.gz.tbi [% dirs.gvcf %]
     [% END %]
-    touch [% opt.OUTPUT_DIR %]/logs/GermlineCaller.done
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]

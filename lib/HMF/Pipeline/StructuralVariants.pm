@@ -129,7 +129,7 @@ sub runDellyJob {
         $dirs,
         $opt,
         step => $step,
-        sample_bams => $sample_bams,
+        sample_bams => [ values %{$sample_bams} ],
         type => $type,
         exclude_file => $exclude_file,
         output_vcf => $output_vcf,
@@ -147,6 +147,7 @@ sub runManta {
         my @manta_jobs;
         foreach my $sample (keys %{$opt->{SAMPLES}}) {
             my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
+            say "\n$sample \t $sample_bam";
             my $job_id = runMantaJob($sample, $sample_bam, undef, undef, $sample, $running_jobs, $opt);
             next if not $job_id;
             push @manta_jobs, $job_id;
@@ -154,6 +155,7 @@ sub runManta {
         return \@manta_jobs;
     } else {
         my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+        say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
         my $job_id = runMantaJob($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
         return [$job_id];
     }

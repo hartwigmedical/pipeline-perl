@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Metadata qw(parse metaSampleName linkArtefact linkExtraArtefact writeLinks);
+use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -63,7 +63,32 @@ is_deeply(
     "links written to file"
 );
 
+HMF::Pipeline::Metadata::writeJson(
+    $metadata_path, {
+        ref_sample => "ref",
+        tumor_sample => "tumor",
+    }
+);
+my $names = [ sampleControlNames($opt) ];
+is_deeply($names, [ "ref", "tumor", "ref_tumor" ], "gets sample/control/joint names");
+
 my $exception;
+HMF::Pipeline::Metadata::writeJson(
+    $metadata_path, {
+        tumor_sample => "tumor",
+    }
+);
+$exception = exception { my $names = [ sampleControlNames($opt) ] };
+like($exception, qr/metadata missing ref_sample/, "detects missing ref sample");
+
+HMF::Pipeline::Metadata::writeJson(
+    $metadata_path, {
+        ref_sample => "ref",
+    }
+);
+$exception = exception { my $names = [ sampleControlNames($opt) ] };
+like($exception, qr/metadata missing tumor_sample/, "detects missing tumor sample");
+
 $temp_dir->DESTROY();
 $exception = exception { $metadata = HMF::Pipeline::Metadata::readJson($links_path) };
 like($exception, qr/Can't open $links_path:/, "fails to open missing file");

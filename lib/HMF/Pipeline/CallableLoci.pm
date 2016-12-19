@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs);
+use HMF::Pipeline::Config qw(createDirs recordPerSampleJob);
 use HMF::Pipeline::Job qw(getId fromTemplate);
 use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubJava);
@@ -39,13 +39,12 @@ sub run {
             output_bed => $output_bed,
             output_summary => $output_summary,
         );
-        next if not $job_id;
-
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
 
         foreach my $artefact ($output_bed, $output_summary) {
             linkExtraArtefact(catfile($dirs->{out}, $artefact), $opt);
         }
+
+        recordPerSampleJob($opt, $job_id) if $job_id;
     }
     return;
 }

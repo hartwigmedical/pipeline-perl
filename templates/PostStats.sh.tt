@@ -42,8 +42,6 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 [%- END %]
     ;
 
-qalter -hold_jid bamMetrics_report_[% opt.RUN_NAME %],[% job_id %] [% job_id_check %]
-
 [% FOREACH pair IN sample_bams.pairs -%]
 [% FOREACH design IN designs -%]
 java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \

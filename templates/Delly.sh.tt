@@ -59,7 +59,7 @@ then
         fi
     fi
 
-    touch "[% dirs.log %]/Delly_[% step %].done"
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=step status="success" %]
 else
     [% INCLUDE Status.tt step=step status="failed" %]

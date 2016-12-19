@@ -46,7 +46,8 @@ if [ -s "[% output_bed %]" ] && [ -s "[% output_summary %]" ]
 then
     mv "[% output_bed %]" "[% dirs.out %]"
     mv "[% output_summary %]" "[% dirs.out %]"
-    touch "[% dirs.log %]/CallableLoci_[% sample %].done"
+
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=sample status="success" %]
 fi
 

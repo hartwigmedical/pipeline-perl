@@ -6,10 +6,9 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions qw(:ALL);
 
-use HMF::Pipeline::Config qw(createDirs);
+use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordPerSampleJob);
+use HMF::Pipeline::Job qw(getId fromTemplate);
 use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Job qw(getId);
-use HMF::Pipeline::Template qw(writeFromTemplate);
 use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
 
 use parent qw(Exporter);
@@ -27,60 +26,37 @@ sub run {
     my $exoncov_dir = catfile($dirs->{out}, "exoncov");
     $dirs->{exoncov} = abs2rel($exoncov_dir, $dirs->{tmp});
 
-    my $job_id = "PostStats_" . getId();
-    my $done_file = catfile($dirs->{log}, "PostStats.done");
-    if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping $job_id";
-        return;
-    }
-
-    my $sample_bams = {};
-    my @running_jobs;
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        $sample_bams->{$sample} = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-        if (@{$opt->{RUNNING_JOBS}->{$sample}}) {
-            push @running_jobs, join(",", @{$opt->{RUNNING_JOBS}->{$sample}});
-        }
-    }
-
     my @designs;
     @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
 
-    my $job_id_check = "PostStatsCheck_" . getId();
-    my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
-    my $stdout = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.out");
-    my $stderr = catfile($dirs->{log}, "PostStats_$opt->{RUN_NAME}.err");
-
-    writeFromTemplate(
-        "PostStats.sh.tt", $bash_file,
-        sample_bams => $sample_bams,
-        designs => \@designs,
-        job_id => $job_id,
-        job_id_check => $job_id_check,
-        dirs => $dirs,
-        opt => $opt,
-    );
-
+    my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
     my $qsub = qsubTemplate($opt, "POSTSTATS");
-    if (@running_jobs) {
-        system "$qsub -o $stdout -e $stderr -N $job_id -hold_jid " . join(",", @running_jobs) . " $bash_file";
-    } else {
-        system "$qsub -o $stdout -e $stderr -N $job_id $bash_file";
-    }
-
-    $bash_file = catfile($dirs->{job}, "${job_id_check}.sh");
-    writeFromTemplate(
-        "PostStatsCheck.sh.tt", $bash_file,
-        designs => \@designs,
+    my $job_id = fromTemplate(
+        "PostStats",
+        "",
+        $qsub,
+        $running_jobs,
+        $dirs,
+        $opt,
         sample_bams => $sample_bams,
-        dirs => $dirs,
-        opt => $opt,
+        designs => \@designs,
     );
-    system "$qsub -o $stdout -e $stderr -N $job_id_check -hold_jid $job_id $bash_file";
-
-    $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check];
 
     linkArtefacts(\@designs, $exoncov_dir, $dirs, $opt);
+    return if not $job_id;
+
+    my $job_id_check = fromTemplate(
+        "PostStatsCheck",
+        "",
+        $qsub,
+        [$job_id],
+        $dirs,
+        $opt,
+        sample_bams => $sample_bams,
+        designs => \@designs,
+    );
+
+    $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check] if $job_id_check;
     return;
 }
 

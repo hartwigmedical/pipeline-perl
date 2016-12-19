@@ -199,7 +199,8 @@ sub runBamPrep {
     $opt->{PRESTATS} = "no";
     say "\n### SCHEDULING BAM PREP ###";
 
-    while (my ($sample, $input_bam) = each %{$opt->{SAMPLES}}) {
+    while (my ($sample, $input_bams) = each %{$opt->{SAMPLES}}) {
+        my $input_bam = ${$input_bams}[0];
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
         my $dirs = createDirs($out_dir, mapping => "mapping");
 

@@ -24,21 +24,21 @@ sub getId {
 }
 
 sub fromTemplate {
-    my ($name, $sample, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
+    my ($name, $step, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
 
     my $suffix = "";
-    $suffix = "_${sample}" if $sample;
+    $suffix = "_${step}" if $step;
 
     my $job_id = "${name}${suffix}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
-    my $done_file = catfile($dirs->{log}, "${name}${suffix}.done");
-    if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping $job_id";
-        return;
-    }
+
+    my $done_file = checkDone($dirs, $name, $suffix, $job_id);
+    return unless $done_file;
 
     writeFromTemplate(
-        "${name}.sh.tt", $bash_file,
+        "${name}.sh.tt",
+        $bash_file,
+        done_file => $done_file,
         dirs => $dirs,
         opt => $opt,
         %params,
@@ -50,6 +50,39 @@ sub fromTemplate {
     $hold_jid = "-hold_jid " . join ",", @{$hold_jids} if @{$hold_jids};
     system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
     return $job_id;
+}
+
+sub checkDone {
+    my ($dirs, $name, $suffix, $job_id) = @_;
+    my $standard_done_name = "${name}${suffix}.done";
+    my $standard_done_file = catfile($dirs->{log}, $standard_done_name);
+
+    my $sample_name = (split /_/, $suffix)[1] // "";
+    #<<< no perltidy
+    my %old_done_files = (
+        "PreStats${suffix}.done" => [
+            catfile($dirs->{log}, "PreStats_${sample_name}.done"),
+        ],
+        "GermlineCalling.done" => [
+            catfile($dirs->{log}, "GermlineCaller.done"),
+            catfile($dirs->{log}, "VariantCaller.done"),
+        ],
+        "GermlineFiltering.done" => [
+            catfile($dirs->{log}, "GermlineFilter.done"),
+            catfile($dirs->{log}, "VariantFilter.done"),
+        ],
+        "GermlineAnnotation.done" => [
+            catfile($dirs->{log}, "VariantAnnotation.done"),
+        ],
+    );
+    #>>> no perltidy
+
+    my $done_files = join ", ", grep { -f } ($standard_done_file, @{$old_done_files{$standard_done_name}});
+    if ($done_files) {
+        say "WARNING: $done_files exists, skipping $job_id";
+        return;
+    }
+    return $standard_done_file;
 }
 
 1;

@@ -92,16 +92,28 @@ _EOF_
 is_deeply($opt, {INIFILE => [$path], VALID => "value"}, "later key overrides earlier INIFILE");
 
 
-$path = catfile("some", "directory", "sample_something_something.fastq.gz");
+$path = catfile("some", "directory", "sample_flowcell_index_lane_R1_suffix.fastq.gz");
 $opt = {FASTQ => {$path => 1}};
 addSamples($opt);
 is_deeply(
     $opt, {
         FASTQ => {$path => 1},
-        SAMPLES => {sample => $path},
+        SAMPLES => {sample => [$path]},
         RUNNING_JOBS => {sample => []},
     },
     "sets up FASTQ sample"
+);
+
+my $other_path = catfile("some", "directory", "sample_flowcell_index_lane_R2_suffix.fastq.gz");
+$opt = {FASTQ => {$path => 1, $other_path => 1}};
+addSamples($opt);
+is_deeply(
+    $opt, {
+        FASTQ => {$path => 1, $other_path => 1},
+        SAMPLES => {sample => [ $path, $other_path ]},
+        RUNNING_JOBS => {sample => []},
+    },
+    "sets up multiple FASTQ samples"
 );
 
 SKIP: {
@@ -119,7 +131,7 @@ SKIP: {
             BAM => {$path => 1},
             SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
             GENOME => catfile("t", "data", "empty.fasta"),
-            SAMPLES => {empty => $path},
+            SAMPLES => {empty => [$path]},
             RUNNING_JOBS => {empty => []},
         },
         "sets up BAM sample"

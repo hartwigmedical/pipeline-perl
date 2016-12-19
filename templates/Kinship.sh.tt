@@ -11,27 +11,25 @@ JOB_NAME=Kinship
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-bash [% opt.CLUSTER_PATH %]/settings.sh
-
-cd [% opt.OUTPUT_DIR %]/
+cd [% dirs.out %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-echo "Start Kinship	$(date)	[% vcf %]	$(uname -n)" >> logs/[% opt.RUN_NAME %].log
+echo "Start Kinship	$(date)	[% vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
-[% opt.VCFTOOLS_PATH %]/vcftools --temp tmp --out tmp/out --vcf [% vcf %] --plink
-[% opt.PLINK_PATH %]/plink --file tmp/out --out tmp/plink --make-bed --noweb
-[% opt.KING_PATH %]/king -b tmp/plink.bed --kinship --prefix tmp/king
-cp tmp/king.kin0 [% opt.RUN_NAME %].kinship
-mv tmp/plink.log logs/
+[% opt.VCFTOOLS_PATH %]/vcftools --temp [% dirs.tmp %] --out [% dirs.tmp %]/out --vcf [% vcf %] --plink
+[% opt.PLINK_PATH %]/plink --file [% dirs.tmp %]/out --out [% dirs.tmp %]/plink --make-bed --noweb
+[% opt.KING_PATH %]/king -b [% dirs.tmp %]/plink.bed --kinship --prefix [% dirs.tmp %]/king
+cp [% dirs.tmp %]/king.kin0 [% opt.RUN_NAME %].kinship
+mv [% dirs.tmp %]/plink.log [% dirs.log %]/
 
 if [ -s [% opt.RUN_NAME %].kinship ]
 then
-    touch logs/Kinship.done
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
     fail "kinship file missing"
 fi
 
-echo "End Kinship	$(date)	[% vcf %]	$(uname -n)" >> logs/[% opt.RUN_NAME %].log
+echo "End Kinship	$(date)	[% vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

@@ -15,6 +15,8 @@ cd [% dirs.tmp %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
+qsub -N wait_for_bamMetrics -sync y -hold_jid bamMetrics_report_[% opt.RUN_NAME %] -b y /bin/true
+
 if [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf ] \
     && [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.html ] \
     [%- IF opt.exists('SNPCHECK_DESIGNS') -%]
