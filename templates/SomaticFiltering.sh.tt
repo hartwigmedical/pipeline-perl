@@ -15,7 +15,7 @@ JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "Start	Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
 if [ -s [% in_vcf %] ]
 then
@@ -40,4 +40,4 @@ else
     fail "[% in_vcf %] not present"
 fi
 
-echo "End Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "End	Filter	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log

@@ -16,7 +16,7 @@ cd [% dirs.varscan.out %]
 if [ -s "[% ref_sample_pileup %]" ] && [ -s "[% tumor_sample_pileup %]" ]
 then
     [% INCLUDE Status.tt step=chr status="processing" %]
-    echo "Start Varscan   $(date)    [% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]  $(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "Start	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
 
     ref_pipe=$(pipe)
     tumor_pipe=$(pipe)
@@ -35,7 +35,7 @@ then
     wait $tabix_ref_pid
     wait $tabix_tumor_pid
 
-    echo "End Varscan  $(date)    [% chr %] [% ref_sample_pileup %]   [% tumor_sample_pileup %]  $(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "End	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
     [% INCLUDE Status.tt step=chr status="finished" %]
 else
     [% INCLUDE Status.tt step=chr status="failed" %]

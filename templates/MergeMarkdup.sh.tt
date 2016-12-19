@@ -15,7 +15,7 @@ cd [% opt.OUTPUT_DIR %]/[% sample %]
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 
-echo "Start merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "Start	merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 bam_errors=""
 # shellcheck disable=SC2043
@@ -32,7 +32,7 @@ then
     [% INCLUDE Status.tt step=sample status="failed" %]
     fail "merging failed due to incomplete BAM-file(s):\n${bam_errors}"
 else
-    echo "Start markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+    echo "Start	markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
     ### Centos7 hpc: Use $TMPDIR as tmpdir variable.
     [% opt.SAMBAMBA_PATH %]/sambamba markdup \
@@ -47,7 +47,7 @@ else
         [% dirs.mapping %]/[% sample %]_dedup.tmp.bam \
         > [% output_flagstat %]
 
-    echo "End markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+    echo "End	markdup	$(date)	[% sample %].bam	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
     [% INCLUDE Status.tt step=sample status="finished" %]
 fi
@@ -85,4 +85,4 @@ else
     fail "[% output_flagstat %] is empty."
 fi
 
-echo "End merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "End	merge	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

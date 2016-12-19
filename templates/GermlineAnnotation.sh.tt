@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.out %]
 
-echo "Start germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
     [% out_vcf = in_vcf %]
@@ -175,4 +175,4 @@ else
     fail "Annotated VCF does not exist or last position differs from pre-annotation VCF"
 fi
 
-echo "End germline variant annotation	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

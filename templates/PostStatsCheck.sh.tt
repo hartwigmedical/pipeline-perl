@@ -39,4 +39,4 @@ else
     fail "bamMetrics/SNPcheck/ExonCov reports missing"
 fi
 
-echo "End poststats	$(date)	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End	poststats	$(date)		$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

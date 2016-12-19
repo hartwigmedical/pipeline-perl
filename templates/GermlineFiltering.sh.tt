@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.tmp %]
 
-echo "Start germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "Start	germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
 if [ -s [% dirs.out %]/[% opt.RUN_NAME %].raw_variants.vcf ]
 then
@@ -67,4 +67,4 @@ else
     fail "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
 fi
 
-echo "End germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End	germline variant filter	$(date)	[% opt.RUN_NAME %].raw_variants.vcf	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log

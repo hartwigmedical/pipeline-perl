@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
-echo "Start ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
+echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
 
 if [ -s [% input_vcf %] ]
 then
@@ -25,4 +25,4 @@ else
     fail "[% input_vcf %] does not exist or is empty."
 fi
 
-echo "End ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
+echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"

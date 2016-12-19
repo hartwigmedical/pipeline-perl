@@ -12,7 +12,7 @@ JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample status="processing" %]
-echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
 
 if [ -s "[% pre_flagstat_path %]" ] && [ -s "[% post_flagstat_path %]" ]
 then
@@ -34,4 +34,4 @@ else
     fail "Either [% pre_flagstat_path %] or [% post_flagstat_path %] is empty."
 fi
 
-echo "End ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log

@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
-echo "Start mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start	mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% INCLUDE Status.tt step=coreName status="processing" %]
 
@@ -36,4 +36,4 @@ else
     fail "[% coreName %] BWA did not finish properly"
 fi
 
-echo "End mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End	mapping	$(date)	[% coreName %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

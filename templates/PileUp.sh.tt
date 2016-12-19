@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sample %]/tmp
 
-echo "Start pileup $(date) [% bam %] $(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+echo "Start	pileup	$(date)	[% bam %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
 
 if [ -s [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] ]
 then
@@ -28,7 +28,7 @@ then
   # shellcheck disable=SC2017
   MPILEUP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %] * ([% opt.PILEUP_DIVISOR %] - 1) + [% opt.PILEUP_THREADS %] % [% opt.PILEUP_DIVISOR %]))
   PBGZIP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %]))
-  echo "Using ${MPILEUP_THREADS} threads for mpileup and ${PBGZIP_THREADS} threads for compression" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+  echo "Using ${MPILEUP_THREADS} threads for mpileup and ${PBGZIP_THREADS} threads for compression"
 
   [% opt.SAMBAMBA_PATH %]/sambamba mpileup -t ${MPILEUP_THREADS} --tmpdir=[% opt.OUTPUT_DIR %]/[% sample %]/tmp/ [% IF opt.exists('SOMVAR_TARGETS') %]-L [% opt.SOMVAR_TARGETS %][% END %] [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] --samtools "-q 1 -f [% opt.GENOME %]" | [% opt.PBGZIP_PATH %]/pbgzip -n ${PBGZIP_THREADS} -c > [% pileup %].gz
   [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 [% pileup %].gz
@@ -49,4 +49,4 @@ else
   fail "[% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% bam %] does not exist."
 fi
 
-echo "End pileup	$(date) [% bam %] $(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log
+echo "End	pileup	$(date)	[% bam %]	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sample %]/logs/[% sample %].log

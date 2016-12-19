@@ -20,7 +20,7 @@ if [ -s "[% ref_sample_bam %]" ] && \
    [%- END %]
    true
 then
-    echo "Start concat and filter Mutect   $(date)    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/mutect.log
+    echo "Start	concat and filter Mutect	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/mutect.log
 
     [% INCLUDE Status.tt step="CF" status="processing" %]
 
@@ -45,7 +45,7 @@ then
         [% INCLUDE Status.tt step="CF" status="failed" %]
         fail "Mutect VCFs not present"
     fi
-    echo "End concat and filter Mutect   $(date)    [% ref_sample_bam %]   [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/mutect.log
+    echo "End	concat and filter Mutect	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/mutect.log
 else
     [% INCLUDE Status.tt step="CF" status="failed" %]
     fail "[% tumor_sample_bam %], [% ref_sample_bam %] or a chromosome chunk VCF does not exist."

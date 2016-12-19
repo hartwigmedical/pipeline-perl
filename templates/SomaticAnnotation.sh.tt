@@ -19,7 +19,7 @@ out_vcf="$basename.vcf"
 rm -f "$out_vcf" "$out_vcf.idx"
 
 cd "[% dirs.out %]"
-echo "Start Annotate	$(date)	$in_vcf	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "Start	Annotate	$(date)	[% basename %].vcf	$(uname -n)" >> [% dirs.log %]/merge.log
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
@@ -85,4 +85,4 @@ else
     fail "$out_vcf was not created by SnpEff"
 fi
 
-echo "End Annotate	$(date)	$in_vcf	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "End	Annotate	$(date)	[% basename %].vcf	$(uname -n)" >> [% dirs.log %]/merge.log

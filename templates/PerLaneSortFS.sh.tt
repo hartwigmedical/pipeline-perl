@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% opt.OUTPUT_DIR %]/[% sampleName %]/mapping
 
-echo "Start flagstat	$(date)	[% coreName %]_sorted.bam	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "Start	Flagstat	$(date)	[% coreName %]_sorted.bam	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
 
 [% INCLUDE Status.tt step=coreName status="processing" %]
 
@@ -21,4 +21,4 @@ echo "Start flagstat	$(date)	[% coreName %]_sorted.bam	$(uname -n)" >> [% opt.OU
 
 [% INCLUDE Status.tt step=coreName status="finished" %]
 
-echo "End flagstat	$(date)	[% coreName %]_sorted.bam	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log
+echo "End	Flagstat	$(date)	[% coreName %]_sorted.bam	$(uname -n)" >> [% opt.OUTPUT_DIR %]/[% sampleName %]/logs/[% sampleName %].log

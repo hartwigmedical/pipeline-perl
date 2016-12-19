@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
-echo "Start ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log
+echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log
 
 export OMP_NUM_THREADS=$(([% opt.DELLY_THREADS %] * 2))
 
@@ -69,4 +69,4 @@ else
     fail "Delly final log line is $final_log_line"
 fi
     
-echo "End ${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log
+echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log

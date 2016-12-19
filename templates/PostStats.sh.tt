@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.tmp %]
 
-echo "Start poststats	$(date)	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "Start	poststats	$(date)		$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
 
 [% INCLUDE Status.tt step="" status="processing" %]
 

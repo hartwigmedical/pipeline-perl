@@ -15,7 +15,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.tmp %]
 
-echo "Start ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/CallableLoci_[% sample %].log
+echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/CallableLoci_[% sample %].log
 
 if [ -s "[% sample_bam %]" ]
 then
@@ -51,4 +51,4 @@ then
     [% INCLUDE Status.tt step=sample status="success" %]
 fi
 
-echo "End ${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/CallableLoci_[% sample %].log
+echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> [% dirs.log %]/CallableLoci_[% sample %].log

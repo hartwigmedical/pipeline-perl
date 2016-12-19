@@ -20,7 +20,7 @@ if [ -s "[% ref_sample_bam %]" ] && \
    [%- END %]
    true
 then
-    echo "Start concat and postprocess Freebayes   $(date)    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "Start	concat and postprocess Freebayes	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
     [% INCLUDE Status.tt step="PostProcess" status="processing" %]
 
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% snp_vcfs.join(' ') %] > "[% somatic_name %].vcf"
@@ -52,7 +52,7 @@ then
         fail "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered.vcf does not exist."
     fi
 
-    echo "End concat and postprocess Freebayes   $(date)    [% ref_sample_bam %]    [% tumor_sample_bam %]   $(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "End	concat and postprocess Freebayes	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
 else
     [% INCLUDE Status.tt step="PostProcess" status="failed" %]
     fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
