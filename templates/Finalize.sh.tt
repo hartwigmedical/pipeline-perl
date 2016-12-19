@@ -99,7 +99,7 @@ check_step "copyNumber/[% sample %]" "" "[% sample %]"
 [% IF opt.SV_CALLING == "yes" -%]
 echo "SV calling:" >> [% log_file %]
 [% IF opt.SV_DELLY -%]
-[% FOR type IN opt.DELLY_SVTYPE %]
+[% FOR type IN opt.DELLY_SVTYPE.split('\t') %]
 check_step "structuralVariants/delly" "[% type %]" "Delly"
 [% END -%]
 [% END -%]

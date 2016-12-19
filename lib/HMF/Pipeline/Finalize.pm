@@ -26,7 +26,7 @@ sub run {
 
     my $job_id = fromTemplate(
         "Finalize",
-        "",
+        undef,
         qsubTemplate($opt, "FINALIZE"),
         allRunningJobs($opt),
         $dirs,

@@ -19,10 +19,10 @@ export OMP_NUM_THREADS=$(([% opt.DELLY_THREADS %] * 2))
 
 [% opt.DELLY_PATH %]/delly call \
     -t [% type %] \
-    -g [% opt.GENOME %] \
+    -g "[% opt.GENOME %]" \
     [%- TRY %]
     [%- IF exclude_file.defined %]
-    -x [% exclude_file %] \
+    -x "[% exclude_file %]" \
     [%- END -%]
     [%- CATCH var.undef -%]
     [%- END %]
@@ -32,16 +32,19 @@ export OMP_NUM_THREADS=$(([% opt.DELLY_THREADS %] * 2))
     [%- IF opt.exists('DELLY_VCF_GENO') %]
     -v [% opt.DELLY_VCF_GENO %] \
     [%- END %]
-    -o [% output_vcf %] \
-    [% sample_bams.join(' ') %]
+    -o "[% output_vcf %].bcf" \
+    [% sample_bams.values.join(' ') %]
 
 final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
-if [ "$final_log_line" == "Done." ]
+if [ "${final_log_line%Done.}" != "${final_log_line}" ]
 then
     # output VCF will not exist if no variants are found; make minimal valid VCF
-    if [ ! -s "[% output_vcf %]" ]
+    if [ -s "[% output_vcf %]".bcf ]
     then
-        echo -e "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO" > "[% output_vcf %]"
+        [% opt.BCFTOOLS_PATH %]/bcftools view "[% output_vcf %].bcf" > "[% output_vcf %]"
+        rm [% output_vcf %].bcf
+    else
+        echo -e "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t[% sample_bams.keys.join('\t') %]" > "[% output_vcf %]"
     fi
 
     # TRA format needs normalizing

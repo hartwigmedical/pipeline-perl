@@ -26,16 +26,16 @@ cd [% opt.OUTPUT_DIR %]
 [% dirs.out %]/runWorkflow.py -m local -j [% opt.MANTA_THREADS %]
 
 if [ -s "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi" ] \
-   [%- IF opt.SV_MODE == "sample_control" %]   
+   [%- IF opt.SV_MODE == "sample_control" %]
    && [ -s "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi" ] \
    [%- END %]
-   && true
+   && [ "$(cat [% dirs.out %]/workflow.exitcode.txt)" == "0" ]
 then
-    touch "[% dirs.log %]/Manta_[% joint_name %].done"
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=sample status="failed" %]
 else
     [% INCLUDE Status.tt step=sample status="success" %]
-    fail "Manta output files are missing"
+    fail "Manta output files are missing or workflow logged non-zero exit code."
 fi
 
 echo "End ${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% joint_name %].log

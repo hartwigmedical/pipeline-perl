@@ -1,9 +1,11 @@
 #!/usr/bin/env perl
 
-# TODO: use discipline.pm
+# approximate discipline.pm rather than copying to runtime directory
 use 5.016_000;
-use strict;
-use warnings;
+use strictures 2;
+no indirect 'fatal';
+no multidimensional;
+no bareword::filehandles;
 
 
 say "Starting TRA conversion";
@@ -22,33 +24,27 @@ sub convertTra {
         chomp($line);
         say $out_vcf_fh $line and next if $line =~ /^#/;
 
-        # TODO: consider parsing properly e.g. using PyVCF
-        # this has potential bugs with INFO field ordering, substring matches etc.
         my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, @samples) = split /\t/, $line;
-        (my $chrom2 = $info) =~ s/CHR2=(\w+);/$1/;
-        (my $end = $info) =~ s/END=(\d+);/$1/;
-        (my $ct = $info) =~ s/CT=(\w+);/$1/;
-        (my $consensus = $info) =~ s/CONSENSUS=(\w+)/$1/;
+        my %info_map = map { my ($key, $value) = split /=/; } split /;/, $info;
 
-        # TODO: bug? need chromosomes to match also?
-        if ($end >= $pos) {
+        # some tools (IGV) will complain if END >= POS.
+        # swap around the coordinates of these SVs and
+        # (unconventially) report them in reverse.
+        if ($info_map{END} >= $pos) {
             say $out_vcf_fh $line;
         } else {
-            if ($ct eq "5to3") {
-                $ct = "3to5";
-            } elsif ($ct eq "3to5") {
-                $ct = "5to3";
-            } else {
-                # TODO: what about 3to3 and 5to5?
-                die "ERROR: unrecognised connection type CT=$ct";
+            if ($info_map{CT} eq "5to3") {
+                $info_map{CT} = "3to5";
+            } elsif ($info_map{CT} eq "3to5") {
+                $info_map{CT} = "5to3";
             }
-            $consensus =~ tr/acgtACGT/tgcaTGCA/;
-            $consensus = reverse($consensus);
-            $info =~ s/CHR2=(\w+)/CHR2=$chrom/;
-            $info =~ s/END=(\d+)/END=$pos/;
-            $info =~ s/CT=(\w+)/CT=$ct/;
-            $info =~ s/CONSENSUS=(\w+)/CONSENSUS=$consensus/;
-            say $out_vcf_fh join("\t", $chrom2, $end, $id, $ref, $alt, $qual, $filter, $info, $format, join("\t", @samples));
+
+            $info_map{CONSENSUS} = reverse($info_map{CONSENSUS} =~ tr/acgtACGT/tgcaTGCA/r) if exists $info_map{CONSENSUS};
+            ($chrom, $info_map{CHR2}) = ($info_map{CHR2}, $chrom);
+            ($pos, $info_map{END}) = ($info_map{END}, $pos);
+
+            $info = join ";", map { "$_" . (defined $info_map{$_} ? "=$info_map{$_}" : "") } keys %info_map;
+            say $out_vcf_fh join("\t", $chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, join("\t", @samples));
         }
     }
     return;

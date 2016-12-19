@@ -129,7 +129,7 @@ sub runDellyJob {
         $dirs,
         $opt,
         step => $step,
-        sample_bams => [ values %{$sample_bams} ],
+        sample_bams => $sample_bams,
         type => $type,
         exclude_file => $exclude_file,
         output_vcf => $output_vcf,
@@ -167,7 +167,7 @@ sub runMantaJob {
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
     my $job_id = fromTemplate(
         "Manta",
-        $joint_name,
+        undef,
         qsubTemplate($opt, "MANTA"),
         $running_jobs,
         $dirs,

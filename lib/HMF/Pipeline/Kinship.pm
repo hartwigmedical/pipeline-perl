@@ -23,7 +23,7 @@ sub run {
     my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my $job_id = fromTemplate(
         "Kinship",
-        "",
+        undef,
         qsubJava($opt, "KINSHIP"),
         $running_jobs,
         $dirs,
