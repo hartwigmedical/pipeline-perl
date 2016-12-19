@@ -130,8 +130,7 @@ then
     [% INCLUDE Status.tt step="" status="failed" %]
 else
     echo "The pipeline completed successfully." >> [% log_file %]
-    rm -rf [% opt.OUTPUT_DIR %]/tmp
-    rm -rf [% opt.OUTPUT_DIR %]/*/tmp
+    find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
     find [% opt.OUTPUT_DIR %]/logs -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
 [% IF opt.SOMATIC_VARIANTS == "yes" -%]
