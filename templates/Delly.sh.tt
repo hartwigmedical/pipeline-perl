@@ -15,7 +15,8 @@ JOB_START=$(date +%s)
 
 echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% step %].log
 
-export OMP_NUM_THREADS=$(([% opt.DELLY_THREADS %] * 2))
+export OMP_NUM_THREADS
+OMP_NUM_THREADS=[% opt.DELLY_THREADS %]
 
 [% opt.DELLY_PATH %]/delly call \
     -t [% type %] \
