@@ -149,12 +149,6 @@ else
 [% END -%]
 [% END -%]
 
-[% IF opt.BASEQUALITYRECAL == "yes" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]_dedup.recalibrated.ba*
-[% END -%]
-[% END -%]
-
 [% IF opt.SOMATIC_VARIANTS == "yes" && opt.SOMVAR_VARSCAN == "yes" && opt.FINALIZE_KEEP_PILEUP == "no" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
     rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.pileup.gz
