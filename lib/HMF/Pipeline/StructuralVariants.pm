@@ -52,7 +52,7 @@ sub runDelly {
         my $concat_job_id;
 
         if ($split) {
-            # DEL, INF, DUP are only ever intra-chromosomal in Delly
+            # DEL, INV, DUP, INS are only ever intra-chromosomal in Delly
             my ($chunk_job_ids, $vcf_files);
             if ($type eq "TRA") {
                 ($chunk_job_ids, $vcf_files) = runDellyInterchromosomal($sample_bams, $type, $running_jobs, $dirs, $opt);
@@ -72,50 +72,64 @@ sub runDelly {
 sub runDellyInterchromosomal {
     my ($sample_bams, $type, $running_jobs, $dirs, $opt) = @_;
 
-    my (@job_ids, @vcf_files);
+    my ($job_ids, $vcf_files) = ([], []);
     my @chrs = @{getChromosomes($opt)};
     foreach my $chr1 (@chrs) {
         foreach my $chr2 (@chrs) {
             next unless mkkey_natural($chr2) gt mkkey_natural($chr1);
-            my $step = "${type}_${chr1}_${chr2}";
-
-            my $exclude_file = catfile($dirs->{tmp}, "${step}_exclude.txt");
-            open my $fh, ">", $exclude_file;
-            foreach my $exclude_chr (@chrs) {
-                say $fh $exclude_chr unless $exclude_chr eq $chr1 or $exclude_chr eq $chr2;
-            }
-            close $fh;
-
-            my $output_vcf = catfile($dirs->{tmp}, "${step}.vcf");
-            my $job_id = runDellyJob($step, $sample_bams, $type, $exclude_file, $output_vcf, $running_jobs, $dirs, $opt);
-            push @job_ids, $job_id;
-            push @vcf_files, $output_vcf;
+            my ($job_id, $output_vcf) = runDellyWithExclude(
+                "${type}_${chr1}_${chr2}",
+                # include these
+                {$chr1 => 1, $chr2 => 1},
+                $job_ids,
+                $vcf_files,
+                $sample_bams,
+                $type,
+                $running_jobs,
+                $dirs,
+                $opt,
+            );
         }
     }
-    return (\@job_ids, \@vcf_files);
+    return ($job_ids, $vcf_files);
 }
 
 sub runDellyIntrachromosomal {
     my ($sample_bams, $type, $running_jobs, $dirs, $opt) = @_;
 
-    my (@job_ids, @vcf_files);
-    my @chrs = @{getChromosomes($opt)};
-    foreach my $chr (@chrs) {
-        my $step = "${type}_${chr}";
-
-        my $exclude_file = catfile($dirs->{tmp}, "${step}_exclude.txt");
-        open my $fh, ">", $exclude_file;
-        foreach my $exclude_chr (@chrs) {
-            say $fh $exclude_chr unless $exclude_chr eq $chr;
-        }
-        close $fh;
-
-        my $output_vcf = catfile($dirs->{tmp}, "${step}.vcf");
-        my $job_id = runDellyJob($step, $sample_bams, $type, $exclude_file, $output_vcf, $running_jobs, $dirs, $opt);
-        push @job_ids, $job_id;
-        push @vcf_files, $output_vcf;
+    my ($job_ids, $vcf_files) = ([], []);
+    foreach my $chr (@{getChromosomes($opt)}) {
+        my ($job_id, $output_vcf) = runDellyWithExclude(
+            "${type}_${chr}",
+            # include these
+            {$chr => 1},
+            $job_ids,
+            $vcf_files,
+            $sample_bams,
+            $type,
+            $running_jobs,
+            $dirs,
+            $opt,
+        );
     }
-    return (\@job_ids, \@vcf_files);
+    return ($job_ids, $vcf_files);
+}
+
+sub runDellyWithExclude {
+    my ($step, $include_chrs, $job_ids, $vcf_files, $sample_bams, $type, $running_jobs, $dirs, $opt) = @_;
+
+    my $exclude_file = catfile($dirs->{tmp}, "${step}_exclude.txt");
+    open my $fh, ">", $exclude_file;
+    foreach my $exclude_chr (@{getChromosomes($opt)}) {
+        say $fh $exclude_chr unless defined $include_chrs->{$exclude_chr};
+    }
+    close $fh;
+
+    my $output_vcf = catfile($dirs->{tmp}, "${step}.vcf");
+    my $job_id = runDellyJob($step, $sample_bams, $type, $exclude_file, $output_vcf, $running_jobs, $dirs, $opt);
+    push @{$job_ids}, $job_id;
+    push @{$vcf_files}, $output_vcf;
+    return;
 }
 
 sub runDellyJob {
