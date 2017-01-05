@@ -121,13 +121,13 @@ sub setupDoneFiles {
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "varscan.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "freec.done"),
-        catfile("copyNumber", "CPCT12345678R", "logs", "freec.done"),
-        catfile("copyNumber", "CPCT12345678T", "logs", "freec.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "qdnaseq.done"),
-        catfile("copyNumber", "CPCT12345678R", "logs", "qdnaseq.done"),
-        catfile("copyNumber", "CPCT12345678T", "logs", "qdnaseq.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
+        catfile("copyNumber", "CPCT12345678R", "logs", "freec.done"),
+        catfile("copyNumber", "CPCT12345678R", "logs", "qdnaseq.done"),
         catfile("copyNumber", "CPCT12345678R", "logs", "CPCT12345678R.done"),
+        catfile("copyNumber", "CPCT12345678T", "logs", "freec.done"),
+        catfile("copyNumber", "CPCT12345678T", "logs", "qdnaseq.done"),
         catfile("copyNumber", "CPCT12345678T", "logs", "CPCT12345678T.done"),
     );
     make_path(map { my ($name, $directory) = fileparse($_); $directory; } @done_files);
