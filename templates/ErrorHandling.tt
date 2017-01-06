@@ -35,6 +35,11 @@ function pipe() {
     echo "$pipe_file"
 }
 
+function wait_no_sigpipe() {
+    local pid=$1 && shift
+    wait "$pid" || if [[ $? -eq 141 ]]; then return 0; else return $?; fi
+}
+
 function cleanup() {
     rm -rf "$PIPE_DIR"
 }

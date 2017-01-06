@@ -18,6 +18,23 @@ then
     [% INCLUDE Status.tt step=chr status="processing" %]
     echo "Start	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
 
+    # it is absolutely required for correct error detection not to use process substitution.
+    # normally this would be used to avoid the use of temporary files (performance) in the case
+    # where more than one input is required (cannot use a normal single-input pipe).
+    #
+    # there is quite a bit of subtlety to ensuring that all errors are catchable in these
+    # cases. we have seen this go wrong multiple times in production, producing very corrupt
+    # output. the support function gets an explicit (randomly) named pipe to use for
+    # communication, then we wait on the processes to ensure that their exit codes are surfaced
+    # properly. without wait, backgrounding them prevents surfacing the exit codes. without
+    # backgrounding, pipe communication cannot proceeed properly. wait absolutely must be on the
+    # individual PIDs or else only the exit code of the last PID is returned.
+    #
+    # this should be considered the canonical example of how to safely replace process
+    # substitution: get pipe(s), write pipe(s) in background (saving PIDs), read from pipe(s) in
+    # main process, wait on writer(s) PIDs individually. see commit messages also. unfortunately
+    # a workaround is required for varscan as well, see below.
+
     ref_pipe=$(pipe)
     tumor_pipe=$(pipe)
     [% opt.TABIX_PATH %]/tabix [% ref_sample_pileup %] [% chr %] > "$ref_pipe" &
@@ -32,7 +49,16 @@ then
         [% opt.VARSCAN_SETTINGS %] \
         --output-vcf 1
 
-    wait $tabix_ref_pid
+    # in rare cases, the normal pileup has more positions than the tumor pileup for a particular
+    # chromosome, creating a race on writing the rest vs varscan closing the file. varscan will
+    # stop at the end of the tumor file (pipe) and close both files (pipes). tabix for the ref
+    # may still have more data and try to write to a closed pipe, receiving SIGPIPE from the
+    # kernel. this is technically an error, and we should not ignore it in general. but we need
+    # to ignore it here: only for the ref, only for varscan (or similar tools), only in
+    # corner-cases. it will not necessarily be deterministic, but for large size differences it
+    # becomes almost deterministic.
+
+    wait_no_sigpipe $tabix_ref_pid
     wait $tabix_tumor_pid
 
     echo "End	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
