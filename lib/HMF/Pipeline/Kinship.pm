@@ -24,6 +24,7 @@ sub run {
     my $job_id = fromTemplate(
         "Kinship",
         undef,
+        1,
         qsubJava($opt, "KINSHIP"),
         $running_jobs,
         $dirs,

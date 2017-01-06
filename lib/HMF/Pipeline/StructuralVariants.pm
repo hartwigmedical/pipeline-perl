@@ -138,6 +138,7 @@ sub runDellyJob {
     my $job_id = fromTemplate(
         "Delly",
         $step,
+        0,
         qsubTemplate($opt, "DELLY"),
         $running_jobs,
         $dirs,
@@ -182,6 +183,7 @@ sub runMantaJob {
     my $job_id = fromTemplate(
         "Manta",
         undef,
+        1,
         qsubTemplate($opt, "MANTA"),
         $running_jobs,
         $dirs,

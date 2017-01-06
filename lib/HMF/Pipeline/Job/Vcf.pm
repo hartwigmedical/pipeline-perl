@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(
 );
 
 
+# "sort" would clash with Perl function
 sub sorted {
     my ($input_vcf, $output_vcf, $step, $qsub, $hold_job_ids, $dirs, $opt) = @_;
 
@@ -23,6 +24,7 @@ sub sorted {
     my $job_id = fromTemplate(
         "SortVcf",
         $vcf_name,
+        0,
         qsubTemplate($opt, $qsub),
         $hold_job_ids,
         $dirs,
@@ -41,6 +43,7 @@ sub concat {
     my $job_id = fromTemplate(
         "ConcatVcf",
         $vcf_name,
+        0,
         qsubTemplate($opt, $qsub),
         $hold_job_ids,
         $dirs,

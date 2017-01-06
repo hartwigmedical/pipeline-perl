@@ -32,6 +32,7 @@ sub run {
         my $job_id = fromTemplate(
             "BAF",
             $sample,
+            1,
             qsubJava($opt, "BAF"),
             $running_jobs,
             $dirs,

@@ -34,6 +34,7 @@ sub run {
     my $job_id = fromTemplate(
         "PostStats",
         undef,
+        1,
         $qsub,
         $running_jobs,
         $dirs,
@@ -48,6 +49,7 @@ sub run {
     my $job_id_check = fromTemplate(
         "PostStatsCheck",
         undef,
+        0,
         $qsub,
         [$job_id],
         $dirs,

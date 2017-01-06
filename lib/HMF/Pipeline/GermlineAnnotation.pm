@@ -29,6 +29,7 @@ sub run {
     my $job_id = fromTemplate(
         "GermlineAnnotation",
         undef,
+        1,
         qsubJava($opt, "ANNOTATE"),
         $running_jobs,
         $dirs,

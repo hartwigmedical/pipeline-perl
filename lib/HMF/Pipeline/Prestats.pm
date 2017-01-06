@@ -30,6 +30,7 @@ sub run {
         my $job_id = fromTemplate(
             "PreStats",
             $fastq->{coreName},
+            1,
             qsubTemplate($opt, "PRESTATS"),
             [],
             $dirs,

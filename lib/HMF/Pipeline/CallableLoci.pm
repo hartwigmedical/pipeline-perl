@@ -30,6 +30,7 @@ sub run {
         my $job_id = fromTemplate(
             "CallableLoci",
             $sample,
+            1,
             qsubJava($opt, "CALLABLE_LOCI"),
             $opt->{RUNNING_JOBS}->{$sample},
             $dirs,

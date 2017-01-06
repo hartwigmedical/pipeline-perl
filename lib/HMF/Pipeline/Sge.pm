@@ -8,6 +8,7 @@ use File::Basename;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
+    qsubSimple
     qsubTemplate
     qsubJava
     jobNative
@@ -19,6 +20,11 @@ sub generic {
     my $qsub = qq|qsub -P $opt->{CLUSTER_PROJECT} -pe threaded $opt->{$function . "_THREADS"} -q $opt->{$function . "_QUEUE"} -l h_rt=$opt->{$function . "_TIME"}|;
     $qsub .= qq|,tmpspace=$opt->{$function . "_TMP"}G| if $opt->{$function . "_TMP"};
     return $qsub;
+}
+
+sub qsubSimple {
+    my ($opt) = @_;
+    return qq|qsub -P $opt->{CLUSTER_PROJECT}|;
 }
 
 sub qsubTemplate {

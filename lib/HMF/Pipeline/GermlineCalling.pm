@@ -26,6 +26,7 @@ sub run {
     my $job_id = fromTemplate(
         "GermlineCalling",
         undef,
+        1,
         qsubJava($opt, "CALLING_MASTER"),
         $running_jobs,
         $dirs,

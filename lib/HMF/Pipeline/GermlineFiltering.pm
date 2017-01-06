@@ -26,6 +26,7 @@ sub run {
     my $job_id = fromTemplate(
         "GermlineFiltering",
         undef,
+        1,
         qsubJava($opt, "FILTER_MASTER"),
         $running_jobs,
         $dirs,

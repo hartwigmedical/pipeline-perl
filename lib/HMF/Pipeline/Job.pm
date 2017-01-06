@@ -8,11 +8,14 @@ use File::Spec::Functions;
 use File::Temp qw(tmpnam);
 
 use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Sge qw(qsubSimple);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
     getId
     fromTemplate
+    checkReportedDoneFile
+    markDone
 );
 
 
@@ -49,6 +52,42 @@ sub fromTemplate {
     my $hold_jid = "";
     $hold_jid = "-hold_jid " . join ",", @{$hold_jids} if @{$hold_jids};
     system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
+    return $job_id;
+}
+
+# reported jobs are often the result of combining or post-processing
+# steps which are: a) part of a multi-stage module b) checked before
+# doing any work; c) run after the real work is done by unreported jobs
+# (e.g. per-chromosome/lane -> combine). this function allows them to
+# check a done file and get its name if it is not present. the name can
+# then be used with markDone to quickly touch the (guaranteed same-name)
+# done file after the combining job.
+sub checkReportedDoneFile {
+    my ($name, $step, $dirs, $opt) = @_;
+
+    my $suffix = "";
+    $suffix = "_${step}" if $step;
+
+    return checkDoneFile($name, $suffix, 1, $dirs, $opt);
+}
+
+# only used for multi-stage, reported jobs
+# they want to report a specific name during finalize as described above
+sub markDone {
+    my ($done_file, $hold_job_ids, $dirs, $opt) = @_;
+
+    my $done_file_name = fileparse($done_file);
+    my $job_id = fromTemplate(
+        "MarkDone",
+        $done_file_name,
+        0,
+        # no resource limits needed
+        qsubSimple($opt),
+        $hold_job_ids,
+        $dirs,
+        $opt,
+        done_file => $done_file,
+    );
     return $job_id;
 }
 

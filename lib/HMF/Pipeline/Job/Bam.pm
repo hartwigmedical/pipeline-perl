@@ -27,6 +27,7 @@ sub slice {
     return fromTemplate(
         "SliceBam",
         $slice_name,
+        0,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -46,6 +47,7 @@ sub flagstat {
     return fromTemplate(
         "Flagstat",
         $flagstat_name,
+        0,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -62,6 +64,7 @@ sub diff {
     return fromTemplate(
         "DiffBams",
         $diff_name,
+        0,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
         $dirs,
@@ -113,6 +116,7 @@ sub operationWithSliceChecks {
     my $job_id = fromTemplate(
         $job_template,
         $sample,
+        1,
         qsubJava($opt, uc $job_template . "_MASTER"),
         $opt->{RUNNING_JOBS}->{$sample},
         $dirs,
@@ -131,6 +135,7 @@ sub operationWithSliceChecks {
     my $check_job_id = fromTemplate(
         "ReadCountCheck",
         $sample,
+        0,
         qsubTemplate($opt, "FLAGSTAT"),
         [$flagstat_job_id],
         $dirs,
