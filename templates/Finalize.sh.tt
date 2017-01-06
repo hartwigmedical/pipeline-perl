@@ -13,30 +13,6 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-function check_step() {
-    local subdir="$1" && shift
-    local suffix="${1:+_$1}" && shift
-    local new_step_name="$1" && shift
-    local old_step_names="$*"
-
-    local indent=""
-    { [ -n "${suffix}" ] || [ "${subdir}" != "." ]; } && indent=$'\t'
-
-    local step_name
-    for step_name in ${new_step_name} ${old_step_names}
-    do
-        local done_file="[% opt.OUTPUT_DIR %]/${subdir}/logs/${step_name}${suffix}.done"
-        if [ -f "${done_file}" ]
-        then
-            echo "${indent}${new_step_name}: done" >> [% log_file %]
-            return
-        fi
-    done
-    echo "${indent}${new_step_name}: failed" >> [% log_file %]
-    failed=true
-}
-
-
 failed=false
 rm -f [% log_file %]
 
@@ -44,80 +20,15 @@ echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
 echo "Pipeline version: [% opt.VERSION %]" >> [% log_file %]
 echo >> [% log_file %]
 
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-echo "Sample: [% sample %]" >> [% log_file %]
-[% IF opt.PRESTATS == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "PreStats"
-[% END -%]
-[% IF opt.MAPPING == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "Mapping"
-[% END -%]
-[% IF opt.INDELREALIGNMENT == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "Realignment"
-[% END -%]
-[% IF opt.BASEQUALITYRECAL == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "BaseRecalibration"
-[% END -%]
-[% IF opt.BAF == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "BAF"
-[% END -%]
-[% IF opt.CALLABLE_LOCI == "yes" -%]
-check_step "[% sample %]" "[% sample %]" "CallableLoci"
-[% END -%]
-echo >> [% log_file %]
-[% END -%]
-
-[% IF opt.POSTSTATS == "yes" -%]
-check_step "." "" "PostStats"
-[% END -%]
-[% IF opt.VARIANT_CALLING == "yes" -%]
-check_step "." "" "GermlineCalling" "GermlineCaller" "VariantCaller"
-[% END -%]
-[% IF opt.FILTER_VARIANTS == "yes" -%]
-check_step "." "" "GermlineFiltering" "GermlineFilter" "VariantFilter"
-[% END -%]
-[% IF opt.ANNOTATE_VARIANTS == "yes" -%]
-check_step "." "" "GermlineAnnotation" "VariantAnnotation"
-[% END -%]
-
-[% IF opt.SOMATIC_VARIANTS == "yes" -%]
-echo "Somatic variants:" >> [% log_file %]
-check_step "somaticVariants/[% joint_name %]" "" "[% joint_name %]"
-[% END -%]
-
-[% IF opt.COPY_NUMBER == "yes" -%]
-echo "Copy number analysis:" >> [% log_file %]
-[% IF opt.CNV_MODE == "sample_control" -%]
-check_step "copyNumber/[% joint_name %]" "" "[% joint_name %]"
-[% ELSIF opt.CNV_MODE == "sample" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-check_step "copyNumber/[% sample %]" "" "[% sample %]"
-[% END -%]
-[% END -%]
-[% END -%]
-
-[% IF opt.SV_CALLING == "yes" -%]
-echo "SV calling:" >> [% log_file %]
-[% IF opt.SV_DELLY -%]
-[% FOR type IN opt.DELLY_SVTYPE.split('\t') %]
-check_step "structuralVariants/delly" "[% type %]" "Delly"
-[% END -%]
-[% END -%]
-
-[% IF opt.SV_MANTA -%]
-[% IF opt.SV_MODE == "sample_control" -%]
-check_step "structuralVariants/manta" "[% joint_name %]" "Manta"
-[% ELSIF opt.SV_MODE == "sample" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-check_step "structuralVariants/manta" "[% sample %]" "Manta"
-[% END -%]
-[% END -%]
-[% END -%]
-
-[% END -%]
-
-[% IF opt.KINSHIP == "yes" -%]
-check_step "." "" Kinship
+[%- FOREACH done_file IN done_files %]
+echo -n "$(basename "[% done_file %]"): " >> [% log_file %]
+if [ -f "[% done_file %]" ]
+then
+    echo "succeeded" >> [% log_file %]
+else
+    echo "failed" >> [% log_file %]
+    failed=true
+fi
 [% END -%]
 
 echo >> [% log_file %]

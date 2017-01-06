@@ -31,7 +31,7 @@ sub run {
         allRunningJobs($opt),
         $dirs,
         $opt,
-        joint_name => jointName($opt),
+        done_files => $opt->{DONE_FILES},
         extras_tar => $extras_tar,
         extras_zip => $extras_zip,
         log_file => catfile($dirs->{log}, "PipelineCheck.log"),
@@ -41,19 +41,6 @@ sub run {
     HMF::Pipeline::Metadata::linkArtefact($extras_zip, "extras_zip", $opt) if $opt->{EXTRAS};
 
     return;
-}
-
-sub jointName {
-    my ($opt) = @_;
-
-    # do not depend on metadata if not required
-    if (   $opt->{SOMATIC_VARIANTS} eq "yes"
-        || ($opt->{COPY_NUMBER} eq "yes" && $opt->{CNV_MODE} eq "sample_control")
-        || ($opt->{SV_CALLING} eq "yes" && $opt->{SV_MODE} eq "sample_control")) {
-        my (undef, undef, $joint_name) = HMF::Pipeline::Metadata::sampleControlNames($opt);
-        return $joint_name;
-    }
-    return "";
 }
 
 1;

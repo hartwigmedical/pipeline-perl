@@ -24,7 +24,7 @@ sub getId {
 }
 
 sub fromTemplate {
-    my ($name, $step, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
+    my ($name, $step, $is_reported_job, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
 
     my $suffix = "";
     $suffix = "_${step}" if $step;
@@ -32,7 +32,7 @@ sub fromTemplate {
     my $job_id = "${name}${suffix}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    my $done_file = checkDone($dirs, $name, $suffix, $job_id);
+    my $done_file = checkDoneFile($name, $suffix, $is_reported_job, $dirs, $opt);
     return unless $done_file;
 
     writeFromTemplate(
@@ -52,8 +52,9 @@ sub fromTemplate {
     return $job_id;
 }
 
-sub checkDone {
-    my ($dirs, $name, $suffix, $job_id) = @_;
+sub checkDoneFile {
+    my ($name, $suffix, $is_reported_job, $dirs, $opt) = @_;
+
     my $standard_done_name = "${name}${suffix}.done";
     my $standard_done_file = catfile($dirs->{log}, $standard_done_name);
 
@@ -77,11 +78,14 @@ sub checkDone {
     );
     #>>> no perltidy
 
-    my $done_files = join ", ", grep { -f } ($standard_done_file, @{$old_done_files{$standard_done_name}});
-    if ($done_files) {
-        say "WARNING: $done_files exists, skipping $job_id";
+    my ($done_file) = grep { -f } ($standard_done_file, @{$old_done_files{$standard_done_name}});
+    if ($done_file) {
+        push @{$opt->{DONE_FILES}}, $done_file if $is_reported_job;
+        say "WARNING: $done_file exists, skipping";
         return;
     }
+
+    push @{$opt->{DONE_FILES}}, $standard_done_file if $is_reported_job;
     return $standard_done_file;
 }
 
