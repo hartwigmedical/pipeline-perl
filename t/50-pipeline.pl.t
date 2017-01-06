@@ -46,12 +46,14 @@ sub setupTestConfig {
         BIOVCF_PATH
         BWA_PATH
         CLUSTER_PATH
+        DELLY_PATH
         EXONCALLCOV_PATH
         FASTQC_PATH
         FREEBAYES_PATH
         FREEC_PATH
         IGVTOOLS_PATH
         KING_PATH
+        MANTA_PATH
         MUTECT_PATH
         PBGZIP_PATH
         PICARD_PATH
@@ -120,6 +122,14 @@ sub setupDoneFiles {
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "strelka.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "varscan.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
+        catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
+        catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
+        catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
+        catfile("structuralVariants", "delly", "logs", "Delly_DEL.done"),
+        catfile("structuralVariants", "delly", "logs", "Delly_DUP.done"),
+        catfile("structuralVariants", "delly", "logs", "Delly_INS.done"),
+        catfile("structuralVariants", "delly", "logs", "Delly_INV.done"),
+        catfile("structuralVariants", "delly", "logs", "Delly_TRA.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "freec.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "qdnaseq.done"),
         catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),

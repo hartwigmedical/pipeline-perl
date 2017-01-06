@@ -455,7 +455,6 @@ sub configChecks {
                         DELLY_MERGE_THREADS => \&key_not_present,
                         DELLY_MERGE_MEM => \&key_not_present,
                         DELLY_SVTYPE => \&key_not_present,
-                        DELLY_SPLIT => \&key_not_present,
                         DELLY_MAPQUAL => \&key_not_present,
                         DELLY_MAD => \&key_not_present,
                         DELLY_VCF_GENO => \&missing_optional_file,

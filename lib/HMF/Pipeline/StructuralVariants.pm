@@ -7,7 +7,7 @@ use File::Spec::Functions;
 use Sort::Key::Natural qw(mkkey_natural);
 
 use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs getChromosomes);
-use HMF::Pipeline::Job qw(fromTemplate);
+use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile);
 use HMF::Pipeline::Job::Vcf;
 use HMF::Pipeline::Sge qw(qsubTemplate);
 
@@ -40,33 +40,31 @@ sub runDelly {
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "delly"));
     my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
 
-    my %sv_actions;
     my @sv_types = split /\t/, $opt->{DELLY_SVTYPE};
-    my @sv_split = map { $_ eq "yes" } split /\t/, $opt->{DELLY_SPLIT};
-    @sv_actions{@sv_types} = @sv_split;
-
     my $delly_job_ids = [];
-    while (my ($type, $split) = each %sv_actions) {
-        my $concat_vcf = catfile($dirs->{tmp}, "$opt->{RUN_NAME}_${type}.vcf");
-        my $output_vcf = catfile($dirs->{out}, "$opt->{RUN_NAME}_${type}.vcf");
-        my $concat_job_id;
+    foreach my $sv_type (@sv_types) {
+        my $concat_vcf = catfile($dirs->{tmp}, "$opt->{RUN_NAME}_${sv_type}.vcf");
+        my $output_vcf = catfile($dirs->{out}, "$opt->{RUN_NAME}_${sv_type}.vcf");
+        my $done_file = checkReportedDoneFile("Delly", $sv_type, $dirs, $opt) or next;
 
-        if ($split) {
-            # DEL, INV, DUP, INS are only ever intra-chromosomal in Delly
-            my ($chunk_job_ids, $vcf_files);
-            if ($type eq "TRA") {
-                ($chunk_job_ids, $vcf_files) = runDellyInterchromosomal($sample_bams, $type, $running_jobs, $dirs, $opt);
-            } else {
-                ($chunk_job_ids, $vcf_files) = runDellyIntrachromosomal($sample_bams, $type, $running_jobs, $dirs, $opt);
-            }
-            $concat_job_id = HMF::Pipeline::Job::Vcf::concat($vcf_files, $concat_vcf, $type, "DELLY_MERGE", $chunk_job_ids, $dirs, $opt);
-        } else {
-            $concat_job_id = runDellyJob($type, $sample_bams, $type, undef, $concat_vcf, $running_jobs, $dirs, $opt);
-        }
-        my $sort_job_id = HMF::Pipeline::Job::Vcf::sorted($concat_vcf, $output_vcf, $type, "DELLY_MERGE", [$concat_job_id], $dirs, $opt);
-        push @{$delly_job_ids}, $sort_job_id if $sort_job_id;
+        my ($chunk_job_ids, $vcf_files) = runDellyType($sample_bams, $sv_type, $running_jobs, $dirs, $opt);
+        my $concat_job_id = HMF::Pipeline::Job::Vcf::concat($vcf_files, $concat_vcf, $sv_type, "DELLY_MERGE", $chunk_job_ids, $dirs, $opt);
+        my $sort_job_id = HMF::Pipeline::Job::Vcf::sorted($concat_vcf, $output_vcf, $sv_type, "DELLY_MERGE", [$concat_job_id], $dirs, $opt);
+        my $job_id = HMF::Pipeline::Job::markDone($done_file, [$sort_job_id], $dirs, $opt);
+        push @{$delly_job_ids}, $job_id if $job_id;
     }
     return $delly_job_ids;
+}
+
+sub runDellyType {
+    my ($sample_bams, $sv_type, $running_jobs, $dirs, $opt) = @_;
+
+    # DEL, DUP, INS, INV are only ever intra-chromosomal in Delly
+    if ($sv_type eq "TRA") {
+        return runDellyInterchromosomal($sample_bams, $sv_type, $running_jobs, $dirs, $opt);
+    } else {
+        return runDellyIntrachromosomal($sample_bams, $sv_type, $running_jobs, $dirs, $opt);
+    }
 }
 
 sub runDellyInterchromosomal {
@@ -77,7 +75,7 @@ sub runDellyInterchromosomal {
     foreach my $chr1 (@chrs) {
         foreach my $chr2 (@chrs) {
             next unless mkkey_natural($chr2) gt mkkey_natural($chr1);
-            my ($job_id, $output_vcf) = runDellyWithExclude(
+            my ($job_id, $output_vcf) = runDellyJob(
                 "${type}_${chr1}_${chr2}",
                 # include these
                 {$chr1 => 1, $chr2 => 1},
@@ -99,7 +97,7 @@ sub runDellyIntrachromosomal {
 
     my ($job_ids, $vcf_files) = ([], []);
     foreach my $chr (@{getChromosomes($opt)}) {
-        my ($job_id, $output_vcf) = runDellyWithExclude(
+        my ($job_id, $output_vcf) = runDellyJob(
             "${type}_${chr}",
             # include these
             {$chr => 1},
@@ -115,7 +113,7 @@ sub runDellyIntrachromosomal {
     return ($job_ids, $vcf_files);
 }
 
-sub runDellyWithExclude {
+sub runDellyJob {
     my ($step, $include_chrs, $job_ids, $vcf_files, $sample_bams, $type, $running_jobs, $dirs, $opt) = @_;
 
     my $exclude_file = catfile($dirs->{tmp}, "${step}_exclude.txt");
@@ -126,15 +124,6 @@ sub runDellyWithExclude {
     close $fh;
 
     my $output_vcf = catfile($dirs->{tmp}, "${step}.vcf");
-    my $job_id = runDellyJob($step, $sample_bams, $type, $exclude_file, $output_vcf, $running_jobs, $dirs, $opt);
-    push @{$job_ids}, $job_id;
-    push @{$vcf_files}, $output_vcf;
-    return;
-}
-
-sub runDellyJob {
-    my ($step, $sample_bams, $type, $exclude_file, $output_vcf, $running_jobs, $dirs, $opt) = @_;
-
     my $job_id = fromTemplate(
         "Delly",
         $step,
@@ -150,7 +139,9 @@ sub runDellyJob {
         output_vcf => $output_vcf,
     );
 
-    return $job_id;
+    push @{$job_ids}, $job_id;
+    push @{$vcf_files}, $output_vcf;
+    return;
 }
 
 sub runManta {
@@ -172,7 +163,7 @@ sub runManta {
         my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
         say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
         my $job_id = runMantaJob($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-        return [$job_id];
+        return $job_id ? [$job_id] : [];
     }
 }
 
