@@ -7,13 +7,13 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME JOB_SET JOB_START
-JOB_NAME=PreStat
+JOB_NAME=PreStats
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 cd [% dirs.out %]
 
-echo "Start	PreStats	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "Start	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
 
 [% INCLUDE Status.tt step=core_name status="processing" %]
 
@@ -23,4 +23,4 @@ echo "Start	PreStats	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% s
 
 touch [% done_file %]
 
-echo "End	PreStats	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "End	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
