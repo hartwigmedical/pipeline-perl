@@ -19,6 +19,7 @@ if [ -s [% input_vcf %] ]
 then
     [% opt.VCFTOOLS_PATH %]/vcf-sort -c "[% input_vcf %]" > "[% output_vcf %]"
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=step status="success" %]
 else
     [% INCLUDE Status.tt step=step status="failed" %]

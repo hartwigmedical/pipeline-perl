@@ -11,22 +11,23 @@ JOB_NAME=Flagstat
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-[% INCLUDE Status.tt step=sample status="processing" %]
-echo "Start	Flagstat	$(date)	[% sample_bam_path %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+[% INCLUDE Status.tt step=step status="processing" %]
+echo "Start	Flagstat	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
 
-if [ -s "[% sample_bam_path %]" ]
+if [ -s "[% bam_path %]" ]
 then
-   [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% sample_bam_path %]" > "[% sample_flagstat_path %]"
-   if [ -s "[% sample_flagstat_path %]" ]
-   then
-      [% INCLUDE Status.tt step=sample status="success" %]
-   else
-      [% INCLUDE Status.tt step=sample status="failed" %]
-      fail "[% sample_flagstat_path %] does not exist or is empty."
-   fi
+    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
+    if [ -s "[% flagstat_path %]" ]
+    then
+        touch "[% done_file %]"
+        [% INCLUDE Status.tt step=step status="success" %]
+    else
+        [% INCLUDE Status.tt step=step status="failed" %]
+        fail "[% flagstat_path %] does not exist or is empty."
+    fi
 else
-   [% INCLUDE Status.tt step=sample status="failed" %]
-   fail "[% sample_bam_path %] does not exist or is empty."
+    [% INCLUDE Status.tt step=step status="failed" %]
+    fail "[% bam_path %] does not exist or is empty."
 fi
 
-echo "End	Flagstat	$(date)	[% sample_bam_path %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "End	Flagstat	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"

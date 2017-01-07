@@ -9,7 +9,8 @@ use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
 use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Job qw(getId);
+use HMF::Pipeline::Job qw(getId fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Job::Bam qw(sorted flagstat readCountCheck);
 use HMF::Pipeline::Template qw(writeFromTemplate);
 
 use parent qw(Exporter);
@@ -33,10 +34,11 @@ sub run {
             $opt->{SINGLE_END} = 1;
         }
 
-        my $out_dir = catfile($opt->{OUTPUT_DIR}, $fastq->{sampleName});
-        $samples->{$fastq->{sampleName}}->{dirs} = createDirs($out_dir, mapping => "mapping");
-        say "Creating $samples->{$fastq->{sampleName}}{dirs}{mapping}/$fastq->{coreName}_sorted.bam with:";
-        createIndividualMappingJobs($opt, $fastq, $samples);
+        my ($job_id, $sorted_bam, $sorted_flagstat, $dirs) = runPerLane($fastq, $opt);
+        push @{$samples->{$fastq->{sampleName}}->{job_ids}}, $job_id;
+        push @{$samples->{$fastq->{sampleName}}->{bams}}, $sorted_bam;
+        push @{$samples->{$fastq->{sampleName}}->{flagstats}}, $sorted_flagstat;
+        $samples->{$fastq->{sampleName}}->{dirs} = $dirs;
     }
 
     say "";
@@ -44,149 +46,86 @@ sub run {
         $opt->{BAM_FILES}->{$sample} = "${sample}_dedup.bam";
         say "Creating $opt->{BAM_FILES}->{$sample}";
 
-        my $done_file = catfile($info->{dirs}->{log}, "Mapping_${sample}.done");
-        if (-f $done_file) {
-            say "WARNING: $done_file exists, skipping";
-            next;
-        }
-
-        my $bams = join " ", map { $_->{file} } @{$info->{jobs}};
         my $output_bam = catfile($info->{dirs}->{mapping}, "${sample}_dedup.bam");
         my $output_flagstat = catfile($info->{dirs}->{mapping}, "${sample}_dedup.flagstat");
-        my $hold_jids = join ",", map { $_->{job_id} } @{$info->{jobs}};
-        my $job_id = "MergeMarkdup_${sample}_" . getId();
-        my $bash_file = catfile($info->{dirs}->{job}, "${job_id}.sh");
 
-        writeFromTemplate(
-            "MergeMarkdup.sh.tt", $bash_file,
+        my $done_file = checkReportedDoneFile("Mapping", $sample, $info->{dirs}, $opt) or next;
+        my $merge_job_id = fromTemplate(
+            "MergeMarkdup",
+            $sample,
+            0,
+            qsubTemplate($opt, "MARKDUP"),
+            $info->{job_ids},
+            $info->{dirs},
+            $opt,
             sample => $sample,
-            bams => $bams,
+            input_bams => $info->{bams},
             output_bam => $output_bam,
-            output_flagstat => $output_flagstat,
-            dirs => $info->{dirs},
-            opt => $opt
         );
 
-        my $qsub = qsubTemplate($opt, "MARKDUP");
-        my $stdout = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.out");
-        my $stderr = catfile($info->{dirs}->{log}, "MergeMarkdup_${sample}.err");
-        system("$qsub -o $stdout -e $stderr -N $job_id -hold_jid $hold_jids $bash_file");
-
+        my $flagstat_job_id = flagstat($sample, $output_bam, $output_flagstat, [$merge_job_id], $info->{dirs}, $opt);
+        my $check_job_id = readCountCheck(
+            $sample,
+            $info->{flagstats},
+            $output_flagstat,
+            "MergeMarkdupSuccess.tt",
+            {input_bams => $info->{bams}},
+            [$flagstat_job_id],
+            $info->{dirs},
+            $opt,
+            # comment prevents reformatting
+        );
+        my $job_id = markDone($done_file, [$check_job_id], $info->{dirs}, $opt);
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return;
 }
 
-sub createIndividualMappingJobs {
-    my ($opt, $fastq, $samples) = @_;
+sub runPerLane {
+    my ($fastq, $opt) = @_;
 
-    my ($RG_PL, $RG_ID, $RG_LB, $RG_SM, $RG_PU) = ('ILLUMINA', $fastq->{coreName}, $fastq->{sampleName}, $fastq->{sampleName}, $fastq->{flowcellID});
-
-    my %jid = (
-        mapping => "Map_$fastq->{coreName}_" . getId(),
-        mapping_flagstat => "MapFS_$fastq->{coreName}_" . getId(),
-        sort => "Sort_$fastq->{coreName}_" . getId(),
-        sort_flagstat => "SortFS_$fastq->{coreName}_" . getId(),
-        check_clean => "CheckAndClean_$fastq->{coreName}_" . getId(),
-    );
-
-    my $dirs = $samples->{$fastq->{sampleName}}->{dirs};
-    push @{$samples->{$fastq->{sampleName}}->{jobs}}, {
-        job_id => $jid{check_clean},
-        file => catfile($dirs->{mapping}, "$fastq->{coreName}_sorted.bam"),
-        };
-
-    my $done_file = catfile($dirs->{mapping}, "$fastq->{coreName}.done");
-    if (-f $done_file) {
-        say "WARNING: $done_file exists, skipping";
-        return;
-    }
-
-    my $stdout = catfile($dirs->{log}, "Mapping_$fastq->{coreName}.out");
-    my $stderr = catfile($dirs->{log}, "Mapping_$fastq->{coreName}.err");
+    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $fastq->{sampleName}), mapping => "mapping");
     my $core_file = catfile($dirs->{mapping}, $fastq->{coreName});
+    my $unsorted_bam = "${core_file}.bam";
+    my $sorted_bam = "${core_file}_sorted.bam";
+    my $unsorted_flagstat = "${core_file}.flagstat";
+    my $sorted_flagstat = "${core_file}_sorted.flagstat";
 
-    $done_file = catfile($dirs->{log}, "$fastq->{coreName}_bwa.done");
-    if (!-f $done_file) {
-        say $fastq->{R2} ? "\t$fastq->{R1}\n\t$fastq->{R2}" : "\t$fastq->{R1}";
+    my $done_file = checkReportedDoneFile("PerLaneMap", $fastq->{coreName}, $dirs, $opt) or return (undef, $sorted_bam, $sorted_flagstat, $dirs);
 
-        my $bash_file = catfile($dirs->{job}, "$jid{mapping}.sh");
-        writeFromTemplate(
-            "PerLaneMap.sh.tt", $bash_file,
-            coreName => $fastq->{coreName},
-            sampleName => $fastq->{sampleName},
-            R1 => $fastq->{R1},
-            R2 => $fastq->{R2},
-            RG_ID => $RG_ID,
-            RG_SM => $RG_SM,
-            RG_PL => $RG_PL,
-            RG_LB => $RG_LB,
-            RG_PU => $RG_PU,
-            opt => $opt,
-        );
+    say "Creating ${sorted_bam} with:";
+    say "\t$fastq->{R1}";
+    say "\t$fastq->{R2}" if $fastq->{R2};
 
-        my $qsub = qsubTemplate($opt, "MAPPING");
-        system("$qsub -o $stdout -e $stderr -N $jid{mapping} $bash_file");
-    } else {
-        say "WARNING: $done_file exists, skipping BWA";
-    }
-
-    if (!-s "${core_file}.flagstat") {
-        my $bash_file = catfile($dirs->{job}, "$jid{mapping_flagstat}.sh");
-        writeFromTemplate(
-            "PerLaneMapFS.sh.tt", $bash_file,
-            sampleName => $fastq->{sampleName},
-            coreName => $fastq->{coreName},
-            opt => $opt,
-        );
-
-        my $qsub = qsubTemplate($opt, "FLAGSTAT");
-        system("$qsub -o $stdout -e $stderr -N $jid{mapping_flagstat} -hold_jid $jid{mapping} $bash_file");
-    } else {
-        say "\t${core_file}.flagstat exists and is not empty, skipping BWA flagstat";
-    }
-
-    if (!-s "${core_file}_sorted.bam") {
-        my $bash_file = catfile($dirs->{job}, "$jid{sort}.sh");
-        writeFromTemplate(
-            "PerLaneSort.sh.tt", $bash_file,
-            coreName => $fastq->{coreName},
-            sampleName => $fastq->{sampleName},
-            opt => $opt,
-        );
-
-        my $qsub = qsubTemplate($opt, "MAPPING");
-        system("$qsub -o $stdout -e $stderr -N $jid{sort} -hold_jid $jid{mapping} $bash_file");
-    } else {
-        say "\t${core_file}_sorted.bam exists and is not empty, skipping sort";
-    }
-
-    if (!-s "${core_file}_sorted.flagstat") {
-        my $bash_file = catfile($dirs->{job}, "$jid{sort_flagstat}.sh");
-        writeFromTemplate(
-            "PerLaneSortFS.sh.tt", $bash_file,
-            sampleName => $fastq->{sampleName},
-            coreName => $fastq->{coreName},
-            opt => $opt,
-        );
-
-        my $qsub = qsubTemplate($opt, "FLAGSTAT");
-        system("$qsub -o $stdout -e $stderr -N $jid{sort_flagstat} -hold_jid $jid{sort} $bash_file");
-    } else {
-        say "\t${core_file}_sorted.flagstat exists and is not empty, skipping sorted BAM flagstat";
-    }
-
-    my $bash_file = catfile($dirs->{job}, "$jid{check_clean}.sh");
-    writeFromTemplate(
-        "PerLaneCheckAndClean.sh.tt", $bash_file,
-        sampleName => $fastq->{sampleName},
-        coreName => $fastq->{coreName},
-        opt => $opt,
+    my $map_job_id = fromTemplate(
+        "Map",
+        $fastq->{coreName},
+        0,
+        qsubTemplate($opt, "MAPPING"),
+        [],
+        $dirs,
+        $opt,
+        fastq => $fastq,
+        output_bam => $unsorted_bam,
     );
 
-    my $qsub = qsubTemplate($opt, "MAPPING");
-    system("$qsub -o $stdout -e $stderr -N $jid{check_clean} -hold_jid $jid{mapping_flagstat},$jid{sort_flagstat} $bash_file");
-    return;
+    my $flagstat_job_id = flagstat($fastq->{coreName}, $unsorted_bam, $unsorted_flagstat, [$map_job_id], $dirs, $opt);
+    my $sort_job_id = sorted($fastq->{coreName}, $unsorted_bam, $sorted_bam, [$flagstat_job_id], $dirs, $opt);
+    my $sorted_flagstat_job_id = flagstat($fastq->{coreName}, $sorted_bam, $sorted_flagstat, [$sort_job_id], $dirs, $opt);
+    my $check_job_id = readCountCheck(
+        $fastq->{coreName},
+        [$unsorted_flagstat],
+        $sorted_flagstat,
+        "MapSortSuccess.tt",
+        {unsorted_bam => $unsorted_bam},
+        [ $flagstat_job_id, $sorted_flagstat_job_id ],
+        $dirs,
+        $opt,
+        # comment prevents reformatting
+    );
+
+    my $job_id = markDone($done_file, [$check_job_id], $dirs, $opt);
+    return ($job_id, $sorted_bam, $sorted_flagstat, $dirs);
 }
 
 sub runBamPrep {

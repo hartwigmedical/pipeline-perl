@@ -23,6 +23,7 @@ then
         [% opt.SAMBAMBA_PATH %]/sambamba index [% sliced_bam %]
         if [ -s [% sliced_bam %].bai ]
         then
+            touch "[% done_file %]"
             [% INCLUDE Status.tt step=sample_bam status="success" %]
         else
             [% INCLUDE Status.tt step=sample_bam status="failed" %]

@@ -155,7 +155,6 @@ sub runManta {
             my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
             say "\n$sample \t $sample_bam";
             my $job_id = runMantaJob($sample, $sample_bam, undef, undef, $sample, $running_jobs, $opt);
-            next if not $job_id;
             push @manta_jobs, $job_id;
         }
         return \@manta_jobs;
@@ -163,7 +162,7 @@ sub runManta {
         my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
         say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
         my $job_id = runMantaJob($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-        return $job_id ? [$job_id] : [];
+        return [$job_id];
     }
 }
 

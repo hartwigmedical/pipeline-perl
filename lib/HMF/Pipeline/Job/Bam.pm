@@ -7,18 +7,38 @@ use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs);
-use HMF::Pipeline::Job qw(fromTemplate);
+use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Sge qw(qsubTemplate jobNative qsubJava);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
+    sorted
     slice
     flagstat
+    readCountCheck
     diff
     prePostSliceAndDiff
     operationWithSliceChecks
 );
 
+
+# "sort" would clash with Perl function
+sub sorted {
+    my ($step, $bam_path, $sorted_bam_path, $hold_jids, $dirs, $opt) = @_;
+
+    return fromTemplate(
+        "SortBam",
+        $step,
+        0,
+        qsubTemplate($opt, "MAPPING"),
+        $hold_jids,
+        $dirs,
+        $opt,
+        step => $step,
+        bam_path => $bam_path,
+        sorted_bam_path => $sorted_bam_path,
+    );
+}
 
 sub slice {
     my ($sample, $sample_bam, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
@@ -41,9 +61,9 @@ sub slice {
 }
 
 sub flagstat {
-    my ($sample, $sample_bam_path, $sample_flagstat_path, $hold_jids, $dirs, $opt) = @_;
+    my ($step, $bam_path, $flagstat_path, $hold_jids, $dirs, $opt) = @_;
 
-    my $flagstat_name = fileparse($sample_flagstat_path);
+    my $flagstat_name = fileparse($flagstat_path);
     return fromTemplate(
         "Flagstat",
         $flagstat_name,
@@ -52,9 +72,28 @@ sub flagstat {
         $hold_jids,
         $dirs,
         $opt,
-        sample => $sample,
-        sample_bam_path => $sample_bam_path,
-        sample_flagstat_path => $sample_flagstat_path,
+        step => $step,
+        bam_path => $bam_path,
+        flagstat_path => $flagstat_path,
+    );
+}
+
+sub readCountCheck {
+    my ($step, $pre_flagstat_paths, $post_flagstat_path, $success_template, $extra_params, $hold_jids, $dirs, $opt) = @_;
+
+    return fromTemplate(
+        "ReadCountCheck",
+        $step,
+        0,
+        qsubTemplate($opt, "FLAGSTAT"),
+        $hold_jids,
+        $dirs,
+        $opt,
+        step => $step,
+        pre_flagstat_paths => $pre_flagstat_paths,
+        post_flagstat_path => $post_flagstat_path,
+        success_template => $success_template,
+        %{$extra_params},
     );
 }
 
@@ -113,6 +152,8 @@ sub operationWithSliceChecks {
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
     say "\t${sample_bam_path}";
 
+    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return;
+
     my $job_id = fromTemplate(
         $job_template,
         $sample,
@@ -126,34 +167,30 @@ sub operationWithSliceChecks {
         sample_bam_path => $sample_bam_path,
         job_native => jobNative($opt, uc $job_template),
         known_files => $known_files,
-    );
+    ) or return;
 
-    return unless $job_id;
-
-    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), catfile($dirs->{mapping}, $post_flagstat), [$job_id], $dirs, $opt);
-
-    my $check_job_id = fromTemplate(
-        "ReadCountCheck",
+    my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
+    my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
+    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$job_id], $dirs, $opt);
+    my $check_job_id = readCountCheck(
         $sample,
-        0,
-        qsubTemplate($opt, "FLAGSTAT"),
+        [$sample_flagstat_path],
+        $post_flagstat_path,
+        "${job_template}Success.tt",
+        {post_bam => $post_bam, post_bai => $post_bai},
         [$flagstat_job_id],
         $dirs,
         $opt,
-        sample => $sample,
-        pre_flagstat_path => catfile($dirs->{mapping}, $sample_flagstat),
-        post_flagstat_path => catfile($dirs->{mapping}, $post_flagstat),
-        post_bam => $post_bam,
-        post_bai => $post_bai,
-        success_template => "${job_template}Success.tt",
+        # comment prevents reformatting
     );
 
-    push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
+    $job_id = markDone($done_file, [$check_job_id], $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
 
     my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$check_job_id], $dirs, $opt);
     my $cpct_job_id = slice($sample, $post_bam, $cpct_sliced_bam, "CPCT_Slicing.bed", [$check_job_id], $dirs, $opt);
-
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
+
     return;
 }
 

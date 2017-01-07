@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Map
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
+
+cd [% dirs.mapping %]
+
+echo "Start	${JOB_NAME}	$(date)	[% fastq.coreName %]	$(uname -n)" >> "[% dirs.log %]/[% fastq.sampleName %].log"
+
+[% INCLUDE Status.tt step=fastq.coreName status="processing" %]
+
+[% opt.BWA_PATH %]/bwa mem \
+    -t [% opt.MAPPING_THREADS %] \
+    [% opt.MAPPING_SETTINGS %] \
+    -R "@RG	ID:[% fastq.coreName %]	SM:[% fastq.sampleName %]	PL:ILLUMINA	LB:[% fastq.sampleName %]	PU:[% fastq.flowcellID %]" \
+    [% opt.GENOME %] \
+    [% fastq.R1 %] \
+    [%- IF fastq.exists('R2') %]
+    [% fastq.R2 %] \
+    [%- END %]
+    | [% opt.SAMBAMBA_PATH %]/sambamba view \
+          -t [% opt.MAPPING_THREADS %] \
+          --format=bam \
+          -S \
+          -o [% output_bam %].tmp \
+          /dev/stdin
+
+if grep -Fq "[main] Real time:" "$SGE_STDERR_PATH"
+then
+    mv "[% output_bam %].tmp" "[% output_bam %]"
+    touch "[% done_file %]"
+
+    [% INCLUDE Status.tt step=fastq.coreName status="success" %]
+else
+    [% INCLUDE Status.tt step=fastq.coreName status="failed" %]
+    fail "[% fastq.coreName %] BWA did not finish properly"
+fi
+
+echo "End	${JOB_NAME}	$(date)	[% fastq.coreName %]	$(uname -n)" >> "[% dirs.log %]/[% fastq.sampleName %].log"

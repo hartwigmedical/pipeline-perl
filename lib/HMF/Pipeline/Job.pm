@@ -35,7 +35,7 @@ sub fromTemplate {
     my $job_id = "${name}${suffix}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
-    my $done_file = checkDoneFile($name, $suffix, $is_reported_job, $dirs, $opt);
+    my $done_file = checkDoneFile($name, $step, $is_reported_job, $dirs, $opt);
     return unless $done_file;
 
     writeFromTemplate(
@@ -50,7 +50,7 @@ sub fromTemplate {
     my $stdout = catfile($dirs->{log}, "${name}${suffix}.out");
     my $stderr = catfile($dirs->{log}, "${name}${suffix}.err");
     my $hold_jid = "";
-    $hold_jid = "-hold_jid " . join ",", @{$hold_jids} if @{$hold_jids};
+    $hold_jid = "-hold_jid " . join ",", grep { defined } @{$hold_jids} if grep { defined } @{$hold_jids};
     system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
     return $job_id;
 }
@@ -65,10 +65,7 @@ sub fromTemplate {
 sub checkReportedDoneFile {
     my ($name, $step, $dirs, $opt) = @_;
 
-    my $suffix = "";
-    $suffix = "_${step}" if $step;
-
-    return checkDoneFile($name, $suffix, 1, $dirs, $opt);
+    return checkDoneFile($name, $step, 1, $dirs, $opt);
 }
 
 # only used for multi-stage, reported jobs
@@ -92,14 +89,26 @@ sub markDone {
 }
 
 sub checkDoneFile {
-    my ($name, $suffix, $is_reported_job, $dirs, $opt) = @_;
+    my ($name, $step, $is_reported_job, $dirs, $opt) = @_;
+
+    my $suffix = "";
+    $suffix = "_${step}" if $step;
 
     my $standard_done_name = "${name}${suffix}.done";
     my $standard_done_file = catfile($dirs->{log}, $standard_done_name);
 
-    my $sample_name = (split /_/, $suffix)[1] // "";
+    $step //= "";
+    my ($sample_name) = split /_/, $step;
+    $sample_name //= "";
+
     #<<< no perltidy
     my %old_done_files = (
+        "PerLaneMap${suffix}.done" => [
+            catfile($dirs->{mapping} // "", "${step}.done"),
+        ],
+        "Map${suffix}.done" => [
+            catfile($dirs->{log}, "${step}_bwa.done"),
+        ],
         "PreStats${suffix}.done" => [
             catfile($dirs->{log}, "PreStats_${sample_name}.done"),
         ],

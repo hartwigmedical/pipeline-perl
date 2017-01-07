@@ -1,4 +1,6 @@
-mv [% dirs.tmp %]/*_baseRecalibration.pdf [% dirs.log %]
+mv [% dirs.tmp %]/[% post_bam %] [% dirs.mapping %]
+        mv [% dirs.tmp %]/[% post_bai %] [% dirs.mapping %]/[% post_bam %].bai
+
+        mv [% dirs.tmp %]/*_baseRecalibration.pdf [% dirs.log %]
         mv [% dirs.tmp %]/*_post_recal_data.table [% dirs.log %]
         mv [% dirs.tmp %]/*_recal_data.table [% dirs.log %]
-        touch [% dirs.log %]/BaseRecalibration_[% sample %].done

@@ -20,6 +20,7 @@ then
     # NB: bamutil does not produce an empty file when there is no diff
     [% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual --out "[% output_diff %]"
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=diff_name status="success" %]
 else
     [% INCLUDE Status.tt step=diff_name status="failed" %]

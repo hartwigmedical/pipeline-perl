@@ -23,6 +23,7 @@ if true \
 then
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% vcf_files.join(' ') %] > "[% output_vcf %]"
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=step status="success" %]
 else
     [% INCLUDE Status.tt step=step status="failed" %]
