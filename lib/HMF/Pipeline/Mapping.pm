@@ -21,14 +21,11 @@ sub run {
 
     say "\n### SCHEDULING MAPPING ###";
 
-    die "GENOME: $opt->{GENOME} does not exist!" if !-f $opt->{GENOME};
-    die "GENOME BWT: $opt->{GENOME}.bwt does not exist!" if !-f "$opt->{GENOME}.bwt";
-    die "GENOME FAI: $opt->{GENOME}.fai does not exist!" if !-f "$opt->{GENOME}.fai";
-
     my $samples = {};
     foreach my $input_fastq (keys %{$opt->{FASTQ}}) {
         my $fastq = parseFastqName($input_fastq);
         say "Skipping R2 sample $input_fastq" and next if $input_fastq eq $fastq->{R2};
+
         if (exists $opt->{FASTQ}->{$fastq->{R2}}) {
             say "Switching to paired end mode!";
         } else {

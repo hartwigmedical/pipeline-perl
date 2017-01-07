@@ -262,12 +262,12 @@ sub pipelinePath {
 sub getChromosomes {
     my ($opt) = @_;
 
-    (my $dict_file = $opt->{GENOME}) =~ s/\.fasta$/.dict/;
+    my $fai_file = "$opt->{GENOME}.fai";
     my @chrs;
-    open my $fh, "<", $dict_file or confess "could not open $dict_file: $!";
+    open my $fh, "<", $fai_file or confess "could not open $fai_file: $!";
     while (<$fh>) {
         chomp;
-        push @chrs, $1 if /SN:(\w+)\s*LN:(\d+)/;
+        push @chrs, $1 if /(\w+)\t(\d+)/;
     }
     close $fh;
 

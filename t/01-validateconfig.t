@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use File::Temp;
+use File::Touch;
 use Test::Fatal;
 use Test::More;
 
@@ -216,6 +217,87 @@ is_deeply(
     ),
     ["REQUIRED_DIRECTORY directory $temp_dir does not exist"],
     "detects missing directory"
+);
+
+$temp_file = File::Temp->new();
+$temp_file_a = "${temp_file}.fai";
+$temp_file_b = "${temp_file}.bwt";
+touch($temp_file_a, $temp_file_b);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        }, {
+            KEY => $temp_file,
+        },
+    ),
+    [],
+    "finds genome files"
+);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        },
+        {},
+    ),
+    ["No KEY option found in config files"],
+    "missing genome key"
+);
+
+unlink($temp_file_b);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        }, {
+            KEY => $temp_file,
+        },
+    ),
+    ["KEY file $temp_file_b does not exist"],
+    "missing genome bwt"
+);
+
+touch($temp_file_b);
+unlink($temp_file_a);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        }, {
+            KEY => $temp_file,
+        },
+    ),
+    ["KEY file $temp_file_a does not exist"],
+    "missing genome fai"
+);
+
+touch($temp_file_a);
+$temp_file->DESTROY();
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        }, {
+            KEY => $temp_file,
+        },
+    ),
+    ["KEY file $temp_file does not exist"],
+    "missing genome file"
+);
+
+unlink($temp_file_a);
+unlink($temp_file_b);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+        }, {
+            KEY => $temp_file,
+        },
+    ),
+    ["KEY file $temp_file does not exist and KEY file $temp_file_a does not exist and KEY file $temp_file_b does not exist"],
+    "multiple missing genome files"
 );
 
 

@@ -122,9 +122,9 @@ sub bamReads {
 sub refGenomeContigs {
     my ($opt) = @_;
 
-    my $fasta_file = "$opt->{GENOME}.fai";
-    my @lines = qx(cat $fasta_file);
-    $? == 0 or confess "could not read from $fasta_file";
+    my $fai_file = "$opt->{GENOME}.fai";
+    my @lines = qx(cat $fai_file);
+    $? == 0 or confess "could not read from $fai_file";
 
     return contigLengths(\@lines);
 }
@@ -204,7 +204,7 @@ sub configChecks {
         CLUSTER_TMP => \&key_not_present,
         CLUSTER_RESERVATION => \&key_not_present,
         CLUSTER_PROJECT => \&key_not_present,
-        GENOME => \&missing_file,
+        GENOME => \&missing_genome_files,
         QUEUE_PATH => \&missing_directory,
         # these are required for BAM input, regardless of settings
         SAMTOOLS_PATH => \&missing_directory,
@@ -576,6 +576,12 @@ sub missing_directory {
     my ($key, $value) = @_;
 
     return (key_not_present($key, $value) or not -d $value and "$key directory $value does not exist");
+}
+
+sub missing_genome_files {
+    my ($key, $value) = @_;
+
+    return (key_not_present($key, $value) or join " and ", grep { $_ } map { missing_file($key, $_) } ("${value}", "${value}.fai", "${value}.bwt"));
 }
 
 sub invalid_choice {
