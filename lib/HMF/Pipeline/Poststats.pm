@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions qw(:ALL);
 
-use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordPerSampleJob);
+use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);
 use HMF::Pipeline::Job qw(getId fromTemplate);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);

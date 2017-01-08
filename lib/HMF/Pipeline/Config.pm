@@ -25,7 +25,7 @@ our @EXPORT_OK = qw(
     addSubDir
     setupLogging
     addSamples
-    recordPerSampleJob
+    recordAllSampleJob
     sampleBamAndJobs
     sampleBamsAndJobs
     sampleControlBamsAndJobs
@@ -157,7 +157,7 @@ sub addSamples {
     return;
 }
 
-sub recordPerSampleJob {
+sub recordAllSampleJob {
     my ($opt, $job_id) = @_;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;

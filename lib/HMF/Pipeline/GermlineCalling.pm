@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordPerSampleJob);
+use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordAllSampleJob);
 use HMF::Pipeline::Sge qw(jobNative qsubJava);
 use HMF::Pipeline::Job qw(fromTemplate getId);
 use HMF::Pipeline::Metadata;
@@ -36,7 +36,7 @@ sub run {
     );
 
     linkArtefacts($dirs->{gvcf}, $opt);
-    recordPerSampleJob($opt, $job_id) if $job_id;
+    recordAllSampleJob($opt, $job_id) if $job_id;
     return;
 }
 
