@@ -11,7 +11,7 @@ function main() {
     echo "Your job $$ (\"${name}\") has been submitted"
 
     local me=$(basename "$0")
-    local tmpfile=$(mktemp -t "$me.$$")
+    local tmpfile=$(mktemp -t "$me-XXXX.$$")
     echo "${me} $*" > "$tmpfile"
 }
 
