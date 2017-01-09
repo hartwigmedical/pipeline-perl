@@ -1,3 +1,4 @@
+export JOB_STEP JOB_STATUS
 # shellcheck disable=SC2034
 JOB_STEP="[% step %]"
 # shellcheck disable=SC2034
