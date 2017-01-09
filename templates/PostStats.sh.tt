@@ -71,4 +71,5 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar 
     -o [% dirs.exoncov %]
 [% END -%]
 
+# do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
 [% INCLUDE Status.tt step="" status="finished" %]

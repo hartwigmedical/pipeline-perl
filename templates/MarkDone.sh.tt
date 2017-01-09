@@ -14,7 +14,7 @@ JOB_START=$(date +%s)
 echo "Start	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/$(basename "[% done_file %]").log"
 [% INCLUDE Status.tt step="" status="processing" %]
 
-touch [% done_file %]
+touch "[% done_file %]"
 
 [% INCLUDE Status.tt step="" status="finished" %]
 echo "End	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/$(basename "[% done_file %]").log"

@@ -103,6 +103,18 @@ sub checkDoneFile {
 
     #<<< no perltidy
     my %old_done_files = (
+        "Strelka.done" => [
+            catfile($dirs->{log}, "strelka.done"),
+        ],
+        "Varscan.done" => [
+            catfile($dirs->{log}, "varscan.done"),
+        ],
+        "Freebayes.done" => [
+            catfile($dirs->{log}, "freebayes.done"),
+        ],
+        "Mutect.done" => [
+            catfile($dirs->{log}, "mutect.done"),
+        ],
         "PerLaneMap${suffix}.done" => [
             catfile($dirs->{mapping} // "", "${step}.done"),
         ],

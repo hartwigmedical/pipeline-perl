@@ -23,7 +23,7 @@ tail_input="$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)"
 tail_output="$(tail -n 1 [% out_vcf %] | cut -f 1,2)"
 if [ -s [% pre_annotate_vcf %] ] && [ -s [% out_vcf %] ] && [ "$tail_input" == "$tail_output" ]
 then
-    touch [% dirs.log %]/[% somatic_name %].done
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]

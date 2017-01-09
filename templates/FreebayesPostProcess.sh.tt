@@ -13,47 +13,46 @@ JOB_START=$(date +%s)
 
 cd [% dirs.freebayes.out %]
 
-if [ -s "[% ref_sample_bam %]" ] && \
-   [ -s "[% tumor_sample_bam %]" ] && \
-   [% FOREACH snp_vcf IN snp_vcfs %]
-   [ -s "[% snp_vcf %]" ] && \
+if \
+   [% FOREACH input_vcf IN input_vcfs %]
+   [ -s "[% input_vcf %]" ] && \
    [%- END %]
    true
 then
-    echo "Start	concat and postprocess Freebayes	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "Start	concat and postprocess Freebayes	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
     [% INCLUDE Status.tt step="PostProcess" status="processing" %]
 
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% snp_vcfs.join(' ') %] > "[% somatic_name %].vcf"
-    uniq [% dirs.freebayes.out %]/[% somatic_name %].vcf > [% dirs.freebayes.out %]/[% somatic_name %].uniq.vcf
-    mv [% dirs.freebayes.out %]/[% somatic_name %].uniq.vcf [% dirs.freebayes.out %]/[% somatic_name %].vcf
+    [% opt.VCFTOOLS_PATH %]/vcf-concat [% input_vcfs.join(' ') %] > "[% joint_name %].vcf"
+    uniq [% dirs.freebayes.out %]/[% joint_name %].vcf > [% dirs.freebayes.out %]/[% joint_name %].uniq.vcf
+    mv [% dirs.freebayes.out %]/[% joint_name %].uniq.vcf [% dirs.freebayes.out %]/[% joint_name %].vcf
 
     # Filter based on BCBIO filters
     [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py \
-        -v [% dirs.freebayes.out %]/[% somatic_name %].vcf \
+        -v [% dirs.freebayes.out %]/[% joint_name %].vcf \
         | java -Xmx[% opt.FREEBAYES_MEM %]G \
             -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
             filter "[% opt.FREEBAYES_SOMATICFILTER %]" \
-            > "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered_unnormalized.vcf"
+            > "[% dirs.freebayes.out %]/[% joint_name %]_somatic_filtered_unnormalized.vcf"
 
     [% opt.VT_PATH %]/vt normalize \
         -r "[% opt.GENOME %]" \
-        "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered_unnormalized.vcf" \
-        -o "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered.vcf"
+        "[% dirs.freebayes.out %]/[% joint_name %]_somatic_filtered_unnormalized.vcf" \
+        -o "[% final_vcf %]"
 
-    if [ -s "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered.vcf" ]
+    if [ -s "[% final_vcf %]" ]
     then
-        rm -r [% dirs.freebayes.tmp %] [% snp_vcfs.join(' ') %]
+        rm -r [% dirs.freebayes.tmp %] [% input_vcfs.join(' ') %]
 
         ## Check on complete output!!!
-        touch [% dirs.log %]/freebayes.done
+        touch "[% done_file %]"
         [% INCLUDE Status.tt step="PostProcess" status="success" %]
     else
         [% INCLUDE Status.tt step="PostProcess" status="failed" %]
-        fail "[% dirs.freebayes.out %]/[% somatic_name %]_somatic_filtered.vcf does not exist."
+        fail "[% final_vcf %] does not exist."
     fi
 
-    echo "End	concat and postprocess Freebayes	$(date)	[% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "End	concat and postprocess Freebayes	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
 else
     [% INCLUDE Status.tt step="PostProcess" status="failed" %]
-    fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
+    fail "An input VCF does not exist."
 fi

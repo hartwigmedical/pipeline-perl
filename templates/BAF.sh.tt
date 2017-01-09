@@ -54,7 +54,8 @@ then
         if [ -s "[% output_bafplot %]" ]
         then
             mv [% output_bafplot %] [% dirs.out %]
-            touch [% dirs.log %]/BAF_[% sample %].done
+
+            touch "[% done_file %]"
             [% INCLUDE Status.tt step=sample status="success" %]
         else
             fail "BAF plot not created"

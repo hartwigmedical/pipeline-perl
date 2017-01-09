@@ -12,39 +12,40 @@ JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 cd [% dirs.freebayes.out %]
-if [ -s "[% tumor_sample_bam %]" ] && [ -s "[% ref_sample_bam %]" ]
+if [ -s "[% tumor_bam_path %]" ] && [ -s "[% ref_bam_path %]" ]
 then
-    echo "Start	Freebayes	$(date)	[% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "Start	Freebayes	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
     [% INCLUDE Status.tt step=chr status="processing" %]
 
     [% opt.FREEBAYES_PATH %]/freebayes \
         -f [% opt.GENOME %] \
         -r [% chr %] \
         [% opt.FREEBAYES_SETTINGS %] \
-        [% ref_sample_bam %] [% tumor_sample_bam %] \
-        > [% dirs.freebayes.out %]/[% output_name %].vcf
+        "[% ref_bam_path %]" \
+        "[% tumor_bam_path %]" \
+        > "[% output_vcf %]"
 
-    [% opt.VCFTOOLS_PATH %]/vcf-sort -c -t [% dirs.freebayes.tmp %] [% dirs.freebayes.out %]/[% output_name %].vcf \
-        | [% opt.VCFLIB_PATH %]/vcfuniq > [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf
+    [% opt.VCFTOOLS_PATH %]/vcf-sort -c -t "[% dirs.freebayes.tmp %]" "[% output_vcf %]" \
+        | [% opt.VCFLIB_PATH %]/vcfuniq > "[% output_vcf %].sorted_uniq.vcf"
 
     [%- IF opt.exists('SOMVAR_TARGETS') %]
     java -Xmx[% opt.FREEBAYES_MEM %]G \
         -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
         -T SelectVariants \
-        -R [% opt.GENOME %] \
-        -L [% opt.SOMVAR_TARGETS %] \
-        -V [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf \
-        -o [% dirs.freebayes.out %]/[% output_name %].sorted_uniq_targetfilter.vcf
+        -R "[% opt.GENOME %]" \
+        -L "[% opt.SOMVAR_TARGETS %]" \
+        -V "[% output_vcf %].sorted_uniq.vcf" \
+        -o "[% output_vcf %].sorted_uniq_targetfilter.vcf"
 
-    mv [% dirs.freebayes.out %]/[% output_name %].sorted_uniq_targetfilter.vcf [% dirs.freebayes.out %]/[% output_name %].vcf
+    mv "[% output_vcf %].sorted_uniq_targetfilter.vcf" "[% output_vcf %]"
     [%- ELSE %]
-    mv [% dirs.freebayes.out %]/[% output_name %].sorted_uniq.vcf [% dirs.freebayes.out %]/[% output_name %].vcf
+    mv "[% output_vcf %].sorted_uniq.vcf" "[% output_vcf %]"
     [%- END %]
 
     [% INCLUDE Status.tt step=chr status="finished" %]
 
-    echo "End	Freebayes	$(date)	[% chr %]    [% ref_sample_bam %]    [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/freebayes.log
+    echo "End	Freebayes	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
-    fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
+    fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi

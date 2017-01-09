@@ -17,13 +17,17 @@ cd "[% dirs.out %]"
 
 echo "Start	Merge	$(date)	[% opt.RUN_NAME %]	$(uname -n)" >> [% dirs.log %]/merge.log
 
-java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
+java -Xmx[% opt.SOMVARMERGE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
     -T CombineVariants \
     -R [% opt.GENOME %] \
     -o [% out_vcf %] \
     --genotypemergeoption uniquify \
-    [% inputs.join(' ') %]
+    [%- FOREACH in_vcf IN in_vcfs.pairs() %]
+    -V:[% in_vcf.key %] "[% in_vcf.value %]" \
+    [%- END %]
+    ;
 
 if [ -s "[% out_vcf %]" ]
 then

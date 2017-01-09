@@ -42,7 +42,7 @@ then
 else
     echo "The pipeline completed successfully." >> [% log_file %]
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
-    find [% opt.OUTPUT_DIR %]/logs -size 0 -not -name "*.done" -delete
+    find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
 [% IF opt.SOMATIC_VARIANTS == "yes" -%]
     find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
@@ -86,10 +86,9 @@ else
 [% END -%]
 
     mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
-    touch "[% opt.OUTPUT_DIR %]/logs/PipelineCheck.done"
+    touch "[% dirs.log %]/PipelineCheck.done"
     [% INCLUDE Status.tt step="" status="success" %]
 fi
 
 # regardless of success, remove the lock: we are done
 rm -f [% opt.OUTPUT_DIR %]/run.lock
-

@@ -11,45 +11,45 @@ JOB_NAME=Strelka
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-if [ -s [% tumor_sample_bam %] ] && [ -s [% ref_sample_bam %] ]
+if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ] 
 then
-    echo "Start	Strelka	$(date)	[% ref_sample_bam %]  [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/strelka.log
+    echo "Start	Strelka	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
 
     [% INCLUDE Status.tt step="" status="processing" %]
 
-    rm -rf [% dirs.out %]/strelka
+    rm -rf [% dirs.strelka.out %]
     [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
-        --tumor [% tumor_sample_bam %] \
-        --normal [% ref_sample_bam %] \
-        --ref [% opt.GENOME %] \
-        --config [% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %] \
-        --output-dir [% dirs.strelka.out %]
+        --tumor "[% tumor_bam_path %]" \
+        --normal "[% ref_bam_path %]" \
+        --ref "[% opt.GENOME %]" \
+        --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
+        --output-dir "[% dirs.strelka.out %]"
 
-    cd [% dirs.strelka.out %]
+    cd "[% dirs.strelka.out %]"
     make -j [% opt.STRELKA_THREADS %]
 
-    if [ -f [% dirs.strelka.out %]/task.complete ]
+    if [ -f "[% dirs.strelka.out %]/task.complete" ]
     then
         java -Xmx[% opt.STRELKA_MEM %]G \
             -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
             -T CombineVariants \
-            -R [% opt.GENOME %] \
+            -R "[% opt.GENOME %]" \
             --genotypemergeoption unsorted \
             -V results/passed.somatic.snvs.vcf \
             -V results/passed.somatic.indels.vcf \
-            -o passed.somatic.merged.vcf
+            -o "[% final_vcf %]"
 
         awk -F'\t' -v OFS='\t' '
             /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
             /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
             { print }' \
-            passed.somatic.merged.vcf \
+            "[% final_vcf %]" \
             > temp.vcf
 
-        mv temp.vcf passed.somatic.merged.vcf
+        mv temp.vcf "[% final_vcf %]"
         rm -r chromosomes/
 
-        touch [% dirs.log %]/strelka.done
+        touch "[% done_file %]"
         [% INCLUDE Status.tt step="" status="success" %]
     else
         [% INCLUDE Status.tt step="" status="failed" %]
@@ -57,7 +57,7 @@ then
     fi
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% tumor_sample_bam %] or [% ref_sample_bam %] does not exist."
+    fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi
 
-echo "End	Strelka	$(date)	[% ref_sample_bam %]  [% tumor_sample_bam %]	$(uname -n)" >> [% dirs.log %]/strelka.log
+echo "End	Strelka	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"

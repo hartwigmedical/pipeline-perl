@@ -13,10 +13,10 @@ JOB_START=$(date +%s)
 
 cd [% dirs.varscan.out %]
 
-if [ -s "[% ref_sample_pileup %]" ] && [ -s "[% tumor_sample_pileup %]" ]
+if [ -s "[% ref_pileup %]" ] && [ -s "[% tumor_pileup %]" ]
 then
     [% INCLUDE Status.tt step=chr status="processing" %]
-    echo "Start	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "Start	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
 
     # it is absolutely required for correct error detection not to use process substitution.
     # normally this would be used to avoid the use of temporary files (performance) in the case
@@ -37,17 +37,20 @@ then
 
     ref_pipe=$(pipe)
     tumor_pipe=$(pipe)
-    [% opt.TABIX_PATH %]/tabix [% ref_sample_pileup %] [% chr %] > "$ref_pipe" &
+    [% opt.TABIX_PATH %]/tabix [% ref_pileup %] [% chr %] > "$ref_pipe" &
     tabix_ref_pid=$!
-    [% opt.TABIX_PATH %]/tabix [% tumor_sample_pileup %] [% chr %] > "$tumor_pipe" &
+    [% opt.TABIX_PATH %]/tabix [% tumor_pileup %] [% chr %] > "$tumor_pipe" &
     tabix_tumor_pid=$!
 
     java -Xmx[% opt.VARSCAN_MEM %]G \
         -jar [% opt.VARSCAN_PATH %] \
-        somatic "$ref_pipe" "$tumor_pipe" \
-        [% output_name %] \
+        somatic \
+        "$ref_pipe" \
+        "$tumor_pipe" \
         [% opt.VARSCAN_SETTINGS %] \
-        --output-vcf 1
+        --output-vcf 1 \
+        --output-snp "[% snp_vcf %]" \
+        --output-indel "[% indel_vcf %]"
 
     # in rare cases, the normal pileup has more positions than the tumor pileup for a particular
     # chromosome, creating a race on writing the rest vs varscan closing the file. varscan will
@@ -61,9 +64,9 @@ then
     wait_no_sigpipe $tabix_ref_pid
     wait $tabix_tumor_pid
 
-    echo "End	Varscan	$(date)	[% chr %]    [% ref_sample_pileup %]    [% tumor_sample_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "End	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
     [% INCLUDE Status.tt step=chr status="finished" %]
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
-    fail "[% tumor_sample_pileup %] or [% ref_sample_pileup %] does not exist."
+    fail "[% tumor_pileup %] or [% ref_pileup %] does not exist."
 fi

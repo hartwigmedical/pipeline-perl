@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+#
+# Template used by the Template Toolkit. See: http://template-toolkit.org/
+#
+
+[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+
+export JOB_NAME JOB_SET JOB_START
+JOB_NAME=Pileup
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_START=$(date +%s)
+
+cd [% dirs.tmp %]
+
+echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/pileup.log"
+
+if [ -s "[% bam_path %]" ]
+then
+    [% INCLUDE Status.tt step=sample status="processing" %]
+
+    PATH=[% opt.SAMTOOLS_PATH %]:$PATH
+    export PATH
+
+    # divide threads between sambamba/samtools and pbgzip conservatively (ensure zip can keep up)
+    # worker threads are favoured over compression threads (PILEUP_DIVISOR - 1):1 => PILEUP_THREADS >= PILEUP_DIVISOR
+    # this heurestic needs modifying if the sambamba log shows "[chunk waiting for dump queue]"
+    # shellcheck disable=SC2017
+    MPILEUP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %] * ([% opt.PILEUP_DIVISOR %] - 1) + [% opt.PILEUP_THREADS %] % [% opt.PILEUP_DIVISOR %]))
+    PBGZIP_THREADS=$(([% opt.PILEUP_THREADS %] / [% opt.PILEUP_DIVISOR %]))
+    echo "Using ${MPILEUP_THREADS} threads for mpileup and ${PBGZIP_THREADS} threads for compression"
+
+    [% opt.SAMBAMBA_PATH %]/sambamba mpileup \
+        -t ${MPILEUP_THREADS} \
+        --tmpdir=[% dirs.tmp %] \
+        [%- IF opt.exists('SOMVAR_TARGETS') %]
+        -L "[% opt.SOMVAR_TARGETS %]" \
+        [%- END %]
+        "[% bam_path %]" \
+        --samtools "-q 1 -f [% opt.GENOME %]" \
+        | [% opt.PBGZIP_PATH %]/pbgzip \
+            -n ${PBGZIP_THREADS} \
+            -c \
+            > "[% bam_path %].pileup.gz"
+
+    [% opt.TABIX_PATH %]/tabix -s 1 -b 2 -e 2 "[% bam_path %].pileup.gz"
+
+    pileup_tail="$([% opt.TABIX_PATH %]/tabix "[% bam_path %].pileup.gz" MT | tail -n 1 | cut -f 1)"
+    if [ "$pileup_tail" == "MT" ]
+    then
+        mv "[% bam_path %].pileup.gz" "[% pileup_path %]"
+        mv "[% bam_path %].pileup.gz.tbi" "[% pileup_path %].tbi"
+
+        touch "[% done_file %]"
+        [% INCLUDE Status.tt step=sample status="success" %]
+    else
+        [% INCLUDE Status.tt step=sample status="failed" %]
+        fail "[% bam_path %].pileup.gz seems incomplete, it does not end with MT"
+    fi
+else
+    [% INCLUDE Status.tt step=sample status="failed" %]
+    fail "[% bam_path %] does not exist."
+fi
+
+echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/pileup.log"

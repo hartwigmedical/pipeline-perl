@@ -21,6 +21,6 @@ echo "Start	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[
 
 [% INCLUDE Status.tt step=core_name status="finished" %]
 
-touch [% done_file %]
+touch "[% done_file %]"
 
 echo "End	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log

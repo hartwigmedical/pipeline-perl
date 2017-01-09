@@ -32,7 +32,7 @@ if [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf ] \
     [%- END %]
     && true
 then
-    touch [% dirs.log %]/PostStats.done
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]
