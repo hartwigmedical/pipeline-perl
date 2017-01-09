@@ -12,7 +12,6 @@ use HMF::Pipeline::Sge qw(qsubSimple);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
-    getId
     fromTemplate
     checkReportedDoneFile
     markDone

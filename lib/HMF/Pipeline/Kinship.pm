@@ -8,7 +8,7 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);
 use HMF::Pipeline::Sge qw(qsubJava);
-use HMF::Pipeline::Job qw(fromTemplate getId);
+use HMF::Pipeline::Job qw(fromTemplate);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

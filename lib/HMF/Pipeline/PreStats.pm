@@ -9,7 +9,7 @@ use File::Spec::Functions;
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName);
 use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Job qw(fromTemplate getId);
+use HMF::Pipeline::Job qw(fromTemplate);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

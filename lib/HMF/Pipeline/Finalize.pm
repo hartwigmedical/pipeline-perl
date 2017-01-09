@@ -8,7 +8,7 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(allRunningJobs createDirs);
 use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Job qw(fromTemplate getId);
+use HMF::Pipeline::Job qw(fromTemplate);
 use HMF::Pipeline::Metadata;
 
 use parent qw(Exporter);
