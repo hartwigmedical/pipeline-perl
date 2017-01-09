@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs);
+use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs);
 use HMF::Pipeline::Job qw(getId fromTemplate);
 use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubJava);
@@ -23,7 +23,9 @@ sub run {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
         my $dirs = createDirs($out_dir, mapping => "mapping");
-        my $sample_bam = catfile($dirs->{mapping}, $opt->{BAM_FILES}->{$sample});
+
+        my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
+
         my $output_bed = "${sample}_CallableLoci.bed";
         my $output_summary = "${sample}_CallableLoci.txt";
 
@@ -32,7 +34,7 @@ sub run {
             $sample,
             1,
             qsubJava($opt, "CALLABLE_LOCI"),
-            $opt->{RUNNING_JOBS}->{$sample},
+            $running_jobs,
             $dirs,
             $opt,
             sample => $sample,
