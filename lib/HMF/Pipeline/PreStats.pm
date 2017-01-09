@@ -1,4 +1,4 @@
-package HMF::Pipeline::Prestats;
+package HMF::Pipeline::PreStats;
 
 use FindBin::libs;
 use discipline;

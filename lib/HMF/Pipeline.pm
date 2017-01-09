@@ -8,9 +8,9 @@ use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Metadata;
-use HMF::Pipeline::Prestats;
+use HMF::Pipeline::PreStats;
 use HMF::Pipeline::Mapping;
-use HMF::Pipeline::Poststats;
+use HMF::Pipeline::PostStats;
 use HMF::Pipeline::Realignment;
 use HMF::Pipeline::BaseRecalibration;
 use HMF::Pipeline::GermlineCalling;
@@ -33,14 +33,14 @@ sub run {
     my ($opt) = @_;
 
     if ($opt->{FASTQ}) {
-        HMF::Pipeline::Prestats::run($opt) if $opt->{PRESTATS} eq "yes";
+        HMF::Pipeline::PreStats::run($opt) if $opt->{PRESTATS} eq "yes";
         HMF::Pipeline::Mapping::run($opt) if $opt->{MAPPING} eq "yes";
     } elsif ($opt->{BAM}) {
         HMF::Pipeline::Mapping::runBamPrep($opt);
     }
 
     if ($opt->{FASTQ} or $opt->{BAM}) {
-        HMF::Pipeline::Poststats::run($opt) if $opt->{POSTSTATS} eq "yes";
+        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
         linkBamArtefacts($opt);
         HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";

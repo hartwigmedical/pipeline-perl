@@ -1,4 +1,4 @@
-package HMF::Pipeline::Poststats;
+package HMF::Pipeline::PostStats;
 
 use FindBin::libs;
 use discipline;
