@@ -7,27 +7,29 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Flagstat
+JOB_NAME=ContigCheck
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
 echo "Start	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
 
-if [ -s "[% bam_path %]" ]
+if [ -s "[% bam_path %]" ] && [ -s "[% bam_path %].bai" ]
 then
-    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
-    if [ -s "[% flagstat_path %]" ]
+    header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H [% bam_path %] | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
+    read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% bam_path %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
+    contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
+    if [ -n "$contig_diff" ]
     then
+        [% INCLUDE Status.tt step=step status="failed" %]
+        fail "[% bam_path %] header contigs do not match read contigs:\n\n${contig_diff}"
+    else
         touch "[% done_file %]"
         [% INCLUDE Status.tt step=step status="success" %]
-    else
-        [% INCLUDE Status.tt step=step status="failed" %]
-        fail "[% flagstat_path %] does not exist or is empty."
     fi
 else
     [% INCLUDE Status.tt step=step status="failed" %]
-    fail "[% bam_path %] does not exist or is empty."
+    fail "[% bam_path %] or [% bam_path %].bai does not exist."
 fi
 
 echo "End	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"

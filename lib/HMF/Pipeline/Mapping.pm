@@ -8,10 +8,9 @@ use File::Spec::Functions;
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
 use HMF::Pipeline::Metadata qw(linkExtraArtefact);
-use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Job qw(getId fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Job::Bam qw(sorted flagstat readCountCheck);
-use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Sge qw(qsubSimple qsubTemplate);
+use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Job::Bam qw(sorted indexed flagstat readCountCheck);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run runBamPrep);
@@ -158,22 +157,20 @@ sub runBamPrep {
 
         next if $bai_good and $flagstat_good;
 
-        my $job_id = "PrepBam_${sample}_" . getId();
-        my $bash_file = catfile($dirs->{job}, "$job_id.sh");
-
-        writeFromTemplate(
-            "PrepBam.sh.tt", $bash_file,
-            sample => $sample,
-            sample_bam => $sample_bam,
-            sample_bai => $sample_bai,
-            sample_flagstat => $sample_flagstat,
-            dirs => $dirs,
-            opt => $opt,
+        my $index_job_id = indexed($sample, $sample_bam, $sample_bai, [], $dirs, $opt);
+        my $flagstat_job_id = flagstat($sample, $sample_bam, $sample_flagstat, [$index_job_id], $dirs, $opt);
+        my $check_job_id = fromTemplate(
+            "ContigCheck",
+            $sample,
+            0,
+            qsubSimple($opt),
+            [$index_job_id],
+            $dirs,
+            $opt,
+            step => $sample,
+            bam_path => $sample_bam,
         );
-
-        my $qsub = qsubTemplate($opt, "MAPPING");
-        system "$qsub -o $dirs->{log}/PrepBam_${sample}.out -e $dirs->{log}/PrepBam_${sample}.err -N $job_id $bash_file";
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
     }
     return;
 }

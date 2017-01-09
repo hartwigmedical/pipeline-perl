@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Flagstat
+JOB_NAME=IndexBam
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
@@ -16,14 +16,14 @@ echo "Start	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[
 
 if [ -s "[% bam_path %]" ]
 then
-    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
-    if [ -s "[% flagstat_path %]" ]
+    [% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] "[% bam_path %]" "[% bai_path %]"
+    if [ -s "[% bai_path %]" ]
     then
         touch "[% done_file %]"
         [% INCLUDE Status.tt step=step status="success" %]
     else
         [% INCLUDE Status.tt step=step status="failed" %]
-        fail "[% flagstat_path %] does not exist or is empty."
+        fail "[% bai_path %] does not exist or is empty."
     fi
 else
     [% INCLUDE Status.tt step=step status="failed" %]

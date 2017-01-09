@@ -14,6 +14,7 @@ use parent qw(Exporter);
 our @EXPORT_OK = qw(
     sorted
     slice
+    indexed
     flagstat
     readCountCheck
     diff
@@ -57,6 +58,25 @@ sub slice {
         input_bam => catfile($dirs->{mapping}, $sample_bam),
         bed_file => catfile($opt->{OUTPUT_DIR}, "settings", "slicing", $bed_name),
         sliced_bam => catfile($dirs->{mapping}, $sliced_bam),
+    );
+}
+
+# "index" would clash with Perl function
+sub indexed {
+    my ($step, $bam_path, $bai_path, $hold_jids, $dirs, $opt) = @_;
+
+    my $bai_name = fileparse($bai_path);
+    return fromTemplate(
+        "IndexBam",
+        $bai_name,
+        0,
+        qsubTemplate($opt, "MAPPING"),
+        $hold_jids,
+        $dirs,
+        $opt,
+        step => $step,
+        bam_path => $bam_path,
+        bai_path => $bai_path,
     );
 }
 
