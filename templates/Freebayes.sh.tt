@@ -42,6 +42,7 @@ then
     mv "[% output_vcf %].sorted_uniq.vcf" "[% output_vcf %]"
     [%- END %]
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
 
     echo "End	Freebayes	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"

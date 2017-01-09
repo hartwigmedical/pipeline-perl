@@ -29,6 +29,7 @@ then
         --input_file:tumor "[% tumor_bam_path %]" \
         --vcf "[% output_vcf %]"
 
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
     echo "End	${JOB_NAME}	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/mutect.log"
 else

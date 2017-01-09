@@ -33,6 +33,8 @@ then
          -nsc [% opt.REALIGNMENT_SCATTER %] \
          [% known_files %] \
          -run
+
+    # do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
     [% INCLUDE Status.tt step=sample status="finished" %]
 else
     [% INCLUDE Status.tt step=sample status="failed" %]

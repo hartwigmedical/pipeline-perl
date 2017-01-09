@@ -64,8 +64,9 @@ then
     wait_no_sigpipe $tabix_ref_pid
     wait $tabix_tumor_pid
 
-    echo "End	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
+    echo "End	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
     fail "[% tumor_pileup %] or [% ref_pileup %] does not exist."

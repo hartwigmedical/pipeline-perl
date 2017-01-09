@@ -31,6 +31,7 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
 
 if [ -s "[% out_vcf %]" ]
 then
+    touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
 else
     [% INCLUDE Status.tt step="" status="failed" %]

@@ -71,6 +71,8 @@ then
             mv "$out_vcf.idx" "[% final_vcf %].idx"
             ln -rs "[% final_vcf %]" "$out_vcf"
             ln -rs "[% final_vcf %].idx" "$out_vcf.idx"
+
+            touch "[% done_file %]"
             [% INCLUDE Status.tt step="" status="success" %]
         else
             [% INCLUDE Status.tt step="" status="failed" %]

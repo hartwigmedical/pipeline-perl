@@ -30,6 +30,8 @@ then
     if [ -s "[% out_vcf %]" ]
     then
         rm [% in_vcf %]*
+
+        touch "[% done_file %]"
         [% INCLUDE Status.tt step="" status="success" %]
     else
         [% INCLUDE Status.tt step="" status="failed" %]

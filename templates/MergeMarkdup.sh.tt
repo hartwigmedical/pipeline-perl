@@ -24,6 +24,7 @@ echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/[% 
     [% input_bams.join(' ') %] \
     [% output_bam %]
 
+touch "[% done_file %]"
 [% INCLUDE Status.tt step=sample status="finished" %]
 
 echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/[% sample %].log"
