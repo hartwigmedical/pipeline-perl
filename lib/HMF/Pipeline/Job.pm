@@ -103,6 +103,12 @@ sub checkDoneFile {
 
     #<<< no perltidy
     my %old_done_files = (
+        "Freec.done" => [
+            catfile($dirs->{log}, "freec.done"),
+        ],
+        "QDNAseq.done" => [
+            catfile($dirs->{log}, "qdnaseq.done"),
+        ],
         "Strelka.done" => [
             catfile($dirs->{log}, "strelka.done"),
         ],

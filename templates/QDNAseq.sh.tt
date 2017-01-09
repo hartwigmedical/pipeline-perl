@@ -24,7 +24,7 @@ then
        && [ -s "[% dirs.qdnaseq.out %]/calls.png" ] \
        && [ -s "[% dirs.qdnaseq.out %]/copyNumberSegmented.png" ]
     then
-        touch "[% dirs.log %]/qdnaseq.done"
+        touch "[% done_file %]"
         [% INCLUDE Status.tt step=sample_name status="success" %]
     else
         [% INCLUDE Status.tt step=sample_name status="failed" %]

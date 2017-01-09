@@ -43,7 +43,7 @@ then
            && [ -s "[% sample_bam_name %]_ratio_karyotype.pdf" ] \
            || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
     then
-        touch [% dirs.log %]/freec.done
+        touch "[% done_file %]"
         [% INCLUDE Status.tt step=sample_name status="success" %]
     else
         [% INCLUDE Status.tt step=sample_name status="failed" %]
