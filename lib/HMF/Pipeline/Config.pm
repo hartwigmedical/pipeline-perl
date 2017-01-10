@@ -223,7 +223,7 @@ sub recordGitVersion {
     my ($opt) = @_;
 
     my $git_dir = catfile(pipelinePath(), ".git");
-    $opt->{VERSION} = `git --git-dir $git_dir describe --tags`;
+    $opt->{VERSION} = qx(git --git-dir $git_dir describe --tags);
     chomp $opt->{VERSION};
     return;
 }
