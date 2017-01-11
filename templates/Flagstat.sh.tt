@@ -11,8 +11,8 @@ JOB_NAME=Flagstat
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-[% INCLUDE Status.tt step=step status="processing" %]
-echo "Start	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+[% INCLUDE Status.tt step=flagstat_name status="processing" %]
+echo "Start	${JOB_NAME}	$(date)	[% flagstat_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
 
 if [ -s "[% bam_path %]" ]
 then
@@ -20,14 +20,14 @@ then
     if [ -s "[% flagstat_path %]" ]
     then
         touch "[% done_file %]"
-        [% INCLUDE Status.tt step=step status="success" %]
+        [% INCLUDE Status.tt step=flagstat_name status="success" %]
     else
-        [% INCLUDE Status.tt step=step status="failed" %]
+        [% INCLUDE Status.tt step=flagstat_name status="failed" %]
         fail "[% flagstat_path %] does not exist or is empty."
     fi
 else
-    [% INCLUDE Status.tt step=step status="failed" %]
+    [% INCLUDE Status.tt step=flagstat_name status="failed" %]
     fail "[% bam_path %] does not exist or is empty."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+echo "End	${JOB_NAME}	$(date)	[% flagstat_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"

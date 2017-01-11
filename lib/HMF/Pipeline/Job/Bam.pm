@@ -27,9 +27,10 @@ our @EXPORT_OK = qw(
 sub sorted {
     my ($step, $bam_path, $sorted_bam_path, $hold_jids, $dirs, $opt) = @_;
 
+    my $sorted_bam_name = fileparse($sorted_bam_path);
     return fromTemplate(
         "SortBam",
-        $step,
+        $sorted_bam_name,
         0,
         qsubTemplate($opt, "MAPPING"),
         $hold_jids,
@@ -38,11 +39,12 @@ sub sorted {
         step => $step,
         bam_path => $bam_path,
         sorted_bam_path => $sorted_bam_path,
+        sorted_bam_name => $sorted_bam_name,
     );
 }
 
 sub slice {
-    my ($sample, $sample_bam, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
+    my ($step, $sample_bam, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
 
     my $slice_name = fileparse($sliced_bam);
     return fromTemplate(
@@ -53,11 +55,12 @@ sub slice {
         $hold_jids,
         $dirs,
         $opt,
-        sample => $sample,
+        step => $step,
         sample_bam => $sample_bam,
         input_bam => catfile($dirs->{mapping}, $sample_bam),
         bed_file => catfile($opt->{OUTPUT_DIR}, "settings", "slicing", $bed_name),
         sliced_bam => catfile($dirs->{mapping}, $sliced_bam),
+        slice_name => $slice_name,
     );
 }
 
@@ -95,15 +98,17 @@ sub flagstat {
         step => $step,
         bam_path => $bam_path,
         flagstat_path => $flagstat_path,
+        flagstat_name => $flagstat_name,
     );
 }
 
 sub readCountCheck {
     my ($step, $pre_flagstat_paths, $post_flagstat_path, $success_template, $extra_params, $hold_jids, $dirs, $opt) = @_;
 
+    my $post_flagstat_name = fileparse($post_flagstat_path);
     return fromTemplate(
         "ReadCountCheck",
-        $step,
+        $post_flagstat_name,
         0,
         qsubTemplate($opt, "FLAGSTAT"),
         $hold_jids,
@@ -112,13 +117,14 @@ sub readCountCheck {
         step => $step,
         pre_flagstat_paths => $pre_flagstat_paths,
         post_flagstat_path => $post_flagstat_path,
+        post_flagstat_name => $post_flagstat_name,
         success_template => $success_template,
         %{$extra_params},
     );
 }
 
 sub diff {
-    my ($sample, $input_bam1, $input_bam2, $diff_name, $hold_jids, $dirs, $opt) = @_;
+    my ($step, $input_bam1, $input_bam2, $diff_name, $hold_jids, $dirs, $opt) = @_;
 
     return fromTemplate(
         "DiffBams",
@@ -128,7 +134,7 @@ sub diff {
         $hold_jids,
         $dirs,
         $opt,
-        sample => $sample,
+        step => $step,
         diff_name => $diff_name,
         input_bam1 => catfile($dirs->{mapping}, $input_bam1),
         input_bam2 => catfile($dirs->{mapping}, $input_bam2),

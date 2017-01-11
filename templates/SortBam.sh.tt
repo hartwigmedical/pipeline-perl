@@ -11,7 +11,7 @@ JOB_NAME=SortBam
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+echo "Start	${JOB_NAME}	$(date)	[% sorted_bam_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
@@ -27,4 +27,4 @@ touch "[% done_file %]"
 
 [% INCLUDE Status.tt step=step status="finished" %]
 
-echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+echo "End	${JOB_NAME}	$(date)	[% sorted_bam_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"

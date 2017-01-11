@@ -13,14 +13,14 @@ JOB_START=$(date +%s)
 
 cd [% dirs.out %]
 
-echo "Start	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
 
-[% INCLUDE Status.tt step=core_name status="processing" %]
+[% INCLUDE Status.tt step=step status="processing" %]
 
 [% opt.FASTQC_PATH %]/fastqc [% input_path %] -o [% dirs.qc %] --noextract -t 1
 
-[% INCLUDE Status.tt step=core_name status="finished" %]
+[% INCLUDE Status.tt step=step status="finished" %]
 
 touch "[% done_file %]"
 
-echo "End	${JOB_NAME}	$(date)	[% core_name %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log

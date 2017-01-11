@@ -27,16 +27,17 @@ sub run {
         my $fastq = parseFastqName($input_path);
         my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $fastq->{sampleName}), qc => "QCStats");
 
+        my $fastq_name = fileparse($input_path);
         my $job_id = fromTemplate(
             "PreStats",
-            $fastq->{coreName},
+            $fastq_name,
             1,
             qsubTemplate($opt, "PRESTATS"),
             [],
             $dirs,
             $opt,
+            step => $fastq_name,
             sample_name => $fastq->{sampleName},
-            core_name => $fastq->{coreName},
             input_path => $input_path,
         );
 

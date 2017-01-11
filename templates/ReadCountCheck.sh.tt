@@ -12,7 +12,7 @@ JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
-echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
+echo "Start	${JOB_NAME}	$(date)	[% post_flagstat_name %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
 
 if [ -s "[% post_flagstat_path %]" ] \
    [%- FOREACH pre_flagstat_path IN pre_flagstat_paths %]
@@ -40,4 +40,4 @@ else
     fail "Either [% pre_flagstat_paths.join(', ') %] or [% post_flagstat_path %] is empty."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
+echo "End	${JOB_NAME}	$(date)	[% post_flagstat_name %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
