@@ -11,6 +11,7 @@ use File::Spec::Functions;
 use FindBin;
 use Getopt::Long;
 use IO::Pipe;
+use List::MoreUtils qw(uniq);
 use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
 
@@ -176,13 +177,13 @@ sub sampleBamsAndJobs {
     my ($opt) = @_;
 
     my $all_bams = {};
-    my $all_jobs = [];
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+    my @all_jobs;
+    foreach my $sample (sort keys %{$opt->{SAMPLES}}) {
         my ($bam, $jobs) = sampleBamAndJobs($sample, $opt);
         $all_bams->{$sample} = $bam;
-        push @{$all_jobs}, @{$jobs};
+        push @all_jobs, @{$jobs};
     }
-    return ($all_bams, $all_jobs);
+    return ($all_bams, [ uniq @all_jobs ]);
 }
 
 sub sampleControlBamsAndJobs {
@@ -196,7 +197,7 @@ sub sampleControlBamsAndJobs {
     my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
     my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
 
-    return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
+    return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ uniq @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
 }
 
 sub allRunningJobs {
@@ -204,11 +205,11 @@ sub allRunningJobs {
 
     # is this split into modules actually required anywhere?
     # surely better to use *all* keys instead of a hard-coded list?
-    my @running_jobs = map { @$_ } grep { defined } @{$opt->{RUNNING_JOBS}}{
+    my @running_jobs = uniq grep { defined } map { @$_ } grep { defined } @{$opt->{RUNNING_JOBS}}{
         # flatten registered jobs into one list
         "baf",
         "prestats",
-        keys %{$opt->{SAMPLES}},
+        sort keys %{$opt->{SAMPLES}},
         "slicing",
         "poststats",
         "somvar",
