@@ -58,8 +58,8 @@ SKIP: {
     testDoneFileSkipped("Mutect", undef, "mutect.done");
 }
 
-testDoneFileSkipped("PerLaneMap", "core_name", "PerLaneMap_core_name.done");
-testDoneFileSkipped("Map", "core_name", "Map_core_name.done");
+testDoneFileSkipped("PerLaneConvert", "core_name", "core_name.done");
+testDoneFileSkipped("Map", "core_name", "core_name_bwa.done");
 testDoneFileSkipped("PreStats", "core_name", "PreStats_core.done");
 testDoneFileSkipped("GermlineCalling", undef, "GermlineCaller.done");
 testDoneFileSkipped("GermlineCalling", undef, "VariantCaller.done");

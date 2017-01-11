@@ -120,7 +120,7 @@ sub checkDoneFile {
         "Mutect.done" => [
             catfile($dirs->{log}, "mutect.done"),
         ],
-        "PerLaneMap${suffix}.done" => [
+        "PerLaneConvert${suffix}.done" => [
             catfile($dirs->{mapping} // "", "${step}.done"),
         ],
         "Map${suffix}.done" => [

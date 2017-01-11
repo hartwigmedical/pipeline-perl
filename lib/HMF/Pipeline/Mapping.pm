@@ -90,7 +90,7 @@ sub runPerLane {
     my $unsorted_flagstat = "${core_file}.flagstat";
     my $sorted_flagstat = "${core_file}_sorted.flagstat";
 
-    my $done_file = checkReportedDoneFile("PerLaneMap", $fastq->{coreName}, $dirs, $opt) or return (undef, $sorted_bam, $sorted_flagstat, $dirs);
+    my $done_file = checkReportedDoneFile("PerLaneConvert", $fastq->{coreName}, $dirs, $opt) or return (undef, $sorted_bam, $sorted_flagstat, $dirs);
 
     say "Creating ${sorted_bam} with:";
     say "\t$fastq->{R1}";
