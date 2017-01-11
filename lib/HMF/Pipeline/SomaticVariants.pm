@@ -49,7 +49,7 @@ sub run {
     }
 
     my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $dirs, $opt);
-    my $job_id = markDone($done_file, [$merge_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @somvar_jobs, $merge_job_id ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
     return;
@@ -228,7 +228,7 @@ sub runVarscan {
         indel_vcfs => \@chr_indel_vcfs,
         final_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [$post_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
 }
 
@@ -274,7 +274,7 @@ sub runFreebayes {
         input_vcfs => \@chr_vcfs,
         final_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [$post_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
 }
 
@@ -320,7 +320,7 @@ sub runMutect {
         input_vcfs => \@chr_vcfs,
         final_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [$post_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
 }
 

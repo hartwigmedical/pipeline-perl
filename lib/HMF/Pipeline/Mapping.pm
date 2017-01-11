@@ -74,7 +74,7 @@ sub run {
             $opt,
             # comment prevents reformatting
         );
-        my $job_id = markDone($done_file, [$check_job_id], $info->{dirs}, $opt);
+        my $job_id = markDone($done_file, [ $merge_job_id, $flagstat_job_id, $check_job_id ], $info->{dirs}, $opt);
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     }
     return;
@@ -123,7 +123,7 @@ sub runPerLane {
         # comment prevents reformatting
     );
 
-    my $job_id = markDone($done_file, [$check_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ $map_job_id, $flagstat_job_id, $sort_job_id, $sorted_flagstat_job_id, $check_job_id ], $dirs, $opt);
     return ($job_id, $sorted_bam, $sorted_flagstat, $dirs);
 }
 

@@ -174,7 +174,7 @@ sub operationWithSliceChecks {
 
     my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return;
 
-    my $job_id = fromTemplate(
+    my $operation_job_id = fromTemplate(
         $job_template,
         $sample,
         1,
@@ -191,7 +191,7 @@ sub operationWithSliceChecks {
 
     my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
     my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
-    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$job_id], $dirs, $opt);
+    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$operation_job_id], $dirs, $opt);
     my $check_job_id = readCountCheck(
         $sample,
         [$sample_flagstat_path],
@@ -204,11 +204,11 @@ sub operationWithSliceChecks {
         # comment prevents reformatting
     );
 
-    $job_id = markDone($done_file, [$check_job_id], $dirs, $opt);
+    my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
 
-    my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$check_job_id], $dirs, $opt);
-    my $cpct_job_id = slice($sample, $post_bam, $cpct_sliced_bam, "CPCT_Slicing.bed", [$check_job_id], $dirs, $opt);
+    my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
+    my $cpct_job_id = slice($sample, $post_bam, $cpct_sliced_bam, "CPCT_Slicing.bed", [$job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
 
     return;

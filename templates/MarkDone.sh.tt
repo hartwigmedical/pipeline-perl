@@ -14,6 +14,8 @@ JOB_START=$(date +%s)
 echo "Start	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/$(basename "[% done_file %]").log"
 [% INCLUDE Status.tt step="" status="processing" %]
 
+# unlike other jobs, this is never the done file of MarkDone itself
+# it is the done file of the "parent" job in a multi-job chain, returned from checkReportedDoneFile
 touch "[% done_file %]"
 
 [% INCLUDE Status.tt step="" status="finished" %]

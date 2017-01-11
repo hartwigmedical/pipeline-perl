@@ -50,8 +50,8 @@ sub runDelly {
         my ($chunk_job_ids, $vcf_files) = runDellyType($sample_bams, $sv_type, $running_jobs, $dirs, $opt);
         my $concat_job_id = HMF::Pipeline::Job::Vcf::concat($vcf_files, $concat_vcf, $sv_type, "DELLY_MERGE", $chunk_job_ids, $dirs, $opt);
         my $sort_job_id = HMF::Pipeline::Job::Vcf::sorted($concat_vcf, $output_vcf, $sv_type, "DELLY_MERGE", [$concat_job_id], $dirs, $opt);
-        my $job_id = HMF::Pipeline::Job::markDone($done_file, [$sort_job_id], $dirs, $opt);
-        push @{$delly_job_ids}, $job_id if $job_id;
+        my $job_id = HMF::Pipeline::Job::markDone($done_file, [ @{$chunk_job_ids}, $concat_job_id, $sort_job_id ], $dirs, $opt);
+        push @{$delly_job_ids}, $job_id;
     }
     return $delly_job_ids;
 }

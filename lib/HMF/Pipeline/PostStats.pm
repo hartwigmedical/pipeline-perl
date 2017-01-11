@@ -7,7 +7,7 @@ use File::Basename;
 use File::Spec::Functions qw(:ALL);
 
 use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate);
+use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
 
@@ -28,10 +28,12 @@ sub run {
 
     my @designs;
     @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
-
     my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
     my $qsub = qsubTemplate($opt, "POSTSTATS");
-    my $job_id = fromTemplate(
+    linkArtefacts(\@designs, $exoncov_dir, $dirs, $opt);
+
+    my $done_file = checkReportedDoneFile("PostStats", undef, $dirs, $opt) or return;
+    my $stats_job_id = fromTemplate(
         "PostStats",
         undef,
         1,
@@ -42,23 +44,20 @@ sub run {
         sample_bams => $sample_bams,
         designs => \@designs,
     );
-
-    linkArtefacts(\@designs, $exoncov_dir, $dirs, $opt);
-    return if not $job_id;
-
-    my $job_id_check = fromTemplate(
+    my $check_job_id = fromTemplate(
         "PostStatsCheck",
         undef,
         0,
         $qsub,
-        [$job_id],
+        [$stats_job_id],
         $dirs,
         $opt,
         sample_bams => $sample_bams,
         designs => \@designs,
     );
+    my $job_id = markDone($done_file, [ $stats_job_id, $check_job_id ], $dirs, $opt);
+    $opt->{RUNNING_JOBS}->{poststats} = [$job_id];
 
-    $opt->{RUNNING_JOBS}->{poststats} = [$job_id_check] if $job_id_check;
     return;
 }
 
