@@ -22,7 +22,7 @@ use HMF::Pipeline::Config::Validate;
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
 
 SKIP: {
-    skip "no SAMTOOLS_PATH set", 100 if not $ENV{SAMTOOLS_PATH};
+    skip "no SAMTOOLS_PATH set", 64 if not $ENV{SAMTOOLS_PATH};
 
     my ($exception, $bam_path, $headers, $reads, $sample, $result);
 
