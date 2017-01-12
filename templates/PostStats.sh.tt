@@ -60,6 +60,7 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar 
     -i [% bam_file %] \
 [% END -%]
     --queue [% opt.EXONCALLCOV_QUEUE %] \
+    --project [% opt.CLUSTER_PROJECT %] \
     -a [% opt.EXONCALLCOV_TIME %] \
     -c [% opt.EXONCALLCOV_MEM %] \
     -b [% opt.EXONCALLCOV_BED %] \
