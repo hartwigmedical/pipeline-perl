@@ -24,6 +24,11 @@ sub run {
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
     say "\n$joint_name \t $ref_bam_path \t $tumor_bam_path";
 
+    # must be before returning if already .done
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    HMF::Pipeline::Metadata::linkArtefact($final_vcf, "somatic_vcf", $opt);
+    HMF::Pipeline::Metadata::linkArtefact("${final_vcf}.idx", "somatic_vcf_index", $opt);
+
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
 
     my (@somvar_jobs, %somvar_vcfs);
@@ -48,7 +53,7 @@ sub run {
         $somvar_vcfs{varscan} = $vcf;
     }
 
-    my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $dirs, $opt);
+    my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $final_vcf, $dirs, $opt);
     my $job_id = markDone($done_file, [ @somvar_jobs, $merge_job_id ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
@@ -56,7 +61,7 @@ sub run {
 }
 
 sub mergeSomatics {
-    my ($tumor_sample, $joint_name, $somvar_jobs, $somvar_vcfs, $dirs, $opt) = @_;
+    my ($tumor_sample, $joint_name, $somvar_jobs, $somvar_vcfs, $final_vcf, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
 
@@ -109,9 +114,6 @@ sub mergeSomatics {
         );
     }
 
-    $in_vcf = $out_vcf;
-    $out_vcf =~ s/\.vcf$/_melted.vcf/;
-
     $job_id = fromTemplate(
         "SomaticMelting",
         undef,
@@ -123,12 +125,9 @@ sub mergeSomatics {
         tumor_sample => $tumor_sample,
         joint_name => $joint_name,
         pre_annotate_vcf => $pre_annotate_vcf,
-        in_vcf => $in_vcf,
-        out_vcf => $out_vcf,
+        in_vcf => $out_vcf,
+        out_vcf => $final_vcf,
     );
-
-    HMF::Pipeline::Metadata::linkArtefact($out_vcf, "somatic_vcf", $opt);
-    HMF::Pipeline::Metadata::linkArtefact("${out_vcf}.idx", "somatic_vcf_index", $opt);
 
     return $job_id;
 }
