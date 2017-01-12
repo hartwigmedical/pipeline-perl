@@ -263,7 +263,7 @@ sub pipelinePath {
 sub getChromosomes {
     my ($opt) = @_;
 
-    my $fai_file = "$opt->{GENOME}.fai";
+    my $fai_file = "$opt->{CORE_GENOME}.fai";
     my %chrs;
     open my $fh, "<", $fai_file or confess "could not open $fai_file: $!";
     while (<$fh>) {

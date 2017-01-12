@@ -70,6 +70,7 @@ sub setupTestConfig {
     my %required_keys = (
         SAMTOOLS_PATH => defined $ENV{SAMTOOLS_PATH} ? $ENV{SAMTOOLS_PATH} : $temp_dir,
         GENOME => $genome,
+        CORE_GENOME => $genome,
     );
 
     foreach my $key (@fake_file_keys) {

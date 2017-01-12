@@ -205,6 +205,7 @@ sub configChecks {
         CLUSTER_RESERVATION => \&key_not_present,
         CLUSTER_PROJECT => \&key_not_present,
         GENOME => \&missing_genome_files,
+        CORE_GENOME => \&missing_genome_files,
         QUEUE_PATH => \&missing_directory,
         # these are required for BAM input, regardless of settings
         SAMTOOLS_PATH => \&missing_directory,
