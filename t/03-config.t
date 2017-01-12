@@ -250,8 +250,16 @@ $subdir = HMF::Pipeline::Config::addSubDir($dirs, catfile("base", "subdir"));
 is($subdir, catfile($output_dir, "base", "subdir"), "returns nested sub-directory");
 dir_exists_ok(catfile($output_dir, "base", "subdir"), "adds nested sub-directory");
 
+
 my $chrs = HMF::Pipeline::Config::getChromosomes({GENOME => catfile("t", "data", "empty.fasta")});
 is_deeply($chrs, [1], "gets chromosomes");
+
+$chrs = HMF::Pipeline::Config::getChromosomes({GENOME => catfile("t", "data", "ucsc-or-decoy-style.fasta")});
+is_deeply($chrs, ["chr1"], "gets non-numeric chromosomes");
+
+$chrs = HMF::Pipeline::Config::getChromosomes({GENOME => catfile("t", "data", "duplicates.fasta")});
+is_deeply($chrs, [1], "no duplicate chromosomes");
+
 
 $exception = exception { my $chrs = HMF::Pipeline::Config::getChromosomes({GENOME => catfile("t", "data", "missing.fasta")}) };
 like($exception, qr(could not open t/data/missing.fasta.fai:), "detects missing FASTA index");

@@ -264,15 +264,16 @@ sub getChromosomes {
     my ($opt) = @_;
 
     my $fai_file = "$opt->{GENOME}.fai";
-    my @chrs;
+    my %chrs;
     open my $fh, "<", $fai_file or confess "could not open $fai_file: $!";
     while (<$fh>) {
         chomp;
-        push @chrs, $1 if /(\w+)\t(\d+)/;
+        my ($chr, $len) = split /\t/;
+        $chrs{$chr} = $len;
     }
     close $fh;
 
-    return \@chrs;
+    return [ keys %chrs ];
 }
 
 1;
