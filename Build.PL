@@ -32,6 +32,7 @@ my $build = Module::Build->new(
         'Test::Fatal' => 0,
         'Test::File' => 0,
         'Test::Files' => 0,
+        'Test::MockModule' => 0,
         'Test::Output' => 0,
         'Task::Perl::Critic' => 0,
         'Test::Perl::Critic' => 0,

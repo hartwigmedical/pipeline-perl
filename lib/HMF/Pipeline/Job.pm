@@ -25,13 +25,16 @@ sub getId {
     return $id;
 }
 
+sub fullname {
+    my ($name, $step) = @_;
+    return $step ? "${name}_${step}" : $name;
+}
+
 sub fromTemplate {
     my ($name, $step, $is_reported_job, $qsub, $hold_jids, $dirs, $opt, %params) = @_;
 
-    my $suffix = "";
-    $suffix = "_${step}" if $step;
-
-    my $job_id = "${name}${suffix}_" . getId();
+    my $job_name = fullname($name, $step);
+    my $job_id = "${job_name}_" . getId();
     my $bash_file = catfile($dirs->{job}, "${job_id}.sh");
 
     my $done_file = checkDoneFile($name, $step, $is_reported_job, $dirs, $opt);
@@ -46,12 +49,23 @@ sub fromTemplate {
         %params,
     );
 
-    my $stdout = catfile($dirs->{log}, "${name}${suffix}.out");
-    my $stderr = catfile($dirs->{log}, "${name}${suffix}.err");
-    my $hold_jid = "";
-    $hold_jid = "-hold_jid " . join ",", grep { defined } @{$hold_jids} if grep { defined } @{$hold_jids};
-    system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
+    submit($qsub, $job_name, $job_id, [ grep { defined } @{$hold_jids} ], $bash_file, $dirs);
     return $job_id;
+}
+
+sub submit {
+    my ($qsub, $job_name, $job_id, $hold_jids, $bash_file, $dirs) = @_;
+
+    my $stdout = catfile($dirs->{log}, "${job_name}.out");
+    my $stderr = catfile($dirs->{log}, "${job_name}.err");
+    my $hold_jid = hold_jid($hold_jids);
+    system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
+    return;
+}
+
+sub hold_jid {
+    my ($jids) = @_;
+    return @{$jids} ? "-hold_jid " . join ",", @{$jids} : "";
 }
 
 # reported jobs are often the result of combining or post-processing
@@ -90,6 +104,7 @@ sub markDone {
 sub checkDoneFile {
     my ($name, $step, $is_reported_job, $dirs, $opt) = @_;
 
+    # need suffix to prevent hash clashes below, can use fullname() when removing backwards-compatibility
     my $suffix = "";
     $suffix = "_${step}" if $step;
 
