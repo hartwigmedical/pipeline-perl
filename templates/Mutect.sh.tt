@@ -5,16 +5,18 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Mutect
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-if [ -s [% tumor_bam_path %] ] && [ -s [% ref_bam_path %] ]
+log_start "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "mutect.log"
+
+if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ]
 then
-    echo "Start	${JOB_NAME}	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/mutect.log"
-    cd [% dirs.mutect.tmp %]
+    cd "[% dirs.mutect.tmp %]"
 
     [% INCLUDE Status.tt step=chr status="processing" %]
 
@@ -31,8 +33,9 @@ then
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
-    echo "End	${JOB_NAME}	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/mutect.log"
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
     fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi
+
+log_end "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "mutect.log"

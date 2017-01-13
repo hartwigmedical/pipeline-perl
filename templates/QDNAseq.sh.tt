@@ -5,18 +5,20 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=QDNAseq
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
+log_start "[% sample_bam %]" "qdnaseq.log"
+
 [% INCLUDE Status.tt step=sample_name status="processing" %]
 
 if [ -s "[% sample_bam %]" ]
 then
-    echo "Start	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> "[% dirs.log %]/qdnaseq.log"
-    cd [% dirs.qdnaseq.out %]
+    cd "[% dirs.qdnaseq.out %]"
 
     Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
 
@@ -30,8 +32,9 @@ then
         [% INCLUDE Status.tt step=sample_name status="failed" %]
         fail "No QDNAseq VCFs/PNGs produced."
     fi
-    echo "End	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> "[% dirs.log %]/qdnaseq.log"
 else
     [% INCLUDE Status.tt step=sample_name status="failed" %]
     fail "Input BAM files do not exist."
 fi
+
+log_end "[% sample_bam %]" "qdnaseq.log"

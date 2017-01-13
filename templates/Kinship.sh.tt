@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Kinship
@@ -15,7 +16,7 @@ cd [% dirs.out %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-echo "Start	${JOB_NAME}	$(date)	[% vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_start "[% vcf %]" "[% opt.RUN_NAME %].log"
 
 [% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/out" --vcf "[% vcf %]" --plink
 [% opt.PLINK_PATH %]/plink --file "[% dirs.tmp %]/out" --out "[% dirs.tmp %]/plink" --make-bed --noweb
@@ -32,4 +33,4 @@ else
     fail "kinship file missing"
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_end "[% vcf %]" "[% opt.RUN_NAME %].log"

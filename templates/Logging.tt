@@ -1,0 +1,13 @@
+function log_start() {
+    local step=$1 && shift
+    local log_file=$1 && shift
+
+    echo "Start	${JOB_NAME}	$(date)	${step}	$(uname -n)" >> "[% dirs.log %]/${log_file}"
+}
+
+function log_end() {
+    local step=$1 && shift
+    local log_file=$1 && shift
+
+    echo "End	${JOB_NAME}	$(date)	${step}	$(uname -n)" >> "[% dirs.log %]/${log_file}"
+}

@@ -5,13 +5,16 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=MutectPostProcess
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-cd [% dirs.mutect.tmp %]
+log_start "[% joint_name %]" "mutect.log"
+
+cd "[% dirs.mutect.tmp %]"
 
 if \
    [% FOREACH input_vcf IN input_vcfs %]
@@ -19,8 +22,6 @@ if \
    [%- END %]
    true
 then
-    echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/mutect.log"
-
     [% INCLUDE Status.tt step="" status="processing" %]
 
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% input_vcfs.join(' ') %] > "[% joint_name %]_mutect.vcf"
@@ -31,7 +32,7 @@ then
         "[% joint_name %]_mutect.vcf" \
         > "[% joint_name %]_mutect_passed.vcf"
 
-    if [ -s [% joint_name %]_mutect.vcf ] && [ -s [% joint_name %]_mutect_passed.vcf ]
+    if [ -s "[% joint_name %]_mutect.vcf" ] && [ -s "[% joint_name %]_mutect_passed.vcf" ]
     then
         mv "[% joint_name %]_mutect.vcf" "[% dirs.mutect.out %]"
         mv "[% joint_name %]_mutect_passed.vcf" "[% final_vcf %]"
@@ -43,8 +44,9 @@ then
         [% INCLUDE Status.tt step="" status="failed" %]
         fail "Mutect VCFs not present"
     fi
-    echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/mutect.log"
 else
     [% INCLUDE Status.tt step="" status="failed" %]
     fail "A chromosome chunk VCF does not exist."
 fi
+
+log_end "[% joint_name %]" "mutect.log"

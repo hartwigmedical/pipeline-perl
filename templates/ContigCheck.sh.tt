@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=ContigCheck
@@ -12,7 +13,7 @@ JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
-echo "Start	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_start "[% bam_path %]" "[% step %].log"
 
 if [ -s "[% bam_path %]" ] && [ -s "[% bam_path %].bai" ]
 then
@@ -32,4 +33,4 @@ else
     fail "[% bam_path %] or [% bam_path %].bai does not exist."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% bam_path %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_end "[% bam_path %]" "[% step %].log"

@@ -5,16 +5,19 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Freebayes
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
+log_start "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "freebayes.log"
+
 cd [% dirs.freebayes.out %]
+
 if [ -s "[% tumor_bam_path %]" ] && [ -s "[% ref_bam_path %]" ]
 then
-    echo "Start	${JOB_NAME}	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
     [% INCLUDE Status.tt step=chr status="processing" %]
 
     [% opt.FREEBAYES_PATH %]/freebayes \
@@ -44,9 +47,9 @@ then
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
-
-    echo "End	${JOB_NAME}	$(date)	[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
     fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi
+
+log_end "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "freebayes.log"

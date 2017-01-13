@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=SomaticMerge
@@ -15,7 +16,7 @@ JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start	${JOB_NAME}	$(date)	[% out_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_start "[% out_vcf %]" "merge.log"
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -38,4 +39,4 @@ else
     fail "[% out_vcf %] was not created by CombineVariants"
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% out_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_end "[% out_vcf %]" "merge.log"

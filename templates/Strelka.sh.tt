@@ -5,19 +5,20 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Strelka
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
+log_start "[% joint_name %]" "strelka.log"
+
 if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ] 
 then
-    echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
-
     [% INCLUDE Status.tt step="" status="processing" %]
 
-    rm -rf [% dirs.strelka.out %]
+    rm -rf "[% dirs.strelka.out %]"
     [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
         --tumor "[% tumor_bam_path %]" \
         --normal "[% ref_bam_path %]" \
@@ -60,4 +61,4 @@ else
     fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
+log_end "[% joint_name %]" "strelka.log"

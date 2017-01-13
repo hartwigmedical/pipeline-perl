@@ -5,13 +5,14 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=MarkDone
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-echo "Start	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/$(basename "[% done_file %]").log"
+log_start "[% done_file %]" "$(basename "[% done_file %]").log"
 [% INCLUDE Status.tt step="" status="processing" %]
 
 # unlike other jobs, this is never the done file of MarkDone itself
@@ -19,4 +20,4 @@ echo "Start	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/
 touch "[% done_file %]"
 
 [% INCLUDE Status.tt step="" status="finished" %]
-echo "End	${JOB_NAME}	$(date)	[% done_file %]	$(uname -n)" >> "[% dirs.log %]/$(basename "[% done_file %]").log"
+log_end "[% done_file %]" "$(basename "[% done_file %]").log"

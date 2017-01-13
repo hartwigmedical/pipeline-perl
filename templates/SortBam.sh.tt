@@ -5,13 +5,14 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=SortBam
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-echo "Start	${JOB_NAME}	$(date)	[% sorted_bam_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_start "[% sorted_bam_name %]" "[% step %].log"
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
@@ -27,4 +28,4 @@ touch "[% done_file %]"
 
 [% INCLUDE Status.tt step=step status="finished" %]
 
-echo "End	${JOB_NAME}	$(date)	[% sorted_bam_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_end "[% sorted_bam_name %]" "[% step %].log"

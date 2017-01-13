@@ -5,13 +5,14 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=PostStatsCheck
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-echo "Start	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_start "" "[% opt.RUN_NAME %].log"
 [% INCLUDE Status.tt step="" status="processing" %]
 
 cd [% dirs.tmp %]
@@ -40,4 +41,4 @@ else
     fail "bamMetrics/SNPcheck/ExonCov reports missing"
 fi
 
-echo "End	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_end "" "[% opt.RUN_NAME %].log"

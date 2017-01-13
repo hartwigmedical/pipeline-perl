@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=ConcatVcf
@@ -13,7 +14,7 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
-echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
+log_start "[% step %]" "${JOB_NAME}_[% step %].log"
 
 if true \
     [%- FOR vcf_file IN vcf_files %]
@@ -30,4 +31,4 @@ else
     fail "One or more input VCF does not exist or is empty."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% step %].log"
+log_end "[% step %]" "${JOB_NAME}_[% step %].log"

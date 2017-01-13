@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=CallableLoci
@@ -15,7 +16,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.tmp %]
 
-echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% sample %].log"
+log_start "[% sample %]" "${JOB_NAME}_[% sample %].log"
 
 if [ -s "[% sample_bam %]" ]
 then
@@ -51,4 +52,4 @@ then
     [% INCLUDE Status.tt step=sample status="success" %]
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% sample %].log"
+log_end "[% sample %]" "${JOB_NAME}_[% sample %].log"

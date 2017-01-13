@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=SomaticFilter
@@ -15,7 +16,7 @@ JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start	${JOB_NAME}	$(date)	[% in_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_start "[% in_vcf %]" "merge.log"
 
 if [ -s [% in_vcf %] ]
 then
@@ -42,4 +43,4 @@ else
     fail "[% in_vcf %] not present"
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% in_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_end "[% in_vcf %]" "merge.log"

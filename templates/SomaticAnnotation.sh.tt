@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=SomaticAnnotate
@@ -19,7 +20,7 @@ out_vcf="$basename.vcf"
 rm -f "$out_vcf" "$out_vcf.idx"
 
 cd "[% dirs.out %]"
-echo "Start	${JOB_NAME}	$(date)	[% basename %].vcf	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_start "[% basename %].vcf" "merge.log"
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
@@ -85,4 +86,4 @@ else
     fail "$out_vcf was not created by SnpEff"
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% basename %].vcf	$(uname -n)" >> "[% dirs.log %]/merge.log"
+log_end "[% basename %].vcf" "merge.log"

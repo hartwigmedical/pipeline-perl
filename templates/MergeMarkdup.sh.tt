@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=MergeMarkdup
@@ -15,7 +16,7 @@ cd [% dirs.out %]
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 
-echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/[% sample %].log"
+log_start "[% sample %]" "[% sample %].log"
 
 [% opt.SAMBAMBA_PATH %]/sambamba markdup \
     --tmpdir=[% dirs.tmp %] \
@@ -27,4 +28,4 @@ echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/[% 
 touch "[% done_file %]"
 [% INCLUDE Status.tt step=sample status="finished" %]
 
-echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/[% sample %].log"
+log_end "[% sample %]" "[% sample %].log"

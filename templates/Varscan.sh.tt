@@ -5,18 +5,20 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Varscan
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
+log_start "[% chr %]    [% ref_pileup %]    [% tumor_pileup %]" "varscan.log"
+
 cd [% dirs.varscan.out %]
 
 if [ -s "[% ref_pileup %]" ] && [ -s "[% tumor_pileup %]" ]
 then
     [% INCLUDE Status.tt step=chr status="processing" %]
-    echo "Start	${JOB_NAME}	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 
     # it is absolutely required for correct error detection not to use process substitution.
     # normally this would be used to avoid the use of temporary files (performance) in the case
@@ -66,8 +68,9 @@ then
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
-    echo "End	${JOB_NAME}	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
     fail "[% tumor_pileup %] or [% ref_pileup %] does not exist."
 fi
+
+log_end "[% chr %]    [% ref_pileup %]    [% tumor_pileup %]" "varscan.log"

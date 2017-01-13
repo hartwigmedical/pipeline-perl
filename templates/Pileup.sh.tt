@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=Pileup
@@ -13,7 +14,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.tmp %]
 
-echo "Start	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/pileup.log"
+log_start "[% sample %]" "pileup.log"
 
 if [ -s "[% bam_path %]" ]
 then
@@ -62,4 +63,4 @@ else
     fail "[% bam_path %] does not exist."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% sample %]	$(uname -n)" >> "[% dirs.log %]/pileup.log"
+log_end "[% sample %]" "pileup.log"

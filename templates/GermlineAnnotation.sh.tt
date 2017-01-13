@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME="GermlineAnnotation"
@@ -13,7 +14,7 @@ JOB_START=$(date +%s)
 
 cd "[% dirs.out %]"
 
-echo "Start	${JOB_NAME}	$(date)	[% annotated_vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_start "[% annotated_vcf %]" "[% opt.RUN_NAME %].log"
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
     [% out_vcf = in_vcf %]
@@ -173,4 +174,4 @@ else
     fail "Annotated VCF does not exist or last position differs from pre-annotation VCF"
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% annotated_vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
+log_end "[% annotated_vcf %]" "[% opt.RUN_NAME %].log"

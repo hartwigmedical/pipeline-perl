@@ -5,6 +5,7 @@
 #
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE Logging.tt %]
 
 export JOB_NAME JOB_SET JOB_START
 JOB_NAME=DiffBams
@@ -13,7 +14,7 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=diff_name status="processing" %]
 
-echo "Start	${JOB_NAME}	$(date)	[% diff_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_start "[% diff_name %]" "[% step %].log"
 
 if [ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ]
 then
@@ -27,4 +28,4 @@ else
     fail "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% diff_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
+log_end "[% diff_name %]" "[% step %].log"
