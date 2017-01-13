@@ -11,6 +11,7 @@ JOB_NAME=Finalize
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
+echo "Start	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
 [% INCLUDE Status.tt step="" status="processing" %]
 
 failed=false
@@ -91,3 +92,5 @@ fi
 
 # regardless of success, remove the lock: we are done
 rm -f [% opt.OUTPUT_DIR %]/run.lock
+
+echo "End	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"

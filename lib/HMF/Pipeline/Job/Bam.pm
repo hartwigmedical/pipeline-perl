@@ -56,7 +56,6 @@ sub slice {
         $dirs,
         $opt,
         step => $step,
-        sample_bam => $sample_bam,
         input_bam => catfile($dirs->{mapping}, $sample_bam),
         bed_file => catfile($opt->{OUTPUT_DIR}, "settings", "slicing", $bed_name),
         sliced_bam => catfile($dirs->{mapping}, $sliced_bam),

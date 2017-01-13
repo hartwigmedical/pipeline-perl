@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 cd [% dirs.out %]
 
-echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/[% sample_name %].log"
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
@@ -24,4 +24,4 @@ echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sam
 
 touch "[% done_file %]"
 
-echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sample_name %].log
+echo "End	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> "[% dirs.log %]/[% sample_name %].log"

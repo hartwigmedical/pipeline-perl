@@ -11,16 +11,16 @@ JOB_NAME="GermlineAnnotation"
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-cd [% dirs.out %]
+cd "[% dirs.out %]"
 
-echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "Start	${JOB_NAME}	$(date)	[% annotated_vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
 
 [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
     [% out_vcf = in_vcf %]
     [% out_vcf = out_vcf.replace('.vcf', '_snpEff.vcf') %]
     rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
-    if [ -s [% in_vcf %] ]
+    if [ -s "[% in_vcf %]" ]
     then
         [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="processing" %]
     
@@ -28,10 +28,10 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
             -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
             -c [% opt.SNPEFF_PATH %]/snpEff.config \
             [% opt.ANNOTATE_DB %] \
-            -v [% in_vcf %] [% opt.ANNOTATE_FLAGS %] \
-            > [% out_vcf %]
+            -v "[% in_vcf %]" [% opt.ANNOTATE_FLAGS %] \
+            > "[% out_vcf %]"
 
-        [% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
+        [% opt.IGVTOOLS_PATH %]/igvtools index "[% out_vcf %]"
         rm igv.log
     
         [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="finished" %]
@@ -48,7 +48,7 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
     [% out_vcf = out_vcf.replace('.vcf', '_snpSift.vcf') %]
     rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
-    if [ -s [% in_vcf %] ]
+    if [ -s "[% in_vcf %]" ]
     then
         [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="processing" %]
     
@@ -58,10 +58,10 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
             -v \
             -f [% opt.ANNOTATE_FIELDS %] \
             -db [% opt.ANNOTATE_DBNSFP %] \
-            [% in_vcf %] \
-            > [% out_vcf %]
+            "[% in_vcf %]" \
+            > "[% out_vcf %]"
 
-        [% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
+        [% opt.IGVTOOLS_PATH %]/igvtools index "[% out_vcf %]"
         rm igv.log
     
         [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="finished" %]
@@ -70,9 +70,9 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
         fail "[% in_vcf %] does not exist."
     fi
     [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-    if [ -s [% out_vcf %] ]
+    if [ -s "[% out_vcf %]" ]
     then
-        rm [% in_vcf %] [% in_vcf %].idx
+        rm "[% in_vcf %]" "[% in_vcf %].idx"
     fi
     [% END %]
     [% in_vcf = out_vcf %]
@@ -84,7 +84,7 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
     [% out_vcf = out_vcf.replace('.vcf', suffix) %]
     rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
-    if [ -s [% in_vcf %] ]
+    if [ -s "[% in_vcf %]" ]
     then
         [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="processing" %]
     
@@ -93,8 +93,8 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
             -T VariantAnnotator \
             -nt [% opt.ANNOTATE_THREADS %] \
             -R [% opt.GENOME %] \
-            -o [% out_vcf %] \
-            --variant [% in_vcf %] \
+            -o "[% out_vcf %]" \
+            --variant "[% in_vcf %]" \
             --dbsnp [% opt.ANNOTATE_IDDB %] \
             --alwaysAppendDbsnpId
           
@@ -104,9 +104,9 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
         fail "[% in_vcf %] does not exist."
     fi
     [% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
-    if [ -s [% out_vcf %] ]
+    if [ -s "[% out_vcf %]" ]
     then
-        rm [% in_vcf %] [% in_vcf %].idx
+        rm "[% in_vcf %]" "[% in_vcf %].idx"
     fi
     [% END %]
     [% in_vcf = out_vcf %]
@@ -118,7 +118,7 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
     [% out_vcf = out_vcf.replace('.vcf', suffix) %]
     rm -f "[% out_vcf %]" "[% out_vcf %].idx"
 
-    if [ -s [% in_vcf %] ]
+    if [ -s "[% in_vcf %]" ]
     then
         [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="processing" %]
 
@@ -129,10 +129,10 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
             -name [% opt.ANNOTATE_FREQNAME %]_ \
             -info [% opt.ANNOTATE_FREQINFO %] \
             [% opt.ANNOTATE_FREQDB %] \
-            [% in_vcf %] \
-            > [% out_vcf %]
+            "[% in_vcf %]" \
+            > "[% out_vcf %]"
 
-        [% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
+        [% opt.IGVTOOLS_PATH %]/igvtools index "[% out_vcf %]"
         rm igv.log
     
         [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="finished" %]
@@ -141,20 +141,20 @@ echo "Start	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)"
         fail "[% in_vcf %] does not exist."
     fi
     [% IF opt.ANNOTATE_SNPSIFT == 'yes' OR opt.ANNOTATE_SNPEFF == 'yes' OR opt.ANNOTATE_IDFIELD == 'yes' %]
-    if [ -s [% out_vcf %] ]
+    if [ -s "[% out_vcf %]" ]
     then
-        rm [% in_vcf %] [% in_vcf %].idx
+        rm "[% in_vcf %]" "[% in_vcf %].idx"
     fi
     [% END %]
     [% in_vcf = out_vcf %]
 [% END %]
 
 ### KODU: Slice the final annotated VCF for CPCT purposes.
-[% slicedvcf = in_vcf.replace('.vcf', '_sliced.vcf') %]
+[% sliced_vcf = in_vcf.replace('.vcf', '_sliced.vcf') %]
 
 [% INCLUDE Status.tt step="ANNOTATE_SLICE" status="processing" %]
 
-java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i [% in_vcf %] > [% slicedvcf %]
+java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i "[% in_vcf %]" > "[% sliced_vcf %]"
 
 [% INCLUDE Status.tt step="ANNOTATE_SLICE" status="finished" %]
 
@@ -173,4 +173,4 @@ else
     fail "Annotated VCF does not exist or last position differs from pre-annotation VCF"
 fi
 
-echo "End	germline variant annotation	$(date)	[% annotated_vcf %]	$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End	${JOB_NAME}	$(date)	[% annotated_vcf %]	$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"

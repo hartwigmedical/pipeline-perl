@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Freebayes
+JOB_NAME=FreebayesPostProcess
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
@@ -19,8 +19,8 @@ if \
    [%- END %]
    true
 then
-    echo "Start	concat and postprocess Freebayes	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
-    [% INCLUDE Status.tt step="PostProcess" status="processing" %]
+    echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
+    [% INCLUDE Status.tt step="" status="processing" %]
 
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% input_vcfs.join(' ') %] > "[% joint_name %].vcf"
     uniq [% dirs.freebayes.out %]/[% joint_name %].vcf > [% dirs.freebayes.out %]/[% joint_name %].uniq.vcf
@@ -45,14 +45,14 @@ then
 
         ## Check on complete output!!!
         touch "[% done_file %]"
-        [% INCLUDE Status.tt step="PostProcess" status="success" %]
+        [% INCLUDE Status.tt step="" status="success" %]
     else
-        [% INCLUDE Status.tt step="PostProcess" status="failed" %]
+        [% INCLUDE Status.tt step="" status="failed" %]
         fail "[% final_vcf %] does not exist."
     fi
 
-    echo "End	concat and postprocess Freebayes	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
+    echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/freebayes.log"
 else
-    [% INCLUDE Status.tt step="PostProcess" status="failed" %]
+    [% INCLUDE Status.tt step="" status="failed" %]
     fail "An input VCF does not exist."
 fi

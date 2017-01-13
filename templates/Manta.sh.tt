@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample status="processing" %]
 
-echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% joint_name %].log
+echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% joint_name %].log"
 
 cd [% opt.OUTPUT_DIR %]
 
@@ -38,4 +38,4 @@ else
     fail "Manta output files are missing or workflow logged non-zero exit code."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> [% dirs.log %]/${JOB_NAME}_[% joint_name %].log
+echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/${JOB_NAME}_[% joint_name %].log"

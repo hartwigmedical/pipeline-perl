@@ -7,7 +7,7 @@
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
 
 export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Varscan
+JOB_NAME=VarscanPostProcess
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
@@ -22,9 +22,9 @@ if \
    [%- END %]
    true
 then
-    echo "Start	concat and postprocess Varscan	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
+    echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 
-    [% INCLUDE Status.tt step="processSomatic" status="processing" %]
+    [% INCLUDE Status.tt step="" status="processing" %]
 
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% snp_vcfs.join(' ') %] > "[% joint_name %].snp.vcf"
     [% opt.VCFTOOLS_PATH %]/vcf-concat [% indel_vcfs.join(' ') %] > "[% joint_name %].indel.vcf"
@@ -49,13 +49,13 @@ then
         rm [% snp_vcfs.join(' ') %] [% indel_vcfs.join(' ') %]
 
         touch "[% done_file %]"
-        [% INCLUDE Status.tt step="processSomatic" status="success" %]
+        [% INCLUDE Status.tt step="" status="success" %]
     else
-        [% INCLUDE Status.tt step="processSomatic" status="failed" %]
+        [% INCLUDE Status.tt step="" status="failed" %]
         fail "VarScan VCFs not present"
     fi
-    echo "End	concat and postprocess Varscan	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
+    echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 else
-    [% INCLUDE Status.tt step="processSomatic" status="failed" %]
+    [% INCLUDE Status.tt step="" status="failed" %]
     fail "An input VCF does not exist."
 fi

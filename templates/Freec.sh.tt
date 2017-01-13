@@ -15,7 +15,7 @@ JOB_START=$(date +%s)
 
 if [ -s [% sample_bam %] [% IF control_bam %]] && [ -s [% control_bam %] [% END %]]
 then
-    echo "Start	${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> [% dirs.log %]/freec.log
+    echo "Start	${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> "[% dirs.log %]/freec.log"
 
     PATH=[% opt.SAMTOOLS_PATH %]:$PATH
     export PATH
@@ -54,4 +54,4 @@ else
     fail "[% sample_bam %] [% IF control_bam %]or [% control_bam %] [% END %]does not exist."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> [% dirs.log %]/freec.log
+echo "End	${JOB_NAME}	$(date)	[% sample_name %]	$(uname -n)" >> "[% dirs.log %]/freec.log"

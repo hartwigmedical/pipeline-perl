@@ -16,7 +16,7 @@ cd [% dirs.varscan.out %]
 if [ -s "[% ref_pileup %]" ] && [ -s "[% tumor_pileup %]" ]
 then
     [% INCLUDE Status.tt step=chr status="processing" %]
-    echo "Start	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "Start	${JOB_NAME}	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 
     # it is absolutely required for correct error detection not to use process substitution.
     # normally this would be used to avoid the use of temporary files (performance) in the case
@@ -66,7 +66,7 @@ then
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step=chr status="finished" %]
-    echo "End	Varscan	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> [% dirs.log %]/varscan.log
+    echo "End	${JOB_NAME}	$(date)	[% chr %]    [% ref_pileup %]    [% tumor_pileup %]	$(uname -n)" >> "[% dirs.log %]/varscan.log"
 else
     [% INCLUDE Status.tt step=chr status="failed" %]
     fail "[% tumor_pileup %] or [% ref_pileup %] does not exist."

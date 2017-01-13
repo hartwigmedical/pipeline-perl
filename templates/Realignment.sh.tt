@@ -12,7 +12,7 @@ JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
 [% INCLUDE Status.tt step=sample status="processing" %]
-echo "Start	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "Start	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> "[% dirs.log %]/[% sample %].log"
 
 source [% opt.CLUSTER_PATH %]/settings.sh
 cd [% dirs.tmp %]
@@ -41,4 +41,4 @@ else
     fail "[% sample_bam_path %] does not exist."
 fi
 
-echo "End	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> [% dirs.log %]/[% sample %].log
+echo "End	${JOB_NAME}	$(date)	[% sample_bam %]	$(uname -n)" >> "[% dirs.log %]/[% sample %].log"

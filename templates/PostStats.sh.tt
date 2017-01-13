@@ -11,11 +11,10 @@ JOB_NAME=PostStats
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-cd [% dirs.tmp %]
-
-echo "Start	poststats	$(date)		$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
-
+echo "Start	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
 [% INCLUDE Status.tt step="" status="processing" %]
+
+cd [% dirs.tmp %]
 
 perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 [% FOREACH bam_file IN sample_bams.values -%]
@@ -74,3 +73,5 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar 
 
 # do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
 [% INCLUDE Status.tt step="" status="finished" %]
+
+echo "End	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"

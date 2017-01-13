@@ -14,7 +14,7 @@ JOB_START=$(date +%s)
 [% INCLUDE Status.tt step="" status="processing" %]
 
 cd "[% dirs.out %]"
-echo "Start	Melt	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "Start	${JOB_NAME}	$(date)	[% in_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"
 
 [% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t [% tumor_sample %] -v [% in_vcf %] > [% out_vcf %]
 [% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
@@ -30,4 +30,4 @@ else
     fail "[% out_vcf %] was not created or last position does not match [% pre_annotate_vcf %]"
 fi
 
-echo "End	Melt	$(date)	[% in_vcf %]	$(uname -n)" >> [% dirs.log %]/merge.log
+echo "End	${JOB_NAME}	$(date)	[% in_vcf %]	$(uname -n)" >> "[% dirs.log %]/merge.log"

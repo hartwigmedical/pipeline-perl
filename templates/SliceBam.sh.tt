@@ -11,9 +11,9 @@ JOB_NAME=Slice
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-[% INCLUDE Status.tt step=sample_bam status="processing" %]
+[% INCLUDE Status.tt step=slice_name status="processing" %]
 
-echo "Start	SliceBam	$(date)	[% slice_name %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
+echo "Start	${JOB_NAME}	$(date)	[% slice_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"
 
 if [ -s [% input_bam %] ]
 then
@@ -24,18 +24,18 @@ then
         if [ -s [% sliced_bam %].bai ]
         then
             touch "[% done_file %]"
-            [% INCLUDE Status.tt step=sample_bam status="success" %]
+            [% INCLUDE Status.tt step=slice_name status="success" %]
         else
-            [% INCLUDE Status.tt step=sample_bam status="failed" %]
+            [% INCLUDE Status.tt step=slice_name status="failed" %]
             fail "[% sliced_bam %].bai does not exist or is empty."
         fi
     else
-        [% INCLUDE Status.tt step=sample_bam status="failed" %]
+        [% INCLUDE Status.tt step=slice_name status="failed" %]
         fail "[% sliced_bam %] does not exist or is empty."
     fi
 else
-    [% INCLUDE Status.tt step=sample_bam status="failed" %]
+    [% INCLUDE Status.tt step=slice_name status="failed" %]
     fail "[% input_bam %] does not exist or is empty."
 fi
 
-echo "End	SliceBam	$(date)	[% slice_name %]	$(uname -n)" >> [% dirs.log %]/[% step %].log
+echo "End	${JOB_NAME}	$(date)	[% slice_name %]	$(uname -n)" >> "[% dirs.log %]/[% step %].log"

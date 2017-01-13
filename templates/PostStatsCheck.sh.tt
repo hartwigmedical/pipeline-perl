@@ -11,9 +11,10 @@ JOB_NAME=PostStatsCheck
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-cd [% dirs.tmp %]
-
+echo "Start	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"
 [% INCLUDE Status.tt step="" status="processing" %]
+
+cd [% dirs.tmp %]
 
 qsub -N wait_for_bamMetrics -sync y -hold_jid bamMetrics_report_[% opt.RUN_NAME %] -b y /bin/true
 
@@ -39,4 +40,4 @@ else
     fail "bamMetrics/SNPcheck/ExonCov reports missing"
 fi
 
-echo "End	poststats	$(date)		$(uname -n)" >> [% dirs.log %]/[% opt.RUN_NAME %].log
+echo "End	${JOB_NAME}	$(date)		$(uname -n)" >> "[% dirs.log %]/[% opt.RUN_NAME %].log"

@@ -13,7 +13,7 @@ JOB_START=$(date +%s)
 
 if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ] 
 then
-    echo "Start	Strelka	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
+    echo "Start	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
 
     [% INCLUDE Status.tt step="" status="processing" %]
 
@@ -60,4 +60,4 @@ else
     fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 fi
 
-echo "End	Strelka	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
+echo "End	${JOB_NAME}	$(date)	[% joint_name %]	$(uname -n)" >> "[% dirs.log %]/strelka.log"
