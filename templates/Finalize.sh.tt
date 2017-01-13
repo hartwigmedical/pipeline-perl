@@ -60,10 +60,9 @@ else
 [% END -%]
 [% END -%]
 
-[% IF opt.SOMATIC_VARIANTS == "yes" && opt.SOMVAR_VARSCAN == "yes" && opt.FINALIZE_KEEP_PILEUP == "no" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.pileup.gz
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.pileup.gz.tbi
+[% IF opt.exists('PILEUP_FILES') && opt.FINALIZE_KEEP_PILEUP == "no" -%]
+[% FOREACH pileup_path IN opt.PILEUP_FILES.values -%]
+    rm -f "[% pileup_path %]"
 [% END -%]
 [% END -%]
 

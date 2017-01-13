@@ -157,34 +157,10 @@ sub runStrelka {
     return ($job_id, $final_vcf);
 }
 
-sub runPileup {
-    my ($sample, $bam_path, $running_jobs, $dirs, $opt) = @_;
-
-    say "Creating pileup for: $sample";
-
-    (my $pileup_path = $bam_path) =~ s/\.bam$/.pileup.gz/;
-    my $job_id = fromTemplate(
-        "Pileup",
-        $sample,
-        0,
-        qsubTemplate($opt, "PILEUP"),
-        $running_jobs,
-        $dirs,
-        $opt,
-        sample => $sample,
-        bam_path => $bam_path,
-        pileup_path => $pileup_path,
-    );
-    return ($job_id, $pileup_path);
-}
-
 sub runVarscan {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING VARSCAN ###";
-
-    my ($ref_pileup_job, $ref_pileup) = runPileup($ref_sample, $ref_bam_path, $running_jobs, $dirs, $opt);
-    my ($tumor_pileup_job, $tumor_pileup) = runPileup($tumor_sample, $tumor_bam_path, $running_jobs, $dirs, $opt);
 
     $dirs->{varscan}->{out} = addSubDir($dirs, "varscan");
     my $final_vcf = catfile($dirs->{varscan}->{out}, "${joint_name}.merged.Somatic.hc.vcf");
@@ -200,12 +176,12 @@ sub runVarscan {
             $chr,
             0,
             qsubJava($opt, "VARSCAN"),
-            [ $ref_pileup_job, $tumor_pileup_job ],
+            [ @{$running_jobs}, @{$opt->{RUNNING_JOBS}->{pileup}} ],
             $dirs,
             $opt,
             chr => $chr,
-            ref_pileup => $ref_pileup,
-            tumor_pileup => $tumor_pileup,
+            ref_pileup => $opt->{PILEUP_FILES}->{$ref_sample},
+            tumor_pileup => $opt->{PILEUP_FILES}->{$tumor_sample},
             snp_vcf => $snp_vcf,
             indel_vcf => $indel_vcf,
         );

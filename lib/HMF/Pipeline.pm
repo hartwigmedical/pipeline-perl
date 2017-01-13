@@ -7,22 +7,23 @@ use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Metadata;
-use HMF::Pipeline::PreStats;
-use HMF::Pipeline::Mapping;
-use HMF::Pipeline::PostStats;
-use HMF::Pipeline::Realignment;
+use HMF::Pipeline::Baf;
 use HMF::Pipeline::BaseRecalibration;
+use HMF::Pipeline::CallableLoci;
+use HMF::Pipeline::CopyNumber;
+use HMF::Pipeline::Finalize;
+use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::GermlineFiltering;
-use HMF::Pipeline::GermlineAnnotation;
-use HMF::Pipeline::SomaticVariants;
-use HMF::Pipeline::CopyNumber;
-use HMF::Pipeline::StructuralVariants;
-use HMF::Pipeline::Baf;
-use HMF::Pipeline::CallableLoci;
 use HMF::Pipeline::Kinship;
-use HMF::Pipeline::Finalize;
+use HMF::Pipeline::Mapping;
+use HMF::Pipeline::Metadata;
+use HMF::Pipeline::PostStats;
+use HMF::Pipeline::PreCalling;
+use HMF::Pipeline::PreStats;
+use HMF::Pipeline::Realignment;
+use HMF::Pipeline::SomaticVariants;
+use HMF::Pipeline::StructuralVariants;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
@@ -44,6 +45,9 @@ sub run {
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
         linkBamArtefacts($opt);
         HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
+
+        HMF::Pipeline::PreCalling::run($opt);
+
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";
@@ -54,6 +58,7 @@ sub run {
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
         HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
+
         HMF::Pipeline::Metadata::writeLinks($opt);
     }
     return;
