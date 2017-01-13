@@ -64,6 +64,7 @@ sub run {
 
         my $flagstat_job_id = flagstat($sample, $output_bam, $output_flagstat, [$merge_job_id], $info->{dirs}, $opt);
         my $check_job_id = readCountCheck(
+            #<<< no perltidy
             $sample,
             $info->{flagstats},
             $output_flagstat,
@@ -72,7 +73,7 @@ sub run {
             [$flagstat_job_id],
             $info->{dirs},
             $opt,
-            # comment prevents reformatting
+            #>>> no perltidy
         );
         my $job_id = markDone($done_file, [ $merge_job_id, $flagstat_job_id, $check_job_id ], $info->{dirs}, $opt);
         push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
@@ -112,6 +113,7 @@ sub runPerLane {
     my $sort_job_id = sorted($fastq->{coreName}, $unsorted_bam, $sorted_bam, [$flagstat_job_id], $dirs, $opt);
     my $sorted_flagstat_job_id = flagstat($fastq->{coreName}, $sorted_bam, $sorted_flagstat, [$sort_job_id], $dirs, $opt);
     my $check_job_id = readCountCheck(
+        #<<< no perltidy
         $fastq->{coreName},
         [$unsorted_flagstat],
         $sorted_flagstat,
@@ -120,7 +122,7 @@ sub runPerLane {
         [ $flagstat_job_id, $sorted_flagstat_job_id ],
         $dirs,
         $opt,
-        # comment prevents reformatting
+        #>>> no perltidy
     );
 
     my $job_id = markDone($done_file, [ $map_job_id, $flagstat_job_id, $sort_job_id, $sorted_flagstat_job_id, $check_job_id ], $dirs, $opt);

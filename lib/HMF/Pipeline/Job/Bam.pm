@@ -199,6 +199,7 @@ sub operationWithSliceChecks {
     my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
     my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$operation_job_id], $dirs, $opt);
     my $check_job_id = readCountCheck(
+        #<<< no perltidy
         $sample,
         [$sample_flagstat_path],
         $post_flagstat_path,
@@ -207,7 +208,7 @@ sub operationWithSliceChecks {
         [$flagstat_job_id],
         $dirs,
         $opt,
-        # comment prevents reformatting
+        #>>> no perltidy
     );
 
     my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
