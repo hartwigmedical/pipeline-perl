@@ -17,6 +17,7 @@ echo "Start	${JOB_NAME}	$(date)	[% step %]	$(uname -n)" >> [% dirs.log %]/[% sam
 
 [% INCLUDE Status.tt step=step status="processing" %]
 
+# FastQC runs a thread per file, so no point parameterising here
 [% opt.FASTQC_PATH %]/fastqc [% input_path %] -o [% dirs.qc %] --noextract -t 1
 
 [% INCLUDE Status.tt step=step status="finished" %]
