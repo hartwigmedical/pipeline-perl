@@ -172,7 +172,7 @@ sub runBamPrep {
             step => $sample,
             bam_path => $sample_bam,
         );
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
+        push @{$opt->{RUNNING_JOBS}->{$sample}}, ($index_job_id, $flagstat_job_id, $check_job_id);
     }
     return;
 }
