@@ -253,16 +253,16 @@ sub getChromosomes {
     my ($opt) = @_;
 
     my $fai_file = "$opt->{CORE_GENOME}.fai";
-    my %chrs;
+    my @chrs;
     open my $fh, "<", $fai_file or confess "could not open $fai_file: $!";
     while (<$fh>) {
         chomp;
-        my ($chr, $len) = split /\t/;
-        $chrs{$chr} = $len;
+        my ($chr) = split /\t/;
+        push @chrs, $chr;
     }
     close $fh;
 
-    return [ keys %chrs ];
+    return [ uniq @chrs ];
 }
 
 1;
