@@ -59,7 +59,13 @@ sub submit {
     my $stdout = catfile($dirs->{log}, "${job_name}.out");
     my $stderr = catfile($dirs->{log}, "${job_name}.err");
     my $hold_jid = hold_jid($hold_jids);
-    system "$qsub -o $stdout -e $stderr -N $job_id $hold_jid $bash_file";
+
+    my $option_file = File::Temp->new();
+    open my $fh, ">", $option_file;
+    say $fh "-o $stdout -e $stderr -N $job_id $hold_jid";
+    close $fh;
+    system "$qsub -@ $option_file $bash_file";
+
     return;
 }
 

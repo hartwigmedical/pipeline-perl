@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 
-function main() {
+function parse_options() {
     local i
     for ((i = 1; i <= $#; i++)); do
         if [[ "${@:$i:1}" == "-N" ]]; then
-            local name="${*:$i+1:1}"
+            echo "${*:$i+1:1}"
+            return
+        fi
+        if [[ "${@:$i:1}" == "-@" ]]; then
+            parse_options $(cat "${*:$i+1:1}")
         fi
     done
+}
 
+function main() {
+    local name=$(parse_options "$@")
     echo "Your job $$ (\"${name}\") has been submitted"
 
     local me=$(basename "$0")
