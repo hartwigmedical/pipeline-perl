@@ -165,8 +165,6 @@ if [ -s "[% pre_annotated_vcf %]" ] && [ -s "[% out_vcf %]" ] && [ "$tail_input"
 then
     mv "[% out_vcf %]" "[% annotated_vcf %]"
     mv "[% out_vcf %].idx" "[% annotated_vcf %].idx"
-    ln -rs "[% annotated_vcf %]" "[% out_vcf %]"
-    ln -rs "[% annotated_vcf %].idx" "[% out_vcf %].idx"
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
