@@ -290,9 +290,18 @@ is_deeply([ sampleBamAndJobs("b", $opt) ], [ "$temp_dir/b/mapping/b.bam", [ "job
 is_deeply([ sampleBamAndJobs("c", $opt) ], [ "$temp_dir/c/mapping/c.bam", undef ], "bam path and no jobs for sample c"); # should return empty list?
 is_deeply([ sampleBamsAndJobs($opt) ], [ {a => "$temp_dir/a/mapping/a.bam", b => "$temp_dir/b/mapping/b.bam"}, [ "job1", "job2", "joba", "jobb" ] ], "bam paths and jobs for samples");
 
-# not really clear how to test this - allRunningJobs should probably not hard-code keys
-$opt->{RUNNING_JOBS}->{somvar} = [ "fb", "vs" ];
-is_deeply(allRunningJobs($opt), [ "job1", "job2", "joba", "jobb", "fb", "vs" ], "'all' running jobs");
+
+is_deeply(allRunningJobs({RUNNING_JOBS => {}}), [], "no running jobs");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => undef}}), [], "no skipped job chains");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => []}}), [], "no skipped job chains");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => ["job"]}}), ["job"], "single job chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => [ "job1", "job2" ]}}), [ "job1", "job2" ], "multiple job chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => undef, b => ["job"]}}), ["job"], "job chain after skipped job chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => ["job1"], b => ["job2"]}}), [ "job1", "job2" ], "multiple job chains");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => [undef]}}), [], "skipped job within chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => [ undef, "job" ]}}), ["job"], "job after skipped job within chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => [ "job", "job" ]}}), ["job"], "unique job within chain");
+is_deeply(allRunningJobs({RUNNING_JOBS => {a => ["job"], b => ["job"]}}), ["job"], "unique job across chains");
 
 
 my $metadata_path = catfile($temp_dir, "metadata");

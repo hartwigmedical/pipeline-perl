@@ -203,21 +203,10 @@ sub sampleControlBamsAndJobs {
 sub allRunningJobs {
     my ($opt) = @_;
 
-    # is this split into modules actually required anywhere?
-    # surely better to use *all* keys instead of a hard-coded list?
-    my @running_jobs = uniq grep { defined } map { @$_ } grep { defined } @{$opt->{RUNNING_JOBS}}{
-        # flatten registered jobs into one list
-        "baf",
-        "prestats",
-        sort keys %{$opt->{SAMPLES}},
-        "slicing",
-        "poststats",
-        "somvar",
-        "cnv",
-        "sv",
-        "kinship",
-    };
-    return \@running_jobs;
+    my @running_job_chains = grep { defined } values %{$opt->{RUNNING_JOBS}};
+    my @running_jobs = map { @$_ } @running_job_chains;
+    my @unique_jobs = uniq sort grep { defined } @running_jobs;
+    return \@unique_jobs;
 }
 
 sub recordGitVersion {
