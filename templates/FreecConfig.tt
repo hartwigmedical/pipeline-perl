@@ -14,15 +14,25 @@ gemMappabilityFile=[% mappabilityTrack %]
 [% END -%]
 
 [sample]
+[%- IF opt.FREEC_BAF == "yes" %]
+mateFile=[% sample_pileup %]
+inputFormat=pileup
+[% ELSE %]
 mateFile=[% sample_bam %]
 inputFormat=BAM
+[% END -%]
 mateOrientation=FR
 
 [%- IF control_bam -%]
 
 [control]
+[%- IF opt.FREEC_BAF == "yes" %]
+mateFile=[% control_pileup %]
+inputFormat=pileup
+[% ELSE %]
 mateFile=[% control_bam %]
 inputFormat=BAM
+[% END -%]
 mateOrientation=FR
 [% END -%]
 
@@ -30,4 +40,10 @@ mateOrientation=FR
 
 [target]
 captureRegions=[% opt.CNV_TARGETS %]
+[% END -%]
+
+[%- IF opt.FREEC_BAF == "yes" -%]
+
+[BAF]
+SNPfile=[% opt.FREEC_SNPFILE %]
 [% END -%]

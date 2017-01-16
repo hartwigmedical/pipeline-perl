@@ -162,6 +162,59 @@ OPTIONAL_FILES file $temp_file_b does not exist"
 );
 
 
+$temp_file_a = File::Temp->new();
+$temp_file_b = File::Temp->new();
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+        }, {
+            FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
+        },
+    ),
+    [],
+    "files"
+);
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+        },
+        {},
+    ),
+    ["No FILES option found in config files"],
+    "files not given"
+);
+
+$temp_file_a->DESTROY();
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+        }, {
+            FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
+        },
+    ),
+    ["FILES file $temp_file_a does not exist"],
+    "detects one missing optional files"
+);
+
+$temp_file_b->DESTROY();
+
+is_deeply(
+    HMF::Pipeline::Config::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+        }, {
+            FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
+        },
+    ), [
+        "FILES file $temp_file_a does not exist and
+FILES file $temp_file_b does not exist"
+    ],
+    "detects all missing optional files"
+);
+
+
 is_deeply(
     HMF::Pipeline::Config::Validate::applyChecks({
             OPTIONAL_FILES => HMF::Pipeline::Config::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),

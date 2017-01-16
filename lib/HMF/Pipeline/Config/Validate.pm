@@ -417,11 +417,16 @@ sub configChecks {
                         FREEC_THREADS => \&key_not_present,
                         FREEC_MEM => \&key_not_present,
                         FREEC_TIME => \&key_not_present,
-                        FREEC_CHRLENFILE => \&key_not_present,
-                        FREEC_CHRFILES => \&key_not_present,
+                        FREEC_CHRFILES => \&missing_directory,
+                        FREEC_CHRLENFILE => \&missing_file,
+                        FREEC_MAPPABILITY_TRACKS => \&missing_optional_files,
                         FREEC_PLOIDY => \&key_not_present,
                         FREEC_WINDOW => \&key_not_present,
                         FREEC_TELOCENTROMERIC => \&key_not_present,
+                        FREEC_BAF => if_enabled({
+                                FREEC_SNPFILE => \&missing_file,
+                            }
+                        ),
                     }
                 ),
                 CNV_QDNASEQ => \&key_not_present,
@@ -470,7 +475,7 @@ sub configChecks {
                 BAF_MEM => \&key_not_present,
                 BAF_TIME => \&key_not_present,
                 BIOVCF_PATH => \&missing_directory,
-                BAF_SNPS => \&key_not_present,
+                BAF_SNPS => \&missing_file,
             }
         ),
         CALLABLE_LOCI => if_enabled({
@@ -492,26 +497,22 @@ sub configChecks {
                 ANNOTATE_THREADS => \&key_not_present,
                 ANNOTATE_MEM => \&key_not_present,
                 ANNOTATE_TIME => \&key_not_present,
-                ANNOTATE_SNPEFF => \&key_not_present,
                 ANNOTATE_SNPEFF => if_enabled({
                         ANNOTATE_DB => \&key_not_present,
                         ANNOTATE_FLAGS => \&key_not_present,
                     }
                 ),
-                ANNOTATE_SNPSIFT => \&key_not_present,
                 ANNOTATE_SNPSIFT => if_enabled({
                         ANNOTATE_DBNSFP => \&missing_file,
                         ANNOTATE_FIELDS => \&key_not_present,
                     }
                 ),
-                ANNOTATE_FREQUENCIES => \&key_not_present,
                 ANNOTATE_FREQUENCIES => if_enabled({
                         ANNOTATE_FREQNAME => \&key_not_present,
                         ANNOTATE_FREQDB => \&missing_file,
                         ANNOTATE_FREQINFO => \&key_not_present,
                     }
                 ),
-                ANNOTATE_IDFIELD => \&key_not_present,
                 ANNOTATE_IDFIELD => if_enabled({
                         ANNOTATE_IDNAME => \&key_not_present,
                         ANNOTATE_IDDB => \&missing_file,
@@ -559,6 +560,12 @@ sub missing_file {
     my ($key, $value) = @_;
 
     return (key_not_present($key, $value) or not -f $value and "$key file $value does not exist");
+}
+
+sub missing_files {
+    my ($key, $value) = @_;
+
+    return (key_not_present($key, $value) or join " and\n", grep { $_ } map { missing_file($key, $_) } split /\t/, $value);
 }
 
 sub missing_optional_file {

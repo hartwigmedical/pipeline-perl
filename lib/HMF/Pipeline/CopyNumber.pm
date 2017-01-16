@@ -45,14 +45,14 @@ sub runSampleCnv {
 
     my @cnv_jobs;
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
-    push @cnv_jobs, runFreec($sample, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) if $opt->{CNV_FREEC} eq "yes";
+    push @cnv_jobs, runFreec($sample, $control, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) if $opt->{CNV_FREEC} eq "yes";
     push @cnv_jobs, runQDNAseq($sample, $sample_bam, $running_jobs, $dirs, $opt) if $opt->{CNV_QDNASEQ} eq "yes";
     my $job_id = markDone($done_file, \@cnv_jobs, $dirs, $opt);
     return $job_id;
 }
 
 sub runFreec {
-    my ($sample_name, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) = @_;
+    my ($sample_name, $control_name, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING FREEC ###";
 
@@ -66,10 +66,15 @@ sub runFreec {
         $config_file,
         sample_bam => $sample_bam,
         control_bam => $control_bam,
+        sample_pileup => $opt->{PILEUP_FILES}->{$sample_name},
+        control_pileup => $control_name ? $opt->{PILEUP_FILES}->{$control_name} : undef,
         mappabilityTracks => \@mappabilityTracks,
         dirs => $dirs,
         opt => $opt,
     );
+
+    my @dependent_jobs = @{$running_jobs};
+    push @dependent_jobs, @{$opt->{RUNNING_JOBS}->{pileup}} if $opt->{FREEC_BAF} eq "yes";
 
     my $sample_bam_name = fileparse($sample_bam);
     my $job_id = fromTemplate(
@@ -77,7 +82,7 @@ sub runFreec {
         undef,
         1,
         qsubTemplate($opt, "FREEC"),
-        $running_jobs,
+        \@dependent_jobs,
         $dirs,
         $opt,
         sample_name => $sample_name,

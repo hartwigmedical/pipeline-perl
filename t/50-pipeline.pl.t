@@ -31,12 +31,16 @@ sub setupTestConfig {
         ANNOTATE_DBNSFP
         ANNOTATE_FREQDB
         ANNOTATE_IDDB
+        BAF_SNPS
         BASERECALIBRATION_KNOWN
         CALLING_DBSNP
         EXONCALLCOV_BED
         EXONCALLCOV_ENS
         EXONCALLCOV_PANEL
         EXONCALLCOV_PREF
+        FREEC_CHRLENFILE
+        FREEC_MAPPABILITY_TRACKS
+        FREEC_SNPFILE
         REALIGNMENT_KNOWN
         VARSCAN_PATH
     );
@@ -50,6 +54,7 @@ sub setupTestConfig {
         EXONCALLCOV_PATH
         FASTQC_PATH
         FREEBAYES_PATH
+        FREEC_CHRFILES
         FREEC_PATH
         IGVTOOLS_PATH
         KING_PATH
