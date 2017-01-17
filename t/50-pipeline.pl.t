@@ -100,11 +100,12 @@ sub setupDoneFiles {
     my @done_files = map { catfile($output_dir, $_) } (
         # add to this when adding new modules
         catfile("logs", "PostStats.done"),
-        catfile("logs", "PipelineCheck.done"),
-        catfile("logs", "Kinship.done"),
         catfile("logs", "GermlineCalling.done"),
         catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "GermlineFiltering.done"),
+        catfile("logs", "Gender.done"),
+        catfile("logs", "Kinship.done"),
+        catfile("logs", "PipelineCheck.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz.done"),
         catfile("CPCT12345678T", "logs", "PreStats_CPCT12345678T_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),

@@ -14,6 +14,7 @@ use HMF::Pipeline::Finalize;
 use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::GermlineFiltering;
+use HMF::Pipeline::Gender;
 use HMF::Pipeline::Kinship;
 use HMF::Pipeline::Mapping;
 use HMF::Pipeline::Metadata;
@@ -55,6 +56,7 @@ sub run {
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
         HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
+        HMF::Pipeline::Gender::run($opt) if $opt->{GENDER} eq "yes";
         HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
 

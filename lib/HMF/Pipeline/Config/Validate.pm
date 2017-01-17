@@ -520,6 +520,18 @@ sub configChecks {
                 ),
             }
         ),
+        GENDER => if_enabled({
+                GENDER_QUEUE => \&key_not_present,
+                GENDER_THREADS => \&key_not_present,
+                GENDER_MEM => \&key_not_present,
+                GENDER_TIME => \&key_not_present,
+                GENDER_MIN_GQ => \&key_not_present,
+                GENDER_FEMALE_MAX_F => \&key_not_present,
+                GENDER_MALE_MIN_F => \&key_not_present,
+                PLINK_PATH => \&missing_directory,
+                VCFTOOLS_PATH => \&missing_directory,
+            }
+        ),
         KINSHIP => if_enabled({
                 KINSHIP_QUEUE => \&key_not_present,
                 KINSHIP_THREADS => \&key_not_present,
