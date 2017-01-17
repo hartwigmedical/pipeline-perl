@@ -4,8 +4,6 @@ use FindBin;
 use lib "$FindBin::Bin";
 use discipline;
 
-use File::Basename;
-
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
     qsubSimple

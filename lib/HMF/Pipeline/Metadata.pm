@@ -4,7 +4,6 @@ use FindBin::libs;
 use discipline;
 
 use File::Spec::Functions qw(:ALL);
-use File::Basename;
 
 use JSON;
 use Carp;

@@ -7,7 +7,6 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs);
 use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
-use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubSimple qsubTemplate);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Job::Bam qw(sorted indexed flagstat readCountCheck);

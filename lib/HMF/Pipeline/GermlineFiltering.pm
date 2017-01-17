@@ -3,7 +3,6 @@ package HMF::Pipeline::GermlineFiltering;
 use FindBin::libs;
 use discipline;
 
-use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs recordAllSampleJob);

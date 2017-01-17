@@ -3,7 +3,6 @@ package HMF::Pipeline::BaseRecalibration;
 use FindBin::libs;
 use discipline;
 
-use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Job::Bam;

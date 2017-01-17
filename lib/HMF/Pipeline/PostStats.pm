@@ -3,7 +3,6 @@ package HMF::Pipeline::PostStats;
 use FindBin::libs;
 use discipline;
 
-use File::Basename;
 use File::Spec::Functions qw(:ALL);
 
 use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);

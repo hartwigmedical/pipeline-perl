@@ -4,7 +4,6 @@ use FindBin::libs;
 use discipline;
 
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
-use File::Basename;
 use File::Spec::Functions;
 
 use HMF::Pipeline::Baf;
