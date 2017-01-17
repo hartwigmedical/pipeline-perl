@@ -206,6 +206,7 @@ sub configChecks {
         CLUSTER_PROJECT => \&key_not_present,
         GENOME => \&missing_genome_files,
         CORE_GENOME => \&missing_genome_files,
+        GATK_PATH => \&missing_directory,
         QUEUE_PATH => \&missing_directory,
         # these are required for BAM input, regardless of settings
         SAMTOOLS_PATH => \&missing_directory,
@@ -425,6 +426,14 @@ sub configChecks {
                         FREEC_TELOCENTROMERIC => \&key_not_present,
                         FREEC_BAF => if_enabled({
                                 FREEC_SNPFILE => \&missing_file,
+                                PBGZIP_PATH => \&missing_directory,
+                                TABIX_PATH => \&missing_directory,
+                                PILEUP_QUEUE => \&key_not_present,
+                                PILEUP_DIVISOR => \&key_not_present,
+                                PILEUP_THREADS => compare_to("PILEUP_DIVISOR", sub { $_[0] >= $_[1] }, "greater than or equal to"),
+                                PILEUP_MEM => \&key_not_present,
+                                PILEUP_TIME => \&key_not_present,
+                                FINALIZE_KEEP_PILEUP => \&key_not_present,
                             }
                         ),
                     }
@@ -465,6 +474,7 @@ sub configChecks {
                         DELLY_MAD => \&key_not_present,
                         DELLY_VCF_GENO => \&missing_optional_file,
                         DELLY_GENO_QUAL => \&key_not_present,
+                        VCFTOOLS_PATH => \&missing_directory,
                     }
                 ),
             }

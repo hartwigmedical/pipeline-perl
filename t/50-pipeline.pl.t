@@ -56,6 +56,7 @@ sub setupTestConfig {
         FREEBAYES_PATH
         FREEC_CHRFILES
         FREEC_PATH
+        GATK_PATH
         IGVTOOLS_PATH
         KING_PATH
         MANTA_PATH
