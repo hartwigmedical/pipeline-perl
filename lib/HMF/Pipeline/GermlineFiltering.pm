@@ -22,6 +22,7 @@ sub run {
     my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
+    my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
     my $job_id = fromTemplate(
         "GermlineFiltering",
         undef,
@@ -30,15 +31,15 @@ sub run {
         $running_jobs,
         $dirs,
         $opt,
+        input_vcf => $opt->{GERMLINE_VCF_FILE},
+        final_vcf => $germline_vcf_path,
         snp_config => snpConfig($opt),
         indel_config => indelConfig($opt),
         job_native => jobNative($opt, "FILTER"),
     );
 
-    # dependent GermlineFilter.scala, could fix to be explicit
-    my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
-    HMF::Pipeline::Metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
-    HMF::Pipeline::Metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
+    $opt->{GERMLINE_VCF_FILE} = $germline_vcf_path;
+    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
 
     recordAllSampleJob($opt, $job_id) if $job_id;
     return;

@@ -26,8 +26,7 @@ sub run {
 
     # must be before returning if already .done
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
-    HMF::Pipeline::Metadata::linkArtefact($final_vcf, "somatic_vcf", $opt);
-    HMF::Pipeline::Metadata::linkArtefact("${final_vcf}.idx", "somatic_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt);
 
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
 

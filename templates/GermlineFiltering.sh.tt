@@ -12,11 +12,11 @@ JOB_NAME="GermlineFiltering"
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-log_start "[% opt.RUN_NAME %].raw_variants.vcf" "[% opt.RUN_NAME %].log"
+log_start "$(basename "[% input_vcf %]")" "[% opt.RUN_NAME %].log"
 
 cd "[% dirs.tmp %]"
 
-if [ -s "[% dirs.out %]/[% opt.RUN_NAME %].raw_variants.vcf" ]
+if [ -s "[% input_vcf %]" ]
 then
     [% INCLUDE Status.tt step="" status="processing" %]
   
@@ -28,7 +28,7 @@ then
         -jobReport [% dirs.log %]/GermlineFilter.jobReport.txt \
         -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.FILTER_SCALA %] \
         -R [% opt.GENOME %] \
-        -V [% dirs.out %]/[% opt.RUN_NAME %].raw_variants.vcf \
+        -V [% input_vcf %] \
         -O [% opt.RUN_NAME %] \
         -mem [% opt.FILTER_MEM %] \
         -nsc [% opt.FILTER_SCATTER %] \
@@ -53,13 +53,13 @@ then
         -run
 else
     [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% opt.RUN_NAME %].raw_variants.vcf does not exist."
+    fail "[% input_vcf %] does not exist."
 fi
 
 if [ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].filtered_variants.vcf.done" ]
 then
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf" "[% dirs.out %]"
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf.idx" "[% dirs.out %]"
+    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf" "[% final_vcf %]"
+    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf.idx" "[% final_vcf %].idx"
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]
@@ -68,4 +68,4 @@ else
     fail "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
 fi
 
-log_end "[% opt.RUN_NAME %].raw_variants.vcf" "[% opt.RUN_NAME %].log"
+log_end "$(basename "[% input_vcf %]")" "[% opt.RUN_NAME %].log"

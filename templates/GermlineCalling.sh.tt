@@ -65,8 +65,9 @@ fi
 
 if [ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].raw_variants.vcf.done" ]
 then
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% dirs.out %]"
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% dirs.out %]"
+    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% final_vcf %]"
+    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx"
+
     [% IF opt.CALLING_GVCF == 'yes' %]
     mkdir -p "[% dirs.gvcf %]"
     mv "[% dirs.tmp %]"/*.g.vcf.gz "[% dirs.gvcf %]"

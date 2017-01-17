@@ -28,7 +28,7 @@ sub run {
         $running_jobs,
         $dirs,
         $opt,
-        vcf => "$opt->{RUN_NAME}.filtered_variants.vcf",
+        vcf_path => $opt->{GERMLINE_VCF_FILE},
         # comment to avoid perltidy putting on one line
     );
 

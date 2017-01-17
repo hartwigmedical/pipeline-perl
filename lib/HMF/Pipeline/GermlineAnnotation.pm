@@ -22,9 +22,7 @@ sub run {
     my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
-    my $in_vcf = "$opt->{RUN_NAME}.filtered_variants.vcf";
     my $annotated_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.annotated.vcf");
-
     my $job_id = fromTemplate(
         "GermlineAnnotation",
         undef,
@@ -33,13 +31,12 @@ sub run {
         $running_jobs,
         $dirs,
         $opt,
-        in_vcf => $in_vcf,
-        pre_annotated_vcf => $in_vcf,
-        annotated_vcf => $annotated_vcf,
+        input_vcf => $opt->{GERMLINE_VCF_FILE},
+        final_vcf => $annotated_vcf,
     );
 
-    HMF::Pipeline::Metadata::linkArtefact($annotated_vcf, "germline_vcf", $opt);
-    HMF::Pipeline::Metadata::linkArtefact("${annotated_vcf}.idx", "germline_vcf_index", $opt);
+    $opt->{GERMLINE_VCF_FILE} = $annotated_vcf;
+    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
 
     recordAllSampleJob($opt, $job_id) if $job_id;
     return;

@@ -43,7 +43,7 @@ sub run {
     if ($opt->{FASTQ} or $opt->{BAM}) {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
-        linkBamArtefacts($opt);
+        HMF::Pipeline::Metadata::linkBamArtefacts($opt);
         HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
 
         HMF::Pipeline::PreCalling::run($opt);
@@ -75,18 +75,6 @@ Jobs could have been scheduled before the error, or by external tools (GATK etc.
     ## use critic
     close $fh;
     return $lock_file;
-}
-
-sub linkBamArtefacts {
-    my ($opt) = @_;
-
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $bam_path = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
-        my $sample_name = HMF::Pipeline::Metadata::metaSampleName($sample, $opt);
-        HMF::Pipeline::Metadata::linkArtefact($bam_path, "${sample_name}_bam", $opt);
-        HMF::Pipeline::Metadata::linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
-    }
-    return;
 }
 
 1;

@@ -21,6 +21,7 @@ sub run {
 
     my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR}, gvcf => "gvcf");
+    $opt->{GERMLINE_VCF_FILE} = catfile($dirs->{out}, "$opt->{RUN_NAME}.raw_variants.vcf");
 
     my $job_id = fromTemplate(
         "GermlineCalling",
@@ -31,6 +32,7 @@ sub run {
         $dirs,
         $opt,
         sample_bams => [ values %{$sample_bams} ],
+        final_vcf => $opt->{GERMLINE_VCF_FILE},
         job_native => jobNative($opt, "CALLING"),
     );
 
@@ -53,9 +55,7 @@ sub linkArtefacts {
             HMF::Pipeline::Metadata::linkArtefact("${gvcf_path}.tbi", "${sample_name}_gvcf_index", $opt);
         }
     }
-    my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.raw_variants.vcf");
-    HMF::Pipeline::Metadata::linkArtefact($germline_vcf_path, "germline_vcf", $opt);
-    HMF::Pipeline::Metadata::linkArtefact("${germline_vcf_path}.idx", "germline_vcf_index", $opt);
+    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
     return;
 }
 

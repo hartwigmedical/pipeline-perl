@@ -16,9 +16,9 @@ cd [% dirs.out %]
 
 [% INCLUDE Status.tt step="" status="processing" %]
 
-log_start "[% vcf %]" "[% opt.RUN_NAME %].log"
+log_start "$(basename "[% vcf_path %]")" "[% opt.RUN_NAME %].log"
 
-[% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/out" --vcf "[% vcf %]" --plink
+[% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/out" --vcf "[% vcf_path %]" --plink
 [% opt.PLINK_PATH %]/plink --file "[% dirs.tmp %]/out" --out "[% dirs.tmp %]/plink" --make-bed --noweb
 [% opt.KING_PATH %]/king -b "[% dirs.tmp %]/plink.bed" --kinship --prefix "[% dirs.tmp %]/king"
 cp "[% dirs.tmp %]/king.kin0" "[% opt.RUN_NAME %].kinship"
@@ -33,4 +33,4 @@ else
     fail "kinship file missing"
 fi
 
-log_end "[% vcf %]" "[% opt.RUN_NAME %].log"
+log_end "$(basename "[% vcf_path %]")" "[% opt.RUN_NAME %].log"

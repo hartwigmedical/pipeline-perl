@@ -28,7 +28,7 @@ sub run {
         $running_jobs,
         $dirs,
         $opt,
-        vcf_path => catfile($dirs->{out}, "$opt->{RUN_NAME}.filtered_variants.vcf"),
+        vcf_path => $opt->{GERMLINE_VCF_FILE},
         output_file => catfile($dirs->{out}, "$opt->{RUN_NAME}.gender"),
     );
 

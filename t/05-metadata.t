@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact writeLinks);
+use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -20,8 +20,8 @@ my $opt = {OUTPUT_DIR => $temp_dir};
 my $metadata_path = catfile($temp_dir, "metadata");
 HMF::Pipeline::Metadata::writeJson(
     $metadata_path, {
-        test_sample_a => "filename_a",
-        test_sample_b => "filename_b",
+        type_a => "sample_a",
+        type_b => "sample_b",
         random_unused_key => undef,
     }
 );
@@ -29,22 +29,37 @@ HMF::Pipeline::Metadata::writeJson(
 my $metadata = parse($opt);
 is_deeply(
     $metadata, {
-        test_sample_a => "filename_a",
-        test_sample_b => "filename_b",
+        type_a => "sample_a",
+        type_b => "sample_b",
         random_unused_key => undef,
     },
     "reads metadata"
 );
 
-is(metaSampleName("filename_a", $opt), "test_sample_a", "names sample file from metadata");
-is(metaSampleName("filename_b", $opt), "test_sample_b", "names another sample file from metadata");
-is(metaSampleName("filename_c", $opt), "sample", "default name for missing sample file");
+is(metaSampleName("sample_a", $opt), "type_a", "names sample file from metadata");
+is(metaSampleName("sample_b", $opt), "type_b", "names another sample file from metadata");
+is(metaSampleName("sample_c", $opt), "sample", "default name for missing sample file");
 
+$opt->{SAMPLES} = {"sample_a" => "orig_a.bam", "sample_b" => "orig_b.bam"};
+$opt->{BAM_FILES} = {"sample_a" => "filename_a.bam", "sample_b" => "filename_b.bam"};
+$opt->{RUNNING_JOBS} = {};
+linkBamArtefacts($opt);
+ok(exists $opt->{LINKS}, "links stored in \$opt");
+is_deeply(
+    $opt->{LINKS}, {
+        type_a_bam => catfile($temp_dir, "sample_a", "mapping", "filename_a.bam"),
+        type_a_bai => catfile($temp_dir, "sample_a", "mapping", "filename_a.bam.bai"),
+        type_b_bam => catfile($temp_dir, "sample_b", "mapping", "filename_b.bam"),
+        type_b_bai => catfile($temp_dir, "sample_b", "mapping", "filename_b.bam.bai"),
+    },
+    "bam filename links stored"
+);
+
+delete $opt->{LINKS};
 linkArtefact("filename_a", "artefact_a", $opt);
 linkArtefact("filename_b", "artefact_b", $opt);
 ok(exists $opt->{LINKS}, "links stored in \$opt");
-is($opt->{LINKS}->{artefact_a}, "filename_a", "artefact filename stored");
-is($opt->{LINKS}->{artefact_b}, "filename_b", "another artefact filename stored");
+is_deeply($opt->{LINKS}, {artefact_a => "filename_a", artefact_b => "filename_b"}, "artefact filename links stored");
 
 linkExtraArtefact(catfile($temp_dir, "filename_a"), $opt);
 linkExtraArtefact(catfile($temp_dir, "filename_b"), $opt);
@@ -62,6 +77,12 @@ is_deeply(
     },
     "links written to file"
 );
+
+delete $opt->{LINKS};
+linkVcfArtefacts("filename", "artefact", $opt);
+ok(exists $opt->{LINKS}, "extra links stored in \$opt");
+is_deeply($opt->{LINKS}, {artefact_vcf => "filename", artefact_vcf_index => "filename.idx"}, "vcf artefact links stored");
+
 
 HMF::Pipeline::Metadata::writeJson(
     $metadata_path, {

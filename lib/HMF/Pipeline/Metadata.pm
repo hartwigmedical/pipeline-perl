@@ -3,16 +3,19 @@ package HMF::Pipeline::Metadata;
 use FindBin::libs;
 use discipline;
 
-use File::Spec::Functions qw(:ALL);
-
-use JSON;
 use Carp;
+use File::Spec::Functions qw(:ALL);
+use JSON;
+
+use HMF::Pipeline::Config qw(sampleBamAndJobs);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
     parse
     linkArtefact
     linkExtraArtefact
+    linkVcfArtefacts
+    linkBamArtefacts
     metaSampleName
     sampleControlNames
     writeLinks
@@ -88,6 +91,26 @@ sub linkExtraArtefact {
 
     $opt->{EXTRAS} = [] if not exists $opt->{EXTRAS};
     push @{$opt->{EXTRAS}}, abs2rel($source_path, $opt->{OUTPUT_DIR});
+    return;
+}
+
+sub linkVcfArtefacts {
+    my ($source_path, $vcf_type, $opt) = @_;
+
+    linkArtefact($source_path, "${vcf_type}_vcf", $opt);
+    linkArtefact("${source_path}.idx", "${vcf_type}_vcf_index", $opt);
+    return;
+}
+
+sub linkBamArtefacts {
+    my ($opt) = @_;
+
+    foreach my $sample (keys %{$opt->{SAMPLES}}) {
+        my ($bam_path) = HMF::Pipeline::Config::sampleBamAndJobs($sample, $opt);
+        my $sample_name = metaSampleName($sample, $opt);
+        linkArtefact($bam_path, "${sample_name}_bam", $opt);
+        linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);
+    }
     return;
 }
 
