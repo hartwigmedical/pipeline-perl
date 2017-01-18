@@ -18,6 +18,7 @@ our @EXPORT_OK = qw(
     linkBamArtefacts
     metaSampleName
     sampleControlNames
+    readLinks
     writeLinks
 );
 
@@ -114,10 +115,23 @@ sub linkBamArtefacts {
     return;
 }
 
+sub linksPath {
+    my ($opt) = @_;
+
+    return catfile($opt->{OUTPUT_DIR}, "logs", "links.json");
+}
+
+sub readLinks {
+    my ($opt) = @_;
+
+    my $links_path = linksPath($opt);
+    return -s $links_path ? readJson($links_path) : {};
+}
+
 sub writeLinks {
     my ($opt) = @_;
-    my $outfile = catfile($opt->{OUTPUT_DIR}, "logs", "links.json");
-    writeJson($outfile, $opt->{LINKS});
+
+    writeJson(linksPath($opt), $opt->{LINKS});
     return;
 }
 

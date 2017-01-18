@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts writeLinks);
+use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts readLinks writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -66,10 +66,13 @@ linkExtraArtefact(catfile($temp_dir, "filename_b"), $opt);
 ok(exists $opt->{EXTRAS}, "extra links stored in \$opt");
 is_deeply($opt->{EXTRAS}, [ "filename_a", "filename_b" ], "extra artefact filenames stored");
 
+my $links = readLinks($opt);
+is_deeply($links, {}, "empty links when nothing written to file");
+
 make_path(catfile($temp_dir, "logs"));
 writeLinks($opt);
 my $links_path = catfile($temp_dir, "logs", "links.json");
-my $links = HMF::Pipeline::Metadata::readJson($links_path);
+$links = HMF::Pipeline::Metadata::readJson($links_path);
 is_deeply(
     $links, {
         artefact_a => "filename_a",
@@ -77,6 +80,8 @@ is_deeply(
     },
     "links written to file"
 );
+
+is_deeply(readLinks($opt), $links, "reads same links when written to file");
 
 delete $opt->{LINKS};
 linkVcfArtefacts("filename", "artefact", $opt);
