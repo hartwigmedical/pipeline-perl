@@ -17,7 +17,7 @@ log_start "" "[% opt.RUN_NAME %].log"
 cd "[% dirs.tmp %]"
 
 if \
-[%- FOREACH sample_bam IN sample_bams %]
+[%- FOREACH sample_bam IN sample_bams.values %]
     [ -s "[% sample_bam %]" ] && \
 [%- END %]
     true
@@ -42,7 +42,7 @@ then
         -nsc [% opt.CALLING_SCATTER %] \
         -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
         -stand_emit_conf [% opt.CALLING_STANDEMITCONF %] \
-        [%- FOREACH sample_bam IN sample_bams %]
+        [%- FOREACH sample_bam IN sample_bams.values %]
         -I [% sample_bam %] \
         [%- END %]
         [%- IF opt.exists('CALLING_DBSNP') %]
@@ -68,11 +68,15 @@ then
     mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% final_vcf %]"
     mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx"
 
-    [% IF opt.CALLING_GVCF == 'yes' %]
+    [%- IF opt.CALLING_GVCF == 'yes' %]
     mkdir -p "[% dirs.gvcf %]"
-    mv "[% dirs.tmp %]"/*.g.vcf.gz "[% dirs.gvcf %]"
-    mv "[% dirs.tmp %]"/*.g.vcf.gz.tbi "[% dirs.gvcf %]"
-    [% END %]
+    [%- FOREACH gvcf_pair IN final_gvcfs.pairs -%]
+    [%- USE bam = file(sample_bams.${gvcf_pair.key}, nostat=1) -%]
+    [%- scala_gvcf = bam.name.replace('\.bam$', '.g.vcf.gz') %]
+    mv "[% dirs.tmp %]/[% scala_gvcf %]" "[% gvcf_pair.value %]"
+    mv "[% dirs.tmp %]/[% scala_gvcf %].tbi" "[% gvcf_pair.value %].tbi"
+    [%- END -%]
+    [%- END %]
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step="" status="success" %]

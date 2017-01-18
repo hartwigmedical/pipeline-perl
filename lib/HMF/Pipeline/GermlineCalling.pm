@@ -22,6 +22,7 @@ sub run {
     my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR}, gvcf => "gvcf");
     $opt->{GERMLINE_VCF_FILE} = catfile($dirs->{out}, "$opt->{RUN_NAME}.raw_variants.vcf");
+    $opt->{GVCF_FILES} = {map { $_ => catfile($dirs->{gvcf}, "${_}.g.vcf.gz") } keys %{$opt->{SAMPLES}}} if $opt->{CALLING_GVCF} eq "yes";
 
     my $job_id = fromTemplate(
         "GermlineCalling",
@@ -31,28 +32,25 @@ sub run {
         $running_jobs,
         $dirs,
         $opt,
-        sample_bams => [ values %{$sample_bams} ],
+        sample_bams => $sample_bams,
         final_vcf => $opt->{GERMLINE_VCF_FILE},
+        final_gvcfs => $opt->{GVCF_FILES},
         job_native => jobNative($opt, "CALLING"),
     );
 
-    linkArtefacts($dirs->{gvcf}, $opt);
+    linkArtefacts($opt);
     recordAllSampleJob($opt, $job_id) if $job_id;
     return;
 }
 
-# naming dependent on GermlineCaller.scala, could fix to be explicit
 sub linkArtefacts {
-    my ($gvcf_dir, $opt) = @_;
+    my ($opt) = @_;
 
     if ($opt->{CALLING_GVCF} eq "yes") {
-        foreach my $sample (keys %{$opt->{SAMPLES}}) {
-            my $bam_file = $opt->{BAM_FILES}->{$sample};
-            (my $gvcf_file = $bam_file) =~ s/\.bam$/.g.vcf.gz/;
-            my $gvcf_path = catfile($gvcf_dir, $gvcf_file);
-            my $sample_name = HMF::Pipeline::Metadata::metaSampleName($sample, $opt);
-            HMF::Pipeline::Metadata::linkArtefact($gvcf_path, "${sample_name}_gvcf", $opt);
-            HMF::Pipeline::Metadata::linkArtefact("${gvcf_path}.tbi", "${sample_name}_gvcf_index", $opt);
+        while (my ($sample, $gvcf_path) = each %{$opt->{GVCF_FILES}}) {
+            my $meta_sample_name = HMF::Pipeline::Metadata::metaSampleName($sample, $opt);
+            HMF::Pipeline::Metadata::linkArtefact($gvcf_path, "${meta_sample_name}_gvcf", $opt);
+            HMF::Pipeline::Metadata::linkArtefact("${gvcf_path}.tbi", "${meta_sample_name}_gvcf_index", $opt);
         }
     }
     HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
