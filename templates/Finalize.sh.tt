@@ -69,7 +69,7 @@ else
 [% END -%]
 
 [% IF opt.exists('EXTRAS') -%]
-    cd [% opt.OUTPUT_DIR %]
+    cd "[% opt.OUTPUT_DIR %]"
 
     # genuine failures to produce artefacts should be caught elsewhere
     # providing empty files where tools are successful but produce no
@@ -82,8 +82,8 @@ else
         fi
     done
 
-    tar -zcf [% extras_tar %] [% opt.EXTRAS.join(' ') %]
-    zip -r [% extras_zip %] [% opt.EXTRAS.join(' ') %]
+    tar -zcf "[% extras_tar %]" "[% opt.EXTRAS.join('" "') %]"
+    zip -r "[% extras_zip %]" "[% opt.EXTRAS.join('" "') %]"
 [% END -%]
 
     mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]

@@ -27,14 +27,14 @@ if \
 then
     [% INCLUDE Status.tt step="" status="processing" %]
 
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% snp_vcfs.join(' ') %] > "[% joint_name %].snp.vcf"
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% indel_vcfs.join(' ') %] > "[% joint_name %].indel.vcf"
+    [% opt.VCFTOOLS_PATH %]/vcf-concat "[% snp_vcfs.join('" "') %]" > "[% joint_name %].snp.vcf"
+    [% opt.VCFTOOLS_PATH %]/vcf-concat "[% indel_vcfs.join('" "') %]" > "[% joint_name %].indel.vcf"
 
-    java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] processSomatic "[% joint_name %].indel.vcf" [% opt.VARSCAN_POSTSETTINGS %]
-    java -Xmx[% opt.VARSCAN_MEM %]G -jar [% opt.VARSCAN_PATH %] processSomatic "[% joint_name %].snp.vcf" [% opt.VARSCAN_POSTSETTINGS %]
+    java -Xmx[% opt.VARSCAN_MEM %]G -jar "[% opt.VARSCAN_PATH %]" processSomatic "[% joint_name %].indel.vcf" [% opt.VARSCAN_POSTSETTINGS %]
+    java -Xmx[% opt.VARSCAN_MEM %]G -jar "[% opt.VARSCAN_PATH %]" processSomatic "[% joint_name %].snp.vcf" [% opt.VARSCAN_POSTSETTINGS %]
 
     java -Xmx[% opt.VARSCAN_MEM %]G \
-        -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+        -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
         -T CombineVariants \
         -R "[% opt.GENOME %]" \
         --genotypemergeoption unsorted \
@@ -47,7 +47,7 @@ then
 
     if [ -s "[% final_vcf %]" ]
     then
-        rm [% snp_vcfs.join(' ') %] [% indel_vcfs.join(' ') %]
+        rm "[% snp_vcfs.join('" "') %]" "[% indel_vcfs.join('" "') %]"
 
         touch "[% done_file %]"
         [% INCLUDE Status.tt step="" status="success" %]

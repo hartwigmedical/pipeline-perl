@@ -18,11 +18,11 @@ log_start "[% step %]" "${JOB_NAME}_[% step %].log"
 
 if true \
     [%- FOR vcf_file IN vcf_files %]
-    && [ -s [% vcf_file %] ] \
+    && [ -s "[% vcf_file %]" ] \
     [%- END %]
     ;
 then
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% vcf_files.join(' ') %] > "[% output_vcf %]"
+    [% opt.VCFTOOLS_PATH %]/vcf-concat "[% vcf_files.join('" "') %]" > "[% output_vcf %]"
 
     touch "[% done_file %]"
     [% INCLUDE Status.tt step=step status="success" %]

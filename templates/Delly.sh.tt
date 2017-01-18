@@ -35,16 +35,16 @@ OMP_NUM_THREADS=[% opt.DELLY_THREADS %]
     -v [% opt.DELLY_VCF_GENO %] \
     [%- END %]
     -o "[% output_vcf %].bcf" \
-    [% sample_bams.values.join(' ') %]
+    "[% sample_bams.values.join('" "') %]"
 
 final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
 if [ "${final_log_line%Done.}" != "${final_log_line}" ]
 then
     # output VCF will not exist if no variants are found; make minimal valid VCF
-    if [ -s "[% output_vcf %]".bcf ]
+    if [ -s "[% output_vcf %].bcf" ]
     then
         [% opt.BCFTOOLS_PATH %]/bcftools view "[% output_vcf %].bcf" > "[% output_vcf %]"
-        rm [% output_vcf %].bcf
+        rm "[% output_vcf %].bcf"
     else
         echo -e "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t[% sample_bams.keys.join('\t') %]" > "[% output_vcf %]"
     fi
@@ -57,7 +57,7 @@ then
         final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
         if [ "$final_log_line" == "Done." ]
         then
-           mv [% output_vcf %].tmp [% output_vcf %]
+           mv "[% output_vcf %].tmp" "[% output_vcf %]"
         else
            [% INCLUDE Status.tt step=step status="failed" %]
            fail "TRA conversion final log line is $final_log_line"

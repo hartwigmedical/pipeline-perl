@@ -24,7 +24,7 @@ if \
 then
     [% INCLUDE Status.tt step="" status="processing" %]
 
-    [% opt.VCFTOOLS_PATH %]/vcf-concat [% input_vcfs.join(' ') %] > "[% joint_name %]_mutect.vcf"
+    [% opt.VCFTOOLS_PATH %]/vcf-concat "[% input_vcfs.join('" "') %]" > "[% joint_name %]_mutect.vcf"
 
     java -Xmx[% opt.MUTECT_MEM %]G \
         -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \

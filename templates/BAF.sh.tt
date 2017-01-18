@@ -12,32 +12,32 @@ JOB_NAME="BAF"
 JOB_SET="[% opt.RUN_NAME %]"
 JOB_START=$(date +%s)
 
-cd [% dirs.tmp %]
+cd "[% dirs.tmp %]"
 
 log_start "[% sample %]" "${JOB_NAME}_[% sample %].log"
 
-if [ -s [% sample_bam %] ]
+if [ -s "[% sample_bam %]" ]
 then
     [% INCLUDE Status.tt step=sample status="processing" %]
   
     java -Xmx[% opt.BAF_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
-        -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
+        -jar "[% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar" \
         -T UnifiedGenotyper \
-        -R [% opt.GENOME %] \
-        -L [% opt.BAF_SNPS %] \
-        -I [% sample_bam %] \
-        -o [% output_vcf %] \
+        -R "[% opt.GENOME %]" \
+        -L "[% opt.BAF_SNPS %]" \
+        -I "[% sample_bam %]" \
+        -o "[% output_vcf %]" \
         --output_mode EMIT_ALL_SITES
 else
     fail "Sample BAM file does not exist."
 fi
 
-tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
 tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
-if [ "$tail_output" == "$tail_input" ]
+tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
+if [ "$tail_input" == "$tail_output" ]
 then
-    mv [% output_vcf %] [% dirs.out %]
-    mv [% output_vcf %].idx [% dirs.out %]
+    mv "[% output_vcf %]" "[% dirs.out %]"
+    mv "[% output_vcf %].idx" "[% dirs.out %]"
 
     [% opt.BIOVCF_PATH %]/bio-vcf \
         --num-threads [% opt.BAF_THREADS %] \
@@ -45,16 +45,16 @@ then
         --sfilter '!s.empty? and s.dp>=20' \
         --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
         --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' \
-        < [% dirs.out %]/[% output_vcf %] \
-        > [% output_baf %]
+        < "[% dirs.out %]/[% output_vcf %]" \
+        > "[% output_baf %]"
 
     if [ -s "[% output_baf %]" ]
     then
-        mv [% output_baf %] [% dirs.out %]
-        Rscript [% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R [% dirs.tmp %] [% dirs.out %]/[% output_baf %]
+        mv "[% output_baf %]" "[% dirs.out %]"
+        Rscript "[% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R" "[% dirs.tmp %]" "[% dirs.out %]/[% output_baf %]"
         if [ -s "[% output_bafplot %]" ]
         then
-            mv [% output_bafplot %] [% dirs.out %]
+            mv "[% output_bafplot %]" "[% dirs.out %]"
 
             touch "[% done_file %]"
             [% INCLUDE Status.tt step=sample status="success" %]

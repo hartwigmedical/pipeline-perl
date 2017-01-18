@@ -22,8 +22,8 @@ log_start "[% sample %]" "[% sample %].log"
     --tmpdir=[% dirs.tmp %] \
     --overflow-list-size=[% opt.MARKDUP_OVERFLOW_LIST_SIZE %] \
     -t [% opt.MARKDUP_THREADS %] \
-    [% input_bams.join(' ') %] \
-    [% output_bam %]
+    "[% input_bams.join('" "') %]" \
+    "[% output_bam %]"
 
 touch "[% done_file %]"
 [% INCLUDE Status.tt step=sample status="finished" %]
