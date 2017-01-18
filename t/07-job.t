@@ -172,4 +172,15 @@ foreach my $skip (0, 1) {
 }
 
 
+my (@job_args, @qsub_args);
+my $module = Test::MockModule->new('HMF::Pipeline::Job');
+$module->mock(fromTemplate => sub { @job_args = @_; return "jobid"; });
+$module->mock(qsubSimple => sub { @qsub_args = @_ });
+
+is(HMF::Pipeline::Job::markDone(undef, [], {}, {}), undef, "skips marking done file already detected as written");
+is_deeply([@job_args], [], "no job run");
+
+my $job_id = HMF::Pipeline::Job::markDone(catfile($temp_dir, "something.done"), ["jobid"], {}, {});
+is($job_id, "jobid", "runs mark done job");
+
 done_testing();

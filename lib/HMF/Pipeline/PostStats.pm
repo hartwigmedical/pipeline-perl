@@ -27,10 +27,11 @@ sub run {
 
     my @designs;
     @designs = split '\t', $opt->{SNPCHECK_DESIGNS} if $opt->{SNPCHECK_DESIGNS};
-    my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
-    my $qsub = qsubTemplate($opt, "POSTSTATS");
+
     linkArtefacts(\@designs, $exoncov_dir, $dirs, $opt);
 
+    my ($sample_bams, $running_jobs) = sampleBamsAndJobs($opt);
+    my $qsub = qsubTemplate($opt, "POSTSTATS");
     my $done_file = checkReportedDoneFile("PostStats", undef, $dirs, $opt) or return;
     my $stats_job_id = fromTemplate(
         "PostStats",

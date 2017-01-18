@@ -24,35 +24,31 @@ sub run {
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
     say "\n$joint_name \t $ref_bam_path \t $tumor_bam_path";
 
-    # must be before returning if already .done
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
-    HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt);
-
-    my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
-
+    my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt);
     my (@somvar_jobs, %somvar_vcfs);
-    if ($opt->{SOMVAR_FREEBAYES} eq "yes") {
-        my ($job_id, $vcf) = runFreebayes($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
-        push @somvar_jobs, $job_id;
-        $somvar_vcfs{freebayes} = $vcf;
+    if ($done_file) {
+        if ($opt->{SOMVAR_FREEBAYES} eq "yes") {
+            my ($job_id, $vcf) = runFreebayes($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+            push @somvar_jobs, $job_id;
+            $somvar_vcfs{freebayes} = $vcf;
+        }
+        if ($opt->{SOMVAR_MUTECT} eq "yes") {
+            my ($job_id, $vcf) = runMutect($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+            push @somvar_jobs, $job_id;
+            $somvar_vcfs{mutect} = $vcf;
+        }
+        if ($opt->{SOMVAR_STRELKA} eq "yes") {
+            my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+            push @somvar_jobs, $job_id;
+            $somvar_vcfs{strelka} = $vcf;
+        }
+        if ($opt->{SOMVAR_VARSCAN} eq "yes") {
+            my ($job_id, $vcf) = runVarscan($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+            push @somvar_jobs, $job_id;
+            $somvar_vcfs{varscan} = $vcf;
+        }
     }
-    if ($opt->{SOMVAR_MUTECT} eq "yes") {
-        my ($job_id, $vcf) = runMutect($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
-        push @somvar_jobs, $job_id;
-        $somvar_vcfs{mutect} = $vcf;
-    }
-    if ($opt->{SOMVAR_STRELKA} eq "yes") {
-        my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
-        push @somvar_jobs, $job_id;
-        $somvar_vcfs{strelka} = $vcf;
-    }
-    if ($opt->{SOMVAR_VARSCAN} eq "yes") {
-        my ($job_id, $vcf) = runVarscan($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
-        push @somvar_jobs, $job_id;
-        $somvar_vcfs{varscan} = $vcf;
-    }
-
-    my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $final_vcf, $dirs, $opt);
+    my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $done_file, $dirs, $opt);
     my $job_id = markDone($done_file, [ @somvar_jobs, $merge_job_id ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
@@ -60,9 +56,14 @@ sub run {
 }
 
 sub mergeSomatics {
-    my ($tumor_sample, $joint_name, $somvar_jobs, $somvar_vcfs, $final_vcf, $dirs, $opt) = @_;
+    my ($tumor_sample, $joint_name, $somvar_jobs, $somvar_vcfs, $master_done_file, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
+
+    # must happen even if .done
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt);
+    return unless $master_done_file;
 
     my $in_vcf;
     my $out_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");

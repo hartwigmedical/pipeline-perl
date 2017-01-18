@@ -44,19 +44,26 @@ sub runSampleCnv {
     say "\n$joint_name \t $control_bam \t $sample_bam";
 
     my @cnv_jobs;
-    my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
-    push @cnv_jobs, runFreec($sample, $control, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) if $opt->{CNV_FREEC} eq "yes";
-    push @cnv_jobs, runQDNAseq($sample, $sample_bam, $running_jobs, $dirs, $opt) if $opt->{CNV_QDNASEQ} eq "yes";
+    my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt);
+    push @cnv_jobs, runFreec($sample, $control, $sample_bam, $control_bam, $running_jobs, $done_file, $dirs, $opt) if $opt->{CNV_FREEC} eq "yes";
+    push @cnv_jobs, runQDNAseq($sample, $sample_bam, $running_jobs, $done_file, $dirs, $opt) if $opt->{CNV_QDNASEQ} eq "yes";
     my $job_id = markDone($done_file, \@cnv_jobs, $dirs, $opt);
     return $job_id;
 }
 
 sub runFreec {
-    my ($sample_name, $control_name, $sample_bam, $control_bam, $running_jobs, $dirs, $opt) = @_;
+    my ($sample_name, $control_name, $sample_bam, $control_bam, $running_jobs, $master_done_file, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING FREEC ###";
 
     $dirs->{freec}{out} = addSubDir($dirs, "freec");
+
+    my $sample_bam_name = fileparse($sample_bam);
+    # dependent on implicit FREEC naming. must happen even if .done.
+    foreach my $artefact ("${sample_bam_name}_ratio_karyotype.pdf", "${sample_bam_name}_ratio.txt.png", "${sample_bam_name}_CNVs.p.value.txt") {
+        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{freec}->{out}, $artefact), $opt);
+    }
+    return unless $master_done_file;
 
     my @mappabilityTracks;
     @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
@@ -76,7 +83,6 @@ sub runFreec {
     my @dependent_jobs = @{$running_jobs};
     push @dependent_jobs, @{$opt->{RUNNING_JOBS}->{pileup}} if $opt->{FREEC_BAF} eq "yes";
 
-    my $sample_bam_name = fileparse($sample_bam);
     my $job_id = fromTemplate(
         "Freec",
         undef,
@@ -92,20 +98,22 @@ sub runFreec {
         config_file => $config_file,
     );
 
-    # dependent on implicit FREEC naming
-    foreach my $artefact ("${sample_bam_name}_ratio_karyotype.pdf", "${sample_bam_name}_ratio.txt.png", "${sample_bam_name}_CNVs.p.value.txt") {
-        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{freec}->{out}, $artefact), $opt);
-    }
-
     return $job_id;
 }
 
 sub runQDNAseq {
-    my ($sample_name, $sample_bam, $running_jobs, $dirs, $opt) = @_;
+    my ($sample_name, $sample_bam, $running_jobs, $master_done_file, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING QDNASEQ ###";
 
     $dirs->{qdnaseq}{out} = addSubDir($dirs, "qdnaseq");
+
+    # dependent on implicit QDNAseq naming. must happen even if .done.
+    (my $output_vcf = $opt->{BAM_FILES}->{$sample_name}) =~ s/\.bam$/.vcf/;
+    foreach my $artefact ($output_vcf, "calls.igv", "copynumber.igv", "segments.igv") {
+        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{qdnaseq}->{out}, $artefact), $opt);
+    }
+    return unless $master_done_file;
 
     my $job_id = fromTemplate(
         "QDNAseq",
@@ -118,12 +126,6 @@ sub runQDNAseq {
         sample_name => $sample_name,
         sample_bam => $sample_bam,
     );
-
-    # dependent on implicit QDNAseq naming
-    (my $output_vcf = $opt->{BAM_FILES}->{$sample_name}) =~ s/\.bam$/.vcf/;
-    foreach my $artefact ($output_vcf, "calls.igv", "copynumber.igv", "segments.igv") {
-        HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{qdnaseq}->{out}, $artefact), $opt);
-    }
 
     return $job_id;
 }

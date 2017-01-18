@@ -92,6 +92,7 @@ sub checkReportedDoneFile {
 sub markDone {
     my ($done_file, $hold_job_ids, $dirs, $opt) = @_;
 
+    return unless $done_file;
     my $done_file_name = fileparse($done_file);
     my $job_id = fromTemplate(
         "MarkDone",
