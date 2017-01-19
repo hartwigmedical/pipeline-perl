@@ -15,7 +15,7 @@ JOB_START=$(date +%s)
 log_start "[% sample_name %]" "freec.log"
 [% INCLUDE Status.tt step=sample_name status="processing" %]
 
-if [ -s "[% sample_bam %]" [% IF control_bam %]] && [ -s "[% control_bam %]" [% END %]]
+if [ -s "[% sample_path %]" ][% IF control_path %] && [ -s "[% control_path %]" ][% END %]
 then
     PATH=[% opt.SAMTOOLS_PATH %]:$PATH
     export PATH
@@ -23,11 +23,14 @@ then
     [% opt.FREEC_PATH %]/freec -conf "[% config_file %]"
 
     cd "[% dirs.freec.out %]"
-    cnv_file="[% sample_bam_name %]_CNVs"
-    ratio_file="[% sample_bam_name %]_ratio.txt"
+    cnv_file="[% sample_file_name %]_CNVs"
+    ratio_file="[% sample_file_name %]_ratio.txt"
+    [%- IF opt.FREEC_BAF == 'yes' %]
+    baf_file="[% sample_file_name %]_BAF.txt"
+    [%- END %]
     if [ -s "$ratio_file" ]
     then
-        R --slave --args 2 $ratio_file < [% opt.FREEC_PATH %]/makeGraph.R
+        R --slave --args 2 "$ratio_file" [% IF opt.FREEC_BAF == 'yes' %]"$baf_file"[% END %] < [% opt.FREEC_PATH %]/makeGraph.R
         if [ -s "$cnv_file" ]
         then
             R --slave --args "$cnv_file" "$ratio_file" < "[% opt.FREEC_PATH %]/assess_significance.R"
@@ -38,10 +41,14 @@ then
     fi
 
     if [ -s "$cnv_file" ] && [ -s "$ratio_file" ] \
-           && [ -s "[% sample_bam_name %]_CNVs.p.value.txt" ] \
-           && [ -s "[% sample_bam_name %]_ratio.txt.png" ] \
-           && [ -s "[% sample_bam_name %]_ratio_karyotype.pdf" ] \
-           || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
+        [%- IF opt.FREEC_BAF == 'yes' %]
+        && [ -s "$baf_file" ] \
+        && [ -s "${baf_file}.png" ] \
+        [%- END %]
+        && [ -s "[% sample_file_name %]_CNVs.p.value.txt" ] \
+        && [ -s "[% sample_file_name %]_ratio.txt.png" ] \
+        && [ -s "[% sample_file_name %]_ratio_karyotype.pdf" ] \
+        || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
     then
         touch "[% done_file %]"
         [% INCLUDE Status.tt step=sample_name status="success" %]
@@ -51,7 +58,7 @@ then
     fi
 else
     [% INCLUDE Status.tt step=sample_name status="failed" %]
-    fail "[% sample_bam %] [% IF control_bam %]or [% control_bam %] [% END %]does not exist."
+    fail "[% sample_path %] [% IF control_path %]or [% control_path %] [% END %]does not exist."
 fi
 
 log_end "[% sample_name %]" "freec.log"

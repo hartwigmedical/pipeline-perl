@@ -58,9 +58,18 @@ sub runFreec {
 
     $dirs->{freec}{out} = addSubDir($dirs, "freec");
 
-    my $sample_bam_name = fileparse($sample_bam);
+    my ($sample_path, $control_path);
+    if ($opt->{FREEC_BAF} eq "yes") {
+        $sample_path = $opt->{PILEUP_FILES}->{$sample_name};
+        $control_path = $control_name ? $opt->{PILEUP_FILES}->{$control_name} : "";
+    } else {
+        $sample_path = $sample_bam;
+        $control_path = $control_bam;
+    }
+    my $sample_file_name = fileparse($sample_path);
+
     # dependent on implicit FREEC naming. must happen even if .done.
-    foreach my $artefact ("${sample_bam_name}_ratio_karyotype.pdf", "${sample_bam_name}_ratio.txt.png", "${sample_bam_name}_CNVs.p.value.txt") {
+    foreach my $artefact ("${sample_file_name}_ratio_karyotype.pdf", "${sample_file_name}_ratio.txt.png", "${sample_file_name}_CNVs.p.value.txt") {
         HMF::Pipeline::Metadata::linkExtraArtefact(catfile($dirs->{freec}->{out}, $artefact), $opt);
     }
     return unless $master_done_file;
@@ -71,10 +80,8 @@ sub runFreec {
     writeFromTemplate(
         "FreecConfig.tt",
         $config_file,
-        sample_bam => $sample_bam,
-        control_bam => $control_bam,
-        sample_pileup => $opt->{PILEUP_FILES}->{$sample_name},
-        control_pileup => $control_name ? $opt->{PILEUP_FILES}->{$control_name} : undef,
+        sample_path => $sample_path,
+        control_path => $control_path,
         mappabilityTracks => \@mappabilityTracks,
         dirs => $dirs,
         opt => $opt,
@@ -92,9 +99,9 @@ sub runFreec {
         $dirs,
         $opt,
         sample_name => $sample_name,
-        sample_bam => $sample_bam,
-        control_bam => $control_bam,
-        sample_bam_name => $sample_bam_name,
+        sample_path => $sample_path,
+        control_path => $control_path,
+        sample_file_name => $sample_file_name,
         config_file => $config_file,
     );
 
