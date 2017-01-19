@@ -18,6 +18,8 @@ log_start "[% step %]" "${JOB_NAME}_[% step %].log"
 
 if [ -s [% input_vcf %] ]
 then
+    # note that the -c option is helpful but not perfect: GATK expects same order as reference genome
+    # this gives MT, X, Y instead of X, Y, MT
     [% opt.VCFTOOLS_PATH %]/vcf-sort -c "[% input_vcf %]" > "[% output_vcf %]"
 
     touch "[% done_file %]"
