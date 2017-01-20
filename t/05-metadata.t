@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
+use discipline;
 
 use File::Path qw(make_path);
 use File::Spec::Functions;

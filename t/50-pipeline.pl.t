@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
+use discipline;
 
 use File::Basename;
 use File::Find::Rule;

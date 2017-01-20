@@ -1,7 +1,6 @@
 package Util;
 
-use strict;
-use warnings;
+use discipline;
 
 use File::Spec::Functions;
 use Test::Cmd;

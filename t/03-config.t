@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
+use discipline;
 
 use File::Spec::Functions qw(:ALL);
 use File::Temp;
