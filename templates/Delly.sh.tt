@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Delly" main_step=step log_name="Delly_${step}.log" %]
 
 export OMP_NUM_THREADS
@@ -28,7 +28,7 @@ OMP_NUM_THREADS=[% opt.DELLY_THREADS %]
 final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
 [ "${final_log_line%Done.}" != "${final_log_line}" ] || failure "Delly final log line is $final_log_line"
 
-# output VCF will not exist if no variants are found; make minimal valid VCF
+# output BCF will not exist if no variants are found; make minimal valid VCF
 if [ -s "[% output_vcf %].bcf" ]
 then
     [% opt.BCFTOOLS_PATH %]/bcftools view "[% output_vcf %].bcf" > "[% output_vcf %]"
@@ -44,7 +44,6 @@ then
 
     final_log_line=$(tail -n1 "$SGE_STDOUT_PATH")
     [ "$final_log_line" == "Done." ] || failure "TRA conversion final log line is $final_log_line"
-
     mv "[% output_vcf %].tmp" "[% output_vcf %]"
 fi
 

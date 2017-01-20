@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Kinship" main_step=vcf_path log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.out %]"
@@ -12,5 +12,5 @@ cd "[% dirs.out %]"
 cp "[% dirs.tmp %]/king.kin0" "[% opt.RUN_NAME %].kinship"
 mv "[% dirs.tmp %]/plink.log" "[% dirs.log %]/"
 
-[ -s "[% opt.RUN_NAME %].kinship" ] || failure "kinship file missing"
+assert_not_empty "[% opt.RUN_NAME %].kinship"
 success

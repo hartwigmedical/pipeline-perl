@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="QDNAseq" main_step=sample_name log_name="qdnaseq.log" %]
 
-[ -s "[% sample_bam %]" ] || failure "Input BAM files do not exist."
+assert_not_empty "[% sample_bam %]"
 
 cd "[% dirs.qdnaseq.out %]"
 
 Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
 
-[ -s "$(basename -s .bam [% sample_bam %]).vcf" ] \
-    && [ -s "calls.png" ] \
-    && [ -s "copyNumberSegmented.png" ] \
-    || failure "No QDNAseq VCFs/PNGs produced."
-
+assert_not_empty "$(basename -s .bam [% sample_bam %]).vcf" "calls.png" "copyNumberSegmented.png"
 success

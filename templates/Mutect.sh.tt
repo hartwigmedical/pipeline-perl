@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Mutect" main_step=chr log_name="mutect.log" %]
 
-[ -s "[% ref_bam_path %]" ] \
-    && [ -s "[% tumor_bam_path %]" ] \
-    || failure "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
+assert_not_empty "[% ref_bam_path %]" "[% tumor_bam_path %]"
 
 cd "[% dirs.mutect.tmp %]"
 

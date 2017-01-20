@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="ContigCheck" main_step=bam_path log_name="${step}.log" %]
 
-[ -s "[% bam_path %]" ] && [ -s "[% bam_path %].bai" ] || failure "[% bam_path %] or [% bam_path %].bai does not exist."
+assert_not_empty "[% bam_path %]" "[% bam_path %].bai"
 
-header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H [% bam_path %] | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
-read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% bam_path %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
+header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H "[% bam_path %]" | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
+read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats "[% bam_path %]" | grep -vP '^\*\t' | awk '{ print $1, $2 }')
 contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
-
 [ -z "$contig_diff" ] || failure "[% bam_path %] header contigs do not match read contigs:\n\n${contig_diff}"
+
 success

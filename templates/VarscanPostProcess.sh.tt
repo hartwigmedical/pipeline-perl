@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="VarscanPostProcess" main_step=joint_name log_name="varscan.log" %]
 
 cd "[% dirs.varscan.out %]"
 
-[%- FOREACH snp_vcf IN snp_vcfs %]
-[ -s "[% snp_vcf %]" ] && \
-[%- END %]
-[%- FOREACH indel_vcf IN indel_vcfs %]
-[ -s "[% indel_vcf %]" ] && \
-[%- END %]
-true || failure "An input VCF does not exist."
+assert_not_empty "[% snp_vcfs.join('" "') %]" "[% indel_vcfs.join('" "') %]"
 
 [% opt.VCFTOOLS_PATH %]/vcf-concat "[% snp_vcfs.join('" "') %]" > "[% joint_name %].snp.vcf"
 [% opt.VCFTOOLS_PATH %]/vcf-concat "[% indel_vcfs.join('" "') %]" > "[% joint_name %].indel.vcf"
@@ -29,9 +23,9 @@ java -Xmx[% opt.VARSCAN_MEM %]G \
     -V "[% joint_name %].snp.Somatic.hc.vcf" \
     -V "[% joint_name %].indel.Somatic.hc.vcf"
 
+assert_not_empty "[% final_vcf %]"
+
 # to resolve merge conflict with FB vcfs
 sed -i 's/SSC/VS_SSC/' "[% final_vcf %]"
-
-[ -s "[% final_vcf %]" ] || failure "VarScan VCFs not present"
 rm "[% snp_vcfs.join('" "') %]" "[% indel_vcfs.join('" "') %]"
 success

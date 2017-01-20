@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="DiffBams" main_step=diff_name log_name="${step}.log" %]
 
-[ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ] || failure "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
+assert_not_empty "[% input_bam1 %]" "[% input_bam2 %]"
 
-# NB: bamutil does not produce an empty file when there is no diff
 [% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual --out "[% output_diff %]"
 
+# NB: bamutil does not produce an empty file when there is no diff
 success

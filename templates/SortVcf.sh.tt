@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="SortVcf" main_step=step log_name="SortVcf_${step}.log" %]
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist or is empty."
+assert_not_empty "[% input_vcf %]"
 
 # note that the -c option is helpful but not perfect: GATK expects same order as reference genome
 # this gives MT, X, Y instead of X, Y, MT
 [% opt.VCFTOOLS_PATH %]/vcf-sort -c "[% input_vcf %]" > "[% output_vcf %]"
 
+assert_not_empty "[% output_vcf %]"
 success

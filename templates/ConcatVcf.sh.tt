@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="ConcatVcf" main_step=step log_name="${step}.log" %]
 
-[%- FOR vcf_file IN vcf_files %]
-[ -s "[% vcf_file %]" ] && \
-[%- END %]
-    true || failure "One or more input VCF does not exist or is empty."
+assert_not_empty "[% vcf_files.join('" "') %]"
 
 [% opt.VCFTOOLS_PATH %]/vcf-concat "[% vcf_files.join('" "') %]" > "[% output_vcf %]"
+
 success

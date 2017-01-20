@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="MergeMarkdup" main_step=sample log_name="${sample}.log" %]
 
 cd "[% dirs.out %]"

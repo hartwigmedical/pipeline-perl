@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="SomaticFiltering" main_step=output_vcf log_name="merge.log" %]
 
 cd "[% dirs.out %]"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] not present"
+assert_not_empty "[% input_vcf %]"
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -17,7 +17,6 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     -V "[% input_vcf %]" \
     -o "[% output_vcf %]"
 
-[ -s "[% output_vcf %]" ] || failure "[% output_vcf %] was not created by SelectVariants"
-
+assert_not_empty "[% output_vcf %]"
 rm "[% input_vcf %]"*
 success

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GermlineFiltering" main_step=input_vcf log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+assert_not_empty "[% input_vcf %]"
 
 java -Xmx[% opt.FILTER_MASTER_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -41,7 +41,7 @@ java -Xmx[% opt.FILTER_MASTER_MEM %]G \
     [%- END %]
     -run
 
-[ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].filtered_variants.vcf.done" ] || failure "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
+assert_exists "[% dirs.tmp %]/.[% opt.RUN_NAME %].filtered_variants.vcf.done"
 mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf" "[% final_vcf %]"
 mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf.idx" "[% final_vcf %].idx"
 success

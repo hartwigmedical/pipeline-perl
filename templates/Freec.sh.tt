@@ -1,55 +1,49 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Freec" main_step=sample_name log_name="freec.log" %]
 
-if [ -s "[% sample_path %]" ][% IF control_path %] && [ -s "[% control_path %]" ][% END %]
+assert_not_empty "[% sample_path %]"
+[%- IF control_path %]
+assert_not_empty "[% control_path %]"
+[%- END %]
+
+PATH=[% opt.SAMTOOLS_PATH %]:$PATH
+export PATH
+
+[% opt.FREEC_PATH %]/freec -conf "[% config_file %]"
+
+cd "[% dirs.freec.out %]"
+cnv_file="[% sample_file_name %]_CNVs"
+ratio_file="[% sample_file_name %]_ratio.txt"
+[%- IF opt.FREEC_BAF == 'yes' %]
+baf_file="[% sample_file_name %]_BAF.txt"
+[%- END %]
+
+assert_exists "$cnv_file"
+assert_not_empty "$ratio_file"
+
+start_step "MAKE_GRAPH"
+R --slave --args 2 "$ratio_file" [% IF opt.FREEC_BAF == 'yes' %]"$baf_file"[% END %] < [% opt.FREEC_PATH %]/makeGraph.R
+finish_step
+
+assert_not_empty "[% sample_file_name %]_ratio.txt.png"
+[%- IF opt.FREEC_BAF == 'yes' %]
+assert_not_empty "$baf_file" "${baf_file}.png"
+[%- END %]
+
+if [ -s "$cnv_file" ]
 then
-    PATH=[% opt.SAMTOOLS_PATH %]:$PATH
-    export PATH
-
-    [% opt.FREEC_PATH %]/freec -conf "[% config_file %]"
-
-    cd "[% dirs.freec.out %]"
-    cnv_file="[% sample_file_name %]_CNVs"
-    ratio_file="[% sample_file_name %]_ratio.txt"
-    [%- IF opt.FREEC_BAF == 'yes' %]
-    baf_file="[% sample_file_name %]_BAF.txt"
-    [%- END %]
-    if [ -s "$ratio_file" ]
-    then
-        start_step "MAKE_GRAPH"
-        R --slave --args 2 "$ratio_file" [% IF opt.FREEC_BAF == 'yes' %]"$baf_file"[% END %] < [% opt.FREEC_PATH %]/makeGraph.R
-        finish_step
-
-        if [ -s "$cnv_file" ]
-        then
-            start_step "ASSESS_SIGNIFICANCE"
-            R --slave --args "$cnv_file" "$ratio_file" < "[% opt.FREEC_PATH %]/assess_significance.R"
-            finish_step
-            start_step "MAKE_KARYOTYPE"
-            R --slave --args 2 4 500000 "$ratio_file" < "[% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R"
-            finish_step
-        else
-            echo "No copy number variants found, skipping post-processing"
-        fi
-    fi
-
-    if [ -s "$cnv_file" ] && [ -s "$ratio_file" ] \
-        [%- IF opt.FREEC_BAF == 'yes' %]
-        && [ -s "$baf_file" ] \
-        && [ -s "${baf_file}.png" ] \
-        [%- END %]
-        && [ -s "[% sample_file_name %]_CNVs.p.value.txt" ] \
-        && [ -s "[% sample_file_name %]_ratio.txt.png" ] \
-        && [ -s "[% sample_file_name %]_ratio_karyotype.pdf" ] \
-        || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
-    then
-        success
-    else
-        failure "$ratio_file does not exist or is empty, or $cnv_file exists but analysis files do not"
-    fi
+    start_step "ASSESS_SIGNIFICANCE"
+    R --slave --args "$cnv_file" "$ratio_file" < "[% opt.FREEC_PATH %]/assess_significance.R"
+    finish_step
+    start_step "MAKE_KARYOTYPE"
+    R --slave --args 2 4 500000 "$ratio_file" < "[% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R"
+    finish_step
+    assert_not_empty "[% sample_file_name %]_CNVs.p.value.txt" "[% sample_file_name %]_ratio_karyotype.pdf"
 else
-    failure "[% sample_path %] [% IF control_path %]or [% control_path %] [% END %]does not exist."
+    echo "No copy number variants found, skipping post-processing."
 fi
+
+success

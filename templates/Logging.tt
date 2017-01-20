@@ -20,7 +20,7 @@ function start_step() {
 function finish_step() {
     status "${JOB_STEP}" "finished"
 
-    # restore main step name so future failure outside of sub-steps refers to it
+    # restore main step name so future failure (outside of sub-steps) refers to it
     JOB_STEP="[% main_step %]"
 }
 
@@ -40,7 +40,7 @@ function log_end() {
 
 function success() {
     touch "[% done_file %]"
-    success_no_touch
+    success_no_done
 }
 
 function success_no_done() {

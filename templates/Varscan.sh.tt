@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Varscan" main_step=chr log_name="varscan.log" %]
 
 cd "[% dirs.varscan.out %]"
 
-[ -s "[% ref_pileup %]" ] \
-    && [ -s "[% tumor_pileup %]" ] \
-    || failure "[% tumor_pileup %] or [% ref_pileup %] does not exist."
+assert_not_empty "[% ref_pileup %]" "[% tumor_pileup %]"
 
 # it is absolutely required for correct error detection not to use process substitution.
 # normally this would be used to avoid the use of temporary files (performance) in the case

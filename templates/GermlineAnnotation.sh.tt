@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GermlineAnnotation" main_step=final_vcf log_name="${opt.RUN_NAME}.log" %]
 
 [%- pre_annotated_vcf = input_vcf -%]
@@ -12,7 +12,7 @@ cd "[% dirs.out %]"
 [%- IF opt.ANNOTATE_SNPEFF == 'yes' -%]
 start_step "ANNOTATE_SNPEFF"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('.vcf', '_snpEff.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
@@ -36,7 +36,7 @@ finish_step
 [%- IF opt.ANNOTATE_SNPSIFT == 'yes' -%]
 start_step "ANNOTATE_SNPSIFT"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('.vcf', '_snpSift.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
@@ -68,7 +68,7 @@ finish_step
 [%- IF opt.ANNOTATE_IDFIELD == 'yes' -%]
 start_step "ANNOTATE_IDFIELD"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+assert_not_empty "[% input_vcf %]"
 [%- suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' -%]
 [%- output_vcf = input_vcf.replace('.vcf', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
@@ -99,7 +99,7 @@ finish_step
 [%- IF opt.ANNOTATE_FREQUENCIES == 'yes' -%]
 start_step "ANNOTATE_FREQUENCIES"
 
-[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+assert_not_empty "[% input_vcf %]"
 [%- suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' -%]
 [%- output_vcf = input_vcf.replace('.vcf', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
@@ -135,14 +135,7 @@ start_step "ANNOTATE_SLICE"
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i "[% input_vcf %]" > "[% sliced_vcf %]"
 finish_step
 
-
-tail_input="$(tail -n 1 [% pre_annotated_vcf %] | cut -f 1,2)"
-tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
-[ -s "[% pre_annotated_vcf %]" ] \
-    && [ -s "[% output_vcf %]" ] \
-    && [ "$tail_input" == "$tail_output" ] \
-    || failure "Annotated VCF does not exist or last position differs from pre-annotation VCF"
-
+assert_last_position_unchanged "[% pre_annotated_vcf %]" "[% output_vcf %]"
 mv "[% output_vcf %]" "[% final_vcf %]"
 mv "[% output_vcf %].idx" "[% final_vcf %].idx"
 success

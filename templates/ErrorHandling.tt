@@ -1,16 +1,9 @@
 # note: http://mywiki.wooledge.org/BashFAQ/105
 
 set -o errtrace
-if [[ "[% mode %]" == "strict" ]]
-then
-    set -o pipefail
-    set -o nounset
-    set -o errexit
-elif [[ "[% mode %]" == "harsh" ]]
-then
-    set -o pipefail
-    set -o nounset
-fi
+set -o pipefail
+set -o nounset
+set -o errexit
 
 function handle_error() {
     local ret=$1 && shift
@@ -18,11 +11,7 @@ function handle_error() {
     local command=$1 && shift
 
     echo "$(date) $(hostname) $0: line $lineno: $command: exit code $ret" >> "[% opt.OUTPUT_DIR %]/logs/unhandled_job_errors"
-
-    if [[ "[% mode %]" == "strict" ]]
-    then
-        exit 100
-    fi
+    exit 100
 }
 
 trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
@@ -48,8 +37,41 @@ trap 'cleanup' EXIT
 
 function fail() {
     echo -e "ERROR: $*" >&2
-    if [[ "[% mode %]" == "strict" ]]
-    then
-        exit 100
-    fi
+    exit 100
+}
+
+function assert_not_empty() {
+    local target_path
+    for target_path in "$@"
+    do
+        [ -s "${target_path}" ] || failure "${target_path} does not exist or is empty."
+    done
+}
+
+function assert_empty() {
+    local target_path
+    for target_path in "$@"
+    do
+        # also allowed to not exist...
+        [ ! -s "${target_path}" ] || failure "${target_path} is not empty."
+    done
+}
+
+function assert_exists() {
+    local target_path
+    for target_path in "$@"
+    do
+        [ -f "${target_path}" ] || failure "${target_path} does not exist."
+    done
+}
+
+function assert_last_position_unchanged() {
+    local input_path=$1 && shift
+    local output_path=$1 && shift
+
+    assert_not_empty "${input_path}" "${output_path}"
+    local input_tail output_tail
+    input_tail="$(tail -n 1 "${input_path}" | cut -f 1,2)"
+    output_tail="$(tail -n 1 "${output_path}" | cut -f 1,2)"
+    [ "$input_tail" == "$output_tail" ] || failure "last position in ${output_path} differs from ${input_path}."
 }

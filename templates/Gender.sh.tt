@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Gender" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
@@ -29,6 +29,6 @@ java -Xmx[% opt.GENDER_MEM %]G \
     [% opt.GENDER_FEMALE_MAX_F %] \
     [% opt.GENDER_MALE_MIN_F %]
 
-[ -s "plink.sexcheck" ] || failure "plink.sexcheck is missing"
+assert_not_empty "plink.sexcheck"
 mv plink.sexcheck "[% output_file %]"
 success

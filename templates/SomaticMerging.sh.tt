@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="SomaticMerging" main_step=output_vcf log_name="merge.log" %]
 
 cd "[% dirs.out %]"
@@ -18,5 +18,5 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     [%- END %]
     ;
 
-[ -s "[% output_vcf %]" ] || failure "[% output_vcf %] was not created by CombineVariants"
+assert_not_empty "[% output_vcf %]"
 success

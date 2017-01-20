@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="MutectPostProcess" main_step=joint_name log_name="mutect.log" %]
 
 cd "[% dirs.mutect.tmp %]"
 
-[% FOREACH input_vcf IN input_vcfs %]
-[ -s "[% input_vcf %]" ] && \
-[%- END %]
-    true || failure "A chromosome chunk VCF does not exist."
+assert_not_empty "[% input_vcfs.join('" "') %]"
 
 [% opt.VCFTOOLS_PATH %]/vcf-concat "[% input_vcfs.join('" "') %]" > "[% joint_name %]_mutect.vcf"
+
+assert_not_empty "[% joint_name %]_mutect.vcf"
 
 java -Xmx[% opt.MUTECT_MEM %]G \
     -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
@@ -19,9 +18,7 @@ java -Xmx[% opt.MUTECT_MEM %]G \
     "[% joint_name %]_mutect.vcf" \
     > "[% joint_name %]_mutect_passed.vcf"
 
-[ -s "[% joint_name %]_mutect.vcf" ]
-    && [ -s "[% joint_name %]_mutect_passed.vcf" ] \
-    || failure "Mutect VCFs not present"
+assert_not_empty "[% joint_name %]_mutect_passed.vcf"
 
 mv "[% joint_name %]_mutect.vcf" "[% dirs.mutect.out %]"
 mv "[% joint_name %]_mutect_passed.vcf" "[% final_vcf %]"

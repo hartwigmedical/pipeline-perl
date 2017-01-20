@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="MarkDone" main_step=done_file_name log_name="${done_file_name}.log" %]
 
-# unlike other jobs, this is never the done file of MarkDone itself
-# it is the done file of the "parent" job in a multi-job chain (returned from checkReportedDoneFile)
-
+# unlike other jobs, this is never touches the .done file of MarkDone itself
+# to be used for the .done file of the "parent" job in a multi-job chain (returned from checkReportedDoneFile)
 success

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Realignment" main_step=sample_bam log_name="${sample}.log" %]
 
 cd "[% dirs.tmp %]"
 
-[ -s "[% sample_bam_path %]" ] || failure "[% sample_bam_path %] does not exist."
+assert_not_empty "[% sample_bam_path %]"
 
 java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G \
     -Djava.io.tmpdir="[% dirs.tmp %]" \

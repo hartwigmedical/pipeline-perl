@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Manta" main_step=joint_name log_name="Manta_${joint_name}.log" %]
 
 cd "[% opt.OUTPUT_DIR %]"
 
+assert_not_empty "[% sample_bam %]"
 [% IF opt.SV_MODE == "sample_control" %]
+assert_not_empty "[% control_bam %]"
 [% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --normalBam "[% control_bam %]" --tumorBam "[% sample_bam %]"
 [% ELSE %]
 [% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --bam "[% sample_bam %]"
@@ -14,11 +16,10 @@ cd "[% opt.OUTPUT_DIR %]"
 
 [% dirs.out %]/runWorkflow.py -m local -j [% opt.MANTA_THREADS %]
 
-[ -s "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi" ] \
-    [%- IF opt.SV_MODE == "sample_control" %]
-    && [ -s "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi" ] \
-    [%- END %]
-    && [ "$(cat "[% dirs.out %]/workflow.exitcode.txt")" == "0" ] \
-    || failure "Manta output files are missing or workflow logged non-zero exit code."
+assert_not_empty "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi"
+[%- IF opt.SV_MODE == "sample_control" %]
+assert_not_empty "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi"
+[%- END %]
+[ "$(cat "[% dirs.out %]/workflow.exitcode.txt")" == "0" ] || failure "Manta workflow logged non-zero exit code."
 
 success

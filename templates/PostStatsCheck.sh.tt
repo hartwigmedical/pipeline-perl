@@ -1,29 +1,27 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="PostStatsCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
 
 qsub -N wait_for_bamMetrics -sync y -hold_jid bamMetrics_report_[% opt.RUN_NAME %] -b y /bin/true
 
-if [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf ] \
-    && [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.html ] \
-    [%- IF opt.exists('SNPCHECK_DESIGNS') -%]
-    [%- FOREACH sample IN sample_bams.keys %]
-    && [ "$(find "[% dirs.$sample %]" -type f -name "*.vcf" | wc -l)" -eq [% designs.size %] ] \
-    [%- END -%]
-    [%- END %]
-    [%- IF opt.EXONCALLCOV == "yes" -%]
-    [%- FOREACH sample IN opt.SAMPLES.keys %]
-    && [ -s [% dirs.exoncov %]/[% sample %].html ] \
-    [%- END %]
-    && [ ! -s [% dirs.exoncov %]/error_collection_run ] \
-    [%- END %]
-    && true
-then
-    success
-else
-    failure "bamMetrics/SNPcheck/ExonCov reports missing"
-fi
+assert_not_empty "[% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf" "[% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.html"
+
+[%- IF opt.exists('SNPCHECK_DESIGNS') -%]
+[%- FOREACH sample IN sample_bams.keys %]
+[ "$(find "[% dirs.$sample %]" -type f -name "*.vcf" | wc -l)" -eq [% designs.size %] ] \
+    || failure "not enough snpcheck designs for [% sample %] (expected [% designs.size %])."
+[%- END -%]
+[%- END %]
+
+[%- IF opt.EXONCALLCOV == "yes" -%]
+[%- FOREACH sample IN opt.SAMPLES.keys %]
+assert_not_empty "[% dirs.exoncov %]/[% sample %].html"
+[%- END %]
+assert_empty "[% dirs.exoncov %]/error_collection_run"
+[%- END %]
+
+success

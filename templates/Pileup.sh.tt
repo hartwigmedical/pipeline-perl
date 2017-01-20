@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Pileup" main_step=sample log_name="pileup.log" %]
 
 cd "[% dirs.tmp %]"
 
-[ -s "[% bam_path %]" ] || failure "[% bam_path %] does not exist."
+assert_not_empty "[% bam_path %]"
 
 PATH=[% opt.SAMTOOLS_PATH %]:$PATH
 export PATH

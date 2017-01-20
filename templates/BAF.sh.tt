@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="BAF" main_step=sample log_name="BAF_${sample}.log" %]
 
 cd "[% dirs.tmp %]"
 
-[ -s "[% sample_bam %]" ] || failure "Sample BAM file does not exist."
+assert_not_empty "[% sample_bam %]"
 
 java -Xmx[% opt.BAF_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -18,11 +18,10 @@ java -Xmx[% opt.BAF_MEM %]G \
     -o "[% output_vcf %]" \
     --output_mode EMIT_ALL_SITES
 
-tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
-tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
-[ "$tail_input" == "$tail_output" ] || failure "UnifiedGenotyper output does not end at the same location as input"
-
-
+assert_not_empty "[% output_vcf %]"
+tail_input="$(tail -n 1 "[% opt.BAF_SNPS %]" | cut -f 1,3)"
+tail_output="$(tail -n 1 "[% output_vcf %]" | cut -f 1,2)"
+[ "$tail_input" == "$tail_output" ] || failure "UnifiedGenotyper output does not end at the same location as input."
 mv "[% output_vcf %]" "[% dirs.out %]"
 mv "[% output_vcf %].idx" "[% dirs.out %]"
 
@@ -35,12 +34,11 @@ mv "[% output_vcf %].idx" "[% dirs.out %]"
     < "[% dirs.out %]/[% output_vcf %]" \
     > "[% output_baf %]"
 
-[ -s "[% output_baf %]" ] || failure "Sample BAF file does not exist."
-
-
+assert_not_empty "[% output_baf %]"
 mv "[% output_baf %]" "[% dirs.out %]"
-Rscript "[% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R" "[% dirs.tmp %]" "[% dirs.out %]/[% output_baf %]"
-[ -s "[% output_bafplot %]" ] || failure "BAF plot not created"
 
+Rscript "[% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R" "[% dirs.tmp %]" "[% dirs.out %]/[% output_baf %]"
+
+assert_not_empty "[% output_bafplot %]"
 mv "[% output_bafplot %]" "[% dirs.out %]"
 success

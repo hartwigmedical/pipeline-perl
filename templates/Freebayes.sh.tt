@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Freebayes" main_step=chr log_name="freebayes.log" %]
 
 cd "[% dirs.freebayes.out %]"
 
-[ -s "[% tumor_bam_path %]" ] && [ -s "[% ref_bam_path %]" ] || failure "[% ref_bam_path %] or [% tumor_bam_path %] does not exist."
+assert_not_empty "[% ref_bam_path %]" "[% tumor_bam_path %]"
 
 [% opt.FREEBAYES_PATH %]/freebayes \
     -f [% opt.GENOME %] \

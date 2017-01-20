@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="CallableLoci" main_step=sample log_name="CallableLoci_${sample}.log" %]
 
 cd "[% dirs.tmp %]"
 
-[ -s "[% sample_bam %]" ] || failure "[% sample_bam %] does not exist."
+assert_not_empty "[% sample_bam %]"
 
 java -Xmx[% opt.CALLABLE_LOCI_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -28,8 +28,7 @@ java -Xmx[% opt.CALLABLE_LOCI_MEM %]G \
     [%- END %]
     ;
 
-[ -s "[% output_bed %]" ] && [ -s "[% output_summary %]" ] || failure "[% output_bed %] or [% output_summary %] missing or empty"
-
+assert_not_empty "[% output_bed %]" "[% output_summary %]"
 mv "[% output_bed %]" "[% dirs.out %]"
 mv "[% output_summary %]" "[% dirs.out %]"
 success

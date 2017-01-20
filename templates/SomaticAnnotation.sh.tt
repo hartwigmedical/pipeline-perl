@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="SomaticAnnotation" main_step="${basename}.vcf" log_name="merge.log" %]
 
 input_vcf="[% basename %].vcf"
@@ -10,6 +10,8 @@ output_vcf="$basename.vcf"
 rm -f "$output_vcf" "$output_vcf.idx"
 
 cd "[% dirs.out %]"
+
+assert_not_empty "$input_vcf"
 
 java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -20,9 +22,7 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     [% opt.ANNOTATE_FLAGS %] \
     > "$output_vcf"
 
-[ -s "$output_vcf" ] || failure "$output_vcf was not created by SnpEff"
-
-
+assert_not_empty "$output_vcf"
 input_vcf="$output_vcf"
 basename+="_dbSNP"
 output_vcf="$basename.vcf"
@@ -39,9 +39,7 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     --dbsnp "[% opt.CALLING_DBSNP %]" \
     --alwaysAppendDbsnpId
 
-[ -s "$output_vcf" ] || failure "$output_vcf was not created by VariantAnnotator"
-
-
+assert_not_empty "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
 basename+="_[% opt.ANNOTATE_IDNAME %]"
@@ -59,9 +57,7 @@ java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     --dbsnp "[% opt.ANNOTATE_IDDB %]" \
     --alwaysAppendDbsnpId
 
-[ -s "$output_vcf" ] || failure "$output_vcf was not created by VariantAnnotator"
-
-
+assert_not_empty "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.idx" "[% final_vcf %].idx"

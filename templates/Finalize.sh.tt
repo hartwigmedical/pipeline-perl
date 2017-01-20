@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Finalize" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 failed=false
@@ -79,7 +79,7 @@ else
     touch "[% dirs.log %]/PipelineCheck.done"
 
     # finalize should not touch its own done file; it should always run
-    success_no_touch
+    success_no_done
 fi
 
 # regardless of success, remove the lock: we are done

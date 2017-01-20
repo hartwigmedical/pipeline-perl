@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Flagstat" main_step=flagstat_name log_name="${step}.log" %]
 
-[ -s "[% bam_path %]" ] || failure "[% bam_path %] does not exist or is empty."
+assert_not_empty "[% bam_path %]"
 
 [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
 
-[ -s "[% flagstat_path %]" ] || failure "[% flagstat_path %] does not exist or is empty."
+assert_not_empty "[% flagstat_path %]"
 success

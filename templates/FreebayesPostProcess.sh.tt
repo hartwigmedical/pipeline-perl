@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="FreebayesPostProcess" main_step=joint_name log_name="freebayes.log" %]
 
 cd "[% dirs.freebayes.out %]"
 
-[ -s "[% input_vcf %]" ] || failure "An input VCF does not exist."
+assert_not_empty "[% input_vcf %]"
 
 java -Xmx[% opt.FREEBAYES_MEM %]G \
     -jar "[% opt.SNPEFF_PATH %]/SnpSift.jar" \
@@ -23,8 +23,6 @@ java -Xmx[% opt.FREEBAYES_MEM %]G \
         -r "[% opt.GENOME %]" \
         -o "[% final_vcf %]"
 
-[ -s "[% final_vcf %]" ] || failure "[% final_vcf %] does not exist."
-
+assert_not_empty "[% final_vcf %]"
 ## Check on complete output!!!
-rm -r [% dirs.freebayes.tmp %]
 success

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Map" main_step=fastq.coreName log_name="${fastq.sampleName}.log" %]
 
 cd "[% dirs.mapping %]"
@@ -22,10 +22,6 @@ cd "[% dirs.mapping %]"
           -o "[% output_bam %].tmp" \
           /dev/stdin
 
-if grep -Fq "[main] Real time:" "$SGE_STDERR_PATH"
-then
-    mv "[% output_bam %].tmp" "[% output_bam %]"
-    success
-else
-    failure "[% fastq.coreName %] BWA did not finish properly"
-fi
+grep -Fq "[main] Real time:" "$SGE_STDERR_PATH" || failure "[% fastq.coreName %] BWA did not finish properly."
+mv "[% output_bam %].tmp" "[% output_bam %]"
+success

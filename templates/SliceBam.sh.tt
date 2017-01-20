@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
-[% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
+[% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="SliceBam" main_step=slice_name log_name="${step}.log" %]
 
-[ -s "[% input_bam %]" ] || failure "[% input_bam %] does not exist or is empty."
+assert_not_empty "[% input_bam %]"
 
 [% opt.SAMBAMBA_PATH %]/sambamba view [% input_bam %] -L [% bed_file %] -f bam -o [% sliced_bam %]
 
-[ -s "[% sliced_bam %]" ] || failure "[% sliced_bam %] does not exist or is empty."
+assert_not_empty "[% sliced_bam %]"
 
 [% opt.SAMBAMBA_PATH %]/sambamba index "[% sliced_bam %]"
 
-[ -s "[% sliced_bam %].bai" ] || failure "[% sliced_bam %].bai does not exist or is empty."
+assert_not_empty "[% sliced_bam %].bai"
 success
