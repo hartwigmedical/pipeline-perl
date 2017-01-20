@@ -137,8 +137,7 @@ sub runBamPrep {
 
     while (my ($sample, $input_bams) = each %{$opt->{SAMPLES}}) {
         my $input_bam = ${$input_bams}[0];
-        my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
-        my $dirs = createDirs($out_dir, mapping => "mapping");
+        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
 
         (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;
         (my $input_flagstat = $input_bam) =~ s/\.bam$/.flagstat/;

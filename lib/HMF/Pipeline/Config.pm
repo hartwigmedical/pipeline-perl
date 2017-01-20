@@ -109,9 +109,9 @@ sub createDirs {
 
 sub addSubDir {
     my ($dirs, $dir) = @_;
-    my $out_dir = catfile($dirs->{out}, $dir);
-    makePaths($out_dir);
-    return $out_dir;
+    my $output_dir = catfile($dirs->{out}, $dir);
+    makePaths($output_dir);
+    return $output_dir;
 }
 
 sub setupLogging {
@@ -119,16 +119,16 @@ sub setupLogging {
 
     my ($seconds, $microseconds) = gettimeofday;
     my $datetime = strftime('%Y%m%d_%H%M%S_', localtime $seconds) . sprintf('%.6d', $microseconds);
-    my $out_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
-    my $err_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
-    my $out_fh = IO::Pipe->new()->writer("tee $out_file") or die "Couldn't tee to $out_file: $!";
-    my $err_fh = IO::Pipe->new()->writer("tee $err_file >&2") or die "Couldn't tee to $err_file: $!";
-    open STDOUT, ">&", $out_fh or die "STDOUT redirection failed: $!";
-    open STDERR, ">&", $err_fh or die "STDERR redirection failed: $!";
+    my $output_file = catfile($output_dir, "logs", "submitlog_${datetime}.out");
+    my $error_file = catfile($output_dir, "logs", "submitlog_${datetime}.err");
+    my $output_fh = IO::Pipe->new()->writer("tee $output_file") or die "Couldn't tee to $output_file: $!";
+    my $error_fh = IO::Pipe->new()->writer("tee $error_file >&2") or die "Couldn't tee to $error_file: $!";
+    open STDOUT, ">&", $output_fh or die "STDOUT redirection failed: $!";
+    open STDERR, ">&", $error_fh or die "STDERR redirection failed: $!";
     ## no critic (Modules::RequireExplicitInclusion)
     STDOUT->autoflush(1);
     STDERR->autoflush(1);
-    $out_fh->autoflush(1);
+    $output_fh->autoflush(1);
     ## use critic
     return;
 }

@@ -172,8 +172,7 @@ sub operationWithSliceChecks {
 
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
-    my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
-    my $dirs = createDirs($out_dir, mapping => "mapping");
+    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
     say "\t${sample_bam_path}";
 

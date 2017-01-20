@@ -13,7 +13,7 @@ cd "[% dirs.out %]"
 start_step "ANNOTATE_SNPEFF"
 
 assert_not_empty "[% input_vcf %]"
-[%- output_vcf = input_vcf.replace('.vcf', '_snpEff.vcf') %]
+[%- output_vcf = input_vcf.replace('\.vcf$', '_snpEff.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
 java -Xmx[% opt.ANNOTATE_MEM %]G \
@@ -37,7 +37,7 @@ finish_step
 start_step "ANNOTATE_SNPSIFT"
 
 assert_not_empty "[% input_vcf %]"
-[%- output_vcf = input_vcf.replace('.vcf', '_snpSift.vcf') %]
+[%- output_vcf = input_vcf.replace('\.vcf$', '_snpSift.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
 java -Xmx[% opt.ANNOTATE_MEM %]G \
@@ -70,7 +70,7 @@ start_step "ANNOTATE_IDFIELD"
 
 assert_not_empty "[% input_vcf %]"
 [%- suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' -%]
-[%- output_vcf = input_vcf.replace('.vcf', suffix) %]
+[%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
 java -Xmx[% opt.ANNOTATE_MEM %]G \
@@ -101,7 +101,7 @@ start_step "ANNOTATE_FREQUENCIES"
 
 assert_not_empty "[% input_vcf %]"
 [%- suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' -%]
-[%- output_vcf = input_vcf.replace('.vcf', suffix) %]
+[%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
 java -Xmx[% opt.ANNOTATE_MEM %]G \
@@ -131,7 +131,7 @@ finish_step
 
 
 start_step "ANNOTATE_SLICE"
-[%- sliced_vcf = input_vcf.replace('.vcf', '_sliced.vcf') %]
+[%- sliced_vcf = input_vcf.replace('\.vcf$', '_sliced.vcf') %]
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i "[% input_vcf %]" > "[% sliced_vcf %]"
 finish_step
 

@@ -20,9 +20,7 @@ sub run {
     say "\n### SCHEDULING CALLABLE LOCI ANALYSIS ###";
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $out_dir = catfile($opt->{OUTPUT_DIR}, $sample);
-        my $dirs = createDirs($out_dir, mapping => "mapping");
-
+        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
         my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
 
         my $output_bed = "${sample}_CallableLoci.bed";
