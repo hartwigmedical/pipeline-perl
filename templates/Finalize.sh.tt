@@ -1,19 +1,8 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Finalize
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "" "[% opt.RUN_NAME %].log"
-[% INCLUDE Status.tt step="" status="processing" %]
+[% INCLUDE Logging.tt job_name="Finalize" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 failed=false
 rm -f [% log_file %]
@@ -40,12 +29,12 @@ if [[ "${failed}" == "true" ]]
 then
     echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
     mail -s "Pipeline FAILED [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
-    [% INCLUDE Status.tt step="" status="failed" %]
 else
     echo "The pipeline completed successfully." >> [% log_file %]
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
+
 [% IF opt.SOMATIC_VARIANTS == "yes" -%]
     find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
 [% END -%]
@@ -88,10 +77,10 @@ else
 
     mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
     touch "[% dirs.log %]/PipelineCheck.done"
-    [% INCLUDE Status.tt step="" status="success" %]
+
+    # finalize should not touch its own done file; it should always run
+    success_no_touch
 fi
 
 # regardless of success, remove the lock: we are done
 rm -f [% opt.OUTPUT_DIR %]/run.lock
-
-log_end "" "[% opt.RUN_NAME %].log"

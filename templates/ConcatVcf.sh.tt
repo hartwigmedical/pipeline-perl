@@ -1,34 +1,13 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="ConcatVcf" main_step=step log_name="${step}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=ConcatVcf
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[%- FOR vcf_file IN vcf_files %]
+[ -s "[% vcf_file %]" ] && \
+[%- END %]
+    true || failure "One or more input VCF does not exist or is empty."
 
-[% INCLUDE Status.tt step=step status="processing" %]
-
-log_start "[% step %]" "${JOB_NAME}_[% step %].log"
-
-if true \
-    [%- FOR vcf_file IN vcf_files %]
-    && [ -s "[% vcf_file %]" ] \
-    [%- END %]
-    ;
-then
-    [% opt.VCFTOOLS_PATH %]/vcf-concat "[% vcf_files.join('" "') %]" > "[% output_vcf %]"
-
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step=step status="success" %]
-else
-    [% INCLUDE Status.tt step=step status="failed" %]
-    fail "One or more input VCF does not exist or is empty."
-fi
-
-log_end "[% step %]" "${JOB_NAME}_[% step %].log"
+[% opt.VCFTOOLS_PATH %]/vcf-concat "[% vcf_files.join('" "') %]" > "[% output_vcf %]"
+success

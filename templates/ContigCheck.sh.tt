@@ -1,36 +1,14 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="ContigCheck" main_step=bam_path log_name="${step}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=ContigCheck
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% bam_path %]" ] && [ -s "[% bam_path %].bai" ] || failure "[% bam_path %] or [% bam_path %].bai does not exist."
 
-[% INCLUDE Status.tt step=step status="processing" %]
-log_start "[% bam_path %]" "[% step %].log"
+header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H [% bam_path %] | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
+read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% bam_path %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
+contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
 
-if [ -s "[% bam_path %]" ] && [ -s "[% bam_path %].bai" ]
-then
-    header_contigs=$([% opt.SAMTOOLS_PATH %]/samtools view -H [% bam_path %] | grep -P '^@SQ\t' | cut -f 2,3 | awk -F'[:\t]' '{ print $2, $4 }')
-    read_contigs=$([% opt.SAMTOOLS_PATH %]/samtools idxstats [% bam_path %] | grep -vP '^\*\t' | awk '{ print $1, $2 }')
-    contig_diff=$(diff -u <(echo "$header_contigs") <(echo "$read_contigs"))
-    if [ -n "$contig_diff" ]
-    then
-        [% INCLUDE Status.tt step=step status="failed" %]
-        fail "[% bam_path %] header contigs do not match read contigs:\n\n${contig_diff}"
-    else
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step=step status="success" %]
-    fi
-else
-    [% INCLUDE Status.tt step=step status="failed" %]
-    fail "[% bam_path %] or [% bam_path %].bai does not exist."
-fi
-
-log_end "[% bam_path %]" "[% step %].log"
+[ -z "$contig_diff" ] || failure "[% bam_path %] header contigs do not match read contigs:\n\n${contig_diff}"
+success

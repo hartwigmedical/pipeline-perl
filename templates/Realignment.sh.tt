@@ -1,45 +1,27 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Realignment" main_step=sample_bam log_name="${sample}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Realign
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+cd "[% dirs.tmp %]"
 
-[% INCLUDE Status.tt step=sample status="processing" %]
-log_start "[% sample_bam %]" "[% sample %].log"
+[ -s "[% sample_bam_path %]" ] || failure "[% sample_bam_path %] does not exist."
 
-source [% opt.CLUSTER_PATH %]/settings.sh
-cd [% dirs.tmp %]
+java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G \
+    -Djava.io.tmpdir="[% dirs.tmp %]" \
+    -jar "[% opt.QUEUE_PATH %]/Queue.jar" \
+    -jobQueue [% opt.REALIGNMENT_QUEUE %] \
+    -jobNative "[% job_native %]" \
+    -jobRunner GridEngine \
+    -S "[% opt.OUTPUT_DIR %]/QScripts/[% opt.REALIGNMENT_SCALA %]" \
+    -R "[% opt.GENOME %]" \
+    -I "[% sample_bam_path %]" \
+    -nt [% opt.REALIGNMENT_THREADS %] \
+    -mem [% opt.REALIGNMENT_MEM %] \
+    -nsc [% opt.REALIGNMENT_SCATTER %] \
+    [% known_files %] \
+    -run
 
-if [ -s "[% sample_bam_path %]" ]
-then
-    java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G \
-         -Djava.io.tmpdir="[% dirs.tmp %]" \
-         -jar "[% opt.QUEUE_PATH %]/Queue.jar" \
-         -jobQueue [% opt.REALIGNMENT_QUEUE %] \
-         -jobNative "[% job_native %]" \
-         -jobRunner GridEngine \
-         -S "[% opt.OUTPUT_DIR %]/QScripts/[% opt.REALIGNMENT_SCALA %]" \
-         -R "[% opt.GENOME %]" \
-         -I "[% sample_bam_path %]" \
-         -nt [% opt.REALIGNMENT_THREADS %] \
-         -mem [% opt.REALIGNMENT_MEM %] \
-         -nsc [% opt.REALIGNMENT_SCATTER %] \
-         [% known_files %] \
-         -run
-
-    # do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
-    [% INCLUDE Status.tt step=sample status="finished" %]
-else
-    [% INCLUDE Status.tt step=sample status="failed" %]
-    fail "[% sample_bam_path %] does not exist."
-fi
-
-log_end "[% sample_bam %]" "[% sample %].log"
+# do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
+success_no_done

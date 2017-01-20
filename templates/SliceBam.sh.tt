@@ -1,42 +1,16 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="SliceBam" main_step=slice_name log_name="${step}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Slice
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% input_bam %]" ] || failure "[% input_bam %] does not exist or is empty."
 
-[% INCLUDE Status.tt step=slice_name status="processing" %]
+[% opt.SAMBAMBA_PATH %]/sambamba view [% input_bam %] -L [% bed_file %] -f bam -o [% sliced_bam %]
 
-log_start "[% slice_name %]" "[% step %].log"
+[ -s "[% sliced_bam %]" ] || failure "[% sliced_bam %] does not exist or is empty."
 
-if [ -s [% input_bam %] ]
-then
-    [% opt.SAMBAMBA_PATH %]/sambamba view [% input_bam %] -L [% bed_file %] -f bam -o [% sliced_bam %]
-    if [ -s [% sliced_bam %] ]
-    then
-        [% opt.SAMBAMBA_PATH %]/sambamba index [% sliced_bam %]
-        if [ -s [% sliced_bam %].bai ]
-        then
-            touch "[% done_file %]"
-            [% INCLUDE Status.tt step=slice_name status="success" %]
-        else
-            [% INCLUDE Status.tt step=slice_name status="failed" %]
-            fail "[% sliced_bam %].bai does not exist or is empty."
-        fi
-    else
-        [% INCLUDE Status.tt step=slice_name status="failed" %]
-        fail "[% sliced_bam %] does not exist or is empty."
-    fi
-else
-    [% INCLUDE Status.tt step=slice_name status="failed" %]
-    fail "[% input_bam %] does not exist or is empty."
-fi
+[% opt.SAMBAMBA_PATH %]/sambamba index "[% sliced_bam %]"
 
-log_end "[% slice_name %]" "[% step %].log"
+[ -s "[% sliced_bam %].bai" ] || failure "[% sliced_bam %].bai does not exist or is empty."
+success

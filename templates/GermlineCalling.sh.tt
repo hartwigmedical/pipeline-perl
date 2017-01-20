@@ -1,88 +1,65 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=GermlineCalling
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "" "[% opt.RUN_NAME %].log"
+[% INCLUDE Logging.tt job_name="GermlineCalling" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
 
-if \
 [%- FOREACH sample_bam IN sample_bams.values %]
-    [ -s "[% sample_bam %]" ] && \
+[ -s "[% sample_bam %]" ] && \
 [%- END %]
-    true
-then
-    [% INCLUDE Status.tt step="" status="processing" %]
+    true || failure "One or more input bam files do not exist."
 
-    java -Xmx[% opt.CALLING_MASTER_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
-        -jar [% opt.QUEUE_PATH %]/Queue.jar \
-        -jobQueue [% opt.CALLING_QUEUE %] \
-        -jobNative "[% job_native %]" \
-        -jobRunner GridEngine \
-        -jobReport [% dirs.log %]/GermlineCaller.jobReport.txt \
-        -memLimit [% opt.CALLING_MEM %] \
-        -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.CALLING_SCALA %] \
-        [%- IF opt.exists('CALLING_UGMODE') %]
-        -glm [% opt.CALLING_UGMODE %] \
-        [%- END %]
-        -R [% opt.GENOME %] \
-        -O [% opt.RUN_NAME %] \
-        -mem [% opt.CALLING_MEM %] \
-        -nct [% opt.CALLING_THREADS %] \
-        -nsc [% opt.CALLING_SCATTER %] \
-        -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
-        -stand_emit_conf [% opt.CALLING_STANDEMITCONF %] \
-        [%- FOREACH sample_bam IN sample_bams.values %]
-        -I [% sample_bam %] \
-        [%- END %]
-        [%- IF opt.exists('CALLING_DBSNP') %]
-        -D [% opt.CALLING_DBSNP %] \
-        [%- END %]
-        [%- IF opt.exists('CALLING_TARGETS') %]
-        -L [% opt.CALLING_TARGETS %] \
-            [%- IF opt.exists('CALLING_INTERVALPADDING') %]
-        -ip [% opt.CALLING_INTERVALPADDING %] \
-            [%- END %]
-        [%- END %]
-        [%- IF opt.exists('CALLING_PLOIDY') %]
-        -ploidy [% opt.CALLING_PLOIDY %] \
-        [%- END %]
-        -run
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "One or more input bam files do not exist."
-fi
-
-if [ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].raw_variants.vcf.done" ]
-then
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% final_vcf %]"
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx"
-
-    [%- IF opt.CALLING_GVCF == 'yes' %]
-    mkdir -p "[% dirs.gvcf %]"
-    [%- FOREACH gvcf_pair IN final_gvcfs.pairs -%]
-    [%- USE bam = file(sample_bams.${gvcf_pair.key}, nostat=1) -%]
-    [%- scala_gvcf = bam.name.replace('\.bam$', '.g.vcf.gz') %]
-    mv "[% dirs.tmp %]/[% scala_gvcf %]" "[% gvcf_pair.value %]"
-    mv "[% dirs.tmp %]/[% scala_gvcf %].tbi" "[% gvcf_pair.value %].tbi"
-    [%- END -%]
+java -Xmx[% opt.CALLING_MASTER_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.QUEUE_PATH %]/Queue.jar \
+    -jobQueue [% opt.CALLING_QUEUE %] \
+    -jobNative "[% job_native %]" \
+    -jobRunner GridEngine \
+    -jobReport [% dirs.log %]/GermlineCaller.jobReport.txt \
+    -memLimit [% opt.CALLING_MEM %] \
+    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.CALLING_SCALA %] \
+    [%- IF opt.exists('CALLING_UGMODE') %]
+    -glm [% opt.CALLING_UGMODE %] \
     [%- END %]
+    -R [% opt.GENOME %] \
+    -O [% opt.RUN_NAME %] \
+    -mem [% opt.CALLING_MEM %] \
+    -nct [% opt.CALLING_THREADS %] \
+    -nsc [% opt.CALLING_SCATTER %] \
+    -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
+    -stand_emit_conf [% opt.CALLING_STANDEMITCONF %] \
+    [%- FOREACH sample_bam IN sample_bams.values %]
+    -I [% sample_bam %] \
+    [%- END %]
+    [%- IF opt.exists('CALLING_DBSNP') %]
+    -D [% opt.CALLING_DBSNP %] \
+    [%- END %]
+    [%- IF opt.exists('CALLING_TARGETS') %]
+    -L [% opt.CALLING_TARGETS %] \
+        [%- IF opt.exists('CALLING_INTERVALPADDING') %]
+    -ip [% opt.CALLING_INTERVALPADDING %] \
+        [%- END %]
+    [%- END %]
+    [%- IF opt.exists('CALLING_PLOIDY') %]
+    -ploidy [% opt.CALLING_PLOIDY %] \
+    [%- END %]
+    -run
 
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% opt.RUN_NAME %].raw_variants.vcf.done does not exist."
-fi
+[ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].raw_variants.vcf.done" ] || failure "[% opt.RUN_NAME %].raw_variants.vcf.done does not exist."
 
-log_end "" "[% opt.RUN_NAME %].log"
+mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% final_vcf %]"
+mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx"
+
+[%- IF opt.CALLING_GVCF == 'yes' %]
+mkdir -p "[% dirs.gvcf %]"
+[%- FOREACH gvcf_pair IN final_gvcfs.pairs -%]
+[%- USE bam = file(sample_bams.${gvcf_pair.key}, nostat=1) -%]
+[%- scala_gvcf = bam.name.replace('\.bam$', '.g.vcf.gz') %]
+mv "[% dirs.tmp %]/[% scala_gvcf %]" "[% gvcf_pair.value %]"
+mv "[% dirs.tmp %]/[% scala_gvcf %].tbi" "[% gvcf_pair.value %].tbi"
+[%- END -%]
+[%- END %]
+
+success

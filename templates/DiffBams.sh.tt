@@ -1,31 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="DiffBams" main_step=diff_name log_name="${step}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=DiffBams
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ] || failure "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
 
-[% INCLUDE Status.tt step=diff_name status="processing" %]
+# NB: bamutil does not produce an empty file when there is no diff
+[% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual --out "[% output_diff %]"
 
-log_start "[% diff_name %]" "[% step %].log"
-
-if [ -s [% input_bam1 %] ] && [ -s [% input_bam2 %] ]
-then
-    # NB: bamutil does not produce an empty file when there is no diff
-    [% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual --out "[% output_diff %]"
-
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step=diff_name status="success" %]
-else
-    [% INCLUDE Status.tt step=diff_name status="failed" %]
-    fail "[% input_bam1 %] or [% input_bam2 %] does not exist or is empty."
-fi
-
-log_end "[% diff_name %]" "[% step %].log"
+success

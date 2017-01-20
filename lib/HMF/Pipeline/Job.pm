@@ -98,12 +98,12 @@ sub markDone {
         "MarkDone",
         $done_file_name,
         0,
-        # no resource limits needed
         qsubSimple($opt),
         $hold_job_ids,
         $dirs,
         $opt,
         done_file => $done_file,
+        done_file_name => $done_file_name,
     );
     return $job_id;
 }

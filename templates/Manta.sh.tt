@@ -1,24 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Manta" main_step=joint_name log_name="Manta_${joint_name}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Manta
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+cd "[% opt.OUTPUT_DIR %]"
 
-[% INCLUDE Status.tt step=sample status="processing" %]
-
-log_start "[% joint_name %]" "${JOB_NAME}_[% joint_name %].log"
-
-cd [% opt.OUTPUT_DIR %]
-
-[% IF opt.SV_MODE == "sample_control" %]   
+[% IF opt.SV_MODE == "sample_control" %]
 [% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --normalBam "[% control_bam %]" --tumorBam "[% sample_bam %]"
 [% ELSE %]
 [% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --bam "[% sample_bam %]"
@@ -26,17 +14,11 @@ cd [% opt.OUTPUT_DIR %]
 
 [% dirs.out %]/runWorkflow.py -m local -j [% opt.MANTA_THREADS %]
 
-if [ -s "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi" ] \
-   [%- IF opt.SV_MODE == "sample_control" %]
-   && [ -s "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi" ] \
-   [%- END %]
-   && [ "$(cat [% dirs.out %]/workflow.exitcode.txt)" == "0" ]
-then
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step=sample status="failed" %]
-else
-    [% INCLUDE Status.tt step=sample status="success" %]
-    fail "Manta output files are missing or workflow logged non-zero exit code."
-fi
+[ -s "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi" ] \
+    [%- IF opt.SV_MODE == "sample_control" %]
+    && [ -s "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi" ] \
+    [%- END %]
+    && [ "$(cat "[% dirs.out %]/workflow.exitcode.txt")" == "0" ] \
+    || failure "Manta output files are missing or workflow logged non-zero exit code."
 
-log_end "[% joint_name %]" "${JOB_NAME}_[% joint_name %].log"
+success

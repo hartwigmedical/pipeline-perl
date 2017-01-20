@@ -1,28 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="PreStats" main_step=step log_name="${sample_name}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=PreStats
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-cd [% dirs.out %]
-
-log_start "[% step %]" "[% sample_name %].log"
-
-[% INCLUDE Status.tt step=step status="processing" %]
+cd "[% dirs.out %]"
 
 # FastQC runs a thread per file, so no point parameterising here
-[% opt.FASTQC_PATH %]/fastqc [% input_path %] -o [% dirs.qc %] --noextract -t 1
+[% opt.FASTQC_PATH %]/fastqc "[% input_path %]" -o "[% dirs.qc %]" --noextract -t 1
 
-[% INCLUDE Status.tt step=step status="finished" %]
-
-touch "[% done_file %]"
-
-log_end "[% step %]" "[% sample_name %].log"
+success

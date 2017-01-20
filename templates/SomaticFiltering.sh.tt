@@ -1,46 +1,23 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=SomaticFilter
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-[% INCLUDE Status.tt step="" status="processing" %]
+[% INCLUDE Logging.tt job_name="SomaticFiltering" main_step=output_vcf log_name="merge.log" %]
 
 cd "[% dirs.out %]"
 
-log_start "[% in_vcf %]" "merge.log"
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] not present"
 
-if [ -s [% in_vcf %] ]
-then
-    java -Xmx[% opt.SOMVARMERGE_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
-        -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
-        -T SelectVariants \
-        -R "[% opt.GENOME %]" \
-        -L "[% opt.SOMVAR_TARGETS %]" \
-        -V "[% in_vcf %]" \
-        -o "[% out_vcf %]"
+java -Xmx[% opt.SOMVARMERGE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+    -T SelectVariants \
+    -R "[% opt.GENOME %]" \
+    -L "[% opt.SOMVAR_TARGETS %]" \
+    -V "[% input_vcf %]" \
+    -o "[% output_vcf %]"
 
-    if [ -s "[% out_vcf %]" ]
-    then
-        rm [% in_vcf %]*
+[ -s "[% output_vcf %]" ] || failure "[% output_vcf %] was not created by SelectVariants"
 
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step="" status="success" %]
-    else
-        [% INCLUDE Status.tt step="" status="failed" %]
-        fail "[% out_vcf %] was not created by SelectVariants"
-    fi
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% in_vcf %] not present"
-fi
-
-log_end "[% in_vcf %]" "merge.log"
+rm "[% input_vcf %]"*
+success

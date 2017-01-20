@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Kinship" main_step=vcf_path log_name="${opt.RUN_NAME}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Kinship
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-cd [% dirs.out %]
-
-[% INCLUDE Status.tt step="" status="processing" %]
-
-log_start "$(basename "[% vcf_path %]")" "[% opt.RUN_NAME %].log"
+cd "[% dirs.out %]"
 
 [% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/out" --vcf "[% vcf_path %]" --plink
 [% opt.PLINK_PATH %]/plink --file "[% dirs.tmp %]/out" --out "[% dirs.tmp %]/plink" --make-bed --noweb
@@ -24,13 +12,5 @@ log_start "$(basename "[% vcf_path %]")" "[% opt.RUN_NAME %].log"
 cp "[% dirs.tmp %]/king.kin0" "[% opt.RUN_NAME %].kinship"
 mv "[% dirs.tmp %]/plink.log" "[% dirs.log %]/"
 
-if [ -s "[% opt.RUN_NAME %].kinship" ]
-then
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "kinship file missing"
-fi
-
-log_end "$(basename "[% vcf_path %]")" "[% opt.RUN_NAME %].log"
+[ -s "[% opt.RUN_NAME %].kinship" ] || failure "kinship file missing"
+success

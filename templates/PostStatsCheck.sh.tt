@@ -1,21 +1,10 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="PostStatsCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=PostStatsCheck
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "" "[% opt.RUN_NAME %].log"
-[% INCLUDE Status.tt step="" status="processing" %]
-
-cd [% dirs.tmp %]
+cd "[% dirs.tmp %]"
 
 qsub -N wait_for_bamMetrics -sync y -hold_jid bamMetrics_report_[% opt.RUN_NAME %] -b y /bin/true
 
@@ -34,11 +23,7 @@ if [ -s [% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf ] \
     [%- END %]
     && true
 then
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
+    success
 else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "bamMetrics/SNPcheck/ExonCov reports missing"
+    failure "bamMetrics/SNPcheck/ExonCov reports missing"
 fi
-
-log_end "" "[% opt.RUN_NAME %].log"

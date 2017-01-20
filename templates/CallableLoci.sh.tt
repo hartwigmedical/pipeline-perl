@@ -1,55 +1,35 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="CallableLoci" main_step=sample log_name="CallableLoci_${sample}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=CallableLoci
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+cd "[% dirs.tmp %]"
 
-[% INCLUDE Status.tt step=sample status="processing" %]
+[ -s "[% sample_bam %]" ] || failure "[% sample_bam %] does not exist."
 
-cd [% dirs.tmp %]
-
-log_start "[% sample %]" "${JOB_NAME}_[% sample %].log"
-
-if [ -s "[% sample_bam %]" ]
-then
-java -Djava.io.tmpdir=[% dirs.tmp %]/ -Xmx[% opt.CALLABLE_LOCI_MEM %]G \
-    -jar [% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar \
+java -Xmx[% opt.CALLABLE_LOCI_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar "[% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar" \
     -T CallableLoci \
-    -R [% opt.GENOME %] \
-    -I [% sample_bam %] \
-    -o [% output_bed %] \
-    -summary [% output_summary %] \
+    -R "[% opt.GENOME %]" \
+    -I "[% sample_bam %]" \
+    -o "[% output_bed %]" \
+    -summary "[% output_summary %]" \
     --minBaseQuality [% opt.CALLABLE_LOCI_BASEQUALITY %] \
     --minMappingQuality [% opt.CALLABLE_LOCI_MAPQUALITY %] \
     --minDepth [% opt.CALLABLE_LOCI_DEPTH %] \
     --minDepthForLowMAPQ [% opt.CALLABLE_LOCI_DEPTHLOWMAPQ %] \
     [%- IF opt.exists('CALLING_TARGETS') %]
-    -L [% opt.CALLING_TARGETS %] \
+    -L "[% opt.CALLING_TARGETS %]" \
     [%- END %]
     [%- IF opt.exists('CALLING_INTERVALPADDING') %]
     -ip [% opt.CALLING_INTERVALPADDING %] \
     [%- END %]
     ;
-else
-    [% INCLUDE Status.tt step=sample status="failed" %]
-    fail "[% sample_bam %] does not exist."
-fi
 
-if [ -s "[% output_bed %]" ] && [ -s "[% output_summary %]" ]
-then
-    mv "[% output_bed %]" "[% dirs.out %]"
-    mv "[% output_summary %]" "[% dirs.out %]"
+[ -s "[% output_bed %]" ] && [ -s "[% output_summary %]" ] || failure "[% output_bed %] or [% output_summary %] missing or empty"
 
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step=sample status="success" %]
-fi
-
-log_end "[% sample %]" "${JOB_NAME}_[% sample %].log"
+mv "[% output_bed %]" "[% dirs.out %]"
+mv "[% output_summary %]" "[% dirs.out %]"
+success

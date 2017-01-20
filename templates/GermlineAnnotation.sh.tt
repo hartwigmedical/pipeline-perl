@@ -1,174 +1,148 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="GermlineAnnotation" main_step=final_vcf log_name="${opt.RUN_NAME}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME="GermlineAnnotation"
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "$(basename "[% final_vcf %]")" "[% opt.RUN_NAME %].log"
+[%- pre_annotated_vcf = input_vcf -%]
 
 cd "[% dirs.out %]"
 
-[% pre_annotated_vcf = input_vcf %]
 
-[% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-    [% output_vcf = input_vcf.replace('.vcf', '_snpEff.vcf') %]
-    rm -f "[% output_vcf %]" "[% output_vcf %].idx"
+[%- IF opt.ANNOTATE_SNPEFF == 'yes' -%]
+start_step "ANNOTATE_SNPEFF"
 
-    if [ -s "[% input_vcf %]" ]
-    then
-        [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="processing" %]
-    
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
-            -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
-            -c [% opt.SNPEFF_PATH %]/snpEff.config \
-            [% opt.ANNOTATE_DB %] \
-            -v "[% input_vcf %]" \
-            [% opt.ANNOTATE_FLAGS %] \
-            > "[% output_vcf %]"
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+[%- output_vcf = input_vcf.replace('.vcf', '_snpEff.vcf') %]
+rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
-        [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-        rm igv.log
-    
-        [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="finished" %]
-    else
-        [% INCLUDE Status.tt step="ANNOTATE_SNPEFF" status="failed" %]
-        fail "[% input_vcf %] does not exist."
-    fi
+java -Xmx[% opt.ANNOTATE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
+    -c [% opt.SNPEFF_PATH %]/snpEff.config \
+    [% opt.ANNOTATE_DB %] \
+    -v "[% input_vcf %]" \
+    [% opt.ANNOTATE_FLAGS %] \
+    > "[% output_vcf %]"
 
-    [% input_vcf = output_vcf %]
-[% END %]
+[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
+rm igv.log
 
-[% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
-    [% output_vcf = input_vcf.replace('.vcf', '_snpSift.vcf') %]
-    rm -f "[% output_vcf %]" "[% output_vcf %].idx"
-
-    if [ -s "[% input_vcf %]" ]
-    then
-        [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="processing" %]
-    
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
-            -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
-            dbnsfp \
-            -v \
-            -f [% opt.ANNOTATE_FIELDS %] \
-            -db [% opt.ANNOTATE_DBNSFP %] \
-            "[% input_vcf %]" \
-            > "[% output_vcf %]"
-
-        [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-        rm igv.log
-    
-        [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="finished" %]
-    else
-        [% INCLUDE Status.tt step="ANNOTATE_SNPSIFT" status="failed" %]
-        fail "[% input_vcf %] does not exist."
-    fi
-    [% IF opt.ANNOTATE_SNPEFF == 'yes' %]
-    if [ -s "[% output_vcf %]" ]
-    then
-        rm "[% input_vcf %]" "[% input_vcf %].idx"
-    fi
-    [% END %]
-    [% input_vcf = output_vcf %]
-[% END %]
-
-[% IF opt.ANNOTATE_IDFIELD == 'yes' %]
-    [% suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' %]
-    [% output_vcf = input_vcf.replace('.vcf', suffix) %]
-    rm -f "[% output_vcf %]" "[% output_vcf %].idx"
-
-    if [ -s "[% input_vcf %]" ]
-    then
-        [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="processing" %]
-    
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
-            -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
-            -T VariantAnnotator \
-            -nt [% opt.ANNOTATE_THREADS %] \
-            -R [% opt.GENOME %] \
-            -o "[% output_vcf %]" \
-            --variant "[% input_vcf %]" \
-            --dbsnp [% opt.ANNOTATE_IDDB %] \
-            --alwaysAppendDbsnpId
-          
-        [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="finished" %]
-    else
-        [% INCLUDE Status.tt step="ANNOTATE_IDFIELD" status="failed" %]
-        fail "[% input_vcf %] does not exist."
-    fi
-    [% IF opt.ANNOTATE_SNPSIFT == 'yes' %]
-    if [ -s "[% output_vcf %]" ]
-    then
-        rm "[% input_vcf %]" "[% input_vcf %].idx"
-    fi
-    [% END %]
-    [% input_vcf = output_vcf %]
-[% END %]
-
-[% IF opt.ANNOTATE_FREQUENCIES == 'yes' %]
-    [% suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' %]
-    [% output_vcf = input_vcf.replace('.vcf', suffix) %]
-    rm -f "[% output_vcf %]" "[% output_vcf %].idx"
-
-    if [ -s "[% input_vcf %]" ]
-    then
-        [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="processing" %]
-
-        java -Xmx[% opt.ANNOTATE_MEM %]g -Djava.io.tmpdir=[% dirs.tmp %] \
-            -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
-            annotate \
-            -tabix \
-            -name [% opt.ANNOTATE_FREQNAME %]_ \
-            -info [% opt.ANNOTATE_FREQINFO %] \
-            [% opt.ANNOTATE_FREQDB %] \
-            "[% input_vcf %]" \
-            > "[% output_vcf %]"
-
-        [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-        rm igv.log
-    
-        [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="finished" %]
-    else
-        [% INCLUDE Status.tt step="ANNOTATE_FREQUENCIES" status="failed" %]
-        fail "[% input_vcf %] does not exist."
-    fi
-    [% IF opt.ANNOTATE_SNPSIFT == 'yes' OR opt.ANNOTATE_SNPEFF == 'yes' OR opt.ANNOTATE_IDFIELD == 'yes' %]
-    if [ -s "[% output_vcf %]" ]
-    then
-        rm "[% input_vcf %]" "[% input_vcf %].idx"
-    fi
-    [% END %]
-    [% input_vcf = output_vcf %]
-[% END %]
+[%- input_vcf = output_vcf %]
+finish_step
+[%- END %]
 
 
-[% sliced_vcf = input_vcf.replace('.vcf', '_sliced.vcf') %]
-[% INCLUDE Status.tt step="ANNOTATE_SLICE" status="processing" %]
+[%- IF opt.ANNOTATE_SNPSIFT == 'yes' -%]
+start_step "ANNOTATE_SNPSIFT"
+
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+[%- output_vcf = input_vcf.replace('.vcf', '_snpSift.vcf') %]
+rm -f "[% output_vcf %]" "[% output_vcf %].idx"
+
+java -Xmx[% opt.ANNOTATE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
+    dbnsfp \
+    -v \
+    -f [% opt.ANNOTATE_FIELDS %] \
+    -db [% opt.ANNOTATE_DBNSFP %] \
+    "[% input_vcf %]" \
+    > "[% output_vcf %]"
+
+[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
+rm igv.log
+
+[%- IF opt.ANNOTATE_SNPEFF == 'yes' -%]
+if [ -s "[% output_vcf %]" ]
+then
+    rm "[% input_vcf %]" "[% input_vcf %].idx"
+fi
+[%- END -%]
+
+[%- input_vcf = output_vcf %]
+finish_step
+[%- END %]
+
+
+[%- IF opt.ANNOTATE_IDFIELD == 'yes' -%]
+start_step "ANNOTATE_IDFIELD"
+
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+[%- suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' -%]
+[%- output_vcf = input_vcf.replace('.vcf', suffix) %]
+rm -f "[% output_vcf %]" "[% output_vcf %].idx"
+
+java -Xmx[% opt.ANNOTATE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+    -T VariantAnnotator \
+    -nt [% opt.ANNOTATE_THREADS %] \
+    -R [% opt.GENOME %] \
+    -o "[% output_vcf %]" \
+    --variant "[% input_vcf %]" \
+    --dbsnp [% opt.ANNOTATE_IDDB %] \
+    --alwaysAppendDbsnpId
+
+[%- IF opt.ANNOTATE_SNPSIFT == 'yes' -%]
+if [ -s "[% output_vcf %]" ]
+then
+    rm "[% input_vcf %]" "[% input_vcf %].idx"
+fi
+[%- END -%]
+
+[%- input_vcf = output_vcf %]
+finish_step
+[%- END %]
+
+
+[%- IF opt.ANNOTATE_FREQUENCIES == 'yes' -%]
+start_step "ANNOTATE_FREQUENCIES"
+
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
+[%- suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' -%]
+[%- output_vcf = input_vcf.replace('.vcf', suffix) %]
+rm -f "[% output_vcf %]" "[% output_vcf %].idx"
+
+java -Xmx[% opt.ANNOTATE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
+    annotate \
+    -tabix \
+    -name [% opt.ANNOTATE_FREQNAME %]_ \
+    -info [% opt.ANNOTATE_FREQINFO %] \
+    [% opt.ANNOTATE_FREQDB %] \
+    "[% input_vcf %]" \
+    > "[% output_vcf %]"
+
+[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
+rm igv.log
+
+[%- IF opt.ANNOTATE_SNPSIFT == 'yes' OR opt.ANNOTATE_SNPEFF == 'yes' OR opt.ANNOTATE_IDFIELD == 'yes' -%]
+if [ -s "[% output_vcf %]" ]
+then
+    rm "[% input_vcf %]" "[% input_vcf %].idx"
+fi
+[%- END -%]
+
+[%- input_vcf = output_vcf %]
+finish_step
+[%- END %]
+
+
+start_step "ANNOTATE_SLICE"
+[%- sliced_vcf = input_vcf.replace('.vcf', '_sliced.vcf') %]
 java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i "[% input_vcf %]" > "[% sliced_vcf %]"
-[% INCLUDE Status.tt step="ANNOTATE_SLICE" status="finished" %]
+finish_step
 
 
-### Check final vcf, last chr and start position must be identical.
 tail_input="$(tail -n 1 [% pre_annotated_vcf %] | cut -f 1,2)"
 tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
-if [ -s "[% pre_annotated_vcf %]" ] && [ -s "[% output_vcf %]" ] && [ "$tail_input" == "$tail_output" ]
-then
-    mv "[% output_vcf %]" "[% final_vcf %]"
-    mv "[% output_vcf %].idx" "[% final_vcf %].idx"
+[ -s "[% pre_annotated_vcf %]" ] \
+    && [ -s "[% output_vcf %]" ] \
+    && [ "$tail_input" == "$tail_output" ] \
+    || failure "Annotated VCF does not exist or last position differs from pre-annotation VCF"
 
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "Annotated VCF does not exist or last position differs from pre-annotation VCF"
-fi
-
-log_end "$(basename "[% final_vcf %]")" "[% opt.RUN_NAME %].log"
+mv "[% output_vcf %]" "[% final_vcf %]"
+mv "[% output_vcf %].idx" "[% final_vcf %].idx"
+success

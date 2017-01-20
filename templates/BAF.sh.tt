@@ -1,72 +1,46 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME="BAF"
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[% INCLUDE Logging.tt job_name="BAF" main_step=sample log_name="BAF_${sample}.log" %]
 
 cd "[% dirs.tmp %]"
 
-log_start "[% sample %]" "${JOB_NAME}_[% sample %].log"
+[ -s "[% sample_bam %]" ] || failure "Sample BAM file does not exist."
 
-if [ -s "[% sample_bam %]" ]
-then
-    [% INCLUDE Status.tt step=sample status="processing" %]
-  
-    java -Xmx[% opt.BAF_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
-        -jar "[% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar" \
-        -T UnifiedGenotyper \
-        -R "[% opt.GENOME %]" \
-        -L "[% opt.BAF_SNPS %]" \
-        -I "[% sample_bam %]" \
-        -o "[% output_vcf %]" \
-        --output_mode EMIT_ALL_SITES
-else
-    fail "Sample BAM file does not exist."
-fi
+java -Xmx[% opt.BAF_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar "[% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar" \
+    -T UnifiedGenotyper \
+    -R "[% opt.GENOME %]" \
+    -L "[% opt.BAF_SNPS %]" \
+    -I "[% sample_bam %]" \
+    -o "[% output_vcf %]" \
+    --output_mode EMIT_ALL_SITES
 
 tail_input="$(tail -n 1 [% opt.BAF_SNPS %] | cut -f 1,3)"
 tail_output="$(tail -n 1 [% output_vcf %] | cut -f 1,2)"
-if [ "$tail_input" == "$tail_output" ]
-then
-    mv "[% output_vcf %]" "[% dirs.out %]"
-    mv "[% output_vcf %].idx" "[% dirs.out %]"
+[ "$tail_input" == "$tail_output" ] || failure "UnifiedGenotyper output does not end at the same location as input"
 
-    [% opt.BIOVCF_PATH %]/bio-vcf \
-        --num-threads [% opt.BAF_THREADS %] \
-        -i \
-        --sfilter '!s.empty? and s.dp>=20' \
-        --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
-        --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' \
-        < "[% dirs.out %]/[% output_vcf %]" \
-        > "[% output_baf %]"
 
-    if [ -s "[% output_baf %]" ]
-    then
-        mv "[% output_baf %]" "[% dirs.out %]"
-        Rscript "[% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R" "[% dirs.tmp %]" "[% dirs.out %]/[% output_baf %]"
-        if [ -s "[% output_bafplot %]" ]
-        then
-            mv "[% output_bafplot %]" "[% dirs.out %]"
+mv "[% output_vcf %]" "[% dirs.out %]"
+mv "[% output_vcf %].idx" "[% dirs.out %]"
 
-            touch "[% done_file %]"
-            [% INCLUDE Status.tt step=sample status="success" %]
-        else
-            fail "BAF plot not created"
-        fi
-    else
-        fail "Sample BAF file does not exist."
-    fi
-else
-    [% INCLUDE Status.tt step=sample status="failed" %]
-    fail "UnifiedGenotyper output does not end at the same location as input"
-fi
+[% opt.BIOVCF_PATH %]/bio-vcf \
+    --num-threads [% opt.BAF_THREADS %] \
+    -i \
+    --sfilter '!s.empty? and s.dp>=20' \
+    --eval '[r.chrom,r.pos,r.ref+">"+r.alt[0]]' \
+    --seval 'tot=s.ad.reduce(:+) ; ((tot-s.ad[0].to_f)/tot).round(2)' \
+    < "[% dirs.out %]/[% output_vcf %]" \
+    > "[% output_baf %]"
 
-log_end "[% sample %]" "${JOB_NAME}_[% sample %].log"
+[ -s "[% output_baf %]" ] || failure "Sample BAF file does not exist."
+
+
+mv "[% output_baf %]" "[% dirs.out %]"
+Rscript "[% opt.OUTPUT_DIR %]/scripts/makeBAFplot.R" "[% dirs.tmp %]" "[% dirs.out %]/[% output_baf %]"
+[ -s "[% output_bafplot %]" ] || failure "BAF plot not created"
+
+mv "[% output_bafplot %]" "[% dirs.out %]"
+success

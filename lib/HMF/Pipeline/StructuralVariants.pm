@@ -178,9 +178,7 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        sample => $sample,
         sample_bam => $sample_bam,
-        control => $control,
         control_bam => $control_bam,
         joint_name => $joint_name,
     );

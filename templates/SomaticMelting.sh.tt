@@ -1,34 +1,19 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=SomaticMelt
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-[% INCLUDE Status.tt step="" status="processing" %]
+[% INCLUDE Logging.tt job_name="SomaticMelting" main_step=output_vcf log_name="merge.log" %]
 
 cd "[% dirs.out %]"
-log_start "[% in_vcf %]" "merge.log"
 
-[% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t [% tumor_sample %] -v [% in_vcf %] > [% out_vcf %]
-[% opt.IGVTOOLS_PATH %]/igvtools index [% out_vcf %]
+[% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t "[% tumor_sample %]" -v "[% input_vcf %]" > "[% output_vcf %]"
+[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 
-tail_input="$(tail -n 1 [% pre_annotate_vcf %] | cut -f 1,2)"
-tail_output="$(tail -n 1 [% out_vcf %] | cut -f 1,2)"
-if [ -s [% pre_annotate_vcf %] ] && [ -s [% out_vcf %] ] && [ "$tail_input" == "$tail_output" ]
-then
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% out_vcf %] was not created or last position does not match [% pre_annotate_vcf %]"
-fi
+tail_input="$(tail -n 1 "[% pre_annotate_vcf %]" | cut -f 1,2)"
+tail_output="$(tail -n 1 "[% output_vcf %]" | cut -f 1,2)"
+[ -s "[% pre_annotate_vcf %]" ] \
+    && [ -s "[% output_vcf %]" ] \
+    && [ "$tail_input" == "$tail_output" ] \
+    || failure "[% output_vcf %] was not created or last position does not match [% pre_annotate_vcf %]"
 
-log_end "[% in_vcf %]" "merge.log"
+success

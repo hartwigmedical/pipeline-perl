@@ -1,13 +1,60 @@
-function log_start() {
-    local step=$1 && shift
-    local log_file=$1 && shift
+export JOB_SET JOB_NAME JOB_START JOB_STEP JOB_STATUS
 
-    echo "Start	${JOB_NAME}	$(date)	${step}	$(uname -n)" >> "[% dirs.log %]/${log_file}"
+JOB_SET="[% opt.RUN_NAME %]"
+JOB_NAME="[% job_name %]"
+JOB_START=$(date +%s)
+
+# shellcheck disable=SC2034
+function status() {
+    JOB_STEP=$1 && shift
+    JOB_STATUS=$1 && shift
+    [% opt.REPORT_STATUS %]
+}
+
+function start_step() {
+    local step=$1 && shift
+
+    status "${step}" "processing"
+}
+
+function finish_step() {
+    status "${JOB_STEP}" "finished"
+
+    # restore main step name so future failure outside of sub-steps refers to it
+    JOB_STEP="[% main_step %]"
+}
+
+function log_event() {
+    local event=$1 && shift
+
+    echo "${event}	[% job_name %]	$(date)	[% main_step %]	$(uname -n)" >> "[% dirs.log %]/[% log_name %]"
+}
+
+function log_start() {
+    log_event "Start"
 }
 
 function log_end() {
-    local step=$1 && shift
-    local log_file=$1 && shift
-
-    echo "End	${JOB_NAME}	$(date)	${step}	$(uname -n)" >> "[% dirs.log %]/${log_file}"
+    log_event "End"
 }
+
+function success() {
+    touch "[% done_file %]"
+    success_no_touch
+}
+
+function success_no_done() {
+    status "[% main_step %]" "success"
+    log_end
+}
+
+function failure() {
+    local message=$1 && shift
+
+    status "${JOB_STEP}" "failed"
+    log_end
+    fail "${message}"
+}
+
+log_start
+start_step "[% main_step %]"

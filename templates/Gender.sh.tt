@@ -1,24 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Gender
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "" "[% opt.RUN_NAME %].log"
-
-[% INCLUDE Status.tt step="" status="processing" %]
+[% INCLUDE Logging.tt job_name="Gender" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
 
-# same step as kinship, but easier to segregate and repeat (runs fast, no depedency)
+# same step as kinship, but easier to segregate and repeat (runs fast, saves a depedency)
 [% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/gender_input" --vcf "[% vcf_path %]" --plink
 cut -f 1-6 "[% dirs.tmp %]/gender_input.ped" > "[% dirs.tmp %]/gender_input.fam"
 
@@ -41,14 +29,6 @@ java -Xmx[% opt.GENDER_MEM %]G \
     [% opt.GENDER_FEMALE_MAX_F %] \
     [% opt.GENDER_MALE_MIN_F %]
 
-if [ -s "plink.sexcheck" ]
-then
-    mv plink.sexcheck "[% output_file %]"
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "plink.sexcheck is missing"
-fi
-
-log_end "" "[% opt.RUN_NAME %].log"
+[ -s "plink.sexcheck" ] || failure "plink.sexcheck is missing"
+mv plink.sexcheck "[% output_file %]"
+success

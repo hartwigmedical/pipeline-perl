@@ -1,20 +1,8 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=SortBam
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "[% sorted_bam_name %]" "[% step %].log"
-
-[% INCLUDE Status.tt step=step status="processing" %]
+[% INCLUDE Logging.tt job_name="SortBam" main_step=sorted_bam_name log_name="${step}.log" %]
 
 [% opt.SAMBAMBA_PATH %]/sambamba sort \
     --tmpdir=[% dirs.tmp %] \
@@ -23,9 +11,5 @@ log_start "[% sorted_bam_name %]" "[% step %].log"
     -o "[% sorted_bam_path %]" \
     "[% bam_path %]"
 
-[ -s "[% sorted_bam_path %]" ] || fail "[% sorted_bam_path %] is missing or empty."
-touch "[% done_file %]"
-
-[% INCLUDE Status.tt step=step status="finished" %]
-
-log_end "[% sorted_bam_name %]" "[% step %].log"
+[ -s "[% sorted_bam_path %]" ] || failure "[% sorted_bam_path %] is missing or empty."
+success

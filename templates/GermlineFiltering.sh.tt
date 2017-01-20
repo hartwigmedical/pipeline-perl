@@ -1,71 +1,47 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME="GermlineFiltering"
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "$(basename "[% input_vcf %]")" "[% opt.RUN_NAME %].log"
+[% INCLUDE Logging.tt job_name="GermlineFiltering" main_step=input_vcf log_name="${opt.RUN_NAME}.log" %]
 
 cd "[% dirs.tmp %]"
 
-if [ -s "[% input_vcf %]" ]
-then
-    [% INCLUDE Status.tt step="" status="processing" %]
-  
-    java -Xmx[% opt.FILTER_MASTER_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] \
-        -jar [% opt.QUEUE_PATH %]/Queue.jar \
-        -jobQueue [% opt.FILTER_QUEUE %] \
-        -jobNative "[% job_native %]" \
-        -jobRunner GridEngine \
-        -jobReport [% dirs.log %]/GermlineFilter.jobReport.txt \
-        -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.FILTER_SCALA %] \
-        -R [% opt.GENOME %] \
-        -V [% input_vcf %] \
-        -O [% opt.RUN_NAME %] \
-        -mem [% opt.FILTER_MEM %] \
-        -nsc [% opt.FILTER_SCATTER %] \
-        [%- FOREACH snp_type IN snp_config.types %]
-        -snpType [% snp_type %] \
-        [%- END %]
-        [%- FOREACH snp_filter IN snp_config.filters.pairs %]
-        -snpFilterName [% snp_filter.key %] \
-        -snpFilterExpression "[% snp_filter.value %]" \
-        [%- END %]
-        [%- IF opt.exists('FILTER_CLUSTERSIZE') && opt.exists('FILTER_CLUSTERWINDOWSIZE') %]
-        -cluster [% opt.FILTER_CLUSTERSIZE %] \
-        -window [% opt.FILTER_CLUSTERWINDOWSIZE %] \
-        [%- END %]
-        [%- FOREACH indel_type IN indel_config.types %]
-        -indelType [% indel_type %] \
-        [%- END %]
-        [%- FOREACH indel_filter IN indel_config.filters.pairs %]
-        -indelFilterName [% indel_filter.key %] \
-        -indelFilterExpression "[% indel_filter.value %]" \
-        [%- END %]
-        -run
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% input_vcf %] does not exist."
-fi
+[ -s "[% input_vcf %]" ] || failure "[% input_vcf %] does not exist."
 
-if [ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].filtered_variants.vcf.done" ]
-then
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf" "[% final_vcf %]"
-    mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf.idx" "[% final_vcf %].idx"
+java -Xmx[% opt.FILTER_MASTER_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar [% opt.QUEUE_PATH %]/Queue.jar \
+    -jobQueue [% opt.FILTER_QUEUE %] \
+    -jobNative "[% job_native %]" \
+    -jobRunner GridEngine \
+    -jobReport [% dirs.log %]/GermlineFilter.jobReport.txt \
+    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.FILTER_SCALA %] \
+    -R [% opt.GENOME %] \
+    -V [% input_vcf %] \
+    -O [% opt.RUN_NAME %] \
+    -mem [% opt.FILTER_MEM %] \
+    -nsc [% opt.FILTER_SCATTER %] \
+    [%- FOREACH snp_type IN snp_config.types %]
+    -snpType [% snp_type %] \
+    [%- END %]
+    [%- FOREACH snp_filter IN snp_config.filters.pairs %]
+    -snpFilterName [% snp_filter.key %] \
+    -snpFilterExpression "[% snp_filter.value %]" \
+    [%- END %]
+    [%- IF opt.exists('FILTER_CLUSTERSIZE') && opt.exists('FILTER_CLUSTERWINDOWSIZE') %]
+    -cluster [% opt.FILTER_CLUSTERSIZE %] \
+    -window [% opt.FILTER_CLUSTERWINDOWSIZE %] \
+    [%- END %]
+    [%- FOREACH indel_type IN indel_config.types %]
+    -indelType [% indel_type %] \
+    [%- END %]
+    [%- FOREACH indel_filter IN indel_config.filters.pairs %]
+    -indelFilterName [% indel_filter.key %] \
+    -indelFilterExpression "[% indel_filter.value %]" \
+    [%- END %]
+    -run
 
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
-fi
-
-log_end "$(basename "[% input_vcf %]")" "[% opt.RUN_NAME %].log"
+[ -f "[% dirs.tmp %]/.[% opt.RUN_NAME %].filtered_variants.vcf.done" ] || failure "[% opt.RUN_NAME %].filtered_variants.vcf does not exist."
+mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf" "[% final_vcf %]"
+mv "[% dirs.tmp %]/[% opt.RUN_NAME %].filtered_variants.vcf.idx" "[% final_vcf %].idx"
+success

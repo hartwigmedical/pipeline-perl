@@ -1,34 +1,12 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Flagstat" main_step=flagstat_name log_name="${step}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Flagstat
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% bam_path %]" ] || failure "[% bam_path %] does not exist or is empty."
 
-[% INCLUDE Status.tt step=flagstat_name status="processing" %]
-log_start "[% flagstat_path %]" "[% step %].log"
+[% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
 
-if [ -s "[% bam_path %]" ]
-then
-    [% opt.SAMBAMBA_PATH %]/sambamba flagstat -t [% opt.FLAGSTAT_THREADS %] "[% bam_path %]" > "[% flagstat_path %]"
-    if [ -s "[% flagstat_path %]" ]
-    then
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step=flagstat_name status="success" %]
-    else
-        [% INCLUDE Status.tt step=flagstat_name status="failed" %]
-        fail "[% flagstat_path %] does not exist or is empty."
-    fi
-else
-    [% INCLUDE Status.tt step=flagstat_name status="failed" %]
-    fail "[% bam_path %] does not exist or is empty."
-fi
-
-log_end "[% flagstat_path %]" "[% step %].log"
+[ -s "[% flagstat_path %]" ] || failure "[% flagstat_path %] does not exist or is empty."
+success

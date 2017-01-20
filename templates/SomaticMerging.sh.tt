@@ -1,42 +1,22 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=SomaticMerge
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-[% INCLUDE Status.tt step="" status="processing" %]
+[% INCLUDE Logging.tt job_name="SomaticMerging" main_step=output_vcf log_name="merge.log" %]
 
 cd "[% dirs.out %]"
 
-log_start "[% out_vcf %]" "merge.log"
-
 java -Xmx[% opt.SOMVARMERGE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
-    -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
+    -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CombineVariants \
-    -R [% opt.GENOME %] \
-    -o [% out_vcf %] \
+    -R "[% opt.GENOME %]" \
+    -o "[% output_vcf %]" \
     --genotypemergeoption uniquify \
-    [%- FOREACH in_vcf IN in_vcfs.pairs() %]
-    -V:[% in_vcf.key %] "[% in_vcf.value %]" \
+    [%- FOREACH input_vcf IN input_vcfs.pairs() %]
+    -V:[% input_vcf.key %] "[% input_vcf.value %]" \
     [%- END %]
     ;
 
-if [ -s "[% out_vcf %]" ]
-then
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step="" status="success" %]
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% out_vcf %] was not created by CombineVariants"
-fi
-
-log_end "[% out_vcf %]" "merge.log"
+[ -s "[% output_vcf %]" ] || failure "[% output_vcf %] was not created by CombineVariants"
+success

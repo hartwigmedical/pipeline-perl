@@ -1,40 +1,18 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="QDNAseq" main_step=sample_name log_name="qdnaseq.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=QDNAseq
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% sample_bam %]" ] || failure "Input BAM files do not exist."
 
-log_start "[% sample_bam %]" "qdnaseq.log"
+cd "[% dirs.qdnaseq.out %]"
 
-[% INCLUDE Status.tt step=sample_name status="processing" %]
+Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
 
-if [ -s "[% sample_bam %]" ]
-then
-    cd "[% dirs.qdnaseq.out %]"
+[ -s "$(basename -s .bam [% sample_bam %]).vcf" ] \
+    && [ -s "calls.png" ] \
+    && [ -s "copyNumberSegmented.png" ] \
+    || failure "No QDNAseq VCFs/PNGs produced."
 
-    Rscript [% opt.OUTPUT_DIR %]/scripts/run_QDNAseq.R -qdnaseq_path "[% opt.QDNASEQ_PATH %]" -s "[% sample_name %]" -b "[% sample_bam %]"
-
-    if [ -s "[% dirs.qdnaseq.out %]/$(basename -s .bam [% sample_bam %]).vcf" ] \
-       && [ -s "[% dirs.qdnaseq.out %]/calls.png" ] \
-       && [ -s "[% dirs.qdnaseq.out %]/copyNumberSegmented.png" ]
-    then
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step=sample_name status="success" %]
-    else
-        [% INCLUDE Status.tt step=sample_name status="failed" %]
-        fail "No QDNAseq VCFs/PNGs produced."
-    fi
-else
-    [% INCLUDE Status.tt step=sample_name status="failed" %]
-    fail "Input BAM files do not exist."
-fi
-
-log_end "[% sample_bam %]" "qdnaseq.log"
+success

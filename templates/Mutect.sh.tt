@@ -1,41 +1,24 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Mutect" main_step=chr log_name="mutect.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Mutect
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% ref_bam_path %]" ] \
+    && [ -s "[% tumor_bam_path %]" ] \
+    || failure "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 
-log_start "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "mutect.log"
+cd "[% dirs.mutect.tmp %]"
 
-if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ]
-then
-    cd "[% dirs.mutect.tmp %]"
+java -Xmx[% opt.MUTECT_MEM %]G \
+    -jar "[% opt.MUTECT_PATH %]/mutect.jar" \
+    -T MuTect \
+    -R "[% opt.GENOME %]" \
+    --cosmic "[% opt.MUTECT_COSMIC %]" \
+    --dbsnp "[% opt.CALLING_DBSNP %]" \
+    --intervals [% chr %] \
+    --input_file:normal "[% ref_bam_path %]" \
+    --input_file:tumor "[% tumor_bam_path %]" \
+    --vcf "[% output_vcf %]"
 
-    [% INCLUDE Status.tt step=chr status="processing" %]
-
-    java -Xmx[% opt.MUTECT_MEM %]G \
-        -jar [% opt.MUTECT_PATH %]/mutect.jar \
-        -T MuTect \
-        -R "[% opt.GENOME %]" \
-        --cosmic "[% opt.MUTECT_COSMIC %]" \
-        --dbsnp "[% opt.CALLING_DBSNP %]" \
-        --intervals [% chr %] \
-        --input_file:normal "[% ref_bam_path %]" \
-        --input_file:tumor "[% tumor_bam_path %]" \
-        --vcf "[% output_vcf %]"
-
-    touch "[% done_file %]"
-    [% INCLUDE Status.tt step=chr status="finished" %]
-else
-    [% INCLUDE Status.tt step=chr status="failed" %]
-    fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
-fi
-
-log_end "[% chr %]    [% ref_bam_path %]    [% tumor_bam_path %]" "mutect.log"
+success

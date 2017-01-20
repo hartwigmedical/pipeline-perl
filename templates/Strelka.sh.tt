@@ -1,64 +1,42 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="Strelka" main_step=joint_name log_name="strelka.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Strelka
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
+[ -s "[% ref_bam_path %]" ] \
+    && [ -s "[% tumor_bam_path %]" ] \
+    || failure "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
 
-log_start "[% joint_name %]" "strelka.log"
+rm -rf "[% dirs.strelka.out %]"
+[% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
+    --tumor "[% tumor_bam_path %]" \
+    --normal "[% ref_bam_path %]" \
+    --ref "[% opt.GENOME %]" \
+    --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
+    --output-dir "[% dirs.strelka.out %]"
 
-if [ -s "[% ref_bam_path %]" ] && [ -s "[% tumor_bam_path %]" ] 
-then
-    [% INCLUDE Status.tt step="" status="processing" %]
+cd "[% dirs.strelka.out %]"
+make -j [% opt.STRELKA_THREADS %]
 
-    rm -rf "[% dirs.strelka.out %]"
-    [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
-        --tumor "[% tumor_bam_path %]" \
-        --normal "[% ref_bam_path %]" \
-        --ref "[% opt.GENOME %]" \
-        --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
-        --output-dir "[% dirs.strelka.out %]"
+[ -f "[% dirs.strelka.out %]/task.complete" ] || failure "Strelka did not complete successfully"
 
-    cd "[% dirs.strelka.out %]"
-    make -j [% opt.STRELKA_THREADS %]
+java -Xmx[% opt.STRELKA_MEM %]G \
+    -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
+    -T CombineVariants \
+    -R "[% opt.GENOME %]" \
+    --genotypemergeoption unsorted \
+    -V results/passed.somatic.snvs.vcf \
+    -V results/passed.somatic.indels.vcf \
+    -o "[% final_vcf %]"
 
-    if [ -f "[% dirs.strelka.out %]/task.complete" ]
-    then
-        java -Xmx[% opt.STRELKA_MEM %]G \
-            -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
-            -T CombineVariants \
-            -R "[% opt.GENOME %]" \
-            --genotypemergeoption unsorted \
-            -V results/passed.somatic.snvs.vcf \
-            -V results/passed.somatic.indels.vcf \
-            -o "[% final_vcf %]"
+awk -F'\t' -v OFS='\t' '
+    /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
+    /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
+    { print }' \
+    "[% final_vcf %]" \
+    > temp.vcf
 
-        awk -F'\t' -v OFS='\t' '
-            /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
-            /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
-            { print }' \
-            "[% final_vcf %]" \
-            > temp.vcf
-
-        mv temp.vcf "[% final_vcf %]"
-        rm -r chromosomes/
-
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step="" status="success" %]
-    else
-        [% INCLUDE Status.tt step="" status="failed" %]
-        fail "Strelka did not complete successfully"
-    fi
-else
-    [% INCLUDE Status.tt step="" status="failed" %]
-    fail "[% tumor_bam_path %] or [% ref_bam_path %] does not exist."
-fi
-
-log_end "[% joint_name %]" "strelka.log"
+mv temp.vcf "[% final_vcf %]"
+rm -r chromosomes/
+success

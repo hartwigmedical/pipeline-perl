@@ -1,19 +1,8 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
-
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=Freec
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "[% sample_name %]" "freec.log"
-[% INCLUDE Status.tt step=sample_name status="processing" %]
+[% INCLUDE Logging.tt job_name="Freec" main_step=sample_name log_name="freec.log" %]
 
 if [ -s "[% sample_path %]" ][% IF control_path %] && [ -s "[% control_path %]" ][% END %]
 then
@@ -30,11 +19,18 @@ then
     [%- END %]
     if [ -s "$ratio_file" ]
     then
+        start_step "MAKE_GRAPH"
         R --slave --args 2 "$ratio_file" [% IF opt.FREEC_BAF == 'yes' %]"$baf_file"[% END %] < [% opt.FREEC_PATH %]/makeGraph.R
+        finish_step
+
         if [ -s "$cnv_file" ]
         then
+            start_step "ASSESS_SIGNIFICANCE"
             R --slave --args "$cnv_file" "$ratio_file" < "[% opt.FREEC_PATH %]/assess_significance.R"
+            finish_step
+            start_step "MAKE_KARYOTYPE"
             R --slave --args 2 4 500000 "$ratio_file" < "[% opt.OUTPUT_DIR %]/scripts/makeKaryotype.R"
+            finish_step
         else
             echo "No copy number variants found, skipping post-processing"
         fi
@@ -50,15 +46,10 @@ then
         && [ -s "[% sample_file_name %]_ratio_karyotype.pdf" ] \
         || [ -f "$cnv_file" ] && [ -s "$ratio_file" ]
     then
-        touch "[% done_file %]"
-        [% INCLUDE Status.tt step=sample_name status="success" %]
+        success
     else
-        [% INCLUDE Status.tt step=sample_name status="failed" %]
-        fail "$ratio_file does not exist or is empty, or $cnv_file exists but analysis files do not"
+        failure "$ratio_file does not exist or is empty, or $cnv_file exists but analysis files do not"
     fi
 else
-    [% INCLUDE Status.tt step=sample_name status="failed" %]
-    fail "[% sample_path %] [% IF control_path %]or [% control_path %] [% END %]does not exist."
+    failure "[% sample_path %] [% IF control_path %]or [% control_path %] [% END %]does not exist."
 fi
-
-log_end "[% sample_name %]" "freec.log"

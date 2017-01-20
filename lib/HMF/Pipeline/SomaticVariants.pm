@@ -67,8 +67,8 @@ sub mergeSomatics {
     return unless $master_done_file;
 
     my $qsub = qsubJava($opt, "SOMVARMERGE");
-    my $in_vcf;
-    my $out_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");
+    my $input_vcf;
+    my $output_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");
     my $job_id = fromTemplate(
         "SomaticMerging",
         undef,
@@ -77,13 +77,13 @@ sub mergeSomatics {
         $somvar_jobs,
         $dirs,
         $opt,
-        in_vcfs => $somvar_vcfs,
-        out_vcf => $out_vcf,
+        input_vcfs => $somvar_vcfs,
+        output_vcf => $output_vcf,
     );
 
     if ($opt->{SOMVAR_TARGETS}) {
-        $in_vcf = $out_vcf;
-        $out_vcf = catfile($dirs->{out}, "${joint_name}_filtered_merged_somatics.vcf");
+        $input_vcf = $output_vcf;
+        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_merged_somatics.vcf");
 
         $job_id = fromTemplate(
             "SomaticFiltering",
@@ -93,15 +93,15 @@ sub mergeSomatics {
             [$job_id],
             $dirs,
             $opt,
-            in_vcf => $in_vcf,
-            out_vcf => $out_vcf,
+            input_vcf => $input_vcf,
+            output_vcf => $output_vcf,
         );
     }
 
-    my $pre_annotate_vcf = $out_vcf;
+    my $pre_annotate_vcf = $output_vcf;
     if ($opt->{SOMVAR_ANNOTATE} eq "yes") {
-        (my $basename = $out_vcf) =~ s/\.vcf$//;
-        $out_vcf = "${basename}_annotated.vcf";
+        (my $basename = $output_vcf) =~ s/\.vcf$//;
+        $output_vcf = "${basename}_annotated.vcf";
 
         $job_id = fromTemplate(
             "SomaticAnnotation",
@@ -112,7 +112,7 @@ sub mergeSomatics {
             $dirs,
             $opt,
             basename => $basename,
-            final_vcf => $out_vcf,
+            final_vcf => $output_vcf,
         );
     }
 
@@ -127,8 +127,8 @@ sub mergeSomatics {
         tumor_sample => $tumor_sample,
         joint_name => $joint_name,
         pre_annotate_vcf => $pre_annotate_vcf,
-        in_vcf => $out_vcf,
-        out_vcf => $final_vcf,
+        input_vcf => $output_vcf,
+        output_vcf => $final_vcf,
     );
 
     return $job_id;

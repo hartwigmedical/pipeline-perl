@@ -1,36 +1,25 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="PostStats" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=PostStats
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-log_start "" "[% opt.RUN_NAME %].log"
-[% INCLUDE Status.tt step="" status="processing" %]
-
-cd [% dirs.tmp %]
+cd "[% dirs.tmp %]"
 
 perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 [% FOREACH bam_file IN sample_bams.values -%]
-    -bam [% bam_file %] \
+    -bam "[% bam_file %]" \
 [% END -%]
-    -output_dir [% dirs.out %] \
+    -output_dir "[% dirs.out %]" \
     -run_name [% opt.RUN_NAME %] \
-    -genome [% opt.GENOME %] \
+    -genome "[% opt.GENOME %]" \
     -queue [% opt.POSTSTATS_QUEUE %] \
     -queue_threads [% opt.POSTSTATS_THREADS %] \
     -queue_mem [% opt.POSTSTATS_MEM %] \
     -queue_time [% opt.POSTSTATS_TIME %] \
     -queue_project [% opt.CLUSTER_PROJECT %] \
-    -picard_path [% opt.PICARD_PATH %] \
-    -sambamba_path [% opt.SAMBAMBA_PATH %] \
+    -picard_path "[% opt.PICARD_PATH %]" \
+    -sambamba_path "[% opt.SAMBAMBA_PATH %]" \
     -debug \
     -wgs \
     -coverage_cap 250 \
@@ -44,35 +33,34 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 
 [% FOREACH pair IN sample_bams.pairs -%]
 [% FOREACH design IN designs -%]
-java -Xmx[% opt.POSTSTATS_MEM %]G -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
-     -T UnifiedGenotyper \
-     -R "[% opt.GENOME %]" \
-     -L "[% opt.OUTPUT_DIR %]/settings/slicing/[% design %].vcf" \
-     --output_mode EMIT_ALL_SITES \
-     -I "[% pair.value %]" \
-     -o "[% dirs.${pair.key} %]/[% pair.key %]_[% design %].vcf"
+java -Xmx[% opt.POSTSTATS_MEM %]G -jar \
+    "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
+    -T UnifiedGenotyper \
+    -R "[% opt.GENOME %]" \
+    -L "[% opt.OUTPUT_DIR %]/settings/slicing/[% design %].vcf" \
+    --output_mode EMIT_ALL_SITES \
+    -I "[% pair.value %]" \
+    -o "[% dirs.${pair.key} %]/[% pair.key %]_[% design %].vcf"
 [% END -%]
 [% END %]
 
 [%- IF opt.EXONCALLCOV == "yes" -%]
 [% opt.EXONCALLCOV_PATH %]/ExonCov.py \
 [% FOREACH bam_file IN sample_bams.values -%]
-    -i [% bam_file %] \
+    -i "[% bam_file %]" \
 [% END -%]
     --queue [% opt.EXONCALLCOV_QUEUE %] \
     --project [% opt.CLUSTER_PROJECT %] \
     -a [% opt.EXONCALLCOV_TIME %] \
     -c [% opt.EXONCALLCOV_MEM %] \
-    -b [% opt.EXONCALLCOV_BED %] \
-    -n [% opt.EXONCALLCOV_ENS %] \
-    -p [% opt.EXONCALLCOV_PREF %] \
-    -l [% opt.EXONCALLCOV_PANEL %] \
-    -s [% opt.SAMBAMBA_PATH %]/sambamba \
-    -w [% dirs.tmp %] \
-    -o [% dirs.exoncov %]
+    -b "[% opt.EXONCALLCOV_BED %]" \
+    -n "[% opt.EXONCALLCOV_ENS %]" \
+    -p "[% opt.EXONCALLCOV_PREF %]" \
+    -l "[% opt.EXONCALLCOV_PANEL %]" \
+    -s "[% opt.SAMBAMBA_PATH %]/sambamba" \
+    -w "[% dirs.tmp %]" \
+    -o "[% dirs.exoncov %]"
 [% END -%]
 
 # do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
-[% INCLUDE Status.tt step="" status="finished" %]
-
-log_end "" "[% opt.RUN_NAME %].log"
+success_no_done

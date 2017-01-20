@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
 # -*- TT -*-
-#
-# Template used by the Template Toolkit. See: http://template-toolkit.org/
-#
 
 [% INCLUDE ErrorHandling.tt mode=opt.JOB_ERROR_MODE %]
-[% INCLUDE Logging.tt %]
+[% INCLUDE Logging.tt job_name="MergeMarkdup" main_step=sample log_name="${sample}.log" %]
 
-export JOB_NAME JOB_SET JOB_START
-JOB_NAME=MergeMarkdup
-JOB_SET="[% opt.RUN_NAME %]"
-JOB_START=$(date +%s)
-
-cd [% dirs.out %]
-
-[% INCLUDE Status.tt step=sample status="processing" %]
-
-log_start "[% sample %]" "[% sample %].log"
+cd "[% dirs.out %]"
 
 [% opt.SAMBAMBA_PATH %]/sambamba markdup \
     --tmpdir=[% dirs.tmp %] \
@@ -25,7 +13,4 @@ log_start "[% sample %]" "[% sample %].log"
     "[% input_bams.join('" "') %]" \
     "[% output_bam %]"
 
-touch "[% done_file %]"
-[% INCLUDE Status.tt step=sample status="finished" %]
-
-log_end "[% sample %]" "[% sample %].log"
+success
