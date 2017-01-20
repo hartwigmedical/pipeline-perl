@@ -6,26 +6,19 @@
 
 cd "[% dirs.varscan.out %]"
 
-assert_not_empty "[% snp_vcfs.join('" "') %]" "[% indel_vcfs.join('" "') %]"
-
-[% opt.VCFTOOLS_PATH %]/vcf-concat "[% snp_vcfs.join('" "') %]" > "[% joint_name %].snp.vcf"
-[% opt.VCFTOOLS_PATH %]/vcf-concat "[% indel_vcfs.join('" "') %]" > "[% joint_name %].indel.vcf"
-
-java -Xmx[% opt.VARSCAN_MEM %]G -jar "[% opt.VARSCAN_PATH %]" processSomatic "[% joint_name %].indel.vcf" [% opt.VARSCAN_POSTSETTINGS %]
-java -Xmx[% opt.VARSCAN_MEM %]G -jar "[% opt.VARSCAN_PATH %]" processSomatic "[% joint_name %].snp.vcf" [% opt.VARSCAN_POSTSETTINGS %]
+assert_not_empty "[% snp_vcf %]" "[% indel_vcf %]"
 
 java -Xmx[% opt.VARSCAN_MEM %]G \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CombineVariants \
     -R "[% opt.GENOME %]" \
     --genotypemergeoption unsorted \
-    -o "[% final_vcf %]" \
-    -V "[% joint_name %].snp.Somatic.hc.vcf" \
-    -V "[% joint_name %].indel.Somatic.hc.vcf"
+    -V "[% snp_vcf %]" \
+    -V "[% indel_vcf %]" \
+    -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
 
 # to resolve merge conflict with FB vcfs
 sed -i 's/SSC/VS_SSC/' "[% final_vcf %]"
-rm "[% snp_vcfs.join('" "') %]" "[% indel_vcfs.join('" "') %]"
 success

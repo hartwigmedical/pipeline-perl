@@ -4,7 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Varscan" main_step=chr log_name="varscan.log" %]
 
-cd "[% dirs.varscan.out %]"
+cd "[% dirs.varscan.tmp %]"
 
 assert_not_empty "[% ref_pileup %]" "[% tumor_pileup %]"
 

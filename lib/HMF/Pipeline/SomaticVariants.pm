@@ -165,6 +165,7 @@ sub runVarscan {
     say "\n### SCHEDULING VARSCAN ###";
 
     $dirs->{varscan}->{out} = addSubDir($dirs, "varscan");
+    $dirs->{varscan}->{tmp} = addSubDir($dirs->{varscan}, "tmp");
     my $final_vcf = catfile($dirs->{varscan}->{out}, "${joint_name}.merged.Somatic.hc.vcf");
 
     my $done_file = checkReportedDoneFile("Varscan", undef, $dirs, $opt) or return (undef, $final_vcf);
@@ -172,8 +173,8 @@ sub runVarscan {
 
     my (@chr_jobs, @chr_snp_vcfs, @chr_indel_vcfs);
     foreach my $chr (@{getChromosomes($opt)}) {
-        my $snp_vcf = "${joint_name}_${chr}.snp.vcf";
-        my $indel_vcf = "${joint_name}_${chr}.indel.vcf";
+        my $snp_vcf = catfile($dirs->{tmp}, "${joint_name}_${chr}.snp.vcf");
+        my $indel_vcf = catfile($dirs->{tmp}, "${joint_name}_${chr}.indel.vcf");
 
         my $job_id = fromTemplate(
             "Varscan",
@@ -194,21 +195,44 @@ sub runVarscan {
         push @chr_indel_vcfs, $indel_vcf;
     }
 
+    my ($snp_vcf, $snp_job_ids) = combineVarscan($joint_name, "snp", \@chr_snp_vcfs, \@chr_jobs, $qsub, $dirs, $opt);
+    my ($indel_vcf, $indel_job_ids) = combineVarscan($joint_name, "indel", \@chr_indel_vcfs, \@chr_jobs, $qsub, $dirs, $opt);
     my $post_job_id = fromTemplate(
         "VarscanPostProcess",
         undef,
         0,
         $qsub,
-        \@chr_jobs,
+        [ @{$snp_job_ids}, @{$indel_job_ids} ],
         $dirs,
         $opt,
         joint_name => $joint_name,
-        snp_vcfs => \@chr_snp_vcfs,
-        indel_vcfs => \@chr_indel_vcfs,
+        snp_vcf => $snp_vcf,
+        indel_vcf => $indel_vcf,
         final_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, @{$snp_job_ids}, @{$indel_job_ids}, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
+}
+
+sub combineVarscan {
+    my ($joint_name, $type, $chr_vcfs, $chr_jobs, $qsub, $dirs, $opt) = @_;
+
+    my $concat_vcf = catfile($dirs->{varscan}->{out}, "${joint_name}.${type}.vcf");
+    my $concat_job_id = concat($chr_vcfs, $concat_vcf, $joint_name, "VARSCAN", $chr_jobs, $dirs, $opt);
+    my $somatic_vcf = catfile($dirs->{varscan}->{out}, "${joint_name}.${type}.Somatic.hc.vcf");
+    my $somatic_job_id = fromTemplate(
+        "VarscanProcessSomatic",
+        $type,
+        0,
+        $qsub,
+        [$concat_job_id],
+        $dirs,
+        $opt,
+        joint_name => $joint_name,
+        input_vcf => $concat_vcf,
+        output_vcf => $somatic_vcf,
+    );
+    return ($somatic_vcf, [ $concat_job_id, $somatic_job_id ]);
 }
 
 sub runFreebayes {
@@ -294,19 +318,22 @@ sub runMutect {
         push @chr_vcfs, $output_vcf;
     }
 
+    my $concat_vcf = catfile($dirs->{mutect}->{out}, "${joint_name}_mutect.vcf");
+    my $concat_job_id = concat(\@chr_vcfs, $concat_vcf, $joint_name, "MUTECT", \@chr_jobs, $dirs, $opt);
+
     my $post_job_id = fromTemplate(
         "MutectPostProcess",
         undef,
         0,
         $qsub,
-        \@chr_jobs,
+        [$concat_job_id],
         $dirs,
         $opt,
         joint_name => $joint_name,
-        input_vcfs => \@chr_vcfs,
-        final_vcf => $final_vcf,
+        input_vcf => $concat_vcf,
+        output_vcf => $final_vcf,
     );
-    my $job_id = markDone($done_file, [ @chr_jobs, $post_job_id ], $dirs, $opt);
+    my $job_id = markDone($done_file, [ @chr_jobs, $concat_job_id, $post_job_id ], $dirs, $opt);
     return ($job_id, $final_vcf);
 }
 
