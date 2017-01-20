@@ -60,6 +60,9 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
     except IndexError as e:
         tumor_lod = -1.0
         print("assigning {} to tumor LOD for '{}' due to {}".format(tumor_lod, parts[TUMOR_PARTS_INDEX], e), file=sys.stderr)
+    except Exception as e:
+        print("{} for parts:\n{}".format(e, "\n".join(parts)), file=sys.stderr)
+        raise
     try:
         normal_gls = [float(x) for x in parts[NORMAL_PARTS_INDEX].split(":")[gl_index].split(",") if x != "."]
         if normal_gls:
@@ -70,6 +73,9 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
     except IndexError as e:
         normal_lod = normal_threshold
         print("assigning {} to normal LOD for '{}' due to {}".format(normal_lod, parts[NORMAL_PARTS_INDEX], e), file=sys.stderr)
+    except Exception as e:
+        print("{} for parts:\n{}".format(e, "\n".join(parts)), file=sys.stderr)
+        raise
     result = normal_lod >= normal_threshold and tumor_lod >= tumor_threshold
     if args.debug and not result:
         print('{} LOD filtered (normal: {}, tumor: {})'.format(_location(parts), normal_lod, tumor_lod), file=sys.stderr)
