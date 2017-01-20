@@ -19,7 +19,7 @@ sub writeFromTemplate {
     my ($name, $output_file, %data) = @_;
 
     my $t = Template->new(INCLUDE_PATH => templateDir(), STRICT => 1);
-    open my $tout, ">", $output_file or confess "Unable to open $output_file for writing";
+    open my $tout, ">", $output_file or confess "unable to open $output_file for writing";
     $t->process($name, \%data, \*$tout) or confess $t->error();
     close $tout;
     return;

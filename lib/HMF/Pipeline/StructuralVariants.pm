@@ -74,7 +74,7 @@ sub runDellyInterchromosomal {
     my @chrs = @{getChromosomes($opt)};
     foreach my $chr1 (@chrs) {
         foreach my $chr2 (@chrs) {
-            next unless mkkey_natural($chr2) gt mkkey_natural($chr1);
+            next if mkkey_natural($chr1) le mkkey_natural($chr2);
             my ($job_id, $output_vcf) = runDellyJob(
                 "${type}_${chr1}_${chr2}",
                 # include these
@@ -117,7 +117,7 @@ sub runDellyJob {
     my ($step, $include_chrs, $job_ids, $vcf_files, $sample_bams, $type, $running_jobs, $dirs, $opt) = @_;
 
     my $exclude_file = catfile($dirs->{tmp}, "${step}_exclude.txt");
-    open my $fh, ">", $exclude_file;
+    open my $fh, ">", $exclude_file or die "could not open $exclude_file: $!";
     foreach my $exclude_chr (@{getChromosomes($opt)}) {
         say $fh $exclude_chr unless defined $include_chrs->{$exclude_chr};
     }

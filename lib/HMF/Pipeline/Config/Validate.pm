@@ -245,7 +245,6 @@ sub configChecks {
                 POSTSTATS_MEM => \&key_not_present,
                 POSTSTATS_QUEUE => \&key_not_present,
                 POSTSTATS_TIME => \&key_not_present,
-                EXONCALLCOV => \&key_not_present,
                 EXONCALLCOV => if_enabled({
                         EXONCALLCOV_QUEUE => \&key_not_present,
                         EXONCALLCOV_TIME => \&key_not_present,
@@ -339,7 +338,6 @@ sub configChecks {
                 VCFTOOLS_PATH => \&missing_directory,
                 SAMTOOLS_PATH => \&missing_directory,
                 SOMVAR_TARGETS => \&missing_optional_file,
-                SOMVAR_STRELKA => \&key_not_present,
                 SOMVAR_STRELKA => if_enabled({
                         STRELKA_PATH => \&missing_directory,
                         STRELKA_INI => \&key_not_present,
@@ -349,7 +347,6 @@ sub configChecks {
                         STRELKA_TIME => \&key_not_present,
                     }
                 ),
-                SOMVAR_VARSCAN => \&key_not_present,
                 SOMVAR_VARSCAN => if_enabled({
                         VARSCAN_PATH => \&missing_file,
                         PBGZIP_PATH => \&missing_directory,
@@ -368,7 +365,6 @@ sub configChecks {
                         FINALIZE_KEEP_PILEUP => \&key_not_present,
                     }
                 ),
-                SOMVAR_FREEBAYES => \&key_not_present,
                 SOMVAR_FREEBAYES => if_enabled({
                         FREEBAYES_PATH => \&missing_directory,
                         VCFLIB_PATH => \&missing_directory,
@@ -380,7 +376,6 @@ sub configChecks {
                         FREEBAYES_SOMATICFILTER => \&key_not_present,
                     }
                 ),
-                SOMVAR_MUTECT => \&key_not_present,
                 SOMVAR_MUTECT => if_enabled({
                         MUTECT_PATH => \&missing_directory,
                         MUTECT_QUEUE => \&key_not_present,
@@ -394,7 +389,6 @@ sub configChecks {
                 SOMVARMERGE_THREADS => \&key_not_present,
                 SOMVARMERGE_MEM => \&key_not_present,
                 SOMVARMERGE_TIME => \&key_not_present,
-                SOMVAR_ANNOTATE => \&key_not_present,
                 SOMVAR_ANNOTATE => if_enabled({
                         ANNOTATE_DB => \&key_not_present,
                         ANNOTATE_FLAGS => \&key_not_present,
@@ -411,7 +405,6 @@ sub configChecks {
                 CNVCHECK_MEM => \&key_not_present,
                 CNVCHECK_TIME => \&key_not_present,
                 CNV_MODE => \&key_not_present,
-                CNV_FREEC => \&key_not_present,
                 CNV_FREEC => if_enabled({
                         FREEC_PATH => \&missing_directory,
                         FREEC_QUEUE => \&key_not_present,
@@ -438,7 +431,6 @@ sub configChecks {
                         ),
                     }
                 ),
-                CNV_QDNASEQ => \&key_not_present,
                 CNV_QDNASEQ => if_enabled({
                         QDNASEQ_PATH => \&missing_directory,
                         QDNASEQ_QUEUE => \&key_not_present,

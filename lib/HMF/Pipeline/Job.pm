@@ -3,6 +3,7 @@ package HMF::Pipeline::Job;
 use FindBin::libs;
 use discipline;
 
+use Carp;
 use File::Basename;
 use File::Spec::Functions;
 use File::Temp qw(tmpnam);
@@ -61,7 +62,7 @@ sub submit {
     my $hold_jid = hold_jid($hold_jids);
 
     my $option_file = File::Temp->new();
-    open my $fh, ">", $option_file;
+    open my $fh, ">", $option_file or confess "failed to write qsub parameter file $option_file";
     say $fh "-o $stdout -e $stderr -N $job_id $hold_jid";
     close $fh;
     system "$qsub -@ $option_file $bash_file";
