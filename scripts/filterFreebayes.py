@@ -16,6 +16,7 @@ import sys
 
 CHROM_INDEX = 0
 POS_INDEX = 1
+ALT_PARTS_INDEX = 4
 FORMAT_PARTS_INDEX = 8
 NORMAL_PARTS_INDEX = 9
 TUMOR_PARTS_INDEX = 10
@@ -30,16 +31,19 @@ FREQ_RATIO_THRESHOLD = 2.7
 
 def customFilterFreebayes(vcf_file):
     stripped_lines = (line.strip("\n") for line in vcf_file)
-    somatic_lines = (line for line in stripped_lines if _check_line(line))
+    somatic_lines = (line for line in stripped_lines if check_line(line))
     print("\n".join(somatic_lines))
 
 
-def _check_line(line):
+def check_line(line):
     parts = line.split("\t")
-    return line.startswith("#") or (_check_lods(parts, LOD_TUMOR_THRESHOLD, LOD_NORMAL_THRESHOLD) and _check_freqs(parts, FREQ_NORMAL_THRESHOLD, FREQ_RATIO_THRESHOLD))
+    return line.startswith("#") \
+        or (parts[ALT_PARTS_INDEX] != "." \
+            and check_lods(parts, LOD_TUMOR_THRESHOLD, LOD_NORMAL_THRESHOLD) \
+            and check_freqs(parts, FREQ_NORMAL_THRESHOLD, FREQ_RATIO_THRESHOLD))
 
 
-def _check_lods(parts, tumor_threshold, normal_threshold):
+def check_lods(parts, tumor_threshold, normal_threshold):
     """
     Ensure likelihoods for tumor and normal pass thresholds.
 
@@ -78,11 +82,11 @@ def _check_lods(parts, tumor_threshold, normal_threshold):
         raise
     result = normal_lod >= normal_threshold and tumor_lod >= tumor_threshold
     if args.debug and not result:
-        print('{} LOD filtered (normal: {}, tumor: {})'.format(_location(parts), normal_lod, tumor_lod), file=sys.stderr)
+        print('{} LOD filtered (normal: {}, tumor: {})'.format(location(parts), normal_lod, tumor_lod), file=sys.stderr)
     return result
 
 
-def _calc_freq(item, ro_index, ao_index):
+def calc_freq(item, ro_index, ao_index):
     try:
         if ao_index is not None and ro_index is not None:
             ao = sum([int(x) for x in item.split(":")[ao_index].split(",")])
@@ -97,7 +101,7 @@ def _calc_freq(item, ro_index, ao_index):
     return freq
 
 
-def _check_freqs(parts, normal_threshold, ratio_threshold):
+def check_freqs(parts, normal_threshold, ratio_threshold):
     """
     Ensure frequency of tumor to normal passes a reasonable threshold.
 
@@ -111,17 +115,17 @@ def _check_freqs(parts, normal_threshold, ratio_threshold):
         ao_index, ro_index = None, None
     if ao_index is None:
         raise NotImplementedError("Unexpected format annotations: %s" % parts[0])
-    tumor_freq = _calc_freq(parts[TUMOR_PARTS_INDEX], ro_index, ao_index)
-    normal_freq = _calc_freq(parts[NORMAL_PARTS_INDEX], ro_index, ao_index)
+    tumor_freq = calc_freq(parts[TUMOR_PARTS_INDEX], ro_index, ao_index)
+    normal_freq = calc_freq(parts[NORMAL_PARTS_INDEX], ro_index, ao_index)
     result = normal_freq is not None and tumor_freq is not None and (
         normal_freq <= normal_threshold or
         normal_freq <= tumor_freq / ratio_threshold)
     if args.debug and not result:
-        print('{} FREQ filtered (normal: {}, tumor: {})'.format(_location(parts), normal_freq, tumor_freq), file=sys.stderr)
+        print('{} FREQ filtered (normal: {}, tumor: {})'.format(location(parts), normal_freq, tumor_freq), file=sys.stderr)
     return result
 
 
-def _location(item):
+def location(item):
     return "CHROM {} POS {}".format(item[CHROM_INDEX], item[POS_INDEX])
 
 
