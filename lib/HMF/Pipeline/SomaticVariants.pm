@@ -228,7 +228,6 @@ sub combineVarscan {
         [$concat_job_id],
         $dirs,
         $opt,
-        joint_name => $joint_name,
         input_vcf => $concat_vcf,
         output_vcf => $somatic_vcf,
     );

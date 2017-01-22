@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="ConcatVcf" main_step=step log_name="${step}.log" %]
+[% INCLUDE Logging.tt job_name="ConcatVcf" main_step=output_vcf log_name="${step}.log" %]
 
 assert_not_empty "[% vcf_files.join('" "') %]"
 
