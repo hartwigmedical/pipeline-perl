@@ -13,15 +13,14 @@ java -Xmx[% opt.FREEBAYES_MEM %]G \
     filter "[% opt.FREEBAYES_SOMATICFILTER %]" \
     "[% input_vcf %]" \
     | [% opt.BCFTOOLS_PATH %]/bcftools view -a - \
-    | [% opt.VCFLIB_PATH %]/vcfallelicprimitives -t DECOMPOSED --keep-geno \
-    | [% opt.VCFLIB_PATH %]/vcffixup - \
-    | [% opt.VCFLIB_PATH %]/vcfstreamsort \
     | [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py \
+    | [% opt.VT_PATH %]/vt decompose -s - \
+    | [% opt.VT_PATH %]/vt decompose_blocksub -a - \
+    | [% opt.VT_PATH %]/vt normalize -q -r "[% opt.GENOME %]" - \
+    | [% opt.VCFLIB_PATH %]/vcffixup - \
     | [% opt.VCFLIB_PATH %]/vcfuniqalleles \
-    | [% opt.VT_PATH %]/vt normalize - \
-        -q \
-        -r "[% opt.GENOME %]" \
-        -o "[% final_vcf %]"
+    | [% opt.VCFLIB_PATH %]/vcfstreamsort \
+        > "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
 ## Check on complete output!!!
