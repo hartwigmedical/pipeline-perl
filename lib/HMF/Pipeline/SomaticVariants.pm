@@ -49,8 +49,8 @@ sub run {
             $somvar_vcfs{varscan} = $vcf;
         }
     }
-    my $merge_job_id = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $done_file, $dirs, $opt);
-    my $job_id = markDone($done_file, [ @somvar_jobs, $merge_job_id ], $dirs, $opt);
+    my $merge_job_ids = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $done_file, $dirs, $opt);
+    my $job_id = markDone($done_file, [ @somvar_jobs, @{$merge_job_ids} ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
     return;
@@ -64,8 +64,9 @@ sub mergeSomatics {
     # must happen even if .done
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
     HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt);
-    return unless $master_done_file;
+    return [] unless $master_done_file;
 
+    my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
     my $input_vcf;
     my $output_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");
@@ -80,6 +81,7 @@ sub mergeSomatics {
         input_vcfs => $somvar_vcfs,
         output_vcf => $output_vcf,
     );
+    push @job_ids, $job_id;
 
     if ($opt->{SOMVAR_TARGETS}) {
         $input_vcf = $output_vcf;
@@ -96,6 +98,7 @@ sub mergeSomatics {
             input_vcf => $input_vcf,
             output_vcf => $output_vcf,
         );
+        push @job_ids, $job_id;
     }
 
     my $pre_annotate_vcf = $output_vcf;
@@ -114,6 +117,7 @@ sub mergeSomatics {
             basename => $basename,
             final_vcf => $output_vcf,
         );
+        push @job_ids, $job_id;
     }
 
     $job_id = fromTemplate(
@@ -130,8 +134,9 @@ sub mergeSomatics {
         input_vcf => $output_vcf,
         output_vcf => $final_vcf,
     );
+    push @job_ids, $job_id;
 
-    return $job_id;
+    return \@job_ids;
 }
 
 sub runStrelka {
