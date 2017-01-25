@@ -13,8 +13,8 @@ java -Xmx[% opt.VARSCAN_MEM %]G \
     -T CombineVariants \
     -R "[% opt.GENOME %]" \
     --genotypemergeoption unsorted \
-    -V "[% snp_vcf %]" \
-    -V "[% indel_vcf %]" \
+    -V:snp "[% snp_vcf %]" \
+    -V:indel "[% indel_vcf %]" \
     -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"

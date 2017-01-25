@@ -25,8 +25,8 @@ java -Xmx[% opt.STRELKA_MEM %]G \
     -T CombineVariants \
     -R "[% opt.GENOME %]" \
     --genotypemergeoption unsorted \
-    -V "results/passed.somatic.snvs.vcf" \
-    -V "results/passed.somatic.indels.vcf" \
+    -V:snvs "results/passed.somatic.snvs.vcf" \
+    -V:indels "results/passed.somatic.indels.vcf" \
     -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
