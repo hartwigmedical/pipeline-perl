@@ -62,5 +62,7 @@ java -Xmx[% opt.POSTSTATS_MEM %]G -jar \
     -o "[% dirs.exoncov %]"
 [% END -%]
 
+qsub -N wait_for_bamMetrics -sync y -hold_jid bamMetrics_report_[% opt.RUN_NAME %] -b y /bin/true
+
 # do not touch done file; this job shares name/step with the master done file. it is touched by markDone.
 success_no_done
