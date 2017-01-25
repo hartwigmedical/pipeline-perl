@@ -36,6 +36,7 @@ awk -F'\t' -v OFS='\t' '
     { print }' \
     "[% final_vcf %]" \
     > temp.vcf
+
 mv temp.vcf "[% final_vcf %]"
 rm -r chromosomes/
 success
