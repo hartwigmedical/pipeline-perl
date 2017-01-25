@@ -9,9 +9,9 @@ maxThreads=[% opt.FREEC_THREADS %]
 telocentromeric=[% opt.FREEC_TELOCENTROMERIC %]
 BedGraphOutput=TRUE
 outputDir=[% dirs.freec.out %]
-[% FOREACH mappabilityTrack IN mappabilityTracks -%]
-gemMappabilityFile=[% mappabilityTrack %]
-[% END -%]
+[%- IF opt.exists('FREEC_MAPPABILITY_TRACK') %]
+gemMappabilityFile=[% opt.FREEC_MAPPABILITY_TRACK %]
+[%- END %]
 
 [sample]
 mateFile=[% sample_path %]

@@ -74,15 +74,12 @@ sub runFreec {
     }
     return unless $master_done_file;
 
-    my @mappabilityTracks;
-    @mappabilityTracks = split '\t', $opt->{FREEC_MAPPABILITY_TRACKS} if $opt->{FREEC_MAPPABILITY_TRACKS};
     my $config_file = catfile($dirs->{freec}{out}, "freec_config.txt");
     writeFromTemplate(
         "FreecConfig.tt",
         $config_file,
         sample_path => $sample_path,
         control_path => $control_path,
-        mappabilityTracks => \@mappabilityTracks,
         dirs => $dirs,
         opt => $opt,
     );

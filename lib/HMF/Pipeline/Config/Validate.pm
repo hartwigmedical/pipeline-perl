@@ -413,7 +413,7 @@ sub configChecks {
                         FREEC_TIME => \&key_not_present,
                         FREEC_CHRFILES => \&missing_directory,
                         FREEC_CHRLENFILE => \&missing_file,
-                        FREEC_MAPPABILITY_TRACKS => \&missing_optional_files,
+                        FREEC_MAPPABILITY_TRACK => \&missing_optional_file,
                         FREEC_PLOIDY => \&key_not_present,
                         FREEC_WINDOW => \&key_not_present,
                         FREEC_TELOCENTROMERIC => \&key_not_present,
