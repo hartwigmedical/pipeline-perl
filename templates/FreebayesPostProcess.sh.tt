@@ -15,7 +15,7 @@ java -Xmx[% opt.FREEBAYES_MEM %]G \
     | [% opt.BCFTOOLS_PATH %]/bcftools view -a - \
     | [% opt.OUTPUT_DIR %]/scripts/filterFreebayes.py \
     | [% opt.VT_PATH %]/vt decompose -s - \
-    | [% opt.VT_PATH %]/vt decompose_blocksub -a - \
+    | [% opt.VT_PATH %]/vt decompose_blocksub - \
     | [% opt.VT_PATH %]/vt normalize -q -r "[% opt.GENOME %]" - \
     | [% opt.VCFLIB_PATH %]/vcffixup - \
     | [% opt.VCFLIB_PATH %]/vcfuniqalleles \
