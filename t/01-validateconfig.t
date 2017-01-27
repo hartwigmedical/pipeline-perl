@@ -590,11 +590,16 @@ is_deeply(
     "parses R2 FASTQ name"
 );
 
-my $exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName("INVALID.fastq.gz") };
-like($exception, qr/^ERROR: FASTQ filename 'INVALID.fastq.gz' must match regex/, "detects bad FASTQ name");
+my $invalid_name = "INVALID.fastq.gz";
+my $exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects bad FASTQ name");
 
-$exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName("CPCT12345678T_HJJLGCCXX_S3_L001_001_2.fastq") };
-like($exception, qr/^ERROR: FASTQ filename 'CPCT12345678T_HJJLGCCXX_S3_L001_001_2.fastq' must match regex/, "detects bad FASTQ name");
+$invalid_name = "CPCT12345678T_HJJLGCCXX_S3_L001_001_2.fastq.gz";
+$exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects FASTQ name missing pair tag");
 
+$invalid_name = "-dox_HJJLGCCXX_S3_L001_R1_001.fastq.gz";
+$exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects sample name with leading dash");
 
 done_testing();

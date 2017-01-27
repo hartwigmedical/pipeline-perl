@@ -18,7 +18,7 @@ sub parseFastqName {
     (my $R1 = $input_file) =~ s/_R2/_R1/;
     (my $R2 = $input_file) =~ s/_R1/_R2/;
 
-    my $fastQPattern = qr/^(?<sampleName>[^_]+)
+    my $fastQPattern = qr/^(?<sampleName>[^-_][^_]*)
                           _(?<flowcellID>[^_]+)
                           _(?<index>[^_]+)
                           _(?<lane>[^_]+)
