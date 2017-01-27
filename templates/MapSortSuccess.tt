@@ -1,1 +1,1 @@
-rm [% unsorted_bam %]
+rm "[% unsorted_bam %]"
