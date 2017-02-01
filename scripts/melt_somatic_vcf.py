@@ -7,6 +7,10 @@ import sys
 import argparse
 import vcf
 
+FORMAT_FIELDS = ["GT", "AD", "DP"]
+FORMAT = ":".join(FORMAT_FIELDS)
+CALL_DATA_FORMAT = vcf.model.make_calldata_tuple(FORMAT_FIELDS)
+
 
 def melt_somatic_vcf(in_vcf_path, remove_filtered, tumor_sample):
     tumor_call_parsers = {
@@ -67,10 +71,8 @@ def make_melted_record(record, tumor_sample, support, ads, dps):
 
     record.add_info("CSA", csa)
     record.add_info("CSP", csp)
-    format_fields = ["GT", "AD", "DP"]
-    record.FORMAT = ":".join(format_fields)
-    data_format = vcf.model.make_calldata_tuple(format_fields)
-    data = data_format(melted_gt, melted_ad, melted_dp)
+    record.FORMAT = FORMAT
+    data = CALL_DATA_FORMAT(melted_gt, melted_ad, melted_dp)
 
     melted_call = vcf.model._Call(record, tumor_sample, data)
     record.samples = [melted_call]
