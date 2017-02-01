@@ -79,6 +79,8 @@ sub linkArtefacts {
             linkExtraArtefact(catfile($exoncov_dir, "${sample}.html"), $opt);
             (my $coverage_name = $opt->{BAM_FILES}->{$sample}) =~ s/\.bam$/_exon_coverage.tsv/;
             linkExtraArtefact(catfile($exoncov_dir, "Exons", $coverage_name), $opt);
+            (my $preferred_transcripts_name = $opt->{BAM_FILES}->{$sample}) =~ s/\.bam$/${sample}_preferred_transcripts_coverage.tsv/;
+            linkExtraArtefact(catfile($exoncov_dir, "Preferred_transcripts", $preferred_transcripts_name), $opt);
         }
     }
     return;
