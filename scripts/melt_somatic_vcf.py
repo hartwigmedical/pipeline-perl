@@ -31,15 +31,14 @@ def melt_somatic_vcf(in_vcf_path, remove_filtered, tumor_sample):
 
 
 def melt_record(record, tumor_call_parsers, tumor_sample, remove_filtered, out_vcf):
-    # can be record.is_filtered() when PyVCF releases again
-    if remove_filtered and record.FILTER is not None and len(record.FILTER) != 0:
+    if remove_filtered and record.is_filtered:
         return
 
     support = [0] * len(record.alleles)
     ads = [[] for _ in xrange(len(record.alleles))]
     dps = []
     for call in record.samples:
-        if call.sample not in tumor_call_parsers or call.gt_alleles is None or not any(call.gt_alleles):
+        if call.sample not in tumor_call_parsers or not call.called:
             continue
         dps.append(call.data.DP)
         for allele_num in set(int(an) for an in call.gt_alleles if an is not None):
@@ -113,6 +112,7 @@ def info_field(field_name, field_count, field_type, field_desc):
         field_desc,
         None,
         None,
+        vcf.parser.INTEGER,
     )
 
 
@@ -123,13 +123,12 @@ class FreeBayesParser(object):
         if allele_num == 0:
             return call.data.RO
         else:
-            ao = fix_list_type(call.data.AO)
             # GATK CombineVariants does not change AO field if the order/number of alt alleles is changed.
             # Therefore in some cases an incorrect AO value is selected.
             try:
-                return ao[allele_num - 1]
+                return call.data.AO[allele_num - 1]
             except IndexError:
-                return ao[-1]
+                return call.data.AO[-1]
 
 
 class MutectParser(object):
@@ -142,9 +141,12 @@ class MutectParser(object):
             return call.data.AD[allele_num]
         else:
             if allele_num == 0:
-                return (1 - call.data.FA) * call.data.DP
+                return (1 - sum(call.data.FA)) * call.data.DP
             else:
-                return call.data.FA * call.data.DP
+                try:
+                    return call.data.FA[allele_num - 1] * call.data.DP
+                except IndexError:
+                    return call.data.FA[0] * call.data.DP
 
 
 class VarScanParser(object):
@@ -158,7 +160,7 @@ class VarScanParser(object):
         else:
             # AD not always present due to CombineVariants (stripPLsAndAD)
             if hasattr(call.data, "AD"):
-                return call.data.AD
+                return call.data.AD[allele_num - 1]
             else:
                 return float(call.data.FREQ.rstrip("%")) / 100 * call.data.DP
 
@@ -181,17 +183,6 @@ class StrelkaParser(object):
             return call.data.TIR[0]
         else:
             return None
-
-
-# https://github.com/jamescasbon/PyVCF/issues/254
-def fix_list_type(field):
-    try:
-        field + 0
-        # should be a list, but is a single value
-        return [field]
-    except TypeError:
-        # already a list
-        return field
 
 
 if __name__ == "__main__":
