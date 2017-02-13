@@ -294,6 +294,7 @@ sub configChecks {
                 FLAGSTAT_THREADS => \&key_not_present,
                 FLAGSTAT_MEM => \&key_not_present,
                 FLAGSTAT_TIME => \&key_not_present,
+                FINALIZE_KEEP_BQSR => \&key_not_present,
             }
         ),
         VARIANT_CALLING => if_enabled({
