@@ -83,7 +83,7 @@ sub linkArtefact {
     my ($source_path, $canonical_name, $opt) = @_;
 
     $opt->{LINKS} = {} if not exists $opt->{LINKS};
-    $opt->{LINKS}->{$canonical_name} = $source_path;
+    $opt->{LINKS}->{$canonical_name} = abs2rel($source_path, $opt->{OUTPUT_DIR});
     return;
 }
 
