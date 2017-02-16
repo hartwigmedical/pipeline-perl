@@ -5,6 +5,7 @@ use discipline;
 use File::Spec::Functions;
 use File::Temp;
 use File::Touch;
+use Test::Fatal;
 use Test::More;
 use Test::Output;
 use Test::MockModule;
@@ -103,6 +104,13 @@ stdout_like {
 }
 qr/Your job [0-9]+ \("job_id"\) has been submitted/, "calls qsub";
 
+my $unwriteable_file = File::Temp->new();
+chmod 0000, $unwriteable_file->filename;
+my $module = Test::MockModule->new('File::Temp');
+$module->mock(new => sub { return $unwriteable_file->filename; });
+my $exception = exception { HMF::Pipeline::Job::submit("qsub", "job_name", "job_id", [], "bash_file.sh", {log => "logs"}) };
+like($exception, qr/failed to write qsub parameter file $unwriteable_file/, "fails when qsub options cannot be written");
+
 
 sub testJobFromTemplate {
     my ($name, $step, $is_reported_job, $hold_jids, $expected_job_name, $expected_hold_jids, $skip) = @_;
@@ -172,7 +180,7 @@ foreach my $skip (0, 1) {
 
 
 my (@job_args, @qsub_args);
-my $module = Test::MockModule->new('HMF::Pipeline::Job');
+$module = Test::MockModule->new('HMF::Pipeline::Job');
 $module->mock(fromTemplate => sub { @job_args = @_; return "jobid"; });
 $module->mock(qsubSimple => sub { @qsub_args = @_ });
 
