@@ -4,6 +4,7 @@ use FindBin::libs;
 use discipline;
 
 use Carp;
+use File::Basename;
 use File::Spec::Functions qw(:ALL);
 use JSON;
 
@@ -82,8 +83,9 @@ sub sampleControlNames {
 sub linkArtefact {
     my ($source_path, $canonical_name, $opt) = @_;
 
-    $opt->{LINKS} = {} if not exists $opt->{LINKS};
-    $opt->{LINKS}->{$canonical_name} = abs2rel($source_path, $opt->{OUTPUT_DIR});
+    $opt->{LINKS} = readLinks($opt) if not exists $opt->{LINKS};
+    $source_path = abs2rel($source_path, $opt->{OUTPUT_DIR}) if file_name_is_absolute($source_path);
+    $opt->{LINKS}->{$canonical_name} = $source_path;
     return;
 }
 
@@ -125,7 +127,11 @@ sub readLinks {
     my ($opt) = @_;
 
     my $links_path = linksPath($opt);
-    return -s $links_path ? readJson($links_path) : {};
+    my $links = -s $links_path ? readJson($links_path) : {};
+    while (my ($name, $link) = each %{$links}) {
+        $links->{$name} = stripPath($link, $opt->{RUN_NAME}) if file_name_is_absolute($link);
+    }
+    return $links;
 }
 
 sub writeLinks {
@@ -133,6 +139,18 @@ sub writeLinks {
 
     writeJson(linksPath($opt), $opt->{LINKS});
     return;
+}
+
+sub stripPath {
+    my ($path, $last_irrelevant_segment) = @_;
+
+    my $relevant_part = basename($path);
+    $path = dirname($path);
+    while (basename($path) ne $last_irrelevant_segment and not file_name_is_absolute($relevant_part)) {
+        $relevant_part = catfile(basename($path), $relevant_part);
+        $path = dirname($path);
+    }
+    return $relevant_part;
 }
 
 1;
