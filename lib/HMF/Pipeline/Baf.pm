@@ -42,12 +42,13 @@ sub run {
             output_baf => $output_baf,
             output_bafplot => $output_bafplot,
         );
+        next unless $job_id;
 
         foreach my $artefact ($output_vcf, "${output_vcf}.idx", $output_baf, $output_bafplot) {
             linkExtraArtefact(catfile($dirs->{out}, $artefact), $opt);
         }
 
-        push @baf_jobs, $job_id if $job_id;
+        push @baf_jobs, $job_id;
     }
     $opt->{RUNNING_JOBS}->{'baf'} = \@baf_jobs;
     return;

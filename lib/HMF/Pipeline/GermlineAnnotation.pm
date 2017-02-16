@@ -36,9 +36,10 @@ sub run {
     );
 
     $opt->{GERMLINE_VCF_FILE} = $annotated_vcf;
-    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
+    return unless $job_id;
 
-    recordAllSampleJob($opt, $job_id) if $job_id;
+    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
+    recordAllSampleJob($opt, $job_id);
     return;
 }
 

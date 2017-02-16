@@ -37,9 +37,10 @@ sub run {
         final_gvcfs => $opt->{GVCF_FILES},
         job_native => jobNative($opt, "CALLING"),
     );
+    return unless $job_id;
 
     linkArtefacts($opt);
-    recordAllSampleJob($opt, $job_id) if $job_id;
+    recordAllSampleJob($opt, $job_id);
     return;
 }
 
