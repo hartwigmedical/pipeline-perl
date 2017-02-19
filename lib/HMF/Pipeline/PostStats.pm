@@ -34,7 +34,7 @@ sub run {
     my $stats_job_id = fromTemplate(
         "PostStats",
         undef,
-        1,
+        0,
         $qsub,
         $running_jobs,
         $dirs,

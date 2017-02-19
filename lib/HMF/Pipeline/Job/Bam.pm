@@ -181,7 +181,7 @@ sub operationWithSliceChecks {
     my $operation_job_id = fromTemplate(
         $job_template,
         $sample,
-        1,
+        0,
         qsubJava($opt, uc $job_template . "_MASTER"),
         $opt->{RUNNING_JOBS}->{$sample},
         $dirs,
