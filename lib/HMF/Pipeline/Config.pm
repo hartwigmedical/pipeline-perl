@@ -240,6 +240,7 @@ sub copyConfigAndScripts {
     open my $fh, ">", $final_ini or die "Couldn't open $final_ini: $!";
     say $fh join "\n", map { "$_\t$opt->{$_}" } grep { defined $opt->{$_} and not ref $opt->{$_} } sort keys %{$opt};
     close $fh;
+    HMF::Pipeline::Metadata::linkExtraArtefact($final_ini, $opt);
 
     return;
 }
