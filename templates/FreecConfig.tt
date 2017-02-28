@@ -1,6 +1,6 @@
 [general]
 chrLenFile=[% opt.FREEC_CHRLENFILE %]
-ploidy=2
+ploidy=[% opt.FREEC_PLOIDY %]
 samtools=[% opt.SAMTOOLS_PATH %]/samtools
 sambamba=[% opt.SAMBAMBA_PATH %]/sambamba
 chrFiles=[% opt.FREEC_CHRFILES %]
