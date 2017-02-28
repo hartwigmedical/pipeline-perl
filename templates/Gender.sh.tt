@@ -6,7 +6,7 @@
 
 cd "[% dirs.tmp %]"
 
-# same step as kinship, but easier to segregate and repeat (runs fast, saves a depedency)
+# same step as kinship, but easier to segregate and repeat (runs fast, saves a dependency)
 [% opt.VCFTOOLS_PATH %]/vcftools --temp "[% dirs.tmp %]" --out "[% dirs.tmp %]/gender_input" --vcf "[% vcf_path %]" --plink
 cut -f 1-6 "[% dirs.tmp %]/gender_input.ped" > "[% dirs.tmp %]/gender_input.fam"
 
