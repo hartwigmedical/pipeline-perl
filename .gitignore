@@ -1,5 +1,4 @@
 *.iml
-.idea/*
 /Build
 /_build/
 /blib/
@@ -7,3 +6,4 @@
 /MYMETA.yml
 /MANIFEST
 /cover_db/
+.idea/
