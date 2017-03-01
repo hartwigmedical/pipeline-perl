@@ -10,6 +10,7 @@ use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampl
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile);
 use HMF::Pipeline::Job::Vcf;
 use HMF::Pipeline::Sge qw(qsubTemplate);
+use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
@@ -182,6 +183,13 @@ sub runMantaJob {
         control_bam => $control_bam,
         joint_name => $joint_name,
     );
+
+    linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz"), $opt);
+    linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz.tbi"), $opt);
+    if (defined $control_bam) {
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
+    }
 
     return $job_id;
 }
