@@ -24,6 +24,9 @@ def check_record(record):
     if len(record.ALT) > 1:
         print("WARN: more than one alt, keeping: {} {} {}".format(record, record.INFO, record.samples), file=sys.stderr)
         return True
+    elif record.ALT[0] == None:
+        print("WARN: alt is None, skipping: {} {} {}".format(record, record.INFO, record.samples), file=sys.stderr)
+        return False
     try:
         qs, tier = quality_score(record)
         for call in record.samples:
