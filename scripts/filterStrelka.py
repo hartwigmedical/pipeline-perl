@@ -49,13 +49,21 @@ def quality_score(record):
 def allelic_frequency(call, tier_index):
     allele = call.site.ALT[0]
     if len(call.site.REF) == 1 and len(allele) == 1:
-        ref_field_name = "{}U".format(call.site.REF)
+       	ref_field_name = "{}U".format(call.site.REF)
         alt_field_name = "{}U".format(allele)
-        return getattr(call.data, alt_field_name)[tier_index] \
-            / (getattr(call.data, alt_field_name)[tier_index] + getattr(call.data, ref_field_name)[tier_index])
+	sumAltFieldRefField = getattr(call.data, alt_field_name)[tier_index] + getattr(call.data, ref_field_name)[tier_index]
+	#prevent division by 0
+	if sumAltFieldRefField == 0:
+		return 0
+	else:
+        	return getattr(call.data, alt_field_name)[tier_index] / sumAltFieldRefField   
     else:
-        return call.data.TIR[tier_index] / (call.data.TIR[tier_index] + call.data.TAR[tier_index])
-
+	sumTIRandTAR = call.data.TIR[tier_index] + call.data.TAR[tier_index]
+	#prevent division by 0
+	if sumTIRandTAR == 0:
+		return 0
+	else:
+        	return call.data.TIR[tier_index] / sumTIRandTAR 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
