@@ -170,6 +170,10 @@ sub sampleBamAndJobs {
     my ($sample, $opt) = @_;
 
     my $bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
+
+   # print STDERR "bam: $bam\n";
+   # print STDERR "sample: $sample\n";
+   # print STDERR "RUNNING_JOBS: $opt->{RUNNING_JOBS}->{$sample} \n";
     return ($bam, $opt->{RUNNING_JOBS}->{$sample});
 }
 
@@ -197,6 +201,17 @@ sub sampleControlBamsAndJobs {
     my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
     my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
 
+    #print STDERR "ref_sample: $ref_sample\n";
+    #print STDERR "tumor_sample: $tumor_sample\n";
+    #print STDERR "ref_sample_bam: $ref_sample_bam\n";
+    #print STDERR "tumor_sample_bam: $tumor_sample_bam\n";
+    #print STDERR "joint_name: $joint_name\n";
+    #if ($ref_sample_jobs && @{$ref_sample_jobs}) {
+    #  print STDERR "ref_sample_jobs is defined \n";
+    #}
+    #if ($tumor_sample_jobs && @{$tumor_sample_jobs}) {
+    #  print STDERR "tumor_sample_jobs is defined \n";
+    #}
     return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ uniq @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
 }
 

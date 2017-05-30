@@ -7,32 +7,34 @@
 assert_not_empty "[% ref_bam_path %]" "[% tumor_bam_path %]"
 
 rm -rf "[% dirs.strelka.out %]"
-[% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
-    --tumor "[% tumor_bam_path %]" \
-    --normal "[% ref_bam_path %]" \
-    --ref "[% opt.GENOME %]" \
+[% opt.STRELKA_PATH %]/bin/configureStrelkaSomaticWorkflow.py \
+    --tumorBam "[% tumor_bam_path %]" \
+    --normalBam "[% ref_bam_path %]" \
+    --referenceFasta "[% opt.GENOME %]" \
     --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
-    --output-dir "[% dirs.strelka.out %]"
+    --runDir "[% dirs.strelka.out %]"
 
 cd "[% dirs.strelka.out %]"
-make -j [% opt.STRELKA_THREADS %]
+./runWorkflow.py -m sge -j [% opt.STRELKA_THREADS %]
 
-assert_exists "[% dirs.strelka.out %]/task.complete"
-assert_not_empty "results/passed.somatic.snvs.vcf" "results/passed.somatic.indels.vcf"
+assert_exists "[% dirs.strelka.out %]/workflow.exitcode.txt"
+if [[ $(< "[% dirs.strelka.out %]/workflow.exitcode.txt") != "0" ]]; then fail "Strelka2 variant caller error"; fi
+assert_not_empty "results/variants/somatic.snvs.vcf.gz" "results/variants/somatic.indels.vcf.gz" 
 
 java -Xmx[% opt.STRELKA_MEM %]G \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CombineVariants \
     -R "[% opt.GENOME %]" \
     --genotypemergeoption unsorted \
-    -V:snvs "results/passed.somatic.snvs.vcf" \
-    -V:indels "results/passed.somatic.indels.vcf" \
+    -V:snvs "results/variants/somatic.snvs.vcf.gz" \
+    -V:indels "results/variants/somatic.indels.vcf.gz" \
     -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
 
 awk -F'\t' -v OFS='\t' '
     /^#CHROM/ { print "##StrelkaGATKCompatibility=Added GT fields to strelka calls for gatk compatibility."; }
+    /^##FORMAT/ { if (!formatTagFound) { formatTagFound++; print "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">";} }  
     /^[^#]/ { $9 = "GT:" $9; $10 = "0/0:" $10; $11 = "0/1:" $11; }
     { print }' \
     "[% final_vcf %]" \
@@ -40,5 +42,4 @@ awk -F'\t' -v OFS='\t' '
         > "[% final_vcf %].tmp"
 
 mv "[% final_vcf %].tmp" "[% final_vcf %]"
-rm -r chromosomes/
 success
