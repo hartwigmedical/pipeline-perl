@@ -17,21 +17,15 @@ export PATH
 cd "[% dirs.freec.out %]"
 cnv_file="[% sample_file_name %]_CNVs"
 ratio_file="[% sample_file_name %]_ratio.txt"
-[%- IF opt.FREEC_BAF == 'yes' %]
-baf_file="[% sample_file_name %]_BAF.txt"
-[%- END %]
 
 assert_exists "$cnv_file"
 assert_not_empty "$ratio_file"
 
 start_step "MAKE_GRAPH"
-R --slave --args 2 "$ratio_file" [% IF opt.FREEC_BAF == 'yes' %]"$baf_file"[% END %] < [% opt.FREEC_PATH %]/makeGraph.R
+R --slave --args 2 "$ratio_file" < [% opt.FREEC_PATH %]/makeGraph.R
 finish_step
 
 assert_not_empty "[% sample_file_name %]_ratio.txt.png"
-[%- IF opt.FREEC_BAF == 'yes' %]
-assert_not_empty "$baf_file" "${baf_file}.png"
-[%- END %]
 
 if [ -s "$cnv_file" ]
 then
