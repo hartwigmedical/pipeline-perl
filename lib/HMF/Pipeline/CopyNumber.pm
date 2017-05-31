@@ -59,13 +59,13 @@ sub runFreec {
     $dirs->{freec}{out} = addSubDir($dirs, "freec");
 
     my ($sample_path, $control_path);
-#    if ($opt->{FREEC_BAF} eq "yes") {
-#        $sample_path = $opt->{PILEUP_FILES}->{$sample_name};
-#        $control_path = $control_name ? $opt->{PILEUP_FILES}->{$control_name} : "";
-#    } else {
-        $sample_path = $sample_bam;
-        $control_path = $control_bam;
-#    }
+    #    if ($opt->{FREEC_BAF} eq "yes") {
+    #        $sample_path = $opt->{PILEUP_FILES}->{$sample_name};
+    #        $control_path = $control_name ? $opt->{PILEUP_FILES}->{$control_name} : "";
+    #    } else {
+    $sample_path = $sample_bam;
+    $control_path = $control_bam;
+    #    }
 
     my $config_file = catfile($dirs->{freec}{out}, "freec_config.txt");
     writeFromTemplate(

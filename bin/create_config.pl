@@ -64,11 +64,11 @@ sub createConfig {
     die "$vcfFile does not exist" if $vcfFile and not -f $vcfFile;
 
     my @fastqFiles = File::Find::Rule->file() #
-        ->extras({ follow => 1 })
+        ->extras({follow => 1})               #
         ->name("*.fastq.gz")                  #
         ->in(@{$fastqDirs});                  #
     my @bamFiles = File::Find::Rule->file()   #
-        ->extras({ follow => 1 })
+        ->extras({follow => 1})               #
         ->name("*.bam")                       #
         ->in(@{$bamDirs});                    #
 
