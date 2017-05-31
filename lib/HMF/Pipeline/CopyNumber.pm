@@ -78,7 +78,6 @@ sub runFreec {
     );
 
     my @dependent_jobs = @{$running_jobs};
-    push @dependent_jobs, @{$opt->{RUNNING_JOBS}->{pileup}} if $opt->{FREEC_BAF} eq "yes";
 
     my $sample_file_name = fileparse($sample_path);
     my $job_id = fromTemplate(
