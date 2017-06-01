@@ -36,7 +36,6 @@ our @EXPORT_OK = qw(
     getChromosomes
 );
 
-
 sub parse {
     my ($configurationFile, $opt) = @_;
 
@@ -171,9 +170,9 @@ sub sampleBamAndJobs {
 
     my $bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
 
-   # print STDERR "bam: $bam\n";
-   # print STDERR "sample: $sample\n";
-   # print STDERR "RUNNING_JOBS: $opt->{RUNNING_JOBS}->{$sample} \n";
+    # print STDERR "bam: $bam\n";
+    # print STDERR "sample: $sample\n";
+    # print STDERR "RUNNING_JOBS: $opt->{RUNNING_JOBS}->{$sample} \n";
     return ($bam, $opt->{RUNNING_JOBS}->{$sample});
 }
 
@@ -260,7 +259,7 @@ sub copyConfigAndScripts {
     return;
 }
 
-# do NOT depend on this from jobs
+# SABR: do NOT depend on this from jobs
 sub pipelinePath {
     return catfile($FindBin::Bin, updir());
 }
