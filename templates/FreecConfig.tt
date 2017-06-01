@@ -8,6 +8,7 @@ window=[% opt.FREEC_WINDOW %]
 maxThreads=[% opt.FREEC_THREADS %]
 telocentromeric=[% opt.FREEC_TELOCENTROMERIC %]
 BedGraphOutput=TRUE
+forceGCcontentNormalization=1
 outputDir=[% dirs.freec.out %]
 [%- IF opt.exists('FREEC_MAPPABILITY_TRACK') %]
 gemMappabilityFile=[% opt.FREEC_MAPPABILITY_TRACK %]
