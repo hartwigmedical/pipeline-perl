@@ -15,7 +15,7 @@ rm -rf "[% dirs.strelka.out %]"
     --runDir "[% dirs.strelka.out %]"
 
 cd "[% dirs.strelka.out %]"
-./runWorkflow.py -m sge -j [% opt.STRELKA_THREADS %]
+./runWorkflow.py -m local -j [% opt.STRELKA_THREADS %]
 
 assert_exists "[% dirs.strelka.out %]/workflow.exitcode.txt"
 if [[ $(< "[% dirs.strelka.out %]/workflow.exitcode.txt") != "0" ]]; then fail "Strelka2 variant caller error"; fi
