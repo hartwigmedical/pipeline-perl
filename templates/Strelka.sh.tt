@@ -7,12 +7,25 @@
 assert_not_empty "[% ref_bam_path %]" "[% tumor_bam_path %]"
 
 rm -rf "[% dirs.strelka.out %]"
+
+if [ -f "[% opt.OUTPUT_DIR %]/structuralVariants/manta/[% joint_name %]/results/variants/candidateSmallIndels.vcf.gz" ]
+then
+[% opt.STRELKA_PATH %]/bin/configureStrelkaSomaticWorkflow.py \
+    --tumorBam "[% tumor_bam_path %]" \
+    --normalBam "[% ref_bam_path %]" \
+    --referenceFasta "[% opt.GENOME %]" \
+    --indelCandidates "[% opt.OUTPUT_DIR %]/structuralVariants/manta/[% joint_name %]/results/variants/candidateSmallIndels.vcf.gz" \
+    --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
+    --runDir "[% dirs.strelka.out %]"
+else
+echo "WARNING no MANTA candidateSmallIndels.vcf.gz found, reverting to defaults (less accurate)"
 [% opt.STRELKA_PATH %]/bin/configureStrelkaSomaticWorkflow.py \
     --tumorBam "[% tumor_bam_path %]" \
     --normalBam "[% ref_bam_path %]" \
     --referenceFasta "[% opt.GENOME %]" \
     --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
     --runDir "[% dirs.strelka.out %]"
+fi
 
 cd "[% dirs.strelka.out %]"
 ./runWorkflow.py -m local -j [% opt.STRELKA_THREADS %]
