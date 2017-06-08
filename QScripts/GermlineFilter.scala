@@ -1,5 +1,6 @@
 package org.broadinstitute.gatk.queue.qscripts
 
+
 import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 import htsjdk.variant.variantcontext.VariantContext.Type
