@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="SomaticPONAnnotation" main_step=output_vcf log_name="merge.log" %]
+
+cd "[% dirs.out %]"
+
+assert_not_empty "[% input_vcf %]"
+
+[% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p [% opt.HMF_PON %] -i "[% input_vcf %] -o - | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ "[% output_vcf %]"
+[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
+
+assert_last_position_unchanged "[% pre_annotate_vcf %]" "[% output_vcf %]"
+rm "$input_vcf" "$input_vcf.idx"
+success
