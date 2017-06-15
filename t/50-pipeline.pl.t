@@ -42,6 +42,7 @@ sub setupTestConfig {
         FREEC_SNPFILE
         REALIGNMENT_KNOWN
         VARSCAN_PATH
+        HMF_PON
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
