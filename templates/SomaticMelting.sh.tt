@@ -9,7 +9,6 @@ cd "[% dirs.out %]"
 assert_not_empty "[% input_vcf %]"
 
 [% opt.OUTPUT_DIR %]/scripts/melt_somatic_vcf.py -t "[% tumor_sample %]" -v "[% input_vcf %]" > "[% output_vcf %]"
-[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 
 assert_last_position_unchanged "[% pre_annotate_vcf %]" "[% output_vcf %]"
 success
