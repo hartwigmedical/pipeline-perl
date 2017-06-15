@@ -8,7 +8,7 @@ cd "[% dirs.out %]"
 
 assert_not_empty "[% input_vcf %]"
 
-[% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p [% opt.HMF_PON %] -i "[% input_vcf %] -o - | \
+[% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p [% opt.HMF_PON %] -i "[% input_vcf %]" -o - | \
 [% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ "[% output_vcf %]"
 [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 
