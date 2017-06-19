@@ -10,6 +10,18 @@ assert_not_empty "[% input_vcf %]"
 
 [% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p "[% opt.HMF_PON %]" -i "[% input_vcf %]" -o - | \
 [% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ "[% output_vcf %]"
+
+# error handling
+if [ "${PIPESTATUS[0]}" -ne "0" ]
+then
+	rm "[% output_vcf %]"
+	failure "annotatePON failed"
+elif [ "${PIPESTATUS[1]}" -ne "0" ]
+then
+	rm "[% output_vcf %]"
+	failure "bcftools filtering failed"
+fi
+
 [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 
 assert_last_position_unchanged "[% pre_annotate_vcf %]" "[% output_vcf %]"
