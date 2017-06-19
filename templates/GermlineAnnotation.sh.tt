@@ -130,9 +130,17 @@ finish_step
 [%- END %]
 
 
-start_step "ANNOTATE_SLICE"
-[%- sliced_vcf = input_vcf.replace('\.vcf$', '_sliced.vcf') %]
-java -Xmx8G -jar [% opt.SNPEFF_PATH %]/SnpSift.jar intervals [% opt.OUTPUT_DIR %]/settings/slicing/CPCT_Slicing.bed -i "[% input_vcf %]" > "[% sliced_vcf %]"
+start_step "ANNOTATE_FINAL_SLICE"
+[%- sliced_vcf = final_vcf.replace('\.vcf$', '_sliced.vcf') %]
+java -Xmx[% opt.ANNOTATE_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
+    -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
+    -T SelectVariants \
+    -V [% input_vcf %] \
+    -selectType SNP \
+    -o [% sliced_vcf %] \
+    -R [% opt.GENOME %] \
+    -L [% opt.BAF_SNPS %]
 finish_step
 
 assert_last_position_unchanged "[% pre_annotated_vcf %]" "[% output_vcf %]"

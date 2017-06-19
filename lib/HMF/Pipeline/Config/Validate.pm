@@ -258,6 +258,10 @@ sub configChecks {
                 ),
             }
         ),
+        PURPLE => if_enabled({
+                PURPLE_PATH => \&missing_directory,
+            }
+        ),
         INDELREALIGNMENT => if_enabled({
                 BAMUTIL_PATH => \&missing_directory,
                 REALIGNMENT_MASTER_QUEUE => \&key_not_present,
