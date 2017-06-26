@@ -6,9 +6,9 @@
 
 assert_not_empty "[% damage_estimate_bam_path %]"
 
-inputBAM=`basename "[% damage_estimate_bam_path %]"`
-inputBAMPath=`dirname "[% damage_estimate_bam_path %]"`
-patientID=`echo $inputBAM | sed -r 's/\..+//'` 
+inputBAM=$(basename "[% damage_estimate_bam_path %]")
+inputBAMPath=$(dirname "[% damage_estimate_bam_path %]")
+patientID=$(echo "$inputBAM" | sed -r 's/\..+//') 
  
 [% opt.DAMAGE_ESTIMATOR_PATH %]/split_mapped_reads.pl \
     --bam "[% damage_estimate_bam_path %]" \
