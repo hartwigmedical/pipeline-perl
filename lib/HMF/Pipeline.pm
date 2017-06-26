@@ -25,6 +25,7 @@ use HMF::Pipeline::Purple;
 use HMF::Pipeline::Realignment;
 use HMF::Pipeline::SomaticVariants;
 use HMF::Pipeline::StructuralVariants;
+use HMF::Pipeline::DamageEstimate;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
@@ -48,6 +49,8 @@ sub run {
         HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
 
         HMF::Pipeline::PreCalling::run($opt);
+
+	HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
