@@ -50,7 +50,7 @@ sub run {
 
         HMF::Pipeline::PreCalling::run($opt);
 
-	HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
+        HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
         HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";

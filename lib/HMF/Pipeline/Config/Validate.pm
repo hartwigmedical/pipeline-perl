@@ -257,7 +257,7 @@ sub configChecks {
                     }
                 ),
             }
-        )
+        ),
         DAMAGE_ESTIMATE => if_enabled({
                 DAMAGE_ESTIMATOR_PATH => \&missing_directory,
                 DAMAGE_ESTIMATE_QUEUE => \&key_not_present,
