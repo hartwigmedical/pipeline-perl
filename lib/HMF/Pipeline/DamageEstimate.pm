@@ -49,7 +49,7 @@ sub run {
     );
     push @job_ids, $tumor_job_id;
 
-    my $job_id = markDone($done_file, [ @job_ids ], $dirs, $opt);
+    my $job_id = markDone($done_file, [@job_ids], $dirs, $opt);
 
     return;
 }
