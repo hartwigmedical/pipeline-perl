@@ -17,12 +17,10 @@ sub run {
     my ($opt) = @_;
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "damageEstimate", $joint_name));
-    my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, damageEstimate => "damageEstimate");
 
     say "\n### SCHEDULING DAMAGE ESTIMATE ###";
 
-    my @job_ids;
     my $ref_job_id = fromTemplate(
         "DamageEstimate",
         undef,
@@ -34,7 +32,6 @@ sub run {
         damage_estimate_bam_path => $ref_bam_path,
         joint_name => $joint_name
     );
-    push @job_ids, $ref_job_id;
 
     my $tumor_job_id = fromTemplate(
         "DamageEstimate",
@@ -47,9 +44,6 @@ sub run {
         damage_estimate_bam_path => $tumor_bam_path,
         joint_name => $joint_name
     );
-    push @job_ids, $tumor_job_id;
-
-    my $job_id = markDone($done_file, [@job_ids], $dirs, $opt);
 
     return;
 }
