@@ -114,7 +114,7 @@ sub mergeSomatics {
         push @job_ids, $job_id;
     }
 
-    my $melted_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    my $melted_vcf = catfile($dirs->{out}, "${joint_name}_melted_without_pon.vcf");
     $job_id = fromTemplate(
         "SomaticMelting",
         undef,
@@ -131,7 +131,7 @@ sub mergeSomatics {
     );
     push @job_ids, $job_id;
 
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted_pon.vcf");
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
     $job_id = fromTemplate(
         "SomaticPONAnnotation",
         undef,
