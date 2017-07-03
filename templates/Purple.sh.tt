@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="Purple" main_step="" log_name="purple.log" %]
+
+/usr/java/latest/bin/java -Xmx[% opt.PURPLE_MEM %]G \
+    -jar "[% opt.PURPLE_PATH %]/purity-ploidy-estimator.jar" \
+    -run_dir [% dirs.out %] \
+    -vcf_extension annotated_sliced.vcf
+
+success

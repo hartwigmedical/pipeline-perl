@@ -258,6 +258,22 @@ sub configChecks {
                 ),
             }
         ),
+        DAMAGE_ESTIMATE => if_enabled({
+                DAMAGE_ESTIMATOR_PATH => \&missing_directory,
+                DAMAGE_ESTIMATE_QUEUE => \&key_not_present,
+                DAMAGE_ESTIMATE_TIME => \&key_not_present,
+                DAMAGE_ESTIMATE_THREADS => \&key_not_present,
+                DAMAGE_ESTIMATE_MEM => \&key_not_present,
+                DAMAGE_ESTIMATE_DOWNSAMPLE_THREADS => \&key_not_present,
+                DAMAGE_ESTIMATE_DOWNSAMPLE_BAM_SIZE => \&key_not_present,
+                DAMAGE_ESTIMATE_MIN_COVERAGE_LIMIT => \&key_not_present,
+                DAMAGE_ESTIMATE_MAX_COVERAGE_LIMIT => \&key_not_present,
+            }
+        ),
+        PURPLE => if_enabled({
+                PURPLE_PATH => \&missing_directory,
+            }
+        ),
         INDELREALIGNMENT => if_enabled({
                 BAMUTIL_PATH => \&missing_directory,
                 REALIGNMENT_MASTER_QUEUE => \&key_not_present,

@@ -47,6 +47,7 @@ sub setupTestConfig {
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
         BAMUTIL_PATH
+        DAMAGE_ESTIMATOR_PATH
         BIOVCF_PATH
         BWA_PATH
         CLUSTER_PATH
@@ -64,6 +65,7 @@ sub setupTestConfig {
         PBGZIP_PATH
         PICARD_PATH
         PLINK_PATH
+        PURPLE_PATH
         QDNASEQ_PATH
         QUEUE_PATH
         SAMBAMBA_PATH
@@ -107,6 +109,8 @@ sub setupDoneFiles {
         catfile("logs", "Gender.done"),
         catfile("logs", "Kinship.done"),
         catfile("logs", "PipelineCheck.done"),
+        catfile("logs", "DamageEstimate.done"),
+        catfile("logs", "Purple.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz.done"),
         catfile("CPCT12345678T", "logs", "PreStats_CPCT12345678T_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),

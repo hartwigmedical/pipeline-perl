@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="DamageEstimate" main_step=joint_name log_name="DamageEstimate.log" %]
+
+assert_not_empty "[% damage_estimate_bam_path %]"
+
+inputBAM=$(basename "[% damage_estimate_bam_path %]")
+inputBAMPath=$(dirname "[% damage_estimate_bam_path %]")
+patientID=$(echo "$inputBAM" | sed -r 's/\..+//') 
+
+[% opt.DAMAGE_ESTIMATOR_PATH %]/split_mapped_reads.pl \
+    --bam "[% damage_estimate_bam_path %]" \
+    --genome "[% opt.GENOME %]" \
+    --mpileup1 "${inputBAMPath}/${patientID}_1.pileup" \
+    --mpileup2 "${inputBAMPath}/${patientID}_2.pileup" \
+    --sample "[% opt.DAMAGE_ESTIMATE_DOWNSAMPLE_BAM_SIZE %]" \
+    --threads "[% opt.DAMAGE_ESTIMATE_DOWNSAMPLE_THREADS %]"
+
+[% opt.DAMAGE_ESTIMATOR_PATH %]/estimate_damage.pl \
+    --mpileup1 "${inputBAMPath}/${patientID}_1.pileup" \
+    --mpileup2 "${inputBAMPath}/${patientID}_2.pileup" \
+    --id "${patientID}" > "${inputBAMPath}/damageEstimate_${patientID}"
+
+[% opt.DAMAGE_ESTIMATOR_PATH %]/estimate_damage_location.pl \
+    --mpileup1 "${inputBAMPath}/${patientID}_1.pileup" \
+    --mpileup2 "${inputBAMPath}/${patientID}_2.pileup" \
+    --id "${patientID}" \
+    --out "${inputBAMPath}/damageEstimateByPosition_${patientID}" \
+    --max_coverage_limit "[% opt.DAMAGE_ESTIMATE_MAX_COVERAGE_LIMIT %]" \
+    --min_coverage_limit "[% opt.DAMAGE_ESTIMATE_MIN_COVERAGE_LIMIT %]"
+
+rm "${inputBAMPath}/${patientID}_1.pileup"
+rm "${inputBAMPath}/${patientID}_2.pileup"
+
+success
+
