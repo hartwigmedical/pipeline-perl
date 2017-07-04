@@ -414,6 +414,7 @@ sub configChecks {
                         CALLING_DBSNP => \&missing_file,
                     }
                 ),
+                HMF_PON => \&missing_file,
             }
         ),
         COPY_NUMBER => if_enabled({
