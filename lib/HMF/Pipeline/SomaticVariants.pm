@@ -26,52 +26,37 @@ sub run {
     say "\n$joint_name \t $ref_bam_path \t $tumor_bam_path";
 
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
-    my (@somvar_jobs, %somvar_vcfs);
-    if ($opt->{SOMVAR_STRELKA} eq "yes") {
-        my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
-        push @somvar_jobs, $job_id;
-        $somvar_vcfs{strelka} = $vcf;
-    }
 
-    my $merge_job_ids = mergeSomatics($tumor_sample, $joint_name, \@somvar_jobs, \%somvar_vcfs, $dirs, $opt);
-    my $job_id = markDone($done_file, [ @somvar_jobs, @{$merge_job_ids} ], $dirs, $opt);
+    my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+
+    my $merge_job_ids = mergeSomatics($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
+    $job_id = markDone($done_file, [ $job_id, @{$merge_job_ids} ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
     return;
 }
 
 sub mergeSomatics {
-    my ($tumor_sample, $joint_name, $somvar_jobs, $somvar_vcfs, $dirs, $opt) = @_;
+    my ($tumor_sample, $joint_name, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
 
     my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
     my $input_vcf;
-    my $output_vcf = catfile($dirs->{out}, "${joint_name}_merged_somatics.vcf");
-    my $job_id = fromTemplate(
-        "SomaticMerging",
-        undef,
-        0,
-        $qsub,
-        $somvar_jobs,
-        $dirs,
-        $opt,
-        input_vcfs => $somvar_vcfs,
-        output_vcf => $output_vcf,
-    );
-    push @job_ids, $job_id;
+    my $output_vcf;
+    my $job_id;
 
     if ($opt->{SOMVAR_TARGETS}) {
-        $input_vcf = $output_vcf;
-        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_merged_somatics.vcf");
+        $input_vcf = $strelka_vcf;
+        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_somatics.vcf");
 
         $job_id = fromTemplate(
             "SomaticFiltering",
             undef,
             0,
             $qsub,
-            [$job_id],
+            [$strelka_job_id],
             $dirs,
             $opt,
             input_vcf => $input_vcf,
