@@ -3,7 +3,6 @@
 from __future__ import division
 from __future__ import print_function
 
-import os
 import sys
 import vcf
 import argparse
@@ -24,7 +23,7 @@ def check_record(record):
     if len(record.ALT) > 1:
         print("WARN: more than one alt, keeping: {} {} {}".format(record, record.INFO, record.samples), file=sys.stderr)
         return True
-    elif record.ALT[0] == None:
+    elif record.ALT[0] is None:
         print("WARN: alt is None, skipping: {} {} {}".format(record, record.INFO, record.samples), file=sys.stderr)
         return False
     try:
@@ -49,21 +48,21 @@ def quality_score(record):
 def allelic_frequency(call, tier_index):
     allele = call.site.ALT[0]
     if len(call.site.REF) == 1 and len(allele) == 1:
-       	ref_field_name = "{}U".format(call.site.REF)
+        ref_field_name = "{}U".format(call.site.REF)
         alt_field_name = "{}U".format(allele)
-	sumAltFieldRefField = getattr(call.data, alt_field_name)[tier_index] + getattr(call.data, ref_field_name)[tier_index]
-	#prevent division by 0
-	if sumAltFieldRefField == 0:
-		return 0
-	else:
-        	return getattr(call.data, alt_field_name)[tier_index] / sumAltFieldRefField   
+        sumAltFieldRefField = getattr(call.data, alt_field_name)[tier_index] + getattr(call.data, ref_field_name)[tier_index]
+        # prevent division by 0
+        if sumAltFieldRefField == 0:
+            return 0
+        else:
+            return getattr(call.data, alt_field_name)[tier_index] / sumAltFieldRefField
     else:
-	sumTIRandTAR = call.data.TIR[tier_index] + call.data.TAR[tier_index]
-	#prevent division by 0
-	if sumTIRandTAR == 0:
-		return 0
-	else:
-        	return call.data.TIR[tier_index] / sumTIRandTAR 
+        sumTIRandTAR = call.data.TIR[tier_index] + call.data.TAR[tier_index]
+        # prevent division by 0
+        if sumTIRandTAR == 0:
+            return 0
+        else:
+            return call.data.TIR[tier_index] / sumTIRandTAR
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
