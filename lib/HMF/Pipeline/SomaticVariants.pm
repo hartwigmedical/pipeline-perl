@@ -45,7 +45,7 @@ sub mergeSomatics {
     my $qsub = qsubJava($opt, "SOMVARMERGE");
 #    my $input_vcf;
     my $output_vcf = $strelka_vcf;
-#    my $job_id;
+    my $job_id;
 
 #    if ($opt->{SOMVAR_TARGETS}) {
 #        $input_vcf = $strelka_vcf;
