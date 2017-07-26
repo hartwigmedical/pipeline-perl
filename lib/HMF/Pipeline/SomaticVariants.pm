@@ -43,27 +43,27 @@ sub mergeSomatics {
 
     my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
-    my $input_vcf;
+#    my $input_vcf;
     my $output_vcf = $strelka_vcf;
-    my $job_id;
+#    my $job_id;
 
-    if ($opt->{SOMVAR_TARGETS}) {
-        $input_vcf = $strelka_vcf;
-        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_somatics.vcf");
-
-        $job_id = fromTemplate(
-            "SomaticFiltering",
-            undef,
-            0,
-            $qsub,
-            [$strelka_job_id],
-            $dirs,
-            $opt,
-            input_vcf => $input_vcf,
-            output_vcf => $output_vcf,
-        );
-        push @job_ids, $job_id;
-    }
+#    if ($opt->{SOMVAR_TARGETS}) {
+#        $input_vcf = $strelka_vcf;
+#        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_somatics.vcf");
+#
+#        $job_id = fromTemplate(
+#            "SomaticFiltering",
+#            undef,
+#            0,
+#            $qsub,
+#            [$strelka_job_id],
+#            $dirs,
+#            $opt,
+#            input_vcf => $input_vcf,
+#            output_vcf => $output_vcf,
+#        );
+#        push @job_ids, $job_id;
+#    }
 
     my $pre_annotate_vcf = $output_vcf;
     if ($opt->{SOMVAR_ANNOTATE} eq "yes") {
@@ -75,7 +75,7 @@ sub mergeSomatics {
             undef,
             0,
             $qsub,
-            [$job_id],
+            [$strelka_job_id],
             $dirs,
             $opt,
             basename => $basename,
