@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import argparse
 
 from collections import namedtuple
 
@@ -37,7 +36,6 @@ class VCFWriter():
 class VCFReader():
     def __init__(self, file):
         self.file = file
-        print "DEBUG:"+self.file
         self.headers = []
         self.samples = []
         self.metaInformationLines = []
@@ -158,17 +156,16 @@ class PONAnnotator():
 
 if __name__ == "__main__":
 
-    #import argparse
+    import argparse
     parser = argparse.ArgumentParser(
         description="Annotates with a Panel of Normals (PON) VCF file",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=100, width=200)
     )
     required = parser.add_argument_group('required arguments')
-    required.add_argument('-o', '--outputFile', help='output VCF', required=False, type=argparse.FileType('w'))
-    required.add_argument('-i', '--inputFile', help='input VCF to annotate', required=False, type=argparse.FileType('r'))
-    required.add_argument('-p', '--ponFile', help='pon VCF', required=False, type=argparse.FileType('r'))
+    required.add_argument('-o', '--outputFile', help='output VCF', required=True, type=argparse.FileType('w'))
+    required.add_argument('-i', '--inputFile', help='input VCF to annotate', required=True, type=argparse.FileType('r'))
+    required.add_argument('-p', '--ponFile', help='pon VCF', required=True, type=argparse.FileType('r'))
     args = parser.parse_args()
-    print "DEBUG: "+args.inputFile
 
     try:
         annotator = PONAnnotator( VCFWriter(args.outputFile), VCFReader(args.inputFile), VCFReader(args.ponFile) )
