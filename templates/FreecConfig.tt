@@ -8,7 +8,6 @@ window=[% opt.FREEC_WINDOW %]
 maxThreads=[% opt.FREEC_THREADS %]
 telocentromeric=[% opt.FREEC_TELOCENTROMERIC %]
 BedGraphOutput=TRUE
-forceGCcontentNormalization=1
 outputDir=[% dirs.freec.out %]
 [%- IF opt.exists('FREEC_MAPPABILITY_TRACK') %]
 gemMappabilityFile=[% opt.FREEC_MAPPABILITY_TRACK %]
@@ -16,14 +15,22 @@ gemMappabilityFile=[% opt.FREEC_MAPPABILITY_TRACK %]
 
 [sample]
 mateFile=[% sample_path %]
+[%- IF opt.FREEC_BAF == "yes" %]
+inputFormat=pileup
+[% ELSE %]
 inputFormat=BAM
+[% END -%]
 mateOrientation=FR
 
 [%- IF control_path -%]
 
 [control]
 mateFile=[% control_path %]
+[%- IF opt.FREEC_BAF == "yes" %]
+inputFormat=pileup
+[% ELSE %]
 inputFormat=BAM
+[% END -%]
 mateOrientation=FR
 [% END -%]
 
@@ -31,4 +38,10 @@ mateOrientation=FR
 
 [target]
 captureRegions=[% opt.CNV_TARGETS %]
+[% END -%]
+
+[%- IF opt.FREEC_BAF == "yes" -%]
+
+[BAF]
+SNPfile=[% opt.FREEC_SNPFILE %]
 [% END -%]
