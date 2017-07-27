@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # -*- TT -*-
 
+export PATH=[% opt.SAMTOOLS_PATH %]:${PATH}
+export PATH=[% opt.SAMBAMBA_PATH %]:${PATH}
+
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="DamageEstimate" main_step=joint_name log_name="DamageEstimate.log" %]
 
@@ -16,7 +19,6 @@ patientID=$(echo "$inputBAM" | sed -r 's/\..+//')
     --mpileup1 "${inputBAMPath}/${patientID}_1.pileup" \
     --mpileup2 "${inputBAMPath}/${patientID}_2.pileup" \
     --sample "[% opt.DAMAGE_ESTIMATE_DOWNSAMPLE_BAM_SIZE %]" \
-    --threads "[% opt.DAMAGE_ESTIMATE_DOWNSAMPLE_THREADS %]"
 
 [% opt.DAMAGE_ESTIMATOR_PATH %]/estimate_damage.pl \
     --mpileup1 "${inputBAMPath}/${patientID}_1.pileup" \
