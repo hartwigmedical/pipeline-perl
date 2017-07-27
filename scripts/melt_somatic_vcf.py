@@ -86,6 +86,7 @@ def reheader_vcf(in_vcf, tumor_sample):
     if "source" not in in_vcf.metadata:
         in_vcf.metadata["source"] = []
     in_vcf.metadata["source"].append(sys.argv[0])
+    in_vcf.formats["AD"] = vcf.parser._Format("AD", ".", "Integer", "Allelic depths for the ref and alt alleles in the order listed")
     # writer outputs headers from constructor
     orig_samples = in_vcf.samples
     in_vcf.samples = [tumor_sample]
