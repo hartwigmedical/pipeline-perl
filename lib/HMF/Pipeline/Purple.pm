@@ -40,10 +40,9 @@ sub copyNumberAndGermlineJobs {
 
     my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my @jobs;
-    push @jobs, $opt->{RUNNING_JOBS}->{cnv};
+    push @jobs, @{ $opt->{RUNNING_JOBS}->{cnv} };
     push @jobs, @{$running_jobs};
-
-    return [@jobs];
+    return \@jobs;
 }
 
 
