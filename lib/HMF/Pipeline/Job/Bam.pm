@@ -213,8 +213,7 @@ sub operationWithSliceChecks {
     push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
 
     my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
-    my $cpct_job_id = slice($sample, $post_bam, $cpct_sliced_bam, "CPCT_Slicing.bed", [$job_id], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids}, $cpct_job_id;
+    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
 
     return;
 }
