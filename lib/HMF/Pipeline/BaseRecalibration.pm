@@ -26,4 +26,16 @@ sub run {
     return;
 }
 
+sub runRecalibrationOnSample {
+    my ($sample, $opt) = @_;
+    say "\n### SCHEDULING BASERECALIBRATION ###";
+    say "Running base recalibration for the following sample: $sample";
+
+    my $known_files = "";
+    $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
+
+    HMF::Pipeline::Job::Bam::operationWithSliceChecks("BaseRecalibration", $sample, $known_files, "recalibrated", "recal", $opt);
+    return;
+}
+
 1;
