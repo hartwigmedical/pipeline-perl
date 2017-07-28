@@ -11,6 +11,7 @@ use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Job::Vcf qw(concat);
 use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
+use HMF::Pipeline::BaseRecalibration qw(runRecalibrationOnSample);
 use List::MoreUtils qw(uniq);
 
 use parent qw(Exporter);
