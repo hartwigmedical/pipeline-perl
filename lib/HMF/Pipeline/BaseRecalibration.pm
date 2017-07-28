@@ -8,7 +8,9 @@ use File::Spec::Functions;
 use HMF::Pipeline::Job::Bam;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(run);
+our @EXPORT_OK = qw(run
+    runRecalibrationOnSample
+);
 
 
 sub run {
