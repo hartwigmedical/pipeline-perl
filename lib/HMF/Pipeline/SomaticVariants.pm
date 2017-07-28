@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs addSubDir getChromosomes sampleControlBamsAndJobs);
+use HMF::Pipeline::Config qw(createDirs addSubDir getChromosomes sampleControlBamsAndJobs sampleBamAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Job::Vcf qw(concat);
 use HMF::Pipeline::Metadata;
