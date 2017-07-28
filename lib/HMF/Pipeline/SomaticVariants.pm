@@ -34,8 +34,8 @@ sub run {
         $running_jobs = [ uniq @{$running_jobs}, @{$tumor_sample_jobs} ];
     }
 
-    say "Running somatic callers on:";
-    say "\n$joint_name \t $ref_bam_path \t $tumor_bam_path";
+    say "\nRunning somatic callers on:";
+    say "$joint_name \t $ref_bam_path \t $tumor_bam_path";
 
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
 
