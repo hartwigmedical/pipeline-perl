@@ -3,7 +3,7 @@ package org.broadinstitute.gatk.queue.qscripts
 import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 
-class BaseRecalibration extends QScript {
+class BaseRecalibration_noQC extends QScript {
   qscript =>
 
   @Input(doc="The reference file for the bam files.", shortName="R", required=true)
