@@ -31,7 +31,7 @@ sub run {
 sub runRecalibrationOnSample {
     my ($sample, $opt) = @_;
     say "\n### SCHEDULING BASERECALIBRATION ###";
-    say "Running base recalibration for the following sample: $sample";
+    say "Running base recalibration for the following BAM:";
 
     my $known_files = "";
     $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
