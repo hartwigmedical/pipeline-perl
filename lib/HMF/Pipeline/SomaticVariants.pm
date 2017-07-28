@@ -23,6 +23,14 @@ sub run {
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
+
+    if (index($tumor_bam_path, "recalibrated.bam") == -1) {
+        HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($tumor_sample, $opt);
+        my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
+        $tumor_bam_path = $tumor_sample_bam;
+        $running_jobs = [ uniq @{$running_jobs}, @{$tumor_sample_jobs} ];
+    }
+
     say "\n$joint_name \t $ref_bam_path \t $tumor_bam_path";
 
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
