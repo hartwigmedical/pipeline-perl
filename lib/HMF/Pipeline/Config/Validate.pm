@@ -362,6 +362,7 @@ sub configChecks {
                         STRELKA_THREADS => \&key_not_present,
                         STRELKA_MEM => \&key_not_present,
                         STRELKA_TIME => \&key_not_present,
+                        HIGH_CONFIDENCE_BED => \&missing_file,
                     }
                 ),
                 SOMVARMERGE_QUEUE => \&key_not_present,
