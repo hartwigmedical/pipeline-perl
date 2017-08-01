@@ -26,23 +26,16 @@ sub run {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
 
-    checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
-    checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
-
-    if (index($tumor_bam_path, "recalibrated.bam") == -1) {
-        say "Missing recalibrated file for sample: $tumor_sample";
-        HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($tumor_sample, $opt);
-        my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
-        $tumor_bam_path = $tumor_sample_bam;
-        $running_jobs = [ uniq @{$running_jobs}, @{$tumor_sample_jobs} ];
-    }
+    my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
+    my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
+    $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
 
     say "\nRunning somatic callers on:";
-    say "$joint_name \t $ref_bam_path \t $tumor_bam_path";
+    say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
 
     my $done_file = checkReportedDoneFile($joint_name, undef, $dirs, $opt) or return;
 
-    my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt);
+    my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
 
     my $merge_job_ids = mergeSomatics($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
     $job_id = markDone($done_file, [ $job_id, @{$merge_job_ids} ], $dirs, $opt);
