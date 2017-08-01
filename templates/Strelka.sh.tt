@@ -37,6 +37,7 @@ awk -F'\t' -v OFS='\t' '
     { print }' \
     "[% final_vcf %]" \
     | [% opt.OUTPUT_DIR %]/scripts/filterStrelka.py \
+        -b "[% opt.HIGH_CONFIDENCE_BED %]" \
         > "[% final_vcf %].tmp"
 
 mv "[% final_vcf %].tmp" "[% final_vcf %]"

@@ -43,6 +43,7 @@ sub setupTestConfig {
         REALIGNMENT_KNOWN
         VARSCAN_PATH
         HMF_PON
+        HIGH_CONFIDENCE_BED
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
