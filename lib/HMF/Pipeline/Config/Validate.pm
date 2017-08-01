@@ -381,10 +381,6 @@ sub configChecks {
             }
         ),
         COPY_NUMBER => if_enabled({
-                CNVCHECK_QUEUE => \&key_not_present,
-                CNVCHECK_THREADS => \&key_not_present,
-                CNVCHECK_MEM => \&key_not_present,
-                CNVCHECK_TIME => \&key_not_present,
                 CNV_MODE => \&key_not_present,
                 CNV_FREEC => if_enabled({
                         FREEC_PATH => \&missing_directory,

@@ -70,7 +70,6 @@ sub setupTestConfig {
         SNPEFF_PATH
         STRELKA_PATH
         TABIX_PATH
-        VCFLIB_PATH
         VCFTOOLS_PATH
     );
     my %required_keys = (
