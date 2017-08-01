@@ -222,12 +222,12 @@ sub bamOperationWithSliceChecks {
     my ($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt) = @_;
 
     (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
-    (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
     (my $post_bai = $sample_bam) =~ s/\.bam$/.${post_tag}.bai/;
     (my $post_flagstat = $sample_bam) =~ s/\.bam$/.${post_tag}.flagstat/;
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
+    (my $post_bam = $sample_bam_path) =~ s/\.bam$/.${post_tag}.bam/;
     say "\t${sample_bam_path}";
 
     my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return ($post_bam, []);
