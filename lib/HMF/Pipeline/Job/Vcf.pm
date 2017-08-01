@@ -15,7 +15,6 @@ our @EXPORT_OK = qw(
     concat
 );
 
-
 # "sort" would clash with Perl function
 sub sorted {
     my ($input_vcf, $output_vcf, $step, $qsub, $hold_job_ids, $dirs, $opt) = @_;

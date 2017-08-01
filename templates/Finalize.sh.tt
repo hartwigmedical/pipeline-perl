@@ -24,7 +24,6 @@ fi
 
 echo >> [% log_file %]
 
-
 if [[ "${failed}" == "true" ]]
 then
     echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]

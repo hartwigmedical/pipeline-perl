@@ -23,7 +23,6 @@ our @EXPORT_OK = qw(
     writeLinks
 );
 
-
 sub readJson {
     my ($path) = @_;
 

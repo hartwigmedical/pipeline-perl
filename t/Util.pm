@@ -11,7 +11,6 @@ our @EXPORT_OK = qw(
     convertToBam
 );
 
-
 sub convertToBam {
     my ($sam_file, $with_indices) = @_;
 

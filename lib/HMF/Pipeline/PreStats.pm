@@ -14,7 +14,6 @@ use HMF::Pipeline::Job qw(fromTemplate);
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
 
-
 sub run {
     my ($opt) = @_;
 

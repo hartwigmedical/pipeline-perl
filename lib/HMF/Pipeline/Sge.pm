@@ -12,7 +12,6 @@ our @EXPORT_OK = qw(
     jobNative
 );
 
-
 sub generic {
     my ($opt, $function) = @_;
 

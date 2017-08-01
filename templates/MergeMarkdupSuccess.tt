@@ -1,4 +1,4 @@
 [% FOREACH input_bam IN input_bams %]
-        rm "[% input_bam %]"
-        rm "[% input_bam %].bai"
-        [% END %]
+    rm "[% input_bam %]"
+    rm "[% input_bam %].bai"
+[% END %]

@@ -1,5 +1,5 @@
 mv "[% dirs.tmp %]/[% post_bam %]" "[% dirs.mapping %]"
-        mv "[% dirs.tmp %]/[% post_bai %]" "[% dirs.mapping %]/[% post_bam %].bai"
+mv "[% dirs.tmp %]/[% post_bai %]" "[% dirs.mapping %]/[% post_bam %].bai"
 
-        mv "[% dirs.tmp %]/IndelRealignment.jobreport.txt" "[% dirs.log %]/IndelRealignment.jobreport.txt"
-        mv "[% dirs.tmp %]/IndelRealignment.jobreport.pdf" "[% dirs.log %]/IndelRealignment.jobreport.pdf"
+mv "[% dirs.tmp %]/IndelRealignment.jobreport.txt" "[% dirs.log %]/IndelRealignment.jobreport.txt"
+mv "[% dirs.tmp %]/IndelRealignment.jobreport.pdf" "[% dirs.log %]/IndelRealignment.jobreport.pdf"

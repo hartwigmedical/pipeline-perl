@@ -107,7 +107,6 @@ is_deeply(
     "detects missing optional file"
 );
 
-
 my $temp_file_a = File::Temp->new();
 my $temp_file_b = File::Temp->new();
 

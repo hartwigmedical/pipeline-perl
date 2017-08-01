@@ -12,7 +12,6 @@ our @EXPORT_OK = qw(run
     runRecalibrationOnSample
 );
 
-
 sub run {
     my ($opt) = @_;
 
@@ -30,6 +29,7 @@ sub run {
 
 sub runRecalibrationOnSample {
     my ($sample, $opt) = @_;
+
     say "\n### SCHEDULING BASERECALIBRATION ###";
     say "Running base recalibration for the following BAM:";
 

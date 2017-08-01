@@ -14,7 +14,6 @@ use HMF::Pipeline::Config;
 use parent qw(Exporter);
 our @EXPORT_OK = qw(writeFromTemplate);
 
-
 sub writeFromTemplate {
     my ($name, $output_file, %data) = @_;
 

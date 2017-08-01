@@ -37,4 +37,3 @@ rm "${inputBAMPath}/${patientID}_1.pileup"
 rm "${inputBAMPath}/${patientID}_2.pileup"
 
 success
-
