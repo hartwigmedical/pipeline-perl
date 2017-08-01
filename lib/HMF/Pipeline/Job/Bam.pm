@@ -230,7 +230,7 @@ sub bamOperationWithSliceChecks {
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
     say "\t${sample_bam_path}";
 
-    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or die "Couldn't check reported done file for $sample, $job_template";
+    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return ($post_bam, []);
 
     my $operation_job_id = fromTemplate(
         $job_template,
@@ -245,7 +245,7 @@ sub bamOperationWithSliceChecks {
         sample_bam_path => $sample_bam_path,
         job_native => jobNative($opt, uc $job_template),
         known_files => $known_files,
-    ) or die "Couldn't run fromTemplate for $sample, $job_template";
+    ) or return ($post_bam, []);
 
     my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
     my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
@@ -268,7 +268,7 @@ sub bamOperationWithSliceChecks {
     my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
 
-    return ($post_bam, $job_id);
+    return ($post_bam, [$job_id]);
 }
 
 1;

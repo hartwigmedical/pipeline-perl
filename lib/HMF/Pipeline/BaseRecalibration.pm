@@ -38,8 +38,8 @@ sub runRecalibrationOnSample {
 
     my $sample_bam = $opt->{BAM_FILES}->{$sample};
 
-    my ($recalibrated_bam, $job_id) = HMF::Pipeline::Job::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
-    return ($recalibrated_bam, $job_id);
+    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Job::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
+    return ($recalibrated_bam, $job_ids);
 }
 
 1;

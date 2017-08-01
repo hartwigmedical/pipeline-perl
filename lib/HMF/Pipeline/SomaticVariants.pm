@@ -26,8 +26,8 @@ sub run {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
 
-    checkRecalibratedSample($ref_bam_path);
-    checkRecalibratedSample($tumor_bam_path);
+    checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
+    checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
 
     if (index($tumor_bam_path, "recalibrated.bam") == -1) {
         say "Missing recalibrated file for sample: $tumor_sample";
@@ -52,15 +52,15 @@ sub run {
 }
 
 sub checkRecalibratedSample {
-    my ($sample_bam_path, $opt) = @_;
+    my ($sample, $sample_bam_path, $opt) = @_;
 
     if (index($sample_bam_path, "recalibrated.bam") == -1) {
         say "Missing recalibrated file for sample: $sample_bam_path";
-        my ($recalibrated_bam, $recalibration_job) = HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($sample_bam_path, $opt);
-        say "recalibration job for $recalibrated_bam: $recalibration_job";
-        return ($recalibrated_bam, $recalibration_job);
+        my ($recalibrated_bam, $recalibration_jobs) = HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($sample, $opt);
+        say "recalibration job for $recalibrated_bam: $recalibration_jobs";
+        return ($recalibrated_bam, $recalibration_jobs);
     }
-    return ($sample_bam_path, ());
+    return ($sample_bam_path, []);
 }
 
 sub mergeSomatics {
