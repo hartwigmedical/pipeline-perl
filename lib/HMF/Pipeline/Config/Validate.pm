@@ -11,7 +11,6 @@ use List::MoreUtils qw(zip);
 use parent qw(Exporter);
 our @EXPORT_OK = qw(parseFastqName verifyConfig verifyBam verifyBai verifyFlagstat);
 
-
 sub parseFastqName {
     my ($input_file) = @_;
     my $name = fileparse($input_file);
