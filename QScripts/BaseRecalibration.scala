@@ -37,7 +37,7 @@ class BaseRecalibration extends QScript {
     val analyzeCovariates = new AnalyzeCovariates with BR_Arguments
     val printReads = new PrintReads with BR_Arguments
 
-    // Analyze patterns of covariation in the sequence dataset
+    // KODU: Analyze patterns of covariation in the sequence dataset
     baseRecalibrator.input_file :+= bamFile
     if (knownFiles != Nil) {
       baseRecalibrator.knownSites = knownFiles
@@ -47,23 +47,7 @@ class BaseRecalibration extends QScript {
     baseRecalibrator.scatterCount = numScatters
     baseRecalibrator.nct = numCPUThreads
 
-    // Do a second pass to analyze covariation remaining after recalibration
-    baseRecalibratorSecond.input_file :+= bamFile
-    if (knownFiles != Nil) {
-      baseRecalibratorSecond.knownSites = knownFiles
-    }
-    baseRecalibratorSecond.BQSR = baseRecalibrator.out
-    baseRecalibratorSecond.out = swapExt(bamFile, ".bam", "_post_recal_data.table")
-
-    baseRecalibratorSecond.scatterCount = numScatters
-    baseRecalibratorSecond.nct = numCPUThreads
-
-    // Generate before and after plots
-    analyzeCovariates.before = baseRecalibrator.out
-    analyzeCovariates.after = baseRecalibratorSecond.out
-    analyzeCovariates.plots = swapExt(baseRecalibrator.out, "recal_data.table", "baseRecalibration.pdf")
-
-    // Apply the recalibration to your sequence data
+    // KODU: Apply the recalibration to your sequence data
     printReads.input_file :+= bamFile
     printReads.BQSR = baseRecalibrator.out
     printReads.out = swapExt(bamFile, "bam", "recalibrated.bam")
@@ -71,6 +55,6 @@ class BaseRecalibration extends QScript {
     printReads.scatterCount = numScatters
     printReads.nct = numCPUThreads
 
-    add(baseRecalibrator, baseRecalibratorSecond, analyzeCovariates, printReads)
+    add(baseRecalibrator, printReads)
   }
 }
