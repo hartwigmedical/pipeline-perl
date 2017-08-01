@@ -41,7 +41,6 @@ sub setupTestConfig {
         FREEC_MAPPABILITY_TRACK
         FREEC_SNPFILE
         REALIGNMENT_KNOWN
-        VARSCAN_PATH
         HMF_PON
         HIGH_CONFIDENCE_BED
     );
@@ -55,14 +54,12 @@ sub setupTestConfig {
         DELLY_PATH
         EXONCALLCOV_PATH
         FASTQC_PATH
-        FREEBAYES_PATH
         FREEC_CHRFILES
         FREEC_PATH
         GATK_PATH
         IGVTOOLS_PATH
         KING_PATH
         MANTA_PATH
-        MUTECT_PATH
         PBGZIP_PATH
         PICARD_PATH
         PLINK_PATH
@@ -132,10 +129,7 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "BAF_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "CallableLoci_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "CallableLoci_CPCT12345678T.done"),
-        catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Freebayes.done"),
-        catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Mutect.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
-        catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Varscan.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),

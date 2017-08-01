@@ -55,9 +55,6 @@ SKIP: {
         testDoneFile("Freec", undef, "freec.done", $is_reported, 1);
         testDoneFile("QDNAseq", undef, "qdnaseq.done", $is_reported, 1);
         testDoneFile("Strelka", undef, "strelka.done", $is_reported, 1);
-        testDoneFile("Varscan", undef, "varscan.done", $is_reported, 1);
-        testDoneFile("Freebayes", undef, "freebayes.done", $is_reported, 1);
-        testDoneFile("Mutect", undef, "mutect.done", $is_reported, 1);
     }
 
     testDoneFile("PerLaneConvert", "core_name", "core_name.done", $is_reported, 1);
