@@ -18,6 +18,7 @@ sub run {
 
     say "\n### SCHEDULING COBALT ANALYSIS ###";
 
+    my @cobalt_jobs;
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
         my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => "cobalt");
@@ -35,8 +36,9 @@ sub run {
         );
         next unless $job_id;
 
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
+        push @cobalt_jobs, $job_id;
     }
+    $opt->{RUNNING_JOBS}->{'cobalt'} = \@cobalt_jobs;
     return;
 }
 
