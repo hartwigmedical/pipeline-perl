@@ -4,7 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Cobalt" main_step=sample log_name="Cobalt_${sample}.log" %]
 
-/usr/java/latest/bin/java -Dsamjdk.use_async_io_read_samtools=true -Xmx[% opt.COBALT_MEM %]G \
+/usr/java/latest/bin/java -Xmx[% opt.COBALT_MEM %]G \
     -cp "[% opt.COBALT_PATH %]/cobalt.jar" com.hartwig.hmftools.cobalt.CountBamLinesApplication \
     -input [% sample_bam %] \
     -sample [% sample %] \
