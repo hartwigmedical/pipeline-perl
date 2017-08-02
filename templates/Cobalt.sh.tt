@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="Cobalt" main_step=sample log_name="Cobalt_${sample}.log" %]
+
+
+echo [% opt.COBALT_PATH %]
+echo [% sample_bam %]
+echo [% sample %]
+
+
+success
