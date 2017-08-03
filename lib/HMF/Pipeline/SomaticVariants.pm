@@ -62,27 +62,8 @@ sub mergeSomatics {
 
     my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
-    #    my $input_vcf;
     my $output_vcf = $strelka_vcf;
     my $job_id;
-
-    #    if ($opt->{SOMVAR_TARGETS}) {
-    #        $input_vcf = $strelka_vcf;
-    #        $output_vcf = catfile($dirs->{out}, "${joint_name}_filtered_somatics.vcf");
-    #
-    #        $job_id = fromTemplate(
-    #            "SomaticFiltering",
-    #            undef,
-    #            0,
-    #            $qsub,
-    #            [$strelka_job_id],
-    #            $dirs,
-    #            $opt,
-    #            input_vcf => $input_vcf,
-    #            output_vcf => $output_vcf,
-    #        );
-    #        push @job_ids, $job_id;
-    #    }
 
     my $pre_annotate_vcf = $output_vcf;
     if ($opt->{SOMVAR_ANNOTATE} eq "yes") {
@@ -103,23 +84,6 @@ sub mergeSomatics {
         push @job_ids, $job_id;
     }
 
-    my $melted_vcf = catfile($dirs->{out}, "${joint_name}_melted_without_pon.vcf");
-    $job_id = fromTemplate(
-        "SomaticMelting",
-        undef,
-        0,
-        $qsub,
-        [$job_id],
-        $dirs,
-        $opt,
-        tumor_sample => $tumor_sample,
-        joint_name => $joint_name,
-        pre_annotate_vcf => $pre_annotate_vcf,
-        input_vcf => $output_vcf,
-        output_vcf => $melted_vcf,
-    );
-    push @job_ids, $job_id;
-
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
     $job_id = fromTemplate(
         "SomaticPONAnnotation",
@@ -130,7 +94,7 @@ sub mergeSomatics {
         $dirs,
         $opt,
         pre_annotate_vcf => $pre_annotate_vcf,
-        input_vcf => $melted_vcf,
+        input_vcf => $output_vcf,
         output_vcf => $final_vcf,
     );
     push @job_ids, $job_id;
@@ -156,6 +120,7 @@ sub runStrelka {
         $running_jobs,
         $dirs,
         $opt,
+        tumor_sample => $tumor_sample,
         joint_name => $joint_name,
         ref_bam_path => $ref_bam_path,
         tumor_bam_path => $tumor_bam_path,
