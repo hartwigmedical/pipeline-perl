@@ -72,6 +72,7 @@ sub setupTestConfig {
         STRELKA_PATH
         TABIX_PATH
         VCFTOOLS_PATH
+        BPI_PATH
     );
     my %required_keys = (
         SAMTOOLS_PATH => defined $ENV{SAMTOOLS_PATH} ? $ENV{SAMTOOLS_PATH} : $temp_dir,
