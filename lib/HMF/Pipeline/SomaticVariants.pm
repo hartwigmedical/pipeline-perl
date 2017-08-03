@@ -47,9 +47,8 @@ sub checkRecalibratedSample {
     my ($sample, $sample_bam_path, $opt) = @_;
 
     if (index($sample_bam_path, "recalibrated.bam") == -1) {
-        say "Missing recalibrated file for sample: $sample_bam_path";
+        say "\nMissing recalibrated file for sample: $sample";
         my ($recalibrated_bam, $recalibration_jobs) = HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($sample, $opt);
-        say "recalibration job for $recalibrated_bam: $recalibration_jobs";
         return ($recalibrated_bam, $recalibration_jobs);
     }
     return ($sample_bam_path, []);

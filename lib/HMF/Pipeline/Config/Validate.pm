@@ -356,6 +356,7 @@ sub configChecks {
                 SOMVAR_TARGETS => \&missing_optional_file,
                 SOMVAR_STRELKA => if_enabled({
                         STRELKA_PATH => \&missing_directory,
+                        STRELKA_POST_PROCESS_PATH => \&missing_directory,
                         STRELKA_INI => \&key_not_present,
                         STRELKA_QUEUE => \&key_not_present,
                         STRELKA_THREADS => \&key_not_present,
