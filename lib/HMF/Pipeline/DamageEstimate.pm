@@ -18,10 +18,8 @@ sub run {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), damageEstimate => "damageEstimate");
         my ($bam_path, $running_jobs) = sampleBamAndJobs($sample, $opt);
-        my ($job_id) = runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
-        push @{$opt->{RUNNING_JOBS}->{damageEstimate}}, $job_id;
+        runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
     }
-
     return;
 }
 
