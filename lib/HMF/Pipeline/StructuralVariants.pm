@@ -188,6 +188,10 @@ sub runMantaJob {
     if (defined $control_bam) {
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV_bpi.vcf"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "ref_sv_slice.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "tumor_sv_slice.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "bpi_stats.tsv"), $opt);
     }
 
     return $job_id;
