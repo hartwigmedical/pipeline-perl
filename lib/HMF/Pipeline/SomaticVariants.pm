@@ -36,8 +36,8 @@ sub run {
 
     my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
 
-    my $merge_job_ids = mergeSomatics($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
-    $job_id = markDone($done_file, [ $job_id, @{$merge_job_ids} ], $dirs, $opt);
+    my $post_process_job_ids = postProcessStrelka($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
+    $job_id = markDone($done_file, [ $job_id, @{$post_process_job_ids} ], $dirs, $opt);
     $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
 
     return;
@@ -54,7 +54,7 @@ sub checkRecalibratedSample {
     return ($sample_bam_path, []);
 }
 
-sub mergeSomatics {
+sub postProcessStrelka {
     my ($tumor_sample, $joint_name, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
