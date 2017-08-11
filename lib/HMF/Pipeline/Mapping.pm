@@ -68,8 +68,8 @@ sub run {
             $info->{flagstats},
             $output_flagstat,
             "MergeMarkdupSuccess.tt",
-            {input_bams => $info->{bams}},
-            [$flagstat_job_id],
+            { input_bams => $info->{bams} },
+            [ $flagstat_job_id ],
             $info->{dirs},
             $opt,
             #>>> no perltidy
@@ -114,10 +114,10 @@ sub runPerLane {
     my $check_job_id = readCountCheck(
         #<<< no perltidy
         $fastq->{coreName},
-        [$unsorted_flagstat],
+        [ $unsorted_flagstat ],
         $sorted_flagstat,
         "MapSortSuccess.tt",
-        {unsorted_bam => $unsorted_bam},
+        { unsorted_bam => $unsorted_bam },
         [ $flagstat_job_id, $sorted_flagstat_job_id ],
         $dirs,
         $opt,
@@ -170,7 +170,18 @@ sub runBamPrep {
             step => $sample,
             bam_path => $sample_bam,
         );
-        push @{$opt->{RUNNING_JOBS}->{$sample}}, ($index_job_id, $flagstat_job_id, $check_job_id);
+
+        if (defined $index_job_id) {
+            push @{$opt->{RUNNING_JOBS}->{$sample}}, $index_job_id;
+        }
+
+        if (defined $flagstat_job_id) {
+            push @{$opt->{RUNNING_JOBS}->{$sample}}, $flagstat_job_id;
+        }
+
+        if (defined $check_job_id) {
+            push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
+        }
     }
     return;
 }
