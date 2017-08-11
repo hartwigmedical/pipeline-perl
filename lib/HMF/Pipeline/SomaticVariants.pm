@@ -57,7 +57,7 @@ sub checkRecalibratedSample {
 sub postProcessStrelka {
     my ($tumor_sample, $joint_name, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
 
-    say "\n### SCHEDULING MERGE SOMATIC VCFS ###";
+    say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
     my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
