@@ -134,6 +134,8 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "BAF_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "CallableLoci_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "CallableLoci_CPCT12345678T.done"),
+        catfile("CPCT12345678R", "logs", "BamPrep_CPCT12345678R.done"),
+        catfile("CPCT12345678T", "logs", "BamPrep_CPCT12345678T.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
@@ -241,7 +243,9 @@ like($lines[-1], qr/One or more options not found or invalid in config files/, "
 my @ini_modes = glob catfile("settings", "*.ini");
 foreach my $with_done_files (0, 1) {
     foreach my $ini_mode (@ini_modes) {
-        testPipeline($test_create_config, $test_pipeline, $ini_mode, "fastq", $with_done_files);
+        if (index($ini_mode, "bam") == -1) {
+            testPipeline($test_create_config, $test_pipeline, $ini_mode, "fastq", $with_done_files);
+        }
     }
 
 SKIP: {
