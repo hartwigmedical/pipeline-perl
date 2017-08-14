@@ -137,26 +137,38 @@ sub runBamPrep {
 
     while (my ($sample, $input_bams) = each %{$opt->{SAMPLES}}) {
         my $input_bam = ${$input_bams}[0];
-        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
+        runBamPrepOnSample($sample, $input_bam, $opt);
+    }
+    return;
+}
 
-        (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;
-        (my $input_flagstat = $input_bam) =~ s/\.bam$/.flagstat/;
+sub runBamPrepOnSample {
+    my ($sample, $input_bam, $opt) = @_;
+    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
 
-        my $bam_file = "${sample}.bam";
-        $opt->{BAM_FILES}->{$sample} = $bam_file;
-        my $sample_bam = catfile($dirs->{mapping}, $bam_file);
-        my $sample_bai = catfile($dirs->{mapping}, "${sample}.bam.bai");
-        my $sample_flagstat = catfile($dirs->{mapping}, "${sample}.flagstat");
+    (my $input_bai = $input_bam) =~ s/\.bam$/.bam.bai/;
+    (my $input_flagstat = $input_bam) =~ s/\.bam$/.flagstat/;
 
-        my $bai_good = verifyBai($input_bai, $input_bam, $opt);
-        my $flagstat_good = verifyFlagstat($input_flagstat, $input_bam);
+    my $bam_file = "${sample}.bam";
+    $opt->{BAM_FILES}->{$sample} = $bam_file;
 
-        symlink($input_bam, $sample_bam);
-        $bai_good and symlink($input_bai, $sample_bai);
-        $flagstat_good and symlink($input_flagstat, $sample_flagstat);
+    my $done_file = checkReportedDoneFile("BamPrep", $sample, $dirs, $opt) or return;
 
-        next if $bai_good and $flagstat_good;
+    my $sample_bam = catfile($dirs->{mapping}, $bam_file);
+    my $sample_bai = catfile($dirs->{mapping}, "${sample}.bam.bai");
+    my $sample_flagstat = catfile($dirs->{mapping}, "${sample}.flagstat");
 
+    my $bai_good = verifyBai($input_bai, $input_bam, $opt);
+    my $flagstat_good = verifyFlagstat($input_flagstat, $input_bam);
+
+    symlink($input_bam, $sample_bam);
+    $bai_good and symlink($input_bai, $sample_bai);
+    $flagstat_good and symlink($input_flagstat, $sample_flagstat);
+
+    my $job_id;
+    if ($bai_good and $flagstat_good) {
+        $job_id = markDone($done_file, [], $dirs, $opt);
+    } else {
         my $index_job_id = indexed($sample, $sample_bam, $sample_bai, [], $dirs, $opt);
         my $flagstat_job_id = flagstat($sample, $sample_bam, $sample_flagstat, [$index_job_id], $dirs, $opt);
         my $check_job_id = fromTemplate(
@@ -170,19 +182,10 @@ sub runBamPrep {
             step => $sample,
             bam_path => $sample_bam,
         );
-
-        if (defined $index_job_id) {
-            push @{$opt->{RUNNING_JOBS}->{$sample}}, $index_job_id;
-        }
-
-        if (defined $flagstat_job_id) {
-            push @{$opt->{RUNNING_JOBS}->{$sample}}, $flagstat_job_id;
-        }
-
-        if (defined $check_job_id) {
-            push @{$opt->{RUNNING_JOBS}->{$sample}}, $check_job_id;
-        }
+        $job_id = markDone($done_file, [ $index_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
     }
+
+    push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
     return;
 }
 
