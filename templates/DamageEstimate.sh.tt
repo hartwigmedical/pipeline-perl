@@ -10,7 +10,6 @@ export PATH=[% opt.SAMBAMBA_PATH %]:${PATH}
 assert_not_empty "[% damage_estimate_bam_path %]"
 
 sampleName="[% sample %]"
-inputBAM=$(basename "[% damage_estimate_bam_path %]")
 inputBAMPath=$(dirname "[% damage_estimate_bam_path %]")
 mpileupPath1="${inputBAMPath}/${sampleName}_1.pileup"
 mpileupPath2="${inputBAMPath}/${sampleName}_2.pileup"

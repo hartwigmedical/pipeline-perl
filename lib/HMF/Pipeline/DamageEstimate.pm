@@ -16,19 +16,17 @@ sub run {
     say "\n### SCHEDULING DAMAGE ESTIMATE ###";
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $dirs = createDirs( catfile( $opt->{OUTPUT_DIR}, $sample ), damageEstimate => "damageEstimate" );
+        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), damageEstimate => "damageEstimate");
         my ($bam_path, $running_jobs) = sampleBamAndJobs($sample, $opt);
-        my ($job_id) = runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
-        push @{$opt->{RUNNING_JOBS}->{damageEstimate}}, $job_id;
+        runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
     }
-
     return;
 }
 
-sub runDamageEstimate{
+sub runDamageEstimate {
     my ($sample, $bam_path, $running_jobs, $dirs, $opt) = @_;
-    my $out_dir_path = $dirs->{ 'damageEstimate' };
-    
+    my $out_dir_path = $dirs->{'damageEstimate'};
+
     say "Running damageEstimate for: $sample";
     my $job_id = fromTemplate(
         "DamageEstimate",
@@ -41,7 +39,7 @@ sub runDamageEstimate{
         sample => $sample,
         damage_estimate_bam_path => $bam_path,
         damage_estimate_out_path => $out_dir_path,
-        joint_name => "DamageEstimate_".$sample,
+        joint_name => "DamageEstimate_" . $sample,
     );
     return ($job_id);
 }

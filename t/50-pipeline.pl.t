@@ -70,6 +70,7 @@ sub setupTestConfig {
         SAMBAMBA_PATH
         SNPEFF_PATH
         STRELKA_PATH
+        STRELKA_POST_PROCESS_PATH
         TABIX_PATH
         VCFTOOLS_PATH
         BPI_PATH
@@ -108,7 +109,6 @@ sub setupDoneFiles {
         catfile("logs", "Gender.done"),
         catfile("logs", "Kinship.done"),
         catfile("logs", "PipelineCheck.done"),
-        catfile("logs", "DamageEstimate.done"),
         catfile("logs", "Purple.done"),
         catfile("logs", "Cobalt_CPCT12345678R.done"),
         catfile("logs", "Cobalt_CPCT12345678T.done"),
@@ -122,6 +122,8 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "PerLaneConvert_CPCT12345678T_HJJLGCCXX_S1_L001_001.done"),
         catfile("CPCT12345678R", "logs", "Map_CPCT12345678R_HJJLGCCXX_S1_L001_001.done"),
         catfile("CPCT12345678T", "logs", "Map_CPCT12345678T_HJJLGCCXX_S1_L001_001.done"),
+        catfile("CPCT12345678R", "logs", "DamageEstimate_CPCT12345678R.done"),
+        catfile("CPCT12345678T", "logs", "DamageEstimate_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "Realignment_CPCT12345678R.done"),
         catfile("CPCT12345678R", "logs", "BaseRecalibration_CPCT12345678R.done"),
         catfile("CPCT12345678R", "logs", "Pileup_CPCT12345678R.done"),
@@ -152,7 +154,12 @@ sub setupDoneFiles {
         catfile("copyNumber", "CPCT12345678R", "logs", "QDNAseq.done"),
         catfile("copyNumber", "CPCT12345678T", "logs", "QDNAseq.done"),
     );
-    make_path(map { my ($name, $directory) = fileparse($_); $directory; } @done_files);
+    make_path(
+        map {
+            my ($name, $directory) = fileparse($_);
+            $directory;
+        } @done_files
+    );
     touch @done_files;
     return;
 }
@@ -230,7 +237,6 @@ my @lines = $test_pipeline->stderr;
 isnt($?, 0, "error with empty config");
 ok($test_pipeline->match([ @lines[ 0 .. -1 ] ], [qr/^ERROR:/] x $#lines), "warnings for failed checks");
 like($lines[-1], qr/One or more options not found or invalid in config files/, "summary of check failure");
-
 
 my @ini_modes = glob catfile("settings", "*.ini");
 foreach my $with_done_files (0, 1) {

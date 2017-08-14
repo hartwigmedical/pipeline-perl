@@ -165,55 +165,12 @@ sub operationWithSliceChecks {
     my ($job_template, $sample, $known_files, $post_tag, $slice_tag, $opt) = @_;
 
     my $sample_bam = $opt->{BAM_FILES}->{$sample};
-    (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
     (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
-    (my $post_bai = $sample_bam) =~ s/\.bam$/.${post_tag}.bai/;
-    (my $post_flagstat = $sample_bam) =~ s/\.bam$/.${post_tag}.flagstat/;
-
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
-    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
-    my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
-    say "\t${sample_bam_path}";
+    my ($recalibrated_bam_path, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
 
-    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return;
-
-    my $operation_job_id = fromTemplate(
-        $job_template,
-        $sample,
-        0,
-        qsubJava($opt, uc $job_template . "_MASTER"),
-        $opt->{RUNNING_JOBS}->{$sample},
-        $dirs,
-        $opt,
-        sample => $sample,
-        sample_bam => $sample_bam,
-        sample_bam_path => $sample_bam_path,
-        job_native => jobNative($opt, uc $job_template),
-        known_files => $known_files,
-    ) or return;
-
-    my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
-    my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
-    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$operation_job_id], $dirs, $opt);
-    my $check_job_id = readCountCheck(
-        #<<< no perltidy
-        $sample,
-        [ $sample_flagstat_path ],
-        $post_flagstat_path,
-        "${job_template}Success.tt",
-        { post_bam => $post_bam, post_bai => $post_bai },
-        [ $flagstat_job_id ],
-        $dirs,
-        $opt,
-        #>>> no perltidy
-    );
-
-    my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{$sample}}, $job_id;
-
-    my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
+    push @{$opt->{RUNNING_JOBS}->{$sample}}, @{$job_ids};
 
     return;
 }
@@ -224,13 +181,14 @@ sub bamOperationWithSliceChecks {
     (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
     (my $post_bai = $sample_bam) =~ s/\.bam$/.${post_tag}.bai/;
     (my $post_flagstat = $sample_bam) =~ s/\.bam$/.${post_tag}.flagstat/;
+    (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
     my $sample_bam_path = catfile($dirs->{mapping}, $sample_bam);
-    (my $post_bam = $sample_bam_path) =~ s/\.bam$/.${post_tag}.bam/;
+    (my $post_bam_path = $sample_bam_path) =~ s/\.bam$/.${post_tag}.bam/;
     say "\t${sample_bam_path}";
 
-    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return ($post_bam, []);
+    my $done_file = checkReportedDoneFile($job_template, $sample, $dirs, $opt) or return ($post_bam_path, []);
 
     my $operation_job_id = fromTemplate(
         $job_template,
@@ -245,7 +203,7 @@ sub bamOperationWithSliceChecks {
         sample_bam_path => $sample_bam_path,
         job_native => jobNative($opt, uc $job_template),
         known_files => $known_files,
-    ) or return ($post_bam, []);
+    ) or return ($post_bam_path, []);
 
     my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
     my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
@@ -268,7 +226,7 @@ sub bamOperationWithSliceChecks {
     my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
 
-    return ($post_bam, [$job_id]);
+    return ($post_bam_path, [$job_id]);
 }
 
 1;
