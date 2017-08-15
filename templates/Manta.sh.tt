@@ -25,12 +25,12 @@ assert_not_empty "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi"
     -ref "[% control_bam %]" \
     -tumor "[% sample_bam %]" \
     -vcf "[% dirs.out %]/results/variants/somaticSV.vcf.gz" \
-    -ref_slice "[% dirs.out %]/results/variants/ref_sv_slice.bam" \
-    -tumor_slice "[% dirs.out %]/results/variants/tumor_sv_slice.bam" \
-    -output_vcf "[% dirs.out %]/results/variants/somaticSV_bpi.vcf" \
-    > "[% dirs.out %]/results/variants/bpi_stats.tsv"
+    -ref_slice "[% dirs.out %]/results/variants/[% control %]_slice.bam" \
+    -tumor_slice "[% dirs.out %]/results/variants/[% sample %]_slice.bam" \
+    -output_vcf "[% dirs.out %]/results/variants/[% joint_name %]_somaticSV_bpi.vcf" \
+    > "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
 
-assert_not_empty "[% dirs.out %]/results/variants/bpi_stats.tsv"
+assert_not_empty "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
 
 [%- END %]
 [ "$(cat "[% dirs.out %]/workflow.exitcode.txt")" == "0" ] || failure "Manta workflow logged non-zero exit code."

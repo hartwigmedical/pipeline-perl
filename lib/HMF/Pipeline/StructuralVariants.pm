@@ -178,6 +178,8 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
+        sample => $sample,
+        control => $control,
         sample_bam => $sample_bam,
         control_bam => $control_bam,
         joint_name => $joint_name,
@@ -188,10 +190,10 @@ sub runMantaJob {
     if (defined $control_bam) {
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV_bpi.vcf"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "ref_sv_slice.bam"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "tumor_sv_slice.bam"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "bpi_stats.tsv"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${control}_slice.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${sample}_slice.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_bpi_stats.tsv"), $opt);
     }
 
     return $job_id;
