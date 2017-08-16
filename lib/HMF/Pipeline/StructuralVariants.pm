@@ -191,8 +191,8 @@ sub runMantaJob {
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${control}_slice.bam"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${sample}_slice.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${control}_sliced.bam"), $opt);
+        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${sample}_sliced.bam"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_bpi_stats.tsv"), $opt);
     }
 
