@@ -168,7 +168,7 @@ sub operationWithSliceChecks {
     (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
-    my ($recalibrated_bam_path, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
+    my ($post_operation_bam_path, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
 
     push @{$opt->{RUNNING_JOBS}->{$sample}}, @{$job_ids};
 
