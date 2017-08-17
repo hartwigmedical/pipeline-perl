@@ -529,6 +529,13 @@ sub configChecks {
                 FINALIZE_TIME => \&key_not_present,
             }
         ),
+        HEALTHCHECK => if_enabled({
+                HEALTHCHECK_QUEUE => \&key_not_present,
+                HEALTHCHECK_THREADS => \&key_not_present,
+                HEALTHCHECK_MEM => \&key_not_present,
+                HEALTHCHECK_TIME => \&key_not_present,
+            }
+        ),
     };
 }
 

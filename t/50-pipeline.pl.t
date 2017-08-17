@@ -74,6 +74,7 @@ sub setupTestConfig {
         TABIX_PATH
         VCFTOOLS_PATH
         BPI_PATH
+        HEALTH_CHECKER_PATH
     );
     my %required_keys = (
         SAMTOOLS_PATH => defined $ENV{SAMTOOLS_PATH} ? $ENV{SAMTOOLS_PATH} : $temp_dir,
@@ -112,6 +113,7 @@ sub setupDoneFiles {
         catfile("logs", "Purple.done"),
         catfile("logs", "Cobalt_CPCT12345678R.done"),
         catfile("logs", "Cobalt_CPCT12345678T.done"),
+        catfile("logs", "HealthCheck.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz.done"),
         catfile("CPCT12345678T", "logs", "PreStats_CPCT12345678T_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),

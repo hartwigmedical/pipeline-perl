@@ -27,6 +27,7 @@ use HMF::Pipeline::Realignment;
 use HMF::Pipeline::SomaticVariants;
 use HMF::Pipeline::StructuralVariants;
 use HMF::Pipeline::DamageEstimate;
+use HMF::Pipeline::HealthCheck;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
@@ -67,6 +68,7 @@ sub run {
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
 
         HMF::Pipeline::Metadata::writeLinks($opt);
+        HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
     }
     return;
 }
