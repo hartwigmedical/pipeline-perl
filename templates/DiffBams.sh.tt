@@ -6,7 +6,6 @@
 
 assert_not_empty "[% input_bam1 %]" "[% input_bam2 %]"
 
-[% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual --out "[% output_diff %]"
+[% opt.BAMUTIL_PATH %]/bam diff --in1 "[% input_bam1 %]" --in2 "[% input_bam2 %]" --noPos --onlyDiffs --baseQual > "[% output_diff %]"
 
-# NB: bamutil does not produce an empty file when there is no diff
 success
