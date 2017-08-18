@@ -65,10 +65,10 @@ sub run {
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
         HMF::Pipeline::Gender::run($opt) if $opt->{GENDER} eq "yes";
         HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
+        HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
 
         HMF::Pipeline::Metadata::writeLinks($opt);
-        HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
     }
     return;
 }
