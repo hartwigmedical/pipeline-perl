@@ -4,7 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="ReleaseLock" main_step="" log_name="ReleaseLock.log" %]
 
-assert_not_empty "[% lock_file %]"
+assert_exists "[% lock_file %]"
 
 rm -f [% lock_file %]
 
