@@ -31,8 +31,6 @@ sub run {
 
     # TODO: run qc scripts
 
-    push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $job_id;
-
     return;
 }
 
