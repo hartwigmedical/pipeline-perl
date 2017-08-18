@@ -69,6 +69,7 @@ sub run {
 
         HMF::Pipeline::Metadata::writeLinks($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
+        HMF::Pipeline::Finalize::releaseLock($opt) if $opt->{FINALIZE} eq "yes";
     }
     return;
 }

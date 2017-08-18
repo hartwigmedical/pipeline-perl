@@ -168,6 +168,14 @@ sub setupDoneFiles {
     return;
 }
 
+sub setupJobsWithoutDone {
+    # add to this when adding new modules without done files
+    my @jobs_without_done_file = ("Finalize", "ReleaseLock");
+    # map job in jobs_without_done_file to "^job_" pattern and join patterns using "|" as separator
+    my $matching_pattern = join "|", map { "^" . $_ . "_" } @jobs_without_done_file;
+    return qr/$matching_pattern/;
+}
+
 sub testPipeline {
     my ($test_create_config, $test_pipeline, $ini_file, $mode, $done_files) = @_;
 
@@ -193,6 +201,7 @@ _METADATA_
     setupTestConfig($test_create_config, $config_file, $temp_file, $temp_dir);
 
     setupDoneFiles($output_dir) if ($done_files);
+    my $jobs_without_done = setupJobsWithoutDone();
     $test_pipeline->run(args => $config_file);
 
     is($?, 0, "$test_description pipeline ran successfully") or diag $test_pipeline->stderr;
@@ -219,7 +228,7 @@ _METADATA_
         $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
-        if (not $done_files or $job_name =~ /^Finalize_/) {
+        if (not $done_files or $job_name =~ $jobs_without_done) {
             like($stdout, qr/^Your job [0-9]+ \("$job_name"\) has been submitted$/m, "$job_script job submitted");
         } else {
             # loop will not be entered if jobs (correctly) not created, but test will make failure clearer
