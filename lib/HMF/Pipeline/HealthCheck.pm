@@ -41,7 +41,7 @@ sub run {
 
     my @health_check_files = File::Find::Rule->file()->name("*_health_checks.json")->in($health_check_dir);
     my $health_check_file = $health_check_files[0];
-    HMF::Pipeline::Metadata::linkExtraArtefact(catfile($health_check_dir, $health_check_file), $opt);
+    HMF::Pipeline::Metadata::linkExtraArtefact($health_check_file, $opt);
 
     return;
 }
