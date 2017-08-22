@@ -170,6 +170,8 @@ sub runMantaJob {
     my ($sample, $sample_bam, $control, $control_bam, $joint_name, $running_jobs, $opt) = @_;
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
+    my $bpi_vcf = catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf");
+
     my $job_id = fromTemplate(
         "Manta",
         undef,
@@ -183,7 +185,10 @@ sub runMantaJob {
         sample_bam => $sample_bam,
         control_bam => $control_bam,
         joint_name => $joint_name,
+        bpi_vcf => $bpi_vcf,
     );
+
+    $opt->{BPI_VCF_FILE} = $bpi_vcf;
 
     linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz.tbi"), $opt);
