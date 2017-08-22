@@ -171,6 +171,7 @@ sub runMantaJob {
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
     my $bpi_vcf = catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf");
+    say "\n BPI Output: ${bpi_vcf}";
 
     my $job_id = fromTemplate(
         "Manta",
