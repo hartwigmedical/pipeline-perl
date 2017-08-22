@@ -18,7 +18,7 @@ sub run {
     say "\n### SCHEDULING PURPLE ###";
 
     my $dirs = createDirs($opt->{OUTPUT_DIR}, purple => "purple");
-    my $dependent_jobs = copyNumberAndGermlineJobs($opt);
+    my $dependent_jobs = dependencies($opt);
     my $job_id = fromTemplate(
         "Purple",
         undef,
@@ -34,13 +34,13 @@ sub run {
     return;
 }
 
-sub copyNumberAndGermlineJobs {
+sub dependencies {
     my ($opt) = @_;
 
-    my (undef, $running_jobs) = sampleBamsAndJobs($opt);
     my @jobs;
-    push @jobs, @{$opt->{RUNNING_JOBS}->{cnv}};
-    push @jobs, @{$running_jobs};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{cobalt}};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{sv}};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{germline}};
     return \@jobs;
 }
 

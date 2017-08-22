@@ -4,9 +4,10 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Purple" main_step="" log_name="purple.log" %]
 
-/usr/java/latest/bin/java -Xmx[% opt.PURPLE_MEM %]G \
-    -jar "[% opt.PURPLE_PATH %]/purity-ploidy-estimator.jar" \
-    -run_dir [% dirs.out %] \
-    -vcf_extension annotated_sliced.vcf
+[%- baf_vcf = opt.GERMLINE_VCF_FILE.replace('\.vcf$', '_sliced.vcf') %]
+
+echo "somatic_vcf [% opt.SOMVAR_VCF_FILE %] "
+echo "structural_vcf [% opt.BPI_VCF_FILE %] "
+echo "baf_vcf [% baf_vcf %] "
 
 success

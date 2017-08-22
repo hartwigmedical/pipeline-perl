@@ -35,6 +35,7 @@ sub run {
     );
 
     $opt->{GERMLINE_VCF_FILE} = $annotated_vcf;
+    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id;
     return unless $job_id;
 
     HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
