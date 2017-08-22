@@ -61,7 +61,7 @@ sub postProcessStrelka {
     my @job_ids;
     my $qsub = qsubJava($opt, "SOMVARMERGE");
     my $output_vcf = $strelka_vcf;
-    my $job_id;
+    my $job_id = $strelka_job_id;
 
     my $pre_annotate_vcf = $output_vcf;
     if ($opt->{SOMVAR_ANNOTATE} eq "yes") {
@@ -73,7 +73,7 @@ sub postProcessStrelka {
             undef,
             0,
             $qsub,
-            [$strelka_job_id],
+            [$job_id],
             $dirs,
             $opt,
             basename => $basename,
