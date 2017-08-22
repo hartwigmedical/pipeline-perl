@@ -41,6 +41,7 @@ sub dependencies {
     push @jobs, @{$opt->{RUNNING_JOBS}->{cobalt}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{sv}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{germline}};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{somvar}};
     return \@jobs;
 }
 

@@ -21,6 +21,7 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING SOMATIC VARIANT CALLERS ###";
+    $opt->{RUNNING_JOBS}->{'somvar'} = [];
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
@@ -32,13 +33,11 @@ sub run {
     say "\nRunning somatic callers on:";
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
 
-    my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
-
     my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, $job_id;
 
     my $post_process_job_ids = postProcessStrelka($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
-    $job_id = markDone($done_file, [ $job_id, @{$post_process_job_ids} ], $dirs, $opt);
-    $opt->{RUNNING_JOBS}->{somvar} = [$job_id];
+    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, @{$post_process_job_ids};
 
     return;
 }
