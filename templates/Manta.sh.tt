@@ -27,7 +27,7 @@ assert_not_empty "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi"
     -vcf "[% dirs.out %]/results/variants/somaticSV.vcf.gz" \
     -ref_slice "[% dirs.out %]/results/variants/[% control %]_sliced.bam" \
     -tumor_slice "[% dirs.out %]/results/variants/[% sample %]_sliced.bam" \
-    -output_vcf "[% dirs.out %]/results/variants/[% joint_name %]_somaticSV_bpi.vcf" \
+    -output_vcf "[% bpi_vcf %]" \
     > "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
 
 assert_not_empty "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
