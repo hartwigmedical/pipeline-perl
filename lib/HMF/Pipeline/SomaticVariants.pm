@@ -84,6 +84,7 @@ sub postProcessStrelka {
     }
 
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
     $job_id = fromTemplate(
         "SomaticPONAnnotation",
         undef,
