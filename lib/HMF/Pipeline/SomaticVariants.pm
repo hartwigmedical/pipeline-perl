@@ -25,6 +25,8 @@ sub run {
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
 
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
@@ -32,13 +34,16 @@ sub run {
 
     say "\nRunning somatic callers on:";
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
+    my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
     my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'somvar'}}, $job_id;
 
-    my $post_process_job_ids = postProcessStrelka($tumor_sample, $joint_name, $job_id, $vcf, $dirs, $opt);
+    my $post_process_job_ids = postProcessStrelka($tumor_sample, $final_vcf, $job_id, $vcf, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'somvar'}}, @{$post_process_job_ids};
 
+    $job_id = markDone($done_file, [ $job_id, @{$post_process_job_ids} ], $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, $job_id;
     return;
 }
 
@@ -54,7 +59,7 @@ sub checkRecalibratedSample {
 }
 
 sub postProcessStrelka {
-    my ($tumor_sample, $joint_name, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
+    my ($tumor_sample, $final_vcf, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
@@ -82,8 +87,6 @@ sub postProcessStrelka {
         push @job_ids, $job_id;
     }
 
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
-    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
     $job_id = fromTemplate(
         "SomaticPONAnnotation",
         undef,

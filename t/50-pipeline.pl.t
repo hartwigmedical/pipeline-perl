@@ -139,8 +139,6 @@ sub setupDoneFiles {
         catfile("CPCT12345678R", "logs", "BamPrep_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "BamPrep_CPCT12345678T.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
-        catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "SomaticAnnotation.done"),
-        catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "SomaticPONAnnotation.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Somatic_CPCT12345678R_CPCT12345678T.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
