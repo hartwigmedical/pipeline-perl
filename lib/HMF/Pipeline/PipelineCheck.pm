@@ -26,7 +26,7 @@ sub run {
     my $job_id = fromTemplate(
         "PipelineCheck",
         undef,
-        1,
+        0,
         qsubTemplate($opt, "FINALIZE"),
         allRunningJobs($opt),
         $dirs,
