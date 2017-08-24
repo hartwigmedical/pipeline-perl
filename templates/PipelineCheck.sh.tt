@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="PipelineCheck" main_step="" log_name="${opt.RUN_NAME}_check.log" %]
+[% INCLUDE Logging.tt job_name="PipelineCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 failed=false
 rm -f [% log_file %]
