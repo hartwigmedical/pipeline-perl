@@ -21,11 +21,11 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING SOMATIC VARIANT CALLERS ###";
-    $opt->{RUNNING_JOBS}->{'somvar'} = [];
+    $opt->{RUNNING_JOBS}->{somvar} = [];
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_melted.vcf");
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf");
     $opt->{SOMVAR_VCF_FILE} = $final_vcf;
 
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
@@ -37,13 +37,13 @@ sub run {
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
     my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, $job_id;
+    push @{$opt->{RUNNING_JOBS}->{somvar}}, $job_id;
 
     my $post_process_job_ids = postProcessStrelka($tumor_sample, $final_vcf, $job_id, $vcf, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, @{$post_process_job_ids};
+    push @{$opt->{RUNNING_JOBS}->{somvar}}, @{$post_process_job_ids};
 
     $job_id = markDone($done_file, [ $job_id, @{$post_process_job_ids} ], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{'somvar'}}, $job_id;
+    push @{$opt->{RUNNING_JOBS}->{somvar}}, $job_id;
     return;
 }
 
