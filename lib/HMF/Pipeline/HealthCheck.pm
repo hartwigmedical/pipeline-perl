@@ -21,7 +21,7 @@ sub run {
     say "\n### SCHEDULING HEALTH CHECKER ###";
 
     my $dirs = createDirs($opt->{OUTPUT_DIR});
-    my $health_check_dir = $dirs->{log};
+    my $health_check_file = catfile($dirs->{log}, "$opt->{RUN_NAME}.healthcheck.json");
 
     my $job_id = fromTemplate(
         "HealthCheck",
@@ -32,15 +32,13 @@ sub run {
         $dirs,
         $opt,
         run_dir => $opt->{OUTPUT_DIR},
-        output_path => $health_check_dir,
+        report_file_path => $health_check_file,
     );
 
     push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $job_id;
 
     # TODO: run qc scripts
 
-    my @health_check_files = File::Find::Rule->file()->name("*_health_checks.json")->in($health_check_dir);
-    my $health_check_file = $health_check_files[0];
     HMF::Pipeline::Metadata::linkExtraArtefact($health_check_file, $opt);
 
     return;
