@@ -5,31 +5,17 @@
 [% INCLUDE Logging.tt job_name="Finalize" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 failed=false
-rm -f [% log_file %]
-
-echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
-echo "Pipeline version: [% opt.VERSION %]" >> [% log_file %]
-echo >> [% log_file %]
-
 [%- FOREACH done_file IN done_files %]
-echo -n "$(basename "[% done_file %]"): " >> [% log_file %]
-if [ -f "[% done_file %]" ]
+if [ ! -f "[% done_file %]" ]
 then
-    echo "succeeded" >> [% log_file %]
-else
-    echo "failed" >> [% log_file %]
     failed=true
 fi
 [% END -%]
 
-echo >> [% log_file %]
-
 if [[ "${failed}" == "true" ]]
 then
-    echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
-    mail -s "Pipeline FAILED [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
+    mail -s "Pipeline FAILED [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% pipeline_check_file %]
 else
-    echo "The pipeline completed successfully." >> [% log_file %]
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
@@ -74,9 +60,7 @@ else
     zip -r "[% extras_zip %]" "[% opt.EXTRAS.join('" "') %]"
 [% END -%]
 
-    mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% log_file %]
-    touch "[% dirs.log %]/PipelineCheck.done"
-
+    mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% pipeline_check_file %]
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi

@@ -27,6 +27,7 @@ use HMF::Pipeline::Realignment;
 use HMF::Pipeline::SomaticVariants;
 use HMF::Pipeline::StructuralVariants;
 use HMF::Pipeline::DamageEstimate;
+use HMF::Pipeline::PipelineCheck;
 use HMF::Pipeline::HealthCheck;
 
 use parent qw(Exporter);
@@ -65,6 +66,7 @@ sub run {
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
         HMF::Pipeline::Gender::run($opt) if $opt->{GENDER} eq "yes";
         HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
+        HMF::Pipeline::PipelineCheck::run($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
 
