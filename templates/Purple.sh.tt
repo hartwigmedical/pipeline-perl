@@ -11,6 +11,6 @@
     -somatic_vcf [% opt.SOMVAR_VCF_FILE %]  \
     -structural_vcf [% opt.BPI_VCF_FILE %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
-    -run_dir [% dirs.out %] \
+    -run_dir [% dirs.out %]
 
 success

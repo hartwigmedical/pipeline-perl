@@ -12,6 +12,8 @@ use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Template qw(writeFromTemplate);
 
+use List::Util qw[min max];
+
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
 
@@ -27,8 +29,12 @@ sub run {
     my $done_file = checkReportedDoneFile("Amber_$joint_name", undef, $dirs, $opt) or return;
 
     my @amber_jobs;
-    push @amber_jobs, runAmberPileup($ref_sample, $ref_bam_path, $running_jobs, $dirs, $opt);
-    push @amber_jobs, runAmberPileup($tumor_sample, $tumor_bam_path, $running_jobs, $dirs, $opt);
+    my $ref_threads = max(1, int($opt->{AMBER_THREADS} * 1 / 4));
+    my $tumor_threads = max(1, $opt->{AMBER_THREADS} - $ref_threads);
+    say "Using $ref_threads for reference pileup and $tumor_threads for tumor";
+
+    push @amber_jobs, runAmberPileup($ref_sample, $ref_bam_path, $ref_threads, $running_jobs, $dirs, $opt);
+    push @amber_jobs, runAmberPileup($tumor_sample, $tumor_bam_path, $tumor_threads, $running_jobs, $dirs, $opt);
     push @amber_jobs, runAmber($tumor_sample, $ref_bam_path, $tumor_bam_path, \@amber_jobs, $dirs, $opt);
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
@@ -56,7 +62,7 @@ sub runAmber {
 }
 
 sub runAmberPileup {
-    my ($sample, $sample_bam, $running_jobs, $dirs, $opt) = @_;
+    my ($sample, $sample_bam, $threads, $running_jobs, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING AMBER PILEUP ON $sample ###";
     my $job_id = fromTemplate(
@@ -69,6 +75,7 @@ sub runAmberPileup {
         $opt,
         sample => $sample,
         sample_bam => $sample_bam,
+        threads => $threads,
     );
 
     return $job_id;

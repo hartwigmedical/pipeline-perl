@@ -10,7 +10,7 @@ PATH=[% opt.SAMTOOLS_PATH %]:$PATH
 export PATH
 
 [% opt.SAMBAMBA_PATH %]/sambamba mpileup \
-    -t "[% opt.AMBER_THREADS %]" \
+    -t "[% threads %]" \
     --tmpdir=[% dirs.tmp %] \
     -L "[% opt.BAF_SNPS %]" \
     "[% sample_bam %]" \
