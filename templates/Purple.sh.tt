@@ -4,8 +4,6 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Purple" main_step="" log_name="purple.log" %]
 
-[%- baf_vcf = opt.GERMLINE_VCF_FILE.replace('\.vcf$', '_sliced.vcf') %]
-
 /usr/java/latest/bin/java -Xmx[% opt.PURPLE_MEM %]G \
     -jar "[% opt.PURPLE_PATH %]/purple.jar" \
     -threads [% opt.PURPLE_THREADS %] \
@@ -13,7 +11,6 @@
     -somatic_vcf [% opt.SOMVAR_VCF_FILE %]  \
     -structural_vcf [% opt.BPI_VCF_FILE %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
-    -baf_vcf [% baf_vcf %] \
     -run_dir [% dirs.out %] \
 
 success
