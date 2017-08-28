@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="AmberPileup" main_step=sample log_name="AmberPileup_${sample}.log" %]
+
+assert_not_empty "[% sample_bam %]"
+
+PATH=[% opt.SAMTOOLS_PATH %]:$PATH
+export PATH
+
+[% opt.SAMBAMBA_PATH %]/sambamba mpileup \
+    -t "[% opt.AMBER_THREADS %]" \
+    --tmpdir=[% dirs.tmp %] \
+    -L "[% opt.BAF_SNPS %]" \
+    "[% sample_bam %]" \
+    --samtools "-q 1 -f [% opt.GENOME %]" \
+    > "[% sample_bam %].amber.pileup"
+
+success

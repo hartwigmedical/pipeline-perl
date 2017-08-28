@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="Amber" main_step=tumor_sample log_name="Amber.log" %]
+
+/usr/java/latest/bin/java -Xmx[% opt.AMBER_MEM %]G \
+    -jar "[% opt.AMBER_PATH %]/amber.jar" \
+    -sample "[% tumor_sample %]" \
+    -reference "[% ref_bam_path %].amber.pileup" \
+    -tumor "[% tumor_bam_path %].amber.pileup" \
+    -output_dir "[% dirs.amber %]"
+
+rm "[% ref_bam_path %].amber.pileup"
+rm "[% tumor_bam_path %].amber.pileup"
+
+success

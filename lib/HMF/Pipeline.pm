@@ -6,6 +6,7 @@ use discipline;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 use File::Spec::Functions;
 
+use HMF::Pipeline::Amber;
 use HMF::Pipeline::Baf;
 use HMF::Pipeline::BaseRecalibration;
 use HMF::Pipeline::CallableLoci;
@@ -50,6 +51,7 @@ sub run {
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
         HMF::Pipeline::Metadata::linkBamArtefacts($opt);
         HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
+        HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
 
         HMF::Pipeline::PreCalling::run($opt);
