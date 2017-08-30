@@ -5,7 +5,6 @@
 [% INCLUDE Logging.tt job_name="HealthCheck" main_step="" log_name="HealthCheck.log" %]
 
 java -jar "[% opt.HEALTH_CHECKER_PATH %]/health-checker.jar" \
-    -report_type json \
     -report_file_path "[% report_file_path %]" \
     -run_dir "[% run_dir %]"
 
