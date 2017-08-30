@@ -144,6 +144,7 @@ sub setupDoneFiles {
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
+        catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
         catfile("structuralVariants", "delly", "logs", "Delly_DEL.done"),
         catfile("structuralVariants", "delly", "logs", "Delly_DUP.done"),
         catfile("structuralVariants", "delly", "logs", "Delly_INS.done"),

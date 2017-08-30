@@ -19,20 +19,8 @@ assert_not_empty "[% control_bam %]"
 assert_not_empty "[% dirs.out %]/results/variants/diploidSV.vcf.gz.tbi"
 [%- IF opt.SV_MODE == "sample_control" %]
 assert_not_empty "[% dirs.out %]/results/variants/somaticSV.vcf.gz.tbi"
-
-/usr/java/latest/bin/java -Xmx[% opt.BPI_MEM %]G \
-    -jar "[% opt.BPI_PATH %]/break-point-inspector.jar" \
-    -ref "[% control_bam %]" \
-    -tumor "[% sample_bam %]" \
-    -vcf "[% dirs.out %]/results/variants/somaticSV.vcf.gz" \
-    -ref_slice "[% dirs.out %]/results/variants/[% control %]_sliced.bam" \
-    -tumor_slice "[% dirs.out %]/results/variants/[% sample %]_sliced.bam" \
-    -output_vcf "[% bpi_vcf %]" \
-    > "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
-
-assert_not_empty "[% dirs.out %]/results/variants/[% joint_name %]_bpi_stats.tsv"
-
 [%- END %]
+
 [ "$(cat "[% dirs.out %]/workflow.exitcode.txt")" == "0" ] || failure "Manta workflow logged non-zero exit code."
 
 success

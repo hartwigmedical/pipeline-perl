@@ -427,6 +427,10 @@ sub configChecks {
                         MANTA_MEM => \&key_not_present,
                         MANTA_TIME => \&key_not_present,
                         BPI_PATH => \&missing_directory,
+                        BPI_QUEUE => \&key_not_present,
+                        BPI_THREADS => \&key_not_present,
+                        BPI_MEM => \&key_not_present,
+                        BPI_TIME => \&key_not_present,
                     }
                 ),
                 SV_DELLY => if_enabled({

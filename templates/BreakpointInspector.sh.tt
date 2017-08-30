@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="BreakpointInspector" main_step=joint_name log_name="BPI_${joint_name}.log" %]
+
+cd "[% opt.OUTPUT_DIR %]"
+
+/usr/java/latest/bin/java -Xmx[% opt.BPI_MEM %]G \
+    -jar "[% opt.BPI_PATH %]/break-point-inspector.jar" \
+    -ref "[% control_bam %]" \
+    -tumor "[% sample_bam %]" \
+    -vcf "[% input_vcf %]" \
+    -ref_slice "[% dirs.out %]/[% control %]_sliced.bam" \
+    -tumor_slice "[% dirs.out %]/[% sample %]_sliced.bam" \
+    -output_vcf "[% opt.BPI_VCF_FILE %]" \
+    > "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
+
+assert_not_empty "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
+
+success

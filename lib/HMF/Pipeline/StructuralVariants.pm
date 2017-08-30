@@ -154,23 +154,26 @@ sub runManta {
         foreach my $sample (keys %{$opt->{SAMPLES}}) {
             my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
             say "\n$sample \t $sample_bam";
-            my $job_id = runMantaJob($sample, $sample_bam, undef, undef, $sample, $running_jobs, $opt);
+            my $job_id = runMantaJob($sample_bam, undef, $sample, $running_jobs, $opt);
             push @manta_jobs, $job_id;
         }
         return \@manta_jobs;
     } else {
+        my @manta_jobs;
         my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
         say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
-        my $job_id = runMantaJob($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-        return [$job_id];
+        my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
+        push @manta_jobs, $job_id;
+        $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $job_id, $opt);
+        push @manta_jobs, $job_id;
+        return \@manta_jobs;
     }
 }
 
 sub runMantaJob {
-    my ($sample, $sample_bam, $control, $control_bam, $joint_name, $running_jobs, $opt) = @_;
+    my ($sample_bam, $control_bam, $joint_name, $running_jobs, $opt) = @_;
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
-    my $bpi_vcf = catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf");
 
     my $job_id = fromTemplate(
         "Manta",
@@ -180,26 +183,49 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        sample => $sample,
-        control => $control,
         sample_bam => $sample_bam,
         control_bam => $control_bam,
         joint_name => $joint_name,
-        bpi_vcf => $bpi_vcf,
     );
-
-    $opt->{BPI_VCF_FILE} = $bpi_vcf;
 
     linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz.tbi"), $opt);
     if (defined $control_bam) {
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
         linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_somaticSV_bpi.vcf"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${control}_sliced.bam"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${sample}_sliced.bam"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "${joint_name}_bpi_stats.tsv"), $opt);
     }
+
+    return $job_id;
+}
+
+sub runBreakpointInspector {
+    my ($sample, $sample_bam, $control, $control_bam, $joint_name, $manta_job_id, $opt) = @_;
+
+    my $manta_vcf = catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name, "results", "variants", "somaticSV.vcf.gz");
+
+    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "bpi", $joint_name));
+    $opt->{BPI_VCF_FILE} = catfile($dirs->{out}, "${joint_name}_somaticSV_bpi.vcf");
+
+    my $job_id = fromTemplate(
+        "BreakpointInspector",
+        undef,
+        1,
+        qsubTemplate($opt, "BPI"),
+        [$manta_job_id],
+        $dirs,
+        $opt,
+        sample => $sample,
+        control => $control,
+        sample_bam => $sample_bam,
+        control_bam => $control_bam,
+        joint_name => $joint_name,
+        input_vcf => $manta_vcf,
+    );
+
+    linkExtraArtefact($opt->{BPI_VCF_FILE}, $opt);
+    linkExtraArtefact(catfile($dirs->{out}, "${control}_sliced.bam"), $opt);
+    linkExtraArtefact(catfile($dirs->{out}, "${sample}_sliced.bam"), $opt);
+    linkExtraArtefact(catfile($dirs->{out}, "${joint_name}_bpi_stats.tsv"), $opt);
 
     return $job_id;
 }
