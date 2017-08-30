@@ -9,7 +9,7 @@ cd "[% opt.OUTPUT_DIR %]"
 assert_not_empty "[% sample_bam %]"
 [% IF opt.SV_MODE == "sample_control" %]
 assert_not_empty "[% control_bam %]"
-[% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --normalBam "[% control_bam %]" --tumorBam "[% sample_bam %]"
+[% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --normalBam "[% control_bam %]" --tumorBam "[% sample_bam %]" --generateEvidenceBam
 [% ELSE %]
 [% opt.MANTA_PATH %]/configManta.py --referenceFasta "[% opt.GENOME %]" --runDir "[% dirs.out %]" --bam "[% sample_bam %]"
 [% END %]
