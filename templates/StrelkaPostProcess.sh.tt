@@ -2,21 +2,22 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="SomaticAnnotation" main_step=joint_name log_name="Somatic_${joint_name}.log" %]
-
-input_vcf="[% strelka_vcf %]"
-filtered_vcf="[% dirs.out %].filtered.vcf"
-rm -f "filtered_vcf" "filtered_vcf.idx"
-
-java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
-    -v "[% input_vcf %]" \
-    -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
-    -t "[% tumor_sample %]" \
-    -o "[% filtered_vcf %].tmp"
+[% INCLUDE Logging.tt job_name="StrelkaPostProcess" main_step=joint_name log_name="Somatic_${joint_name}.log" %]
 
 cd "[% dirs.out %]"
 
-assert_not_empty "$filtered_vcf"
+input_vcf="[% strelka_vcf %]"
+output_vcf="[% dirs.out %].processed.vcf"
+rm -f "$output_vcf" "$output_vcf.idx"
+
+java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
+    -v "$input_vcf" \
+    -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
+    -t "[% tumor_sample %]" \
+    -o "$output_vcf"
+
+assert_not_empty "$output_vcf"
+input_vcf="$output_vcf"
 output_vcf="[% dirs.out %].snpEff.vcf"
 rm -f "$output_vcf" "$output_vcf.idx"
 
@@ -25,7 +26,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
     -c "[% opt.SNPEFF_PATH %]/snpEff.config" \
     "[% opt.ANNOTATE_DB %]" \
-    -v "$filtered_vcf" \
+    -v "$input_vcf" \
     [% opt.ANNOTATE_FLAGS %] \
     > "$output_vcf"
 
@@ -68,11 +69,11 @@ input_vcf="$output_vcf"
 output_vcf="[% dirs.out %].pon.vcf"
 rm -f "$output_vcf" "$output_vcf.idx"
 
-[% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p "[% opt.HMF_PON %]" -i "[% input_vcf %]" -o - | \
-[% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ -o "[% output_vcf %]"
-[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
+[% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p "[% opt.HMF_PON %]" -i "$input_vcf" -o - | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ -o "$output_vcf"
+[% opt.IGVTOOLS_PATH %]/igvtools index "$output_vcf"
 
-assert_last_position_unchanged "[% input_vcf %]" "[% output_vcf %]"
+assert_last_position_unchanged "$input_vcf" "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 
 mv "$output_vcf" "[% final_vcf %]"

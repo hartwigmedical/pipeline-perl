@@ -33,8 +33,7 @@ sub run {
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
-    my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs,
-        $dirs, $opt);
+    my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $strelka_job_id;
 
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf");
@@ -51,7 +50,7 @@ sub run {
 sub checkRecalibratedSample {
     my ($sample, $sample_bam_path, $opt) = @_;
 
-    if (index($sample_bam_path, "recalibrated.bam") == - 1) {
+    if (index($sample_bam_path, "recalibrated.bam") == -1) {
         say "\nMissing recalibrated file for sample: $sample";
         my ($recalibrated_bam, $recalibration_jobs) = HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($sample, $opt);
         return ($recalibrated_bam, $recalibration_jobs);
@@ -75,11 +74,11 @@ sub runStrelka {
         $running_jobs,
         $dirs,
         $opt,
-        tumor_sample   => $tumor_sample,
-        joint_name     => $joint_name,
-        ref_bam_path   => $ref_bam_path,
+        tumor_sample => $tumor_sample,
+        joint_name => $joint_name,
+        ref_bam_path => $ref_bam_path,
         tumor_bam_path => $tumor_bam_path,
-        final_vcf      => $output_vcf,
+        final_vcf => $output_vcf,
     );
 
     return ($job_id, $output_vcf);
@@ -95,13 +94,13 @@ sub postProcessStrelka {
         undef,
         0,
         qsubJava($opt, "STRELKAPOSTPROCESS"),
-        [ $strelka_job_id ],
+        [$strelka_job_id],
         $dirs,
         $opt,
         tumor_sample => $tumor_sample,
-        strelka_vcf  => $strelka_vcf,
-        final_vcf    => $final_vcf,
-        joint_name   => $joint_name,
+        strelka_vcf => $strelka_vcf,
+        final_vcf => $final_vcf,
+        joint_name => $joint_name,
     );
 
     HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt) if $job_id;
