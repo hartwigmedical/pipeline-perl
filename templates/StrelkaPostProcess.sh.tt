@@ -32,7 +32,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     > "$output_vcf"
 
 assert_not_empty "$output_vcf"
-rm "$input_vcf" "$input_vcf.idx"
+rm "$input_vcf"
 input_vcf="$output_vcf"
 output_vcf="$basefile".dbsnp.vcf
 rm -f "$output_vcf" "$output_vcf.idx"
