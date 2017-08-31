@@ -6,11 +6,10 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs addSubDir getChromosomes sampleControlBamsAndJobs sampleBamAndJobs);
+use HMF::Pipeline::Config qw(createDirs addSubDir sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Job::Vcf qw(concat);
 use HMF::Pipeline::Metadata;
-use HMF::Pipeline::Sge qw(qsubTemplate qsubJava);
+use HMF::Pipeline::Sge qw(qsubJava);
 use HMF::Pipeline::BaseRecalibration qw(runRecalibrationOnSample);
 use List::MoreUtils qw(uniq);
 
