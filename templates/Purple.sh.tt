@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="Purple" main_step=joint_name log_name="${opt.RUN_NAME}.log" %]
+[% INCLUDE Logging.tt job_name="Purple" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 java -Xmx[% opt.PURPLE_MEM %]G \
     -jar "[% opt.PURPLE_PATH %]/purple.jar" \
