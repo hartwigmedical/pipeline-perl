@@ -19,7 +19,7 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING SOMATIC VARIANT CALLERS ###";
+    say "\n### SCHEDULING SOMATIC VARIANT CALLING ###";
     $opt->{RUNNING_JOBS}->{somvar} = [];
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
@@ -31,7 +31,7 @@ sub run {
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
     $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
 
-    say "\nRunning somatic callers on:";
+    say "\nRunning somatic calling on:";
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 

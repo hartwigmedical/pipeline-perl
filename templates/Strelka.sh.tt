@@ -31,7 +31,6 @@ java -Xmx[% opt.STRELKA_MEM %]G \
 
 assert_not_empty "[% final_vcf %]"
 
-
 java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
     -v "[% final_vcf %]" \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
