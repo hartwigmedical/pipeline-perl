@@ -365,10 +365,10 @@ sub configChecks {
                         HIGH_CONFIDENCE_BED => \&missing_file,
                     }
                 ),
-                SOMVARMERGE_QUEUE => \&key_not_present,
-                SOMVARMERGE_THREADS => \&key_not_present,
-                SOMVARMERGE_MEM => \&key_not_present,
-                SOMVARMERGE_TIME => \&key_not_present,
+                SOMVARPOSTPROCESS_QUEUE => \&key_not_present,
+                SOMVARPOSTPROCESS_THREADS => \&key_not_present,
+                SOMVARPOSTPROCESS_MEM => \&key_not_present,
+                SOMVARPOSTPROCESS_TIME => \&key_not_present,
                 SOMVAR_ANNOTATE => if_enabled({
                         ANNOTATE_DB => \&key_not_present,
                         ANNOTATE_FLAGS => \&key_not_present,

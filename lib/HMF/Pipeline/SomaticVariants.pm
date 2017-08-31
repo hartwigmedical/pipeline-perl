@@ -36,10 +36,10 @@ sub run {
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
-    my ($job_id, $vcf) = runStrelka($ref_sample, $tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
+    my ($job_id, $vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $job_id;
 
-    my $post_process_job_ids = postProcessStrelka($tumor_sample, $final_vcf, $job_id, $vcf, $dirs, $opt);
+    my $post_process_job_ids = postProcessStrelka($final_vcf, $job_id, $vcf, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, @{$post_process_job_ids};
 
     $job_id = markDone($done_file, [ $job_id, @{$post_process_job_ids} ], $dirs, $opt);
@@ -58,13 +58,39 @@ sub checkRecalibratedSample {
     return ($sample_bam_path, []);
 }
 
+sub runStrelka {
+    my ($tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
+
+    say "\n### SCHEDULING STRELKA ###";
+
+    $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
+    my $final_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf");
+
+    my $job_id = fromTemplate(
+        "Strelka",
+        undef,
+        1,
+        qsubJava($opt, "STRELKA"),
+        $running_jobs,
+        $dirs,
+        $opt,
+        tumor_sample => $tumor_sample,
+        joint_name => $joint_name,
+        ref_bam_path => $ref_bam_path,
+        tumor_bam_path => $tumor_bam_path,
+        final_vcf => $final_vcf,
+    );
+
+    return ($job_id, $final_vcf);
+}
+
 sub postProcessStrelka {
-    my ($tumor_sample, $final_vcf, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
+    my ($final_vcf, $strelka_job_id, $strelka_vcf, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
     my @job_ids;
-    my $qsub = qsubJava($opt, "SOMVARMERGE");
+    my $qsub = qsubJava($opt, "SOMVARPOSTPROCESS");
     my $output_vcf = $strelka_vcf;
     my $job_id = $strelka_job_id;
 
@@ -104,32 +130,6 @@ sub postProcessStrelka {
     HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt) if $job_id;
 
     return \@job_ids;
-}
-
-sub runStrelka {
-    my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
-
-    say "\n### SCHEDULING STRELKA ###";
-
-    $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
-    my $final_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf");
-
-    my $job_id = fromTemplate(
-        "Strelka",
-        undef,
-        1,
-        qsubJava($opt, "STRELKA"),
-        $running_jobs,
-        $dirs,
-        $opt,
-        tumor_sample => $tumor_sample,
-        joint_name => $joint_name,
-        ref_bam_path => $ref_bam_path,
-        tumor_bam_path => $tumor_bam_path,
-        final_vcf => $final_vcf,
-    );
-
-    return ($job_id, $final_vcf);
 }
 
 1;
