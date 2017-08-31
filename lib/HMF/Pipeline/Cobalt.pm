@@ -7,7 +7,6 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate);
-use HMF::Pipeline::Metadata qw(linkExtraArtefact);
 use HMF::Pipeline::Sge qw(qsubJava);
 
 use parent qw(Exporter);
