@@ -367,14 +367,11 @@ sub configChecks {
                 STRELKAPOSTPROCESS_THREADS => \&key_not_present,
                 STRELKAPOSTPROCESS_MEM => \&key_not_present,
                 STRELKAPOSTPROCESS_TIME => \&key_not_present,
-                SOMVAR_ANNOTATE => if_enabled({
-                        ANNOTATE_DB => \&key_not_present,
-                        ANNOTATE_FLAGS => \&key_not_present,
-                        ANNOTATE_IDNAME => \&key_not_present,
-                        ANNOTATE_IDDB => \&missing_file,
-                        CALLING_DBSNP => \&missing_file,
-                    }
-                ),
+                ANNOTATE_DB => \&key_not_present,
+                ANNOTATE_FLAGS => \&key_not_present,
+                ANNOTATE_IDNAME => \&key_not_present,
+                ANNOTATE_IDDB => \&missing_file,
+                CALLING_DBSNP => \&missing_file,
                 HMF_PON => \&missing_file,
             }
         ),
