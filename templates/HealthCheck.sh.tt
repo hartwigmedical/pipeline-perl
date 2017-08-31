@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="HealthCheck" main_step="" log_name="HealthCheck.log" %]
+[% INCLUDE Logging.tt job_name="HealthCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 java -jar "[% opt.HEALTH_CHECKER_PATH %]/health-checker.jar" \
     -report_file_path "[% report_file_path %]" \
