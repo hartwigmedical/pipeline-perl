@@ -24,7 +24,7 @@ our @EXPORT_OK = qw(
 );
 
 
-# "sort" would clash with Perl function
+# SABR: "sort" would clash with Perl function
 sub sorted {
     my ($step, $bam_path, $sorted_bam_path, $hold_jids, $dirs, $opt) = @_;
 
@@ -64,7 +64,7 @@ sub slice {
     );
 }
 
-# "index" would clash with Perl function
+# SABR: "index" would clash with Perl function
 sub indexed {
     my ($step, $bam_path, $bai_path, $hold_jids, $dirs, $opt) = @_;
 
@@ -153,8 +153,8 @@ sub prePostSliceAndDiff {
     my $post_sliced_bam_path = catfile($dirs->{mapping}, $post_sliced_bam);
     my $post_sliced_flagstat_path = catfile($dirs->{mapping}, $post_sliced_flagstat);
 
-    my $pre_job_id = slice($sample, $pre_bam, $pre_sliced_bam, "HealthCheck_Slicing.bed", $hold_jids, $dirs, $opt);
-    my $post_job_id = slice($sample, $post_bam, $post_sliced_bam, "HealthCheck_Slicing.bed", $hold_jids, $dirs, $opt);
+    my $pre_job_id = slice($sample, $pre_bam, $pre_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
+    my $post_job_id = slice($sample, $post_bam, $post_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
     my $diff_job_id = diff($sample, $pre_sliced_bam, $post_sliced_bam, $pre_post_diff, [ $pre_job_id, $post_job_id ], $dirs, $opt);
     my $flagstat_job_id = flagstat($sample, $post_sliced_bam_path, $post_sliced_flagstat_path, [$post_job_id], $dirs, $opt);
 
