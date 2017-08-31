@@ -20,10 +20,6 @@ else
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
 
-[% IF opt.SOMATIC_VARIANTS == "yes" -%]
-    find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
-[% END -%]
-
 [% IF opt.INDELREALIGNMENT == "yes" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
     rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]_dedup.ba*
