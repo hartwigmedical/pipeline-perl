@@ -207,7 +207,7 @@ sub configChecks {
         CORE_GENOME => \&missing_genome_files,
         GATK_PATH => \&missing_directory,
         QUEUE_PATH => \&missing_directory,
-        # these are required for BAM input, regardless of settings
+        # SABR: these are required for BAM input, regardless of settings
         SAMTOOLS_PATH => \&missing_directory,
         SAMBAMBA_PATH => \&missing_directory,
         MAPPING_THREADS => \&key_not_present,
@@ -258,6 +258,7 @@ sub configChecks {
             }
         ),
         DAMAGE_ESTIMATE => if_enabled({
+                # KODU: DamageEstimator also depends on SAMTOOLS and SAMBAMBA but they are assumed to be checked already at this point.
                 DAMAGE_ESTIMATOR_PATH => \&missing_directory,
                 DAMAGE_ESTIMATE_QUEUE => \&key_not_present,
                 DAMAGE_ESTIMATE_TIME => \&key_not_present,
@@ -294,6 +295,7 @@ sub configChecks {
             }
         ),
         BASEQUALITYRECAL => if_enabled({
+                BAMUTIL_PATH => \&missing_directory,
                 BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,
                 BASERECALIBRATION_MASTER_TIME => \&key_not_present,
                 BASERECALIBRATION_MASTER_THREADS => \&key_not_present,
@@ -351,7 +353,6 @@ sub configChecks {
             }
         ),
         SOMATIC_VARIANTS => if_enabled({
-                VCFTOOLS_PATH => \&missing_directory,
                 SAMTOOLS_PATH => \&missing_directory,
                 SOMVAR_TARGETS => \&missing_optional_file,
                 STRELKA_PATH => \&missing_directory,
