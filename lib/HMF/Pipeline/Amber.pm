@@ -17,11 +17,10 @@ use List::Util qw[min max];
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
 
-
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING AMBER ###";
+    say "\n### SCHEDULING AMBER STEPS ###";
     $opt->{RUNNING_JOBS}->{'amber'} = [];
 
     my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => "amber");
@@ -44,7 +43,7 @@ sub run {
 sub runAmber {
     my ($tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt) = @_;
 
-    say "\n### SCHEDULING AMBER ALGORITHM ###";
+    say "\n### SCHEDULING AMBER ###";
     my $job_id = fromTemplate(
         "Amber",
         undef,
