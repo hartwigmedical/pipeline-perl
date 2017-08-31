@@ -13,7 +13,7 @@ cd "[% dirs.out %]"
 
 assert_not_empty "$input_vcf"
 
-java -Xmx[% opt.SOMVARPOSTPROCESS_MEM %]G \
+java -Xmx[% opt.SOMVARANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
     -c "[% opt.SNPEFF_PATH %]/snpEff.config" \
@@ -28,11 +28,11 @@ basename+="_dbSNP"
 output_vcf="$basename.vcf"
 rm -f "$output_vcf" "$output_vcf.idx"
 
-java -Xmx[% opt.SOMVARPOSTPROCESS_MEM %]G \
+java -Xmx[% opt.SOMVARANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T VariantAnnotator \
-    -nt [% opt.SOMVARPOSTPROCESS_THREADS %] \
+    -nt [% opt.SOMVARANNOTATE_THREADS %] \
     -R "[% opt.GENOME %]" \
     -o "$output_vcf" \
     --variant "$input_vcf" \
@@ -46,11 +46,11 @@ basename+="_[% opt.ANNOTATE_IDNAME %]"
 output_vcf="$basename.vcf"
 rm -f "$output_vcf" "$output_vcf.idx"
 
-java -Xmx[% opt.SOMVARPOSTPROCESS_MEM %]G \
+java -Xmx[% opt.SOMVARANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T VariantAnnotator \
-    -nt [% opt.SOMVARPOSTPROCESS_THREADS %] \
+    -nt [% opt.SOMVARANNOTATE_THREADS %] \
     -R "[% opt.GENOME %]" \
     -o "$output_vcf" \
     --variant "$input_vcf" \

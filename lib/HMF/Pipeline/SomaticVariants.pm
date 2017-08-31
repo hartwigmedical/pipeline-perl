@@ -89,7 +89,7 @@ sub postProcessStrelka {
     say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
     my @job_ids;
-    my $qsub = qsubJava($opt, "SOMVARPOSTPROCESS");
+    my $qsub = qsubJava($opt, "SOMVARANNOTATE");
     my $output_vcf = $strelka_vcf;
     my $job_id = $strelka_job_id;
 
