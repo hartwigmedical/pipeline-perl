@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs addSubDir sampleBamAndJobs sampleControlBamsAndJobs);
+use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubTemplate);
@@ -31,7 +31,7 @@ sub run {
     my @amber_jobs;
     my $ref_threads = max(1, int($opt->{AMBER_THREADS} * 1 / 4));
     my $tumor_threads = max(1, $opt->{AMBER_THREADS} - $ref_threads);
-    say "Using $ref_threads for reference pileup and $tumor_threads for tumor";
+    say "Using $ref_threads threads for reference pileup and $tumor_threads threads for tumor";
 
     push @amber_jobs, runAmberPileup($ref_sample, $ref_bam_path, $ref_threads, $running_jobs, $dirs, $opt);
     push @amber_jobs, runAmberPileup($tumor_sample, $tumor_bam_path, $tumor_threads, $running_jobs, $dirs, $opt);
@@ -44,7 +44,7 @@ sub run {
 sub runAmber {
     my ($tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt) = @_;
 
-    say "\n### SCHEDULING AMBER ###";
+    say "\n### SCHEDULING AMBER ALGORITHM ###";
     my $job_id = fromTemplate(
         "Amber",
         undef,
