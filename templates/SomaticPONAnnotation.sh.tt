@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="SomaticPONAnnotation" main_step=output_vcf log_name="Somatic_$joint_name" %]
+[% INCLUDE Logging.tt job_name="SomaticPONAnnotation" main_step=output_vcf log_name="Somatic_$joint_name.log" %]
 
 cd "[% dirs.out %]"
 
