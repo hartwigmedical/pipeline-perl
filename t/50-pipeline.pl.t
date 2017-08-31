@@ -14,7 +14,7 @@ use Test::Files;
 use Test::More;
 
 use lib "t";
-# bug in Test::Prereq 1.x needs filename for test dependencies
+# SABR: bug in Test::Prereq 1.x needs filename for test dependencies
 require "Util.pm"; ## no critic (Modules::RequireBarewordIncludes)
 
 
@@ -63,8 +63,10 @@ sub setupTestConfig {
         PBGZIP_PATH
         PICARD_PATH
         PLINK_PATH
+        AMBER_PATH
         COBALT_PATH
         PURPLE_PATH
+        CIRCOS_PATH
         QDNASEQ_PATH
         QUEUE_PATH
         SAMBAMBA_PATH

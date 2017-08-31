@@ -257,6 +257,18 @@ sub configChecks {
                 ),
             }
         ),
+        CALLABLE_LOCI => if_enabled({
+                CALLABLE_LOCI_QUEUE => \&key_not_present,
+                CALLABLE_LOCI_TIME => \&key_not_present,
+                CALLABLE_LOCI_THREADS => \&key_not_present,
+                CALLABLE_LOCI_MEM => \&key_not_present,
+                CALLABLE_LOCI_BASEQUALITY => \&key_not_present,
+                CALLABLE_LOCI_MAPQUALITY => \&key_not_present,
+                CALLABLE_LOCI_DEPTH => \&key_not_present,
+                CALLABLE_LOCI_DEPTHLOWMAPQ => \&key_not_present,
+                CALLING_TARGETS => \&missing_optional_file,
+            }
+        ),
         DAMAGE_ESTIMATE => if_enabled({
                 # KODU: DamageEstimator also depends on SAMTOOLS and SAMBAMBA but they are assumed to be checked already at this point.
                 DAMAGE_ESTIMATOR_PATH => \&missing_directory,
@@ -268,10 +280,6 @@ sub configChecks {
                 DAMAGE_ESTIMATE_DOWNSAMPLE_BAM_SIZE => \&key_not_present,
                 DAMAGE_ESTIMATE_MIN_COVERAGE_LIMIT => \&key_not_present,
                 DAMAGE_ESTIMATE_MAX_COVERAGE_LIMIT => \&key_not_present,
-            }
-        ),
-        PURPLE => if_enabled({
-                PURPLE_PATH => \&missing_directory,
             }
         ),
         INDELREALIGNMENT => if_enabled({
@@ -352,6 +360,62 @@ sub configChecks {
                 FILTER_INDELEXPR => \&key_not_present,
             }
         ),
+        ANNOTATE_VARIANTS => if_enabled({
+                SNPEFF_PATH => \&missing_directory,
+                IGVTOOLS_PATH => \&missing_directory,
+                ANNOTATE_QUEUE => \&key_not_present,
+                ANNOTATE_THREADS => \&key_not_present,
+                ANNOTATE_MEM => \&key_not_present,
+                ANNOTATE_TIME => \&key_not_present,
+                ANNOTATE_SNPEFF => if_enabled({
+                        ANNOTATE_DB => \&key_not_present,
+                        ANNOTATE_FLAGS => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_SNPSIFT => if_enabled({
+                        ANNOTATE_DBNSFP => \&missing_file,
+                        ANNOTATE_FIELDS => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_FREQUENCIES => if_enabled({
+                        ANNOTATE_FREQNAME => \&key_not_present,
+                        ANNOTATE_FREQDB => \&missing_file,
+                        ANNOTATE_FREQINFO => \&key_not_present,
+                    }
+                ),
+                ANNOTATE_IDFIELD => if_enabled({
+                        ANNOTATE_IDNAME => \&key_not_present,
+                        ANNOTATE_IDDB => \&missing_file,
+                    }
+                ),
+            }
+        ),
+        AMBER => if_enabled({
+                AMBER_PATH => \&missing_directory,
+                AMBER_QUEUE => \&key_not_present,
+                AMBER_TIME => \&key_not_present,
+                AMBER_THREADS => \&key_not_present,
+                AMBER_MEM => \&key_not_present,
+                BAF_SNPS => \&missing_file,
+            }
+        ),
+        COBALT => if_enabled({
+                COBALT_PATH => \&missing_directory,
+                COBALT_QUEUE => \&key_not_present,
+                COBALT_TIME => \&key_not_present,
+                COBALT_THREADS => \&key_not_present,
+                COBALT_MEM => \&key_not_present,
+            }
+        ),
+        PURPLE => if_enabled({
+                PURPLE_PATH => \&missing_directory,
+                PURPLE_QUEUE => \&key_not_present,
+                PURPLE_TIME => \&key_not_present,
+                PURPLE_THREADS => \&key_not_present,
+                PURPLE_MEM => \&key_not_present,
+                CIRCOS_PATH => \&missing_directory,
+            }
+        ),
         SOMATIC_VARIANTS => if_enabled({
                 SAMTOOLS_PATH => \&missing_directory,
                 SOMVAR_TARGETS => \&missing_optional_file,
@@ -413,6 +477,15 @@ sub configChecks {
                 ),
             }
         ),
+        BAF => if_enabled({
+                BAF_QUEUE => \&key_not_present,
+                BAF_THREADS => \&key_not_present,
+                BAF_MEM => \&key_not_present,
+                BAF_TIME => \&key_not_present,
+                BIOVCF_PATH => \&missing_directory,
+                BAF_SNPS => \&missing_file,
+            }
+        ),
         SV_CALLING => if_enabled({
                 SV_MODE => \&key_not_present,
                 SV_MANTA => if_enabled({
@@ -444,57 +517,6 @@ sub configChecks {
                         DELLY_VCF_GENO => \&missing_optional_file,
                         DELLY_GENO_QUAL => \&key_not_present,
                         VCFTOOLS_PATH => \&missing_directory,
-                    }
-                ),
-            }
-        ),
-        BAF => if_enabled({
-                BAF_QUEUE => \&key_not_present,
-                BAF_THREADS => \&key_not_present,
-                BAF_MEM => \&key_not_present,
-                BAF_TIME => \&key_not_present,
-                BIOVCF_PATH => \&missing_directory,
-                BAF_SNPS => \&missing_file,
-            }
-        ),
-        CALLABLE_LOCI => if_enabled({
-                CALLABLE_LOCI_QUEUE => \&key_not_present,
-                CALLABLE_LOCI_TIME => \&key_not_present,
-                CALLABLE_LOCI_THREADS => \&key_not_present,
-                CALLABLE_LOCI_MEM => \&key_not_present,
-                CALLABLE_LOCI_BASEQUALITY => \&key_not_present,
-                CALLABLE_LOCI_MAPQUALITY => \&key_not_present,
-                CALLABLE_LOCI_DEPTH => \&key_not_present,
-                CALLABLE_LOCI_DEPTHLOWMAPQ => \&key_not_present,
-                CALLING_TARGETS => \&missing_optional_file,
-            }
-        ),
-        ANNOTATE_VARIANTS => if_enabled({
-                SNPEFF_PATH => \&missing_directory,
-                IGVTOOLS_PATH => \&missing_directory,
-                ANNOTATE_QUEUE => \&key_not_present,
-                ANNOTATE_THREADS => \&key_not_present,
-                ANNOTATE_MEM => \&key_not_present,
-                ANNOTATE_TIME => \&key_not_present,
-                ANNOTATE_SNPEFF => if_enabled({
-                        ANNOTATE_DB => \&key_not_present,
-                        ANNOTATE_FLAGS => \&key_not_present,
-                    }
-                ),
-                ANNOTATE_SNPSIFT => if_enabled({
-                        ANNOTATE_DBNSFP => \&missing_file,
-                        ANNOTATE_FIELDS => \&key_not_present,
-                    }
-                ),
-                ANNOTATE_FREQUENCIES => if_enabled({
-                        ANNOTATE_FREQNAME => \&key_not_present,
-                        ANNOTATE_FREQDB => \&missing_file,
-                        ANNOTATE_FREQINFO => \&key_not_present,
-                    }
-                ),
-                ANNOTATE_IDFIELD => if_enabled({
-                        ANNOTATE_IDNAME => \&key_not_present,
-                        ANNOTATE_IDDB => \&missing_file,
                     }
                 ),
             }
