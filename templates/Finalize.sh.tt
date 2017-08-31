@@ -30,9 +30,9 @@ else
 [% END -%]
 [% END -%]
 
-[% IF opt.BASEQUALITYRECAL == "yes" && opt.FINALIZE_KEEP_BQSR == "no" -%]
+[% IF (opt.BASEQUALITYRECAL == "yes" && opt.FINALIZE_KEEP_BQSR == "no") || opt.SOMATIC_VARIANTS == "yes" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]_dedup.recalibrated.ba*
+    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
 [% END -%]
 [% END -%]
 
