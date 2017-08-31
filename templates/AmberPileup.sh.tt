@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="AmberPileup" main_step=sample log_name="AmberPileup_${sample}.log" %]
+[% INCLUDE Logging.tt job_name="AmberPileup" main_step=sample log_name="${opt.RUN_NAME}.log" %]
 
 assert_not_empty "[% sample_bam %]"
 

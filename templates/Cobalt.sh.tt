@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="Cobalt" main_step=sample log_name="Cobalt_${sample}.log" %]
+[% INCLUDE Logging.tt job_name="Cobalt" main_step=sample log_name="${opt.RUN_NAME}.log" %]
 
 java -Xmx[% opt.COBALT_MEM %]G \
     -cp "[% opt.COBALT_PATH %]/cobalt.jar" com.hartwig.hmftools.cobalt.CountBamLinesApplication \
@@ -10,6 +10,5 @@ java -Xmx[% opt.COBALT_MEM %]G \
     -sample [% sample %] \
     -output_dir [% dirs.cobalt %] \
     -threads [% opt.COBALT_THREADS %]
-
 
 success
