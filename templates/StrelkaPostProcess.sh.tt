@@ -6,8 +6,9 @@
 
 cd "[% dirs.out %]"
 
+basefile=[% dirs.out %]/[% joint_name %]
 input_vcf="[% strelka_vcf %]"
-output_vcf="[% dirs.out %].processed.vcf"
+output_vcf="$basefile".processed.vcf
 rm -f "$output_vcf" "$output_vcf.idx"
 
 java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
@@ -18,8 +19,8 @@ java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
 
 assert_not_empty "$output_vcf"
 input_vcf="$output_vcf"
-output_vcf="[% dirs.out %].snpEff.vcf"
-rm -f "$output_vcf" "$output_vcf.idx"
+output_vcf="$basefile".snpEff.vcf
+# rm -f "$output_vcf" "$output_vcf.idx"
 
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -31,9 +32,10 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     > "$output_vcf"
 
 assert_not_empty "$output_vcf"
+# rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
-output_vcf="[% dirs.out %].dbsnp.vcf"
-rm -f "$output_vcf" "$output_vcf.idx"
+output_vcf="$basefile".dbsnp.vcf
+# rm -f "$output_vcf" "$output_vcf.idx"
 
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -47,10 +49,10 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     --alwaysAppendDbsnpId
 
 assert_not_empty "$output_vcf"
-rm "$input_vcf" "$input_vcf.idx"
+# rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
-output_vcf="[% dirs.out %].[% opt.ANNOTATE_IDNAME %].vcf"
-rm -f "$output_vcf" "$output_vcf.idx"
+output_vcf="$basefile".[% opt.ANNOTATE_IDNAME %].vcf
+# rm -f "$output_vcf" "$output_vcf.idx"
 
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -64,17 +66,17 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     --alwaysAppendDbsnpId
 
 assert_not_empty "$output_vcf"
-rm "$input_vcf" "$input_vcf.idx"
+# rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
-output_vcf="[% dirs.out %].pon.vcf"
-rm -f "$output_vcf" "$output_vcf.idx"
+output_vcf="$basefile".pon.vcf
+# rm -f "$output_vcf" "$output_vcf.idx"
 
 [% opt.OUTPUT_DIR %]/scripts/annotatePON.py -p "[% opt.HMF_PON %]" -i "$input_vcf" -o - | \
 [% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ -o "$output_vcf"
 [% opt.IGVTOOLS_PATH %]/igvtools index "$output_vcf"
 
-assert_last_position_unchanged "$input_vcf" "$output_vcf"
-rm "$input_vcf" "$input_vcf.idx"
+assert_last_position_unchanged "[% strelka_vcf %]" "$output_vcf"
+# rm "$input_vcf" "$input_vcf.idx"
 
 mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.idx" "[% final_vcf %].idx"
