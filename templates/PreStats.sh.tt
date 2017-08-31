@@ -6,7 +6,7 @@
 
 cd "[% dirs.out %]"
 
-# FastQC runs a thread per file, so no point parameterising here
+# SABR: FastQC runs a thread per file, so no point parameterising here
 [% opt.FASTQC_PATH %]/fastqc "[% input_path %]" -o "[% dirs.qc %]" --noextract -t 1
 
 success
