@@ -25,6 +25,9 @@ sub run {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
 
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf");
+    $opt->{SOMVAR_VCF_FILE} = $final_vcf; # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
+
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
     $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
@@ -35,9 +38,6 @@ sub run {
 
     my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $strelka_job_id;
-
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf");
-    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
 
     my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $post_process_job_id;
