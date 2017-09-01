@@ -13,6 +13,6 @@ java -Xmx[% opt.PURPLE_MEM %]G \
     -circos [% opt.CIRCOS_PATH %]/circos \
     -run_dir [% dirs.out %]
 
-rm [% dirs.out %]/purple/*.pcf1
+rm -f [% dirs.out %]/purple/*.pcf1
 
 success
