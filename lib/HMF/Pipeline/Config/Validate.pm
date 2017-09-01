@@ -414,6 +414,7 @@ sub configChecks {
                 PURPLE_THREADS => \&key_not_present,
                 PURPLE_MEM => \&key_not_present,
                 CIRCOS_PATH => \&missing_directory,
+                GC_PROFILE => \&missing_file,
             }
         ),
         SOMATIC_VARIANTS => if_enabled({

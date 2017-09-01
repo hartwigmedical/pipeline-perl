@@ -43,6 +43,7 @@ sub setupTestConfig {
         REALIGNMENT_KNOWN
         HMF_PON
         HIGH_CONFIDENCE_BED
+        GC_PROFILE
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
