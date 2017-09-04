@@ -7,6 +7,7 @@
 cd "[% opt.OUTPUT_DIR %]"
 
 java -Xmx[% opt.BPI_MEM %]G \
+    -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.BPI_PATH %]/break-point-inspector.jar" \
     -ref "[% control_bam %]" \
     -tumor "[% sample_bam %]" \
