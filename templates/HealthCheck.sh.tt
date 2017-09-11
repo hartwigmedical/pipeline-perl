@@ -4,7 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="HealthCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
-java -jar "[% opt.HEALTH_CHECKER_PATH %]/health-checker.jar" \
+java -Xmx[% opt.HEALTHCHECK_MEM %]G -jar "[% opt.HEALTH_CHECKER_PATH %]/health-checker.jar" \
     -report_file_path "[% report_file_path %]" \
     -run_dir "[% run_dir %]"
 
