@@ -31,7 +31,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     [% opt.ANNOTATE_FLAGS %] \
     > "$output_vcf"
 
-assert_not_empty "$output_vcf"
+assert_last_position_unchanged "$input_vcf" "$output_vcf"
 rm "$input_vcf"
 input_vcf="$output_vcf"
 output_vcf="$basefile".dbsnp.vcf
@@ -48,7 +48,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     --dbsnp "[% opt.CALLING_DBSNP %]" \
     --alwaysAppendDbsnpId
 
-assert_not_empty "$output_vcf"
+assert_last_position_unchanged "$input_vcf" "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
 output_vcf="$basefile".[% opt.ANNOTATE_IDNAME %].vcf
@@ -65,7 +65,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     --dbsnp "[% opt.ANNOTATE_IDDB %]" \
     --alwaysAppendDbsnpId
 
-assert_not_empty "$output_vcf"
+assert_last_position_unchanged "$input_vcf" "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 input_vcf="$output_vcf"
 output_vcf="$basefile".pon.vcf
@@ -75,7 +75,7 @@ rm -f "$output_vcf" "$output_vcf.idx"
 [% opt.BCFTOOLS_PATH %]/bcftools filter -e 'PON_COUNT!="." && MIN(PON_COUNT) > 5' -s PON -m+ -o "$output_vcf"
 [% opt.IGVTOOLS_PATH %]/igvtools index "$output_vcf"
 
-assert_last_position_unchanged "[% strelka_vcf %]" "$output_vcf"
+assert_last_position_unchanged "$input_vcf" "$output_vcf"
 rm "$input_vcf" "$input_vcf.idx"
 
 mv "$output_vcf" "[% final_vcf %]"
