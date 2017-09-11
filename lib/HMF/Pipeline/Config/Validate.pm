@@ -304,6 +304,7 @@ sub configChecks {
         ),
         BASEQUALITYRECAL => if_enabled({
                 BAMUTIL_PATH => \&missing_directory,
+                QUEUE_LOW_GZIP_COMPRESSION_PATH => \&missing_directory,
                 BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,
                 BASERECALIBRATION_MASTER_TIME => \&key_not_present,
                 BASERECALIBRATION_MASTER_THREADS => \&key_not_present,
@@ -419,6 +420,7 @@ sub configChecks {
         ),
         SOMATIC_VARIANTS => if_enabled({
                 SAMTOOLS_PATH => \&missing_directory,
+                QUEUE_LOW_GZIP_COMPRESSION_PATH => \&missing_directory,
                 SOMVAR_TARGETS => \&missing_optional_file,
                 STRELKA_PATH => \&missing_directory,
                 STRELKA_POST_PROCESS_PATH => \&missing_directory,
