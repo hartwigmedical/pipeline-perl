@@ -70,6 +70,7 @@ sub setupTestConfig {
         CIRCOS_PATH
         QDNASEQ_PATH
         QUEUE_PATH
+        QUEUE_LOW_GZIP_COMPRESSION_PATH
         SAMBAMBA_PATH
         SNPEFF_PATH
         STRELKA_PATH
