@@ -33,7 +33,7 @@ use HMF::Pipeline::HealthCheck;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
-our $VERSION = 'v3.0';
+our $VERSION = 'v3.1';
 
 
 sub run {
