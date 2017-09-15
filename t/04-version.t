@@ -19,7 +19,9 @@ use HMF::Pipeline;
 # it should fail on the next commit after v1.11 if this does not bump $VERSION
 
 my $git_version = qx/git describe --tags/;
+chomp $git_version;
 my $git_version_abbrev = qx/git describe --tags --abbrev=0/;
+chomp $git_version_abbrev;
 my ($git_major_version, $git_rest_version) = split "-", $git_version, 2;
 my $git_parsed_version = version->parse($git_major_version);
 my $package_version = version->parse($HMF::Pipeline::VERSION);
