@@ -11,7 +11,8 @@ input_vcf="[% strelka_vcf %]"
 output_vcf="$basefile".processed.vcf
 rm -f "$output_vcf" "$output_vcf.idx"
 
-java -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
+java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
+    -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
     -v "$input_vcf" \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
     -t "[% tumor_sample %]" \
