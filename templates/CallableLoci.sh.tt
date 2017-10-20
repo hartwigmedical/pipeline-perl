@@ -10,7 +10,7 @@ assert_not_empty "[% sample_bam %]"
 
 java -Xmx[% opt.CALLABLE_LOCI_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
-    -jar "[% opt.QUEUE_PATH %]/GenomeAnalysisTK.jar" \
+    -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CallableLoci \
     -R "[% opt.GENOME %]" \
     -I "[% sample_bam %]" \
