@@ -4,6 +4,7 @@ from collections import namedtuple
 
 TAB = '\t'
 COLON = ':'
+SEMICOLON = ';'
 COMMA = ','
 EQUALS = '='
 
@@ -141,7 +142,9 @@ class PONAnnotator():
                     for alt in inputVariant.ALT.split(COMMA):
                         matches.append(
                             next(
-                                (a.INFO.split(EQUALS)[1] for a in altList if inputVariant.REF == a.REF and alt == a.ALT),
+                                ## first field of INFO column must be PON_COUNT field
+                                ## todo: better would be to match field on actual PON_COUNT name
+                                (a.INFO.split(SEMICOLON)[0].split(EQUALS)[1] for a in altList if inputVariant.REF == a.REF and alt == a.ALT),
                                 '0'
                             )
                         )
