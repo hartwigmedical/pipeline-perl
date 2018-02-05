@@ -39,7 +39,7 @@ sub run {
     my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $strelka_job_id;
 
-    my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $dirs, $opt);
+    my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $recalibrated_tumor_bam, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $post_process_job_id;
 
     my $done_job_id = markDone($done_file, [ $strelka_job_id, $post_process_job_id ], $dirs, $opt);
@@ -85,7 +85,7 @@ sub runStrelka {
 }
 
 sub postProcessStrelka {
-    my ($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $dirs, $opt) = @_;
+    my ($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
@@ -98,6 +98,7 @@ sub postProcessStrelka {
         $dirs,
         $opt,
         tumor_sample => $tumor_sample,
+        tumor_bam_path => $tumor_bam_path,
         strelka_vcf => $strelka_vcf,
         final_vcf => $final_vcf,
         joint_name => $joint_name,

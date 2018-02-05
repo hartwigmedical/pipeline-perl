@@ -16,7 +16,8 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -v "$input_vcf" \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
     -t "[% tumor_sample %]" \
-    -o "$output_vcf"
+    -o "$output_vcf" \
+    -b "[% tumor_bam_path %]"
 
 assert_not_empty "$output_vcf"
 input_vcf="$output_vcf"
