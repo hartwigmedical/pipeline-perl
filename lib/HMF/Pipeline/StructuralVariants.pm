@@ -10,7 +10,7 @@ use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampl
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile);
 use HMF::Pipeline::Job::Vcf;
 use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Metadata qw(linkExtraArtefact);
+use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
@@ -222,7 +222,7 @@ sub runBreakpointInspector {
         input_vcf => $manta_vcf,
     );
 
-    linkExtraArtefact($opt->{BPI_VCF_FILE}, $opt);
+    linkArtefact( $opt->{BPI_VCF_FILE}, 'somatic_sv', $opt );
     linkExtraArtefact(catfile($dirs->{out}, "${control}_sliced.bam"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "${sample}_sliced.bam"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "${joint_name}_bpi_stats.tsv"), $opt);
