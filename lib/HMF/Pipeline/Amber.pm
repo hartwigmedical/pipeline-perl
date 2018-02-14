@@ -8,9 +8,9 @@ use File::Spec::Functions;
 
 use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Metadata qw(linkArtefact);
 
 use List::Util qw[min max];
 
@@ -23,7 +23,8 @@ sub run {
     say "\n### SCHEDULING AMBER STEPS ###";
     $opt->{RUNNING_JOBS}->{'amber'} = [];
 
-    my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => "amber");
+    my $sub_dir = "amber";
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => $sub_dir);
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $done_file = checkReportedDoneFile("Amber_$joint_name", undef, $dirs, $opt) or return;
 
@@ -37,6 +38,10 @@ sub run {
     push @amber_jobs, runAmber($tumor_sample, $ref_bam_path, $tumor_bam_path, \@amber_jobs, $dirs, $opt);
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
+    
+    my $baf_txt_path = "${sub_dir}/${tumor_sample}.amber.baf";
+    linkArtefact( $baf_txt_path, 'somatic_amber_baf', $opt );
+    
     return;
 }
 
