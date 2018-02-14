@@ -38,10 +38,10 @@ sub run {
     push @amber_jobs, runAmber($tumor_sample, $ref_bam_path, $tumor_bam_path, \@amber_jobs, $dirs, $opt);
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
-    
+
     my $baf_txt_path = "${sub_dir}/${tumor_sample}.amber.baf";
-    linkArtefact( $baf_txt_path, 'somatic_amber_baf', $opt );
-    
+    linkArtefact($baf_txt_path, 'somatic_amber_baf', $opt);
+
     return;
 }
 

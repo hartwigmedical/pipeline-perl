@@ -222,7 +222,7 @@ sub runBreakpointInspector {
         input_vcf => $manta_vcf,
     );
 
-    linkArtefact( $opt->{BPI_VCF_FILE}, 'somatic_sv', $opt );
+    linkArtefact($opt->{BPI_VCF_FILE}, 'somatic_sv', $opt);
     linkExtraArtefact(catfile($dirs->{out}, "${control}_sliced.bam"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "${sample}_sliced.bam"), $opt);
     linkExtraArtefact(catfile($dirs->{out}, "${joint_name}_bpi_stats.tsv"), $opt);

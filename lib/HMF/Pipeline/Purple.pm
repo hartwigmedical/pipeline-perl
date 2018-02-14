@@ -35,15 +35,15 @@ sub run {
     );
 
     $opt->{RUNNING_JOBS}->{purple} = [$job_id] if $job_id;
-    
+
     my $cir_png_path = "${sub_dir}/plot/${tumor_sample}.circos.png";
     my $cnv_csv_path = "${sub_dir}/${tumor_sample}.purple.cnv";
     my $pur_txt_path = "${sub_dir}/${tumor_sample}.purple.purity";
-    
-    linkArtefact( $cir_png_path, 'somatic_circos_plot', $opt );
-    linkArtefact( $cnv_csv_path, 'somatic_copynumber_calls', $opt );
-    linkArtefact( $pur_txt_path, 'somatic_tumor_purity', $opt );
-    
+
+    linkArtefact($cir_png_path, 'somatic_circos_plot', $opt);
+    linkArtefact($cnv_csv_path, 'somatic_copynumber_calls', $opt);
+    linkArtefact($pur_txt_path, 'somatic_tumor_purity', $opt);
+
     return;
 }
 
