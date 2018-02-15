@@ -26,7 +26,6 @@ java -Xmx[% opt.CALLING_MASTER_MEM %]G \
     -nct [% opt.CALLING_THREADS %] \
     -nsc [% opt.CALLING_SCATTER %] \
     -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
-    -stand_emit_conf [% opt.CALLING_STANDEMITCONF %] \
     [%- FOREACH sample_bam IN sample_bams.values %]
     -I [% sample_bam %] \
     [%- END %]

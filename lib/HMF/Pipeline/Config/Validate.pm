@@ -337,7 +337,7 @@ sub configChecks {
                 CALLING_SCALA => \&key_not_present,
                 CALLING_UGMODE => invalid_choice([ "SNP", "INDEL", "BOTH" ]),
                 CALLING_STANDCALLCONF => \&key_not_present,
-                CALLING_STANDEMITCONF => \&key_not_present,
+                #CALLING_STANDEMITCONF => \&key_not_present,
                 CALLING_TARGETS => \&missing_optional_file,
                 CALLING_DBSNP => \&missing_optional_file,
             }

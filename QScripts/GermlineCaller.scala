@@ -4,6 +4,7 @@ import org.broadinstitute.gatk.queue.QScript
 import org.broadinstitute.gatk.queue.extensions.gatk._
 
 import org.broadinstitute.gatk.tools.walkers.haplotypecaller.ReferenceConfidenceMode
+import org.broadinstitute.gatk.utils.commandline.ClassType
 import org.broadinstitute.gatk.utils.variant.GATKVCFIndexType
 
 class GermlineCaller extends QScript {
@@ -12,7 +13,7 @@ class GermlineCaller extends QScript {
     @Input(doc="The reference file for the bam files.", shortName="R", required=true)
     var referenceFile: File = _
 
-    @Input(doc="One or more bam files.", shortName="I")
+    @Input(doc="One or more bam files.", shortName="I", required=true)
     var bamFiles: List[File] = Nil
 
     @Input(doc="Output core filename.", shortName="O", required=true)
@@ -28,10 +29,7 @@ class GermlineCaller extends QScript {
     var numScatters: Int = _
 
     @Argument(doc="Minimum phred-scaled confidence to call variants", shortName="stand_call_conf", required=true)
-    var standCallConf: Int = _ //30 //default: best-practices value
-
-    @Argument(doc="Minimum phred-scaled confidence to emit variants", shortName="stand_emit_conf", required=true)
-    var standEmitConf: Int = _ //10 //default: best-practices value
+    var standCallConf: Int = _
 
     @Input(doc="An optional file with known SNP sites.", shortName="D", required=false)
     var dbsnpFile: File = _
@@ -44,6 +42,10 @@ class GermlineCaller extends QScript {
 
     @Argument(doc="Ploidy (number of chromosomes) per sample", shortName="ploidy", required=false)
     var samplePloidy: Int = 2
+
+    @Argument(doc="Exclusive upper bounds for reference confidence GQ bands", shortName="gqb", required=false)
+    @ClassType(classOf[Int])
+    var GVCFGQBands: Seq[Int] = List(5,10,15,20,30,40,50,60)
 
     def script() {
 			var gvcfFiles : List[File] = Nil
@@ -59,11 +61,11 @@ class GermlineCaller extends QScript {
 					haplotypeCaller.memoryLimit = maxMem
 					haplotypeCaller.num_cpu_threads_per_data_thread = numCPUThreads
 
-					haplotypeCaller.stand_emit_conf = standEmitConf
 					haplotypeCaller.stand_call_conf = standCallConf
 
 					haplotypeCaller.emitRefConfidence = ReferenceConfidenceMode.GVCF
-					haplotypeCaller.variant_index_type = GATKVCFIndexType.LINEAR
+					haplotypeCaller.GVCFGQBands = GVCFGQBands
+                                        haplotypeCaller.variant_index_type = GATKVCFIndexType.LINEAR
 					haplotypeCaller.variant_index_parameter = 128000
 
 					if (targetFile != null) {
