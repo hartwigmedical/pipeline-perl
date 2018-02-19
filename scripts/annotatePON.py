@@ -4,7 +4,6 @@ from collections import namedtuple
 
 TAB = '\t'
 COLON = ':'
-SEMICOLON = ';'
 COMMA = ','
 EQUALS = '='
 
@@ -96,21 +95,34 @@ def position(variant):
 
 class PONAnnotator():
 
-    def __init__(self, outputFile, inputFile, ponFile):
+    def __init__(self, outputFile, inputFile, ponFile,strelkaMode):
         self._outputFile = outputFile
         self._inputFile = inputFile
         self._ponFile = ponFile
+        self._strelkaMode = strelkaMode
 
     def updateInfoHeader(self):
         insertIndex = len(self._inputFile.metaInformationLines) - 1 # before #CHROM
-        self._inputFile.metaInformationLines.insert(insertIndex,
-            generateInfoHeader(
-                ID="PON_COUNT",
-                Number='A', # one per ALT
-                Type="Integer",
-                Description="how many samples in the PON had this variant"
+
+        if self._strelkaMode:
+            self._inputFile.metaInformationLines.insert(insertIndex,
+                generateInfoHeader(
+                    ID="PON_STRELKA_COUNT",
+                    Number='A', # one per ALT
+                    Type="Integer",
+                    Description="how many samples in the STRELKA PON had this variant"
+                )
             )
-        )
+        else:
+            self._inputFile.metaInformationLines.insert(insertIndex,
+                generateInfoHeader(
+                    ID="PON_COUNT",
+                    Number='A',  # one per ALT
+                    Type="Integer",
+                    Description="how many samples in the PON had this variant"
+                    )
+                )
+
         self._outputFile.writeMetaInformation(self._inputFile.metaInformationLines)
 
     def annotate(self):
@@ -142,9 +154,7 @@ class PONAnnotator():
                     for alt in inputVariant.ALT.split(COMMA):
                         matches.append(
                             next(
-                                ## first field of INFO column must be PON_COUNT field
-                                ## todo: better would be to match field on actual PON_COUNT name
-                                (a.INFO.split(SEMICOLON)[0].split(EQUALS)[1] for a in altList if inputVariant.REF == a.REF and alt == a.ALT),
+                                (a.INFO.split(EQUALS)[1] for a in altList if inputVariant.REF == a.REF and alt == a.ALT),
                                 '0'
                             )
                         )
@@ -152,12 +162,17 @@ class PONAnnotator():
                     if all(m=='0' for m in matches):
                         self._outputFile.writeTuple(inputVariant)
                     else:
-                        self._outputFile.writeTuple(
-                            inputVariant._replace(INFO=inputVariant.INFO+";PON_COUNT=" + COMMA.join(matches))
-                        )
+                        if self._strelkaMode:
+                            self._outputFile.writeTuple(
+                                inputVariant._replace(INFO=inputVariant.INFO + ";PON_STRELKA_COUNT=" + COMMA.join(matches))
+                            )
+                        else:
+                            self._outputFile.writeTuple(
+                                inputVariant._replace(INFO=inputVariant.INFO + ";PON_COUNT=" + COMMA.join(matches))
+                            )
                     inputVariant = advanceInput()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(
@@ -168,10 +183,15 @@ if __name__ == "__main__":
     required.add_argument('-o', '--outputFile', help='output VCF', required=True, type=argparse.FileType('w'))
     required.add_argument('-i', '--inputFile', help='input VCF to annotate', required=True, type=argparse.FileType('r'))
     required.add_argument('-p', '--ponFile', help='pon VCF', required=True, type=argparse.FileType('r'))
+
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-s', '--strelka', type=bool, nargs='?',
+                          const=True, default=False,
+                          help="Run for Strelka Somatic Output")
     args = parser.parse_args()
 
     try:
-        annotator = PONAnnotator( VCFWriter(args.outputFile), VCFReader(args.inputFile), VCFReader(args.ponFile) )
+        annotator = PONAnnotator( VCFWriter(args.outputFile), VCFReader(args.inputFile), VCFReader(args.ponFile),args.strelka )
         annotator.annotate()
     finally: # be a good citizen
         args.outputFile.close()
