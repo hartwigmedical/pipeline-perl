@@ -439,7 +439,11 @@ sub configChecks {
                 ANNOTATE_IDNAME => \&key_not_present,
                 ANNOTATE_IDDB => \&missing_file,
                 CALLING_DBSNP => \&missing_file,
-                HMF_PON => \&missing_file,
+                HMF_GERMLINE_PON => \&missing_file,
+                HMF_SOMATIC_PON => \&missing_file,
+                MAPPABILITY_BED => \&missing_file,
+                MAPPABILITY_HDR => \&missing_file,
+                HMF_SOMATIC_HOTSPOTS  => \&missing_file,
             }
         ),
         COPY_NUMBER => if_enabled({

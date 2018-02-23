@@ -4,6 +4,14 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Strelka" main_step=joint_name log_name="Somatic_${joint_name}.log" %]
 
+bcftools=[% opt.BCFTOOLS_PATH %]/bcftools
+hotspots=[% opt.HMF_SOMATIC_HOTSPOTS %]
+
+snvs_all="results/all.somatic.snvs.vcf"
+indels_all="results/all.somatic.indels.vcf"
+snvs_passed="[% final_vcf %]".snvs
+indels_passed="[% final_vcf %]".indels
+
 assert_not_empty "[% ref_bam_path %]" "[% tumor_bam_path %]"
 
 rm -rf "[% dirs.strelka.out %]"
@@ -18,18 +26,34 @@ cd "[% dirs.strelka.out %]"
 make -j [% opt.STRELKA_THREADS %]
 
 assert_exists "[% dirs.strelka.out %]/task.complete"
-assert_not_empty "results/passed.somatic.snvs.vcf" "results/passed.somatic.indels.vcf"
+assert_not_empty "${snvs_all}" "${indels_all}"
 
+### Hotspots
+echo "[INFO] Annotate and filter INDEL hotspots -" $(date)
+${bcftools} annotate -a ${hotspots} -c CHROM,POS,REF,ALT -m +HOTSPOT ${indels_all} -O u | \
+${bcftools} filter -e HOTSPOT=1 -s PASS -O u | \
+${bcftools} filter -i 'FILTER="PASS"' -o ${indels_passed}
+
+echo "[INFO] Annotate and filter SNV hotspots -" $(date)
+${bcftools} annotate -a ${hotspots} -c CHROM,POS,REF,ALT -m +HOTSPOT ${snvs_all} -O u | \
+${bcftools} filter -e HOTSPOT=1 -s PASS -O u | \
+${bcftools} filter -i 'FILTER="PASS"' -o ${snvs_passed}
+
+## Combine
 java -Xmx[% opt.STRELKA_MEM %]G \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CombineVariants \
     -R "[% opt.GENOME %]" \
     --genotypemergeoption unsorted \
-    -V:snvs "results/passed.somatic.snvs.vcf" \
-    -V:indels "results/passed.somatic.indels.vcf" \
+    -V:snvs "${snvs_passed}" \
+    -V:indels "${indels_passed}" \
     -o "[% final_vcf %]"
 
 assert_not_empty "[% final_vcf %]"
 
+## Cleanup
 rm -r chromosomes
+rm -f ${indels_passed}*
+rm -f ${snvs_passed}*
+
 success
