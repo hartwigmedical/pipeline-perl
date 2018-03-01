@@ -5,7 +5,7 @@ use discipline;
 
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs);
+use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate);
 use HMF::Pipeline::Sge qw(qsubJava);
 
@@ -17,28 +17,25 @@ sub run {
 
     say "\n### SCHEDULING COBALT ANALYSIS ###";
 
-    my @cobalt_jobs;
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
-        my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => "cobalt");
+    my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => "cobalt");
 
-        my $job_id = fromTemplate(
-            "Cobalt",
-            $sample,
-            1,
-            qsubJava($opt, "COBALT"),
-            $running_jobs,
-            $dirs,
-            $opt,
-            sample => $sample,
-            sample_bam => $sample_bam,
-        );
-        next unless $job_id;
+    my $job_id = fromTemplate(
+        "Cobalt",
+        undef,
+        1,
+        qsubJava($opt, "COBALT"),
+        $running_jobs,
+        $dirs,
+        $opt,
+        ref_sample => $ref_sample,
+        ref_bam_path => $ref_bam_path,
+        tumor_sample => $tumor_sample,
+        tumor_bam_path => $tumor_bam_path,
+    );
 
-        push @cobalt_jobs, $job_id;
-    }
-    $opt->{RUNNING_JOBS}->{'cobalt'} = \@cobalt_jobs;
-    return;
+    push @{$opt->{RUNNING_JOBS}->{'cobalt'}}, $job_id;
+    return $job_id;
 }
 
 1;
