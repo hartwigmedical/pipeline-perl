@@ -2,11 +2,10 @@ package HMF::Pipeline::Cobalt;
 
 use FindBin::libs;
 use discipline;
-
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate);
+use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
+use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Sge qw(qsubJava);
 
 use parent qw(Exporter);
@@ -16,29 +15,40 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING COBALT ANALYSIS ###";
+    $opt->{RUNNING_JOBS}->{'cobalt'} = [];
+
+    my $sub_dir = "cobalt";
+    my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => $sub_dir);
+    my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+    my $done_file = checkReportedDoneFile("Cobalt_$joint_name", undef, $dirs, $opt) or return;
 
     my @cobalt_jobs;
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
-        my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => "cobalt");
+    push @cobalt_jobs, runCobalt($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt);
+    push @cobalt_jobs, markDone($done_file, \@cobalt_jobs, $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{'cobalt'}}, @cobalt_jobs;
 
-        my $job_id = fromTemplate(
-            "Cobalt",
-            $sample,
-            1,
-            qsubJava($opt, "COBALT"),
-            $running_jobs,
-            $dirs,
-            $opt,
-            sample => $sample,
-            sample_bam => $sample_bam,
-        );
-        next unless $job_id;
-
-        push @cobalt_jobs, $job_id;
-    }
-    $opt->{RUNNING_JOBS}->{'cobalt'} = \@cobalt_jobs;
     return;
+}
+
+sub runCobalt {
+    my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt) = @_;
+
+    say "\n### SCHEDULING COBALT ###";
+    my $job_id = fromTemplate(
+        "Cobalt",
+        undef,
+        1,
+        qsubJava($opt, "COBALT"),
+        $running_jobs,
+        $dirs,
+        $opt,
+        ref_sample => $ref_sample,
+        ref_bam_path => $ref_bam_path,
+        tumor_sample => $tumor_sample,
+        tumor_bam_path => $tumor_bam_path,
+    );
+
+    return $job_id;
 }
 
 1;

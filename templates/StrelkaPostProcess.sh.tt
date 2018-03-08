@@ -103,8 +103,8 @@ ${tabix} ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 
-mv "$output_vcf" "[% final_vcf %].gz"
-mv "$output_vcf.tbi" "[% final_vcf %].gz.tbi"
+mv "$output_vcf" "[% final_vcf %]"
+mv "$output_vcf.tbi" "[% final_vcf %].tbi"
 
 rm *${TMP_STRING}*
 

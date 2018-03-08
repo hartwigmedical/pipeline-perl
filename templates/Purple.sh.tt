@@ -11,8 +11,9 @@ java -Xmx[% opt.PURPLE_MEM %]G \
     -somatic_vcf [% opt.SOMVAR_VCF_FILE %]  \
     -structural_vcf [% opt.BPI_VCF_FILE %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
-    -run_dir [% dirs.out %]
+    -output_dir [% dirs.purple %] \
+    -run_dir [% opt.OUTPUT_DIR %]
 
-rm -f [% dirs.out %]/purple/*.pcf1
+rm -f [% dirs.purple %]/*.pcf1
 
 success

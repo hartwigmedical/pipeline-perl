@@ -443,7 +443,7 @@ sub configChecks {
                 HMF_SOMATIC_PON => \&missing_file,
                 MAPPABILITY_BED => \&missing_file,
                 MAPPABILITY_HDR => \&missing_file,
-                HMF_SOMATIC_HOTSPOTS  => \&missing_file,
+                HMF_SOMATIC_HOTSPOTS => \&missing_file,
             }
         ),
         COPY_NUMBER => if_enabled({

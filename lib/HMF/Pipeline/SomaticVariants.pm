@@ -25,7 +25,7 @@ sub run {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
 
-    my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf");
+    my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf.gz");
     $opt->{SOMVAR_VCF_FILE} = $final_vcf; # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
 
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
