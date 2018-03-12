@@ -6,7 +6,7 @@
 
 cd "[% dirs.tmp %]"
 
-assert_not_empty "[% sample_bams.values.join('" "') %]"
+assert_not_empty "[% ref_sample_bam %]"
 
 java -Xmx[% opt.CALLING_MASTER_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
@@ -26,9 +26,7 @@ java -Xmx[% opt.CALLING_MASTER_MEM %]G \
     -nct [% opt.CALLING_THREADS %] \
     -nsc [% opt.CALLING_SCATTER %] \
     -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
-    [%- FOREACH sample_bam IN sample_bams.values %]
-    -I [% sample_bam %] \
-    [%- END %]
+    -I [% ref_sample_bam %] \
     [%- IF opt.exists('CALLING_DBSNP') %]
     -D [% opt.CALLING_DBSNP %] \
     [%- END %]
@@ -50,12 +48,8 @@ mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx
 
 [%- IF opt.CALLING_GVCF == 'yes' %]
 mkdir -p "[% dirs.gvcf %]"
-[%- FOREACH gvcf_pair IN final_gvcfs.pairs -%]
-[%- USE bam = file(sample_bams.${gvcf_pair.key}, nostat=1) -%]
-[%- scala_gvcf = bam.name.replace('\.bam$', '.g.vcf.gz') %]
-mv "[% dirs.tmp %]/[% scala_gvcf %]" "[% gvcf_pair.value %]"
-mv "[% dirs.tmp %]/[% scala_gvcf %].tbi" "[% gvcf_pair.value %].tbi"
-[%- END -%]
+mv "[% dirs.tmp %]/[% tmp_scala_gvcf %]" "[% final_gvcf %]"
+mv "[% dirs.tmp %]/[% tmp_scala_gvcf %].tbi" "[% final_gvcf %].tbi"
 [%- END %]
 
 success

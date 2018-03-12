@@ -18,6 +18,7 @@ our @EXPORT_OK = qw(
     linkVcfArtefacts
     linkBamArtefacts
     metaSampleName
+    refSampleName
     sampleControlNames
     readLinks
     writeLinks
@@ -67,6 +68,13 @@ sub metaSampleName {
     my %name_map = reverse %{$metadata};
     $name_map{$sample} //= "sample";
     return $name_map{$sample};
+}
+
+sub refSampleName {
+    my ($opt) = @_;
+    my $metadata = parse($opt);
+    my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
+    return($ref_sample);
 }
 
 sub sampleControlNames {

@@ -540,16 +540,6 @@ sub configChecks {
                 VCFTOOLS_PATH => \&missing_directory,
             }
         ),
-        KINSHIP => if_enabled({
-                KINSHIP_QUEUE => \&key_not_present,
-                KINSHIP_THREADS => \&key_not_present,
-                KINSHIP_MEM => \&key_not_present,
-                KINSHIP_TIME => \&key_not_present,
-                PLINK_PATH => \&missing_directory,
-                KING_PATH => \&missing_directory,
-                VCFTOOLS_PATH => \&missing_directory,
-            }
-        ),
         FINALIZE => if_enabled({
                 FINALIZE_QUEUE => \&key_not_present,
                 FINALIZE_THREADS => \&key_not_present,

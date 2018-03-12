@@ -28,6 +28,7 @@ our @EXPORT_OK = qw(
     addSamples
     recordAllSampleJob
     sampleBamAndJobs
+    refSampleBamAndJobs
     sampleBamsAndJobs
     sampleControlBamsAndJobs
     allRunningJobs
@@ -170,9 +171,6 @@ sub sampleBamAndJobs {
 
     my $bam = catfile($opt->{OUTPUT_DIR}, $sample, "mapping", $opt->{BAM_FILES}->{$sample});
 
-    # print STDERR "bam: $bam\n";
-    # print STDERR "sample: $sample\n";
-    # print STDERR "RUNNING_JOBS: $opt->{RUNNING_JOBS}->{$sample} \n";
     return ($bam, $opt->{RUNNING_JOBS}->{$sample});
 }
 
@@ -189,6 +187,14 @@ sub sampleBamsAndJobs {
     return ($all_bams, [ uniq @all_jobs ]);
 }
 
+sub refSampleBamAndJobs {
+    my ($opt) = @_;
+    my ($ref_sample) = HMF::Pipeline::Metadata::refSampleName($opt);
+    $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
+    my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
+    return ($ref_sample, $ref_sample_bam, [ uniq @{$ref_sample_jobs} ]);
+}
+
 sub sampleControlBamsAndJobs {
     my ($opt) = @_;
 
@@ -200,17 +206,6 @@ sub sampleControlBamsAndJobs {
     my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
     my ($tumor_sample_bam, $tumor_sample_jobs) = sampleBamAndJobs($tumor_sample, $opt);
 
-    #print STDERR "ref_sample: $ref_sample\n";
-    #print STDERR "tumor_sample: $tumor_sample\n";
-    #print STDERR "ref_sample_bam: $ref_sample_bam\n";
-    #print STDERR "tumor_sample_bam: $tumor_sample_bam\n";
-    #print STDERR "joint_name: $joint_name\n";
-    #if ($ref_sample_jobs && @{$ref_sample_jobs}) {
-    #  print STDERR "ref_sample_jobs is defined \n";
-    #}
-    #if ($tumor_sample_jobs && @{$tumor_sample_jobs}) {
-    #  print STDERR "tumor_sample_jobs is defined \n";
-    #}
     return ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, [ uniq @{$ref_sample_jobs}, @{$tumor_sample_jobs} ]);
 }
 

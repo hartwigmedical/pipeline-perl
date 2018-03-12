@@ -17,7 +17,6 @@ use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::GermlineFiltering;
 use HMF::Pipeline::Gender;
-use HMF::Pipeline::Kinship;
 use HMF::Pipeline::Mapping;
 use HMF::Pipeline::Metadata;
 use HMF::Pipeline::PostStats;
@@ -34,7 +33,6 @@ use HMF::Pipeline::HealthCheck;
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
 our $VERSION = 'v3.2';
-
 
 sub run {
     my ($opt) = @_;
@@ -67,7 +65,6 @@ sub run {
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
         HMF::Pipeline::Gender::run($opt) if $opt->{GENDER} eq "yes";
-        HMF::Pipeline::Kinship::run($opt) if $opt->{KINSHIP} eq "yes";
         HMF::Pipeline::PipelineCheck::run($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
