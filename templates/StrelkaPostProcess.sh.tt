@@ -28,7 +28,7 @@ assert_not_empty "$input_vcf"
 assert_not_empty "$tumor_bam"
 
 ## =====
-echo "[INFO] Running hmftool strelka-post-process -" $(date)
+echo "[INFO] Running hmftool strelka-post-process - $(date)"
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
     -v "$input_vcf" \
@@ -38,10 +38,10 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -b "[% tumor_bam_path %]"
 
 input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}".snpEff.vcf
+output_vcf="${basefile}_${TMP_STRING}.snpEff.vcf"
 
 ## =====
-echo "[INFO] Annotating with snpEff -" $(date)
+echo "[INFO] Annotating with snpEff - $(date)"
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
@@ -54,23 +54,23 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
 assert_last_position_unchanged "$input_vcf" "$output_vcf"
 
 ## =====
-echo "[INFO] Bgzip and index vcf -" $(date)
+echo "[INFO] Bgzip and index vcf - $(date)"
 ${bgzip} -f ${output_vcf}
 input_vcf=${output_vcf}.gz
 ${tabix} -p vcf ${input_vcf}
 output_vcf="${basefile}_${TMP_STRING}.dbsnp.vcf.gz"
 
 ## =====
-echo "[INFO] Annotating DBSNP -" $(date)
+echo "[INFO] Annotating DBSNP - $(date)"
 ${bcftools} annotate -a ${CALLING_DBSNP} -c ID -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 input_vcf="$output_vcf"
-output_vcf="${basefile}"_"${TMP_STRING}.[% opt.ANNOTATE_IDNAME %].vcf.gz"
+output_vcf="${basefile}_${TMP_STRING}.[% opt.ANNOTATE_IDNAME %].vcf.gz"
 
 ## =====
-echo "[INFO] Annotating IDDB -" $(date)
+echo "[INFO] Annotating IDDB - $(date)"
 ${bcftools} annotate -a ${ANNOTATE_IDDB} -c =ID -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
@@ -79,7 +79,7 @@ input_vcf="$output_vcf"
 output_vcf="${basefile}_${TMP_STRING}.mappability.vcf.gz"
 
 ## =====
-echo "[INFO] Annotating Mappability -" $(date)
+echo "[INFO] Annotating Mappability - $(date)"
 ${bcftools} annotate -a ${MAPPABILITY_BED} -h ${MAPPABILITY_HDR} -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
@@ -88,7 +88,7 @@ input_vcf="$output_vcf"
 output_vcf="${basefile}_${TMP_STRING}.pon.vcf.gz"
 
 ## =====
-echo "[INFO] Annotating Germline PON -" $(date)
+echo "[INFO] Annotating Germline PON - $(date)"
 ${bcftools} annotate -a ${GERMLINE_PON} -c GERMLINE_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
@@ -97,7 +97,7 @@ input_vcf="$output_vcf"
 output_vcf="${basefile}_${TMP_STRING}".sompon.vcf.gz
 
 ## =====
-echo "[INFO] Annotating Somatic PON -" $(date)
+echo "[INFO] Annotating Somatic PON - $(date)"
 ${bcftools} annotate -a ${SOMATIC_PON} -c SOMATIC_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
@@ -106,6 +106,6 @@ assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.tbi" "[% final_vcf %].tbi"
 
-rm *${TMP_STRING}*
+rm ./*${TMP_STRING}*
 
 success

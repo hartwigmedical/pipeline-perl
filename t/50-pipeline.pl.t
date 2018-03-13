@@ -45,7 +45,7 @@ sub setupTestConfig {
         HMF_SOMATIC_PON
         MAPPABILITY_BED
         MAPPABILITY_HDR
-        HMF_SOMATIC_HOTSPOTS 
+        HMF_SOMATIC_HOTSPOTS
         GC_PROFILE
         REALIGNMENT_KNOWN
     );

@@ -29,12 +29,12 @@ assert_exists "[% dirs.strelka.out %]/task.complete"
 assert_not_empty "${snvs_all}" "${indels_all}"
 
 ### Hotspots
-echo "[INFO] Annotate and filter INDEL hotspots -" $(date)
+echo "[INFO] Annotate and filter INDEL hotspots - $(date)"
 ${bcftools} annotate -a ${hotspots} -c CHROM,POS,REF,ALT -m +HOTSPOT ${indels_all} -O u | \
 ${bcftools} filter -e HOTSPOT=1 -s PASS -O u | \
 ${bcftools} filter -i 'FILTER="PASS"' -o ${indels_passed}
 
-echo "[INFO] Annotate and filter SNV hotspots -" $(date)
+echo "[INFO] Annotate and filter SNV hotspots - $(date)"
 ${bcftools} annotate -a ${hotspots} -c CHROM,POS,REF,ALT -m +HOTSPOT ${snvs_all} -O u | \
 ${bcftools} filter -e HOTSPOT=1 -s PASS -O u | \
 ${bcftools} filter -i 'FILTER="PASS"' -o ${snvs_passed}
