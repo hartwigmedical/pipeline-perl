@@ -74,7 +74,7 @@ sub refSampleName {
     my ($opt) = @_;
     my $metadata = parse($opt);
     my $ref_sample = $metadata->{ref_sample} or die "metadata missing ref_sample";
-    return($ref_sample);
+    return ($ref_sample);
 }
 
 sub sampleControlNames {

@@ -40,10 +40,14 @@ sub setupTestConfig {
         FREEC_CHRLENFILE
         FREEC_MAPPABILITY_TRACK
         FREEC_SNPFILE
-        REALIGNMENT_KNOWN
-        HMF_PON
         HIGH_CONFIDENCE_BED
+        HMF_GERMLINE_PON
+        HMF_SOMATIC_PON
+        MAPPABILITY_BED
+        MAPPABILITY_HDR
+        HMF_SOMATIC_HOTSPOTS 
         GC_PROFILE
+        REALIGNMENT_KNOWN
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH

@@ -23,7 +23,7 @@ sub run {
     my $dirs = createDirs($opt->{OUTPUT_DIR}, gvcf => "gvcf");
 
     my $final_vcf = catfile($dirs->{out}, "$opt->{RUN_NAME}.raw_variants.vcf");
-    my $final_gvcf = catfile($dirs->{gvcf}, $ref_sample.".g.vcf.gz");
+    my $final_gvcf = catfile($dirs->{gvcf}, $ref_sample . ".g.vcf.gz");
     my $ref_sample_bam_name = fileparse($ref_sample_bam);
     (my $tmp_scala_gvcf = $ref_sample_bam_name) =~ s/\.bam/\.g\.vcf\.gz/;
 
@@ -47,9 +47,9 @@ sub run {
     return unless $job_id;
 
     linkVcfArtefacts($final_vcf, "germline", $opt);
-    if ( $opt->{CALLING_GVCF} eq "yes" ){
+    if ($opt->{CALLING_GVCF} eq "yes") {
         linkArtefact($final_gvcf, 'ref_sample_gvcf', $opt);
-        linkArtefact($final_gvcf.'.tbi', 'ref_sample_gvcf_index', $opt);
+        linkArtefact($final_gvcf . '.tbi', 'ref_sample_gvcf_index', $opt);
     }
 
     recordAllSampleJob($opt, $job_id);

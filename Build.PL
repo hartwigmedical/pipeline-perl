@@ -39,6 +39,7 @@ my $build = Module::Build->new(
         'Test::PerlTidy' => 0,
         'Test::Prereq::Build' => '< 2.0',
         'Test::Warn' => 0,
+        'Module::FromPerlVer' => 0,
     }
 );
 
