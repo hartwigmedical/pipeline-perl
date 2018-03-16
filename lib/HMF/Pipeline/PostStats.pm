@@ -68,7 +68,7 @@ sub linkArtefacts {
     linkArtefact($metrics_path, "qc", $opt);
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        # SABR: ependent on implicit SNPcheck naming (easier to fix)
+        # SABR: dependent on implicit SNPcheck naming (easier to fix)
         foreach my $design (@{$designs}) {
             linkExtraArtefact(catfile($dirs->{$sample}, "${sample}_${design}.vcf"), $opt);
         }
