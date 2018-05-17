@@ -20,6 +20,7 @@ addons:
       - shellcheck
 
 before_install:
+  - shellcheck --version
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/samtools.git
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/htslib.git
   - pushd samtools && make && make prefix=~/.local install && popd

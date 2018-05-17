@@ -225,7 +225,7 @@ _METADATA_
         my $test_job = Test::Cmd->new(prog => "/usr/bin/env", workdir => "");
         $test_job->run(args => "bash -n $job");
         is($?, 0, "$test_description $job_script job has valid bash syntax") or diag $test_job->stderr;
-        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129 $job");
+        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
         if (not $done_files or $job_name =~ /^Finalize_/) {
