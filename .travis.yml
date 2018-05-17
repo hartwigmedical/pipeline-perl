@@ -14,8 +14,6 @@ env:
 
 addons:
   apt:
-    sources:
-      - debian
     packages:
       - shellcheck
 
