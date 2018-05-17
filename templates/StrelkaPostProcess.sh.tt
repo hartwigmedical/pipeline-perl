@@ -20,22 +20,52 @@ TMP_STRING="tmpFileToBeDeleted"
 
 basefile=[% dirs.out %]/[% joint_name %]
 tumor_bam="[% tumor_bam_path %]"
-
 input_vcf="[% strelka_vcf %]"
-output_vcf="${basefile}_${TMP_STRING}.processed.vcf"
 
 assert_not_empty "$input_vcf"
 assert_not_empty "$tumor_bam"
 
 ## =====
+output_vcf="${basefile}_${TMP_STRING}.mappability.vcf.gz"
+
+## =====
+echo "[INFO] Annotating Mappability - $(date)"
+${bcftools} annotate -a ${MAPPABILITY_BED} -h ${MAPPABILITY_HDR} -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
+${tabix} ${output_vcf} -p vcf
+
+assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${TMP_STRING}.germlinepon.vcf.gz"
+
+## =====
+echo "[INFO] Annotating Germline PON - $(date)"
+${bcftools} annotate -a ${GERMLINE_PON} -c GERMLINE_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
+${tabix} ${output_vcf} -p vcf
+
+assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${TMP_STRING}".sompon.vcf.gz
+
+## =====
+echo "[INFO] Annotating Somatic PON - $(date)"
+${bcftools} annotate -a ${SOMATIC_PON} -c SOMATIC_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
+${tabix} ${output_vcf} -p vcf
+
+assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${TMP_STRING}".filtered.vcf.gz
+ 
+## =====
 echo "[INFO] Running hmftool strelka-post-process - $(date)"
+input_vcf_uncompressed="${input_vcf%.*}"
+gunzip -c ${input_vcf} > ${input_vcf_uncompressed}
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
-    -v "$input_vcf" \
+    -v "$input_vcf_uncompressed" \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
     -t "[% tumor_sample %]" \
     -o "$output_vcf" \
-    -b "[% tumor_bam_path %]"
+    -b $tumor_bam
 
 input_vcf="$output_vcf"
 output_vcf="${basefile}_${TMP_STRING}.snpEff.vcf"
@@ -45,8 +75,7 @@ echo "[INFO] Annotating with snpEff - $(date)"
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
-    -c "[% opt.SNPEFF_PATH %]/snpEff.config" \
-    "[% opt.ANNOTATE_DB %]" \
+    -c "[% opt.SNPEFF_PATH %]/snpEff.config" "[% opt.ANNOTATE_DB %]" \
     -v "$input_vcf" \
     [% opt.ANNOTATE_FLAGS %] \
     > "$output_vcf"
@@ -76,47 +105,20 @@ ${tabix} ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.mappability.vcf.gz"
+output_vcf="${basefile}_${TMP_STRING}.pon.vcf.gz"
 
 ## =====
-echo "[INFO] Annotating Mappability - $(date)"
-${bcftools} annotate -a ${MAPPABILITY_BED} -h ${MAPPABILITY_HDR} -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
-
-assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.germlinepon.vcf.gz"
-
-## =====
-echo "[INFO] Annotating Germline PON - $(date)"
-${bcftools} annotate -a ${GERMLINE_PON} -c GERMLINE_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
-
-assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}".sompon.vcf.gz
-
-## =====
-echo "[INFO] Annotating Somatic PON - $(date)"
-${bcftools} annotate -a ${SOMATIC_PON} -c SOMATIC_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
-
-assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}".filtered.vcf.gz
-
-## =====
-echo "[INFO] Applying Filters - $(date)"
+echo "[INFO] Applying PON Filters - $(date)"
 ${bcftools} filter -e 'GERMLINE_PON_COUNT!="." && MIN(GERMLINE_PON_COUNT) > 5' -s GERMLINE_PON -m+ ${input_vcf} -O u | \
-${bcftools} filter -e 'SOMATIC_PON_COUNT!="." && MIN(SOMATIC_PON_COUNT) > 3' -s SOMATIC_PON -m+ -O u | \
-${bcftools} filter -e HOTSPOT=1 -s PASS -O z -o ${output_vcf}
-${tabix} ${output_vcf} -p vcf
+${bcftools} filter -e 'SOMATIC_PON_COUNT!="." && MIN(SOMATIC_PON_COUNT) > 3' -s SOMATIC_PON -m+ -O z -o ${output_vcf}
+${tabix} -p vcf ${output_vcf}
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 
+## =====
+echo "[INFO] Renaming to final and cleanup - $(date)"
 mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.tbi" "[% final_vcf %].tbi"
-
 rm ./*${TMP_STRING}*
 
 success

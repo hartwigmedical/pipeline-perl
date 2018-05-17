@@ -39,7 +39,7 @@ sub run {
     my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $strelka_job_id;
 
-    my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $recalibrated_tumor_bam, $dirs, $opt);
+    my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{somvar}}, $post_process_job_id;
 
     my $done_job_id = markDone($done_file, [ $strelka_job_id, $post_process_job_id ], $dirs, $opt);
@@ -64,7 +64,7 @@ sub runStrelka {
     say "\n### SCHEDULING STRELKA ###";
 
     $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
-    my $output_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf");
+    my $output_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf.gz");
 
     my $job_id = fromTemplate(
         "Strelka",

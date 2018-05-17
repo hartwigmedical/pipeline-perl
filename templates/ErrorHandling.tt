@@ -73,7 +73,10 @@ function assert_last_position_unchanged() {
     local input_tail output_tail
     input_tail="$(tail -n 1 "${input_path}" | cut -f 1,2)"
     output_tail="$(tail -n 1 "${output_path}" | cut -f 1,2)"
-    [ "$input_tail" == "$output_tail" ] || failure "last position in ${output_path} differs from ${input_path}."
+    if [[  "$input_path" =~ gz$ ]]; then input_tail="$( zcat "${input_path}" | tail -n 1 | cut -f 1,2)"; fi
+    if [[ "$output_path" =~ gz$ ]]; then output_tail="$( zcat "${output_path}" | tail -n 1 | cut -f 1,2)"; fi
+    [ "$input_tail" == "$output_tail" ] || 
+      failure "last position in ${output_path} ($output_tail) differs from ${input_path} ($input_tail)"
 }
 
 function assert_no_genomic_positions_lost() {
@@ -81,7 +84,7 @@ function assert_no_genomic_positions_lost() {
     local vcf1_path=$1 && shift
     local vcf2_path=$1 && shift
     
-    echo "[INFO] About to compare genomic pos of ${vcf1_path} vs ${vcf2_path}"
+    #echo "[INFO] About to compare genomic pos of ${vcf1_path} vs ${vcf2_path}"
     assert_not_empty "${vcf1_path}" "${vcf2_path}"
     
     local unique_in_vcf1

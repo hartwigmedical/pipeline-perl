@@ -211,6 +211,7 @@ sub configChecks {
         SAMTOOLS_PATH => \&missing_directory,
         SAMBAMBA_PATH => \&missing_directory,
         MAPPING_THREADS => \&key_not_present,
+        BAM_SLICER_PATH => \&missing_directory,
         PRESTATS => if_enabled({
                 FASTQC_PATH => \&missing_directory,
                 PRESTATS_THREADS => \&key_not_present,
