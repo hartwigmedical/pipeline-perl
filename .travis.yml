@@ -11,20 +11,21 @@ perl:
 env:
   global:
     - SAMTOOLS_VERSION=1.2
-
-addons:
-  apt:
-    sources:
-      - debian-sid
-    packages:
-      - shellcheck
+    - SHELLCHECK_VERSION=v0.4.7
 
 before_install:
+  - pushd samtools && make && make prefix=~/.local install && popd
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/samtools.git
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/htslib.git
   - pushd samtools && make && make prefix=~/.local install && popd
   - rm -rf samtools htslib
   - cp inc/qsub ~/.local/bin/
+
+install:
+  - wget "https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+  - tar --xz -xvf "shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+  - shellcheck() { "shellcheck-${SHELLCHECK_VERSION}/shellcheck" "$@"; }
+  - shellcheck --version
 
 before_script:
   - export SAMTOOLS_PATH=~/.local/bin
