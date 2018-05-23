@@ -42,16 +42,19 @@ sub run {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
         HMF::Pipeline::Metadata::linkBamArtefacts($opt);
+
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
-        HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
-        HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
         HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
+
+        HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
+        HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
+
         HMF::Pipeline::PipelineCheck::run($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";

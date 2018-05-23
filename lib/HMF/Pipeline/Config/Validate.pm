@@ -258,18 +258,6 @@ sub configChecks {
                 ),
             }
         ),
-        CALLABLE_LOCI => if_enabled({
-                CALLABLE_LOCI_QUEUE => \&key_not_present,
-                CALLABLE_LOCI_TIME => \&key_not_present,
-                CALLABLE_LOCI_THREADS => \&key_not_present,
-                CALLABLE_LOCI_MEM => \&key_not_present,
-                CALLABLE_LOCI_BASEQUALITY => \&key_not_present,
-                CALLABLE_LOCI_MAPQUALITY => \&key_not_present,
-                CALLABLE_LOCI_DEPTH => \&key_not_present,
-                CALLABLE_LOCI_DEPTHLOWMAPQ => \&key_not_present,
-                CALLING_TARGETS => \&missing_optional_file,
-            }
-        ),
         DAMAGE_ESTIMATE => if_enabled({
                 # KODU: DamageEstimator also depends on SAMTOOLS and SAMBAMBA but they are assumed to be checked already at this point.
                 DAMAGE_ESTIMATOR_PATH => \&missing_directory,
@@ -447,53 +435,7 @@ sub configChecks {
                 HMF_SOMATIC_HOTSPOTS => \&missing_file,
             }
         ),
-        COPY_NUMBER => if_enabled({
-                CNV_MODE => \&key_not_present,
-                CNV_FREEC => if_enabled({
-                        FREEC_PATH => \&missing_directory,
-                        FREEC_QUEUE => \&key_not_present,
-                        FREEC_THREADS => \&key_not_present,
-                        FREEC_MEM => \&key_not_present,
-                        FREEC_TIME => \&key_not_present,
-                        FREEC_CHRFILES => \&missing_directory,
-                        FREEC_CHRLENFILE => \&missing_file,
-                        FREEC_MAPPABILITY_TRACK => \&missing_optional_file,
-                        FREEC_PLOIDY => \&key_not_present,
-                        FREEC_WINDOW => \&key_not_present,
-                        FREEC_TELOCENTROMERIC => \&key_not_present,
-                        FREEC_BAF => if_enabled({
-                                FREEC_SNPFILE => \&missing_file,
-                                PBGZIP_PATH => \&missing_directory,
-                                TABIX_PATH => \&missing_directory,
-                                PILEUP_QUEUE => \&key_not_present,
-                                PILEUP_DIVISOR => \&key_not_present,
-                                PILEUP_THREADS => compare_to("PILEUP_DIVISOR", sub { $_[0] >= $_[1] }, "greater than or equal to"),
-                                PILEUP_MEM => \&key_not_present,
-                                PILEUP_TIME => \&key_not_present,
-                                FINALIZE_KEEP_PILEUP => \&key_not_present,
-                            }
-                        ),
-                    }
-                ),
-                CNV_QDNASEQ => if_enabled({
-                        QDNASEQ_PATH => \&missing_directory,
-                        QDNASEQ_QUEUE => \&key_not_present,
-                        QDNASEQ_THREADS => \&key_not_present,
-                        QDNASEQ_MEM => \&key_not_present,
-                        QDNASEQ_TIME => \&key_not_present,
-                    }
-                ),
-            }
-        ),
-        BAF => if_enabled({
-                BAF_QUEUE => \&key_not_present,
-                BAF_THREADS => \&key_not_present,
-                BAF_MEM => \&key_not_present,
-                BAF_TIME => \&key_not_present,
-                BIOVCF_PATH => \&missing_directory,
-                BAF_SNPS => \&missing_file,
-            }
-        ),
+
         SV_CALLING => if_enabled({
                 SV_MODE => \&key_not_present,
                 SV_MANTA => if_enabled({
@@ -509,36 +451,6 @@ sub configChecks {
                         BPI_TIME => \&key_not_present,
                     }
                 ),
-                SV_DELLY => if_enabled({
-                        DELLY_PATH => \&missing_directory,
-                        DELLY_QUEUE => \&key_not_present,
-                        DELLY_THREADS => \&key_not_present,
-                        DELLY_MEM => \&key_not_present,
-                        DELLY_TIME => \&key_not_present,
-                        DELLY_MERGE_QUEUE => \&key_not_present,
-                        DELLY_MERGE_TIME => \&key_not_present,
-                        DELLY_MERGE_THREADS => \&key_not_present,
-                        DELLY_MERGE_MEM => \&key_not_present,
-                        DELLY_SVTYPE => \&key_not_present,
-                        DELLY_MAPQUAL => \&key_not_present,
-                        DELLY_MAD => \&key_not_present,
-                        DELLY_VCF_GENO => \&missing_optional_file,
-                        DELLY_GENO_QUAL => \&key_not_present,
-                        VCFTOOLS_PATH => \&missing_directory,
-                    }
-                ),
-            }
-        ),
-        GENDER => if_enabled({
-                GENDER_QUEUE => \&key_not_present,
-                GENDER_THREADS => \&key_not_present,
-                GENDER_MEM => \&key_not_present,
-                GENDER_TIME => \&key_not_present,
-                GENDER_MIN_GQ => \&key_not_present,
-                GENDER_FEMALE_MAX_F => \&key_not_present,
-                GENDER_MALE_MIN_F => \&key_not_present,
-                PLINK_PATH => \&missing_directory,
-                VCFTOOLS_PATH => \&missing_directory,
             }
         ),
         FINALIZE => if_enabled({
