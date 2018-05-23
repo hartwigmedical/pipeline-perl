@@ -1,11 +1,11 @@
 package discipline;
 
-# for this module itself (lexical scope)
+# SABR: for this module itself (lexical scope)
 use 5.016_000;
 use strict;
 use warnings FATAL => 'all';
 
-# use without importing anything
+# SABR: use without importing anything
 use feature ();
 use strictures 2 ();
 use indirect ();
