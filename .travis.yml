@@ -14,7 +14,6 @@ env:
     - SHELLCHECK_VERSION=v0.4.7
 
 before_install:
-  - pushd samtools && make && make prefix=~/.local install && popd
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/samtools.git
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/htslib.git
   - pushd samtools && make && make prefix=~/.local install && popd
