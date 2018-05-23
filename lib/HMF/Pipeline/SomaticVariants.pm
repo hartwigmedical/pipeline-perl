@@ -5,12 +5,12 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
+use HMF::Pipeline::Job::Bam;
 
 use HMF::Pipeline::Config qw(createDirs addSubDir sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Sge qw(qsubJava);
-use HMF::Pipeline::BaseRecalibration qw(runRecalibrationOnSample);
 use List::MoreUtils qw(uniq);
 
 use parent qw(Exporter);
@@ -26,7 +26,8 @@ sub run {
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
 
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf.gz");
-    $opt->{SOMVAR_VCF_FILE} = $final_vcf; # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
+    # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
+    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
 
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
@@ -52,10 +53,25 @@ sub checkRecalibratedSample {
 
     if (index($sample_bam_path, "recalibrated.bam") == -1) {
         say "\nMissing recalibrated file for sample: $sample";
-        my ($recalibrated_bam, $recalibration_jobs) = HMF::Pipeline::BaseRecalibration::runRecalibrationOnSample($sample, $opt);
+        my ($recalibrated_bam, $recalibration_jobs) = runRecalibrationOnSample($sample, $opt);
         return ($recalibrated_bam, $recalibration_jobs);
     }
     return ($sample_bam_path, []);
+}
+
+sub runRecalibrationOnSample {
+    my ($sample, $opt) = @_;
+
+    my $sample_bam = $opt->{BAM_FILES}->{$sample};
+
+    say "\n### SCHEDULING BASERECALIBRATION ###";
+    say "Running base recalibration for the following BAM: $sample_bam";
+
+    my $known_files = "";
+    $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
+
+    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Job::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
+    return ($recalibrated_bam, $job_ids);
 }
 
 sub runStrelka {

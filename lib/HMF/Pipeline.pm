@@ -48,23 +48,16 @@ sub run {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
         HMF::Pipeline::Metadata::linkBamArtefacts($opt);
-        HMF::Pipeline::BaseRecalibration::run($opt) if $opt->{BASEQUALITYRECAL} eq "yes";
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
-
-        HMF::Pipeline::PreCalling::run($opt);
-
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
+
         HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
-        HMF::Pipeline::CopyNumber::run($opt) if $opt->{COPY_NUMBER} eq "yes";
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";
-        HMF::Pipeline::Baf::run($opt) if $opt->{BAF} eq "yes";
-        HMF::Pipeline::CallableLoci::run($opt) if $opt->{CALLABLE_LOCI} eq "yes";
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
         HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
         HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
-        HMF::Pipeline::Gender::run($opt) if $opt->{GENDER} eq "yes";
         HMF::Pipeline::PipelineCheck::run($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
@@ -87,65 +80,3 @@ Jobs could have been scheduled before the error, or by external tools (GATK etc.
 }
 
 1;
-
-__END__
-
-=pod
-
-=encoding utf8
-
-=head1 NAME
-
-HMF::Pipeline - Analysis pipeline for whole genome sequencing of DNA
-
-=head1 AUTHORS
-
-=over
-
-=item *
-
-Robert Ernst <r.f.ernst-3@umcutrecht.nl>
-
-=item *
-
-Sam Brightman <s.brightman@hartwigmedicalfoundation.nl>
-
-=item *
-
-Korneel Duyvesteyn <korneel.duyvesteyn@gmail.com>
-
-=item *
-
-Thijs Houtenbos <thoutenbos@schubergphilis.com>
-
-=item *
-
-Arjen Wolfs <awolfs@schubergphilis.com>
-
-=item *
-
-Andrew Repton <arepton@schubergphilis.com>
-
-=item *
-
-Sander Boymans <s.boymans@hubrecht.eu>
-
-=item *
-
-Stef van Lieshout <stefvanlieshout@fastmail.fm>
-
-=item *
-
-Joep de Ligt <joepio@gmail.com>
-
-=item *
-
-Mark van Roosmalen <m.vanroosmalen-2@umcutrecht.nl>
-
-=item *
-
-Hindrik Kerstens <hindrik.kerstens@gmail.com>
-
-=back
-
-=cut
