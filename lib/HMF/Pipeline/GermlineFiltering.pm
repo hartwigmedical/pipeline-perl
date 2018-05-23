@@ -26,7 +26,7 @@ sub run {
         "GermlineFiltering",
         undef,
         1,
-        qsubJava($opt, "FILTER_MASTER"),
+        qsubJava($opt, "GERMLINE_FILTER_MASTER"),
         $running_jobs,
         $dirs,
         $opt,
@@ -34,7 +34,7 @@ sub run {
         final_vcf => $germline_vcf_path,
         snp_config => snpConfig($opt),
         indel_config => indelConfig($opt),
-        job_native => jobNative($opt, "FILTER"),
+        job_native => jobNative($opt, "GERMLINE_FILTER"),
     );
 
     $opt->{GERMLINE_VCF_FILE} = $germline_vcf_path;
@@ -45,18 +45,18 @@ sub run {
     return;
 }
 
-# NB: these functions have not been made more general in order to maintain easy search of config key names
+# NB: SABR: these functions have not been made more general in order to maintain easy search of config key names
 sub snpConfig {
     my ($opt) = @_;
 
-    my @snp_filter_names = split "\t", $opt->{FILTER_SNPNAME};
-    my @snp_filter_exprs = split "\t", $opt->{FILTER_SNPEXPR};
+    my @snp_filter_names = split "\t", $opt->{GERMLINE_FILTER_SNPNAME};
+    my @snp_filter_exprs = split "\t", $opt->{GERMLINE_FILTER_SNPEXPR};
     if (scalar @snp_filter_names ne scalar @snp_filter_exprs) {
-        die "FILTER_SNPNAME and FILTER_SNPEXPR do not have the same length";
+        die "GERMLINE_FILTER_SNPNAME and GERMLINE_FILTER_SNPEXPR do not have the same length";
     }
 
     my %config;
-    $config{types} = [ split ",", $opt->{FILTER_SNPTYPES} ];
+    $config{types} = [ split ",", $opt->{GERMLINE_FILTER_SNPTYPES} ];
     @{$config{filters}}{@snp_filter_names} = @snp_filter_exprs;
     return \%config;
 }
@@ -64,14 +64,14 @@ sub snpConfig {
 sub indelConfig {
     my ($opt) = @_;
 
-    my @indel_filter_names = split "\t", $opt->{FILTER_INDELNAME};
-    my @indel_filter_exprs = split "\t", $opt->{FILTER_INDELEXPR};
+    my @indel_filter_names = split "\t", $opt->{GERMLINE_FILTER_INDELNAME};
+    my @indel_filter_exprs = split "\t", $opt->{GERMLINE_FILTER_INDELEXPR};
     if (scalar @indel_filter_names ne scalar @indel_filter_exprs) {
-        die "FILTER_INDELNAME and FILTER_INDELEXPR do not have the same length";
+        die "GERMLINE_FILTER_INDELNAME and GERMLINE_FILTER_INDELEXPR do not have the same length";
     }
 
     my %config;
-    $config{types} = [ split ",", $opt->{FILTER_INDELTYPES} ];
+    $config{types} = [ split ",", $opt->{GERMLINE_FILTER_INDELTYPES} ];
     @{$config{filters}}{@indel_filter_names} = @indel_filter_exprs;
     return \%config;
 }

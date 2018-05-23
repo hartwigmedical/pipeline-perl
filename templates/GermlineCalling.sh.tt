@@ -8,36 +8,36 @@ cd "[% dirs.tmp %]"
 
 assert_not_empty "[% ref_sample_bam %]"
 
-java -Xmx[% opt.CALLING_MASTER_MEM %]G \
+java -Xmx[% opt.GERMLINE_CALLING_MASTER_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.QUEUE_PATH %]/Queue.jar \
-    -jobQueue [% opt.CALLING_QUEUE %] \
+    -jobQueue [% opt.GERMLINE_CALLING_QUEUE %] \
     -jobNative "[% job_native %]" \
     -jobRunner GridEngine \
     -jobReport [% dirs.log %]/GermlineCaller.jobReport.txt \
-    -memLimit [% opt.CALLING_MEM %] \
-    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.CALLING_SCALA %] \
-    [%- IF opt.exists('CALLING_UGMODE') %]
-    -glm [% opt.CALLING_UGMODE %] \
+    -memLimit [% opt.GERMLINE_CALLING_MEM %] \
+    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.GERMLINE_CALLING_SCALA %] \
+    [%- IF opt.exists('GERMLINE_CALLING_UGMODE') %]
+    -glm [% opt.GERMLINE_CALLING_UGMODE %] \
     [%- END %]
     -R [% opt.GENOME %] \
     -O [% opt.RUN_NAME %] \
-    -mem [% opt.CALLING_MEM %] \
-    -nct [% opt.CALLING_THREADS %] \
-    -nsc [% opt.CALLING_SCATTER %] \
-    -stand_call_conf [% opt.CALLING_STANDCALLCONF %] \
+    -mem [% opt.GERMLINE_CALLING_MEM %] \
+    -nct [% opt.GERMLINE_CALLING_THREADS %] \
+    -nsc [% opt.GERMLINE_CALLING_SCATTER %] \
+    -stand_call_conf [% opt.GERMLINE_CALLING_STANDCALLCONF %] \
     -I [% ref_sample_bam %] \
-    [%- IF opt.exists('CALLING_DBSNP') %]
-    -D [% opt.CALLING_DBSNP %] \
+    [%- IF opt.exists('DBSNP_VCF') %]
+    -D [% opt.DBSNP_VCF %] \
     [%- END %]
-    [%- IF opt.exists('CALLING_TARGETS') %]
-    -L [% opt.CALLING_TARGETS %] \
-        [%- IF opt.exists('CALLING_INTERVALPADDING') %]
-    -ip [% opt.CALLING_INTERVALPADDING %] \
+    [%- IF opt.exists('GERMLINE_CALLING_TARGETS') %]
+    -L [% opt.GERMLINE_CALLING_TARGETS %] \
+        [%- IF opt.exists('GERMLINE_CALLING_INTERVALPADDING') %]
+    -ip [% opt.GERMLINE_CALLING_INTERVALPADDING %] \
         [%- END %]
     [%- END %]
-    [%- IF opt.exists('CALLING_PLOIDY') %]
-    -ploidy [% opt.CALLING_PLOIDY %] \
+    [%- IF opt.exists('GERMLINE_CALLING_PLOIDY') %]
+    -ploidy [% opt.GERMLINE_CALLING_PLOIDY %] \
     [%- END %]
     -run
 
@@ -46,10 +46,8 @@ assert_exists "[% dirs.tmp %]/.[% opt.RUN_NAME %].raw_variants.vcf.done"
 mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf" "[% final_vcf %]"
 mv "[% dirs.tmp %]/[% opt.RUN_NAME %].raw_variants.vcf.idx" "[% final_vcf %].idx"
 
-[%- IF opt.CALLING_GVCF == 'yes' %]
 mkdir -p "[% dirs.gvcf %]"
 mv "[% dirs.tmp %]/[% tmp_scala_gvcf %]" "[% final_gvcf %]"
 mv "[% dirs.tmp %]/[% tmp_scala_gvcf %].tbi" "[% final_gvcf %].tbi"
-[%- END %]
 
 success

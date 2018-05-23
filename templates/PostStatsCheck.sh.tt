@@ -15,11 +15,4 @@ assert_not_empty "[% dirs.out %]/[% opt.RUN_NAME %].bamMetrics.pdf" "[% dirs.out
 [%- END -%]
 [%- END %]
 
-[%- IF opt.EXONCALLCOV == "yes" -%]
-[%- FOREACH sample IN opt.SAMPLES.keys %]
-assert_not_empty "[% dirs.exoncov %]/[% sample %].html"
-[%- END %]
-assert_empty "[% dirs.exoncov %]/error_collection_run"
-[%- END %]
-
 success

@@ -8,19 +8,19 @@ cd "[% dirs.tmp %]"
 
 assert_not_empty "[% input_vcf %]"
 
-java -Xmx[% opt.FILTER_MASTER_MEM %]G \
+java -Xmx[% opt.GERMLINE_FILTER_MASTER_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.QUEUE_PATH %]/Queue.jar \
-    -jobQueue [% opt.FILTER_QUEUE %] \
+    -jobQueue [% opt.GERMLINE_FILTER_QUEUE %] \
     -jobNative "[% job_native %]" \
     -jobRunner GridEngine \
     -jobReport [% dirs.log %]/GermlineFilter.jobReport.txt \
-    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.FILTER_SCALA %] \
+    -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.GERMLINE_FILTER_SCALA %] \
     -R [% opt.GENOME %] \
     -V [% input_vcf %] \
     -O [% opt.RUN_NAME %] \
-    -mem [% opt.FILTER_MEM %] \
-    -nsc [% opt.FILTER_SCATTER %] \
+    -mem [% opt.GERMLINE_FILTER_MEM %] \
+    -nsc [% opt.GERMLINE_FILTER_SCATTER %] \
     [%- FOREACH snp_type IN snp_config.types %]
     -snpType [% snp_type %] \
     [%- END %]
@@ -28,9 +28,9 @@ java -Xmx[% opt.FILTER_MASTER_MEM %]G \
     -snpFilterName [% snp_filter.key %] \
     -snpFilterExpression "[% snp_filter.value %]" \
     [%- END %]
-    [%- IF opt.exists('FILTER_CLUSTERSIZE') && opt.exists('FILTER_CLUSTERWINDOWSIZE') %]
-    -cluster [% opt.FILTER_CLUSTERSIZE %] \
-    -window [% opt.FILTER_CLUSTERWINDOWSIZE %] \
+    [%- IF opt.exists('GERMLINE_FILTER_CLUSTERSIZE') && opt.exists('GERMLINE_FILTER_CLUSTERWINDOWSIZE') %]
+    -cluster [% opt.GERMLINE_FILTER_CLUSTERSIZE %] \
+    -window [% opt.GERMLINE_FILTER_CLUSTERWINDOWSIZE %] \
     [%- END %]
     [%- FOREACH indel_type IN indel_config.types %]
     -indelType [% indel_type %] \

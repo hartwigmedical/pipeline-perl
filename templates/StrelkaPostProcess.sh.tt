@@ -12,7 +12,7 @@ bgzip=[% opt.TABIX_PATH %]/bgzip
 
 MAPPABILITY_BED="[% opt.MAPPABILITY_BED %]"
 MAPPABILITY_HDR="[% opt.MAPPABILITY_HDR %]"
-CALLING_DBSNP="[% opt.CALLING_DBSNP %]"
+DBSNP_VCF="[% opt.DBSNP_VCF %]"
 ANNOTATE_IDDB="[% opt.ANNOTATE_IDDB %]"
 GERMLINE_PON="[% opt.HMF_GERMLINE_PON %]"
 SOMATIC_PON="[% opt.HMF_SOMATIC_PON %]"
@@ -91,7 +91,7 @@ output_vcf="${basefile}_${TMP_STRING}.dbsnp.vcf.gz"
 
 ## =====
 echo "[INFO] Annotating DBSNP - $(date)"
-${bcftools} annotate -a ${CALLING_DBSNP} -c ID -o ${output_vcf} -O z ${input_vcf}
+${bcftools} annotate -a ${DBSNP_VCF} -c ID -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"

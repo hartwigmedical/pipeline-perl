@@ -31,7 +31,7 @@ sub run {
         $dependent_jobs,
         $dirs,
         $opt,
-        # comment to avoid perltidy putting on one line
+        # SABR: comment to avoid perltidy putting on one line
     );
 
     $opt->{RUNNING_JOBS}->{purple} = [$job_id] if $job_id;
@@ -54,7 +54,7 @@ sub dependencies {
     push @jobs, @{$opt->{RUNNING_JOBS}->{amber}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{cobalt}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{sv}};
-    push @jobs, @{$opt->{RUNNING_JOBS}->{somvar}};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{strelka}};
     return \@jobs;
 }
 

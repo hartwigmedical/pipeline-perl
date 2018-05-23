@@ -13,7 +13,7 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING INDELREALIGNMENT ###";
+    say "\n### SCHEDULING INDEL REALIGNMENT ###";
     say "Running single sample indel realignment for the following BAM-files:";
 
     my $known_files = "";

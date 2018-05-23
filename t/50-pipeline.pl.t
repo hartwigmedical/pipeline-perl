@@ -30,24 +30,16 @@ sub setupTestConfig {
         ANNOTATE_DBNSFP
         ANNOTATE_FREQDB
         ANNOTATE_IDDB
-        BAF_SNPS
+        REALIGNMENT_KNOWN
         BASERECALIBRATION_KNOWN
-        CALLING_DBSNP
-        EXONCALLCOV_BED
-        EXONCALLCOV_ENS
-        EXONCALLCOV_PANEL
-        EXONCALLCOV_PREF
-        FREEC_CHRLENFILE
-        FREEC_MAPPABILITY_TRACK
-        FREEC_SNPFILE
+        DBSNP_VCF
+        MAPPABILITY_BED
+        MAPPABILITY_HDR
         HIGH_CONFIDENCE_BED
         HMF_GERMLINE_PON
         HMF_SOMATIC_PON
-        MAPPABILITY_BED
-        MAPPABILITY_HDR
         HMF_SOMATIC_HOTSPOTS
         GC_PROFILE
-        REALIGNMENT_KNOWN
     );
     my @fake_directory_keys = qw(
         BAM_SLICER_PATH
@@ -57,23 +49,16 @@ sub setupTestConfig {
         BIOVCF_PATH
         BWA_PATH
         CLUSTER_PATH
-        DELLY_PATH
-        EXONCALLCOV_PATH
         FASTQC_PATH
-        FREEC_CHRFILES
-        FREEC_PATH
         GATK_PATH
         IGVTOOLS_PATH
-        KING_PATH
         MANTA_PATH
         PBGZIP_PATH
         PICARD_PATH
-        PLINK_PATH
         AMBER_PATH
         COBALT_PATH
         PURPLE_PATH
         CIRCOS_PATH
-        QDNASEQ_PATH
         QUEUE_PATH
         QUEUE_LOW_GZIP_COMPRESSION_PATH
         SAMBAMBA_PATH
@@ -116,8 +101,6 @@ sub setupDoneFiles {
         catfile("logs", "GermlineCalling.done"),
         catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "GermlineFiltering.done"),
-        catfile("logs", "Gender.done"),
-        catfile("logs", "Kinship.done"),
         catfile("logs", "PipelineCheck.done"),
         catfile("logs", "Amber_CPCT12345678R_CPCT12345678T.done"),
         catfile("logs", "Cobalt_CPCT12345678R_CPCT12345678T.done"),
@@ -141,10 +124,6 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "Realignment_CPCT12345678T.done"),
         catfile("CPCT12345678T", "logs", "BaseRecalibration_CPCT12345678T.done"),
         catfile("CPCT12345678T", "logs", "Pileup_CPCT12345678T.done"),
-        catfile("CPCT12345678R", "logs", "BAF_CPCT12345678R.done"),
-        catfile("CPCT12345678T", "logs", "BAF_CPCT12345678T.done"),
-        catfile("CPCT12345678R", "logs", "CallableLoci_CPCT12345678R.done"),
-        catfile("CPCT12345678T", "logs", "CallableLoci_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "BamPrep_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "BamPrep_CPCT12345678T.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
@@ -153,20 +132,6 @@ sub setupDoneFiles {
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
-        catfile("structuralVariants", "delly", "logs", "Delly_DEL.done"),
-        catfile("structuralVariants", "delly", "logs", "Delly_DUP.done"),
-        catfile("structuralVariants", "delly", "logs", "Delly_INS.done"),
-        catfile("structuralVariants", "delly", "logs", "Delly_INV.done"),
-        catfile("structuralVariants", "delly", "logs", "Delly_TRA.done"),
-        catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "CPCT12345678R_CPCT12345678T.done"),
-        catfile("copyNumber", "CPCT12345678R", "logs", "CPCT12345678R.done"),
-        catfile("copyNumber", "CPCT12345678T", "logs", "CPCT12345678T.done"),
-        catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "Freec.done"),
-        catfile("copyNumber", "CPCT12345678R", "logs", "Freec.done"),
-        catfile("copyNumber", "CPCT12345678T", "logs", "Freec.done"),
-        catfile("copyNumber", "CPCT12345678R_CPCT12345678T", "logs", "QDNAseq.done"),
-        catfile("copyNumber", "CPCT12345678R", "logs", "QDNAseq.done"),
-        catfile("copyNumber", "CPCT12345678T", "logs", "QDNAseq.done"),
     );
     make_path(
         map {

@@ -6,21 +6,21 @@ use discipline;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 use File::Spec::Functions;
 
+use HMF::Pipeline::PreStats;
+use HMF::Pipeline::Mapping;
+use HMF::Pipeline::Realignment;
+use HMF::Pipeline::DamageEstimate;
+use HMF::Pipeline::PostStats;
+use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Amber;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::Finalize;
-use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::GermlineFiltering;
-use HMF::Pipeline::Mapping;
-use HMF::Pipeline::Metadata;
-use HMF::Pipeline::PostStats;
-use HMF::Pipeline::PreStats;
-use HMF::Pipeline::Purple;
-use HMF::Pipeline::Realignment;
-use HMF::Pipeline::SomaticVariants;
+use HMF::Pipeline::GermlineAnnotation;
+use HMF::Pipeline::Strelka;
 use HMF::Pipeline::StructuralVariants;
-use HMF::Pipeline::DamageEstimate;
+use HMF::Pipeline::Purple;
 use HMF::Pipeline::PipelineCheck;
 use HMF::Pipeline::HealthCheck;
 
@@ -40,19 +40,19 @@ sub run {
 
     if ($opt->{FASTQ} or $opt->{BAM}) {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
-        HMF::Pipeline::Realignment::run($opt) if $opt->{INDELREALIGNMENT} eq "yes";
+        HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
         HMF::Pipeline::Metadata::linkBamArtefacts($opt);
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
-        HMF::Pipeline::GermlineCalling::run($opt) if $opt->{VARIANT_CALLING} eq "yes";
-        HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{FILTER_VARIANTS} eq "yes";
-        HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{ANNOTATE_VARIANTS} eq "yes";
+        HMF::Pipeline::GermlineCalling::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
+        HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
+        HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
 
-        HMF::Pipeline::SomaticVariants::run($opt) if $opt->{SOMATIC_VARIANTS} eq "yes";
-        HMF::Pipeline::StructuralVariants::run($opt) if $opt->{SV_CALLING} eq "yes";
+        HMF::Pipeline::Strelka::run($opt) if $opt->{STRELKA} eq "yes";
+        HMF::Pipeline::StructuralVariants::run($opt) if $opt->{STRUCTURAL_VARIANT_CALLING} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
 
         HMF::Pipeline::PipelineCheck::run($opt);

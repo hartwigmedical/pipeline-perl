@@ -14,7 +14,7 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING COBALT ANALYSIS ###";
+    say "\n### SCHEDULING COBALT ###";
     $opt->{RUNNING_JOBS}->{'cobalt'} = [];
 
     my $sub_dir = "cobalt";

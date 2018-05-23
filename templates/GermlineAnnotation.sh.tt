@@ -8,8 +8,6 @@
 
 cd "[% dirs.out %]"
 
-
-[%- IF opt.ANNOTATE_SNPEFF == 'yes' -%]
 start_step "ANNOTATE_SNPEFF"
 
 assert_not_empty "[% input_vcf %]"
@@ -30,10 +28,8 @@ rm igv.log
 
 [%- input_vcf = output_vcf %]
 finish_step
-[%- END %]
 
 
-[%- IF opt.ANNOTATE_SNPSIFT == 'yes' -%]
 start_step "ANNOTATE_SNPSIFT"
 
 assert_not_empty "[% input_vcf %]"
@@ -53,19 +49,15 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
 [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 rm igv.log
 
-[%- IF opt.ANNOTATE_SNPEFF == 'yes' -%]
 if [ -s "[% output_vcf %]" ]
 then
     rm "[% input_vcf %]" "[% input_vcf %].idx"
 fi
-[%- END -%]
 
 [%- input_vcf = output_vcf %]
 finish_step
-[%- END %]
 
 
-[%- IF opt.ANNOTATE_IDFIELD == 'yes' -%]
 start_step "ANNOTATE_IDFIELD"
 
 assert_not_empty "[% input_vcf %]"
@@ -84,19 +76,15 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     --dbsnp [% opt.ANNOTATE_IDDB %] \
     --alwaysAppendDbsnpId
 
-[%- IF opt.ANNOTATE_SNPSIFT == 'yes' -%]
 if [ -s "[% output_vcf %]" ]
 then
     rm "[% input_vcf %]" "[% input_vcf %].idx"
 fi
-[%- END -%]
 
 [%- input_vcf = output_vcf %]
 finish_step
-[%- END %]
 
 
-[%- IF opt.ANNOTATE_FREQUENCIES == 'yes' -%]
 start_step "ANNOTATE_FREQUENCIES"
 
 assert_not_empty "[% input_vcf %]"
@@ -118,16 +106,13 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
 [% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
 rm igv.log
 
-[%- IF opt.ANNOTATE_SNPSIFT == 'yes' OR opt.ANNOTATE_SNPEFF == 'yes' OR opt.ANNOTATE_IDFIELD == 'yes' -%]
 if [ -s "[% output_vcf %]" ]
 then
     rm "[% input_vcf %]" "[% input_vcf %].idx"
 fi
-[%- END -%]
 
 [%- input_vcf = output_vcf %]
 finish_step
-[%- END %]
 
 assert_last_position_unchanged "[% pre_annotated_vcf %]" "[% output_vcf %]"
 mv "[% output_vcf %]" "[% final_vcf %]"

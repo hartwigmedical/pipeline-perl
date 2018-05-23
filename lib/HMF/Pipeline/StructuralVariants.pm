@@ -6,9 +6,8 @@ use discipline;
 use File::Spec::Functions;
 use Sort::Key::Natural qw(mkkey_natural);
 
-use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs getChromosomes);
+use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs);
 use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile);
-use HMF::Pipeline::Job::Vcf;
 use HMF::Pipeline::Sge qw(qsubTemplate);
 use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
 
@@ -18,10 +17,10 @@ our @EXPORT_OK = qw(run);
 sub run {
     my ($opt) = @_;
 
-    say "\n### SCHEDULING SV CALLING ###";
+    say "\n### SCHEDULING STRUCTURAL VARIANT CALLING ###";
 
     $opt->{RUNNING_JOBS}->{'sv'} = [];
-    if ($opt->{SV_MANTA} eq "yes") {
+    if ($opt->{MANTA} eq "yes") {
         my $manta_jobs = runManta($opt);
         push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$manta_jobs};
     }
@@ -33,25 +32,14 @@ sub runManta {
 
     say "\n### SCHEDULING MANTA ###";
 
-    if ($opt->{SV_MODE} eq "sample") {
-        my @manta_jobs;
-        foreach my $sample (keys %{$opt->{SAMPLES}}) {
-            my ($sample_bam, $running_jobs) = sampleBamAndJobs($sample, $opt);
-            say "\n$sample \t $sample_bam";
-            my $job_id = runMantaJob($sample_bam, undef, $sample, $running_jobs, $opt);
-            push @manta_jobs, $job_id;
-        }
-        return \@manta_jobs;
-    } else {
-        my @manta_jobs;
-        my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-        say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
-        my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-        push @manta_jobs, $job_id;
-        $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $job_id, $opt);
-        push @manta_jobs, $job_id;
-        return \@manta_jobs;
-    }
+    my @manta_jobs;
+    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+    say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
+    my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
+    push @manta_jobs, $job_id;
+    $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $job_id, $opt);
+    push @manta_jobs, $job_id;
+    return \@manta_jobs;
 }
 
 sub runMantaJob {

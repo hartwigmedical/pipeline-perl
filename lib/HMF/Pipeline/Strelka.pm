@@ -1,4 +1,4 @@
-package HMF::Pipeline::SomaticVariants;
+package HMF::Pipeline::Strelka;
 
 use FindBin::libs;
 use discipline;
@@ -20,7 +20,7 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING SOMATIC VARIANT CALLING ###";
-    $opt->{RUNNING_JOBS}->{somvar} = [];
+    $opt->{RUNNING_JOBS}->{strelka} = [];
 
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "somaticVariants", $joint_name));
@@ -38,13 +38,13 @@ sub run {
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
     my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{somvar}}, $strelka_job_id;
+    push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;
 
     my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{somvar}}, $post_process_job_id;
+    push @{$opt->{RUNNING_JOBS}->{strelka}}, $post_process_job_id;
 
     my $done_job_id = markDone($done_file, [ $strelka_job_id, $post_process_job_id ], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{somvar}}, $done_job_id;
+    push @{$opt->{RUNNING_JOBS}->{strelka}}, $done_job_id;
     return;
 }
 

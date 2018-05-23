@@ -20,25 +20,19 @@ else
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
 
-[% IF opt.SOMATIC_VARIANTS == "yes" -%]
+[% IF opt.STRELKA == "yes" -%]
     find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
 [% END -%]
 
-[% IF opt.INDELREALIGNMENT == "yes" -%]
+[% IF opt.INDEL_REALIGNMENT == "yes" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
     rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]_dedup.ba*
 [% END -%]
 [% END -%]
 
-[% IF (opt.BASEQUALITYRECAL == "yes" && opt.FINALIZE_KEEP_BQSR == "no") || opt.SOMATIC_VARIANTS == "yes" -%]
+[% IF opt.STRELKA == "yes" -%]
 [% FOREACH sample IN opt.SAMPLES.keys -%]
     rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
-[% END -%]
-[% END -%]
-
-[% IF opt.exists('PILEUP_FILES') && opt.FINALIZE_KEEP_PILEUP == "no" -%]
-[% FOREACH pileup_path IN opt.PILEUP_FILES.values -%]
-    rm -f "[% pileup_path %]"
 [% END -%]
 [% END -%]
 

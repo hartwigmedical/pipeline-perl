@@ -34,7 +34,6 @@ our @EXPORT_OK = qw(
     allRunningJobs
     recordGitVersion
     copyConfigAndScripts
-    getChromosomes
 );
 
 sub parse {
@@ -233,12 +232,10 @@ sub copyConfigAndScripts {
     my $pipeline_path = pipelinePath();
     my $slice_dir = catfile($pipeline_path, "settings", "slicing");
     my $strelka_dir = catfile($pipeline_path, "settings", "strelka");
-    my $script_dir = catfile($pipeline_path, "scripts");
     my $qscript_dir = catfile($pipeline_path, "QScripts");
 
     rcopy $slice_dir, catfile($opt->{OUTPUT_DIR}, "settings", "slicing") or die "Failed to copy slice settings $slice_dir: $!";
     rcopy $strelka_dir, catfile($opt->{OUTPUT_DIR}, "settings", "strelka") or die "Failed to copy Strelka settings $strelka_dir: $!";
-    rcopy $script_dir, catfile($opt->{OUTPUT_DIR}, "scripts") or die "Failed to copy scripts $script_dir: $!";
     rcopy $qscript_dir, catfile($opt->{OUTPUT_DIR}, "QScripts") or die "Failed to copy QScripts $qscript_dir: $!";
     foreach my $ini_file (@{$opt->{INIFILE}}) {
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
@@ -257,22 +254,6 @@ sub copyConfigAndScripts {
 # SABR: do NOT depend on this from jobs
 sub pipelinePath {
     return catfile($FindBin::Bin, updir());
-}
-
-sub getChromosomes {
-    my ($opt) = @_;
-
-    my $fai_file = "$opt->{CORE_GENOME}.fai";
-    my @chrs;
-    open my $fh, "<", $fai_file or confess "could not open $fai_file: $!";
-    while (<$fh>) {
-        chomp;
-        my ($chr) = split /\t/;
-        push @chrs, $chr;
-    }
-    close $fh;
-
-    return [ uniq @chrs ];
 }
 
 1;

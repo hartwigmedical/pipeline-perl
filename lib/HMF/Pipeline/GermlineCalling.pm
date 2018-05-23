@@ -34,7 +34,7 @@ sub run {
         "GermlineCalling",
         undef,
         1,
-        qsubJava($opt, "CALLING_MASTER"),
+        qsubJava($opt, "GERMLINE_CALLING_MASTER"),
         $running_jobs,
         $dirs,
         $opt,
@@ -42,15 +42,13 @@ sub run {
         final_vcf => $final_vcf,
         final_gvcf => $final_gvcf,
         tmp_scala_gvcf => $tmp_scala_gvcf,
-        job_native => jobNative($opt, "CALLING"),
+        job_native => jobNative($opt, "GERMLINE_CALLING"),
     );
     return unless $job_id;
 
     linkVcfArtefacts($final_vcf, "germline", $opt);
-    if ($opt->{CALLING_GVCF} eq "yes") {
-        linkArtefact($final_gvcf, 'ref_sample_gvcf', $opt);
-        linkArtefact($final_gvcf . '.tbi', 'ref_sample_gvcf_index', $opt);
-    }
+    linkArtefact($final_gvcf, 'ref_sample_gvcf', $opt);
+    linkArtefact($final_gvcf . '.tbi', 'ref_sample_gvcf_index', $opt);
 
     recordAllSampleJob($opt, $job_id);
     return;
