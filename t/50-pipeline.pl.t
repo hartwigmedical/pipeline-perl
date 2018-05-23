@@ -50,6 +50,7 @@ sub setupTestConfig {
         REALIGNMENT_KNOWN
     );
     my @fake_directory_keys = qw(
+        BAM_SLICER_PATH
         BAMMETRICS_PATH
         BAMUTIL_PATH
         DAMAGE_ESTIMATOR_PATH
