@@ -66,9 +66,6 @@ sub usage {
     my @usage = (
         "Usage: $0",
         "",
-        "Advanced usage:",
-        "$0 REQUIRED_ARGUMENTS [-run]",
-        "",
         "Required INI file:",
         "",
         "\t-i, --inifile settings.ini",
@@ -93,8 +90,10 @@ sub getIniFiles {
     my ($iniDir) = @_;
 
     -d $iniDir or die "Can't get INI files from $iniDir: $!";
-    my @iniFiles = File::Find::Rule->file() #
-        ->name("*.ini")                     #
-        ->in($iniDir);                      #
+    my @iniFiles = File::Find::Rule->file()
+        ->name("*.ini")
+        ->maxdepth(1)
+        ->in($iniDir);
+
     return \@iniFiles;
 }
