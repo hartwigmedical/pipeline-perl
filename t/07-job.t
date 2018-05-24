@@ -14,7 +14,7 @@ use lib "t";
 # bug in Test::Prereq 1.x needs filename for test dependencies
 require "Util.pm"; ## no critic (Modules::RequireBarewordIncludes)
 
-use HMF::Pipeline::Job;
+use HMF::Pipeline::Functions::Job;
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)

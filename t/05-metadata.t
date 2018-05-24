@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts readLinks writeLinks);
+use HMF::Pipeline::Functions::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts readLinks writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -18,7 +18,7 @@ my $temp_dir = File::Temp->newdir();
 my $opt = {OUTPUT_DIR => $temp_dir, RUN_NAME => basename($temp_dir)};
 
 my $metadata_path = catfile($temp_dir, "metadata");
-HMF::Pipeline::Metadata::writeJson(
+HMF::Pipeline::Functions::Metadata::writeJson(
     $metadata_path, {
         type_a => "sample_a",
         type_b => "sample_b",
@@ -80,7 +80,7 @@ linkArtefact("filename_a", "artefact_a", $opt);
 linkArtefact("filename_b", "artefact_b", $opt);
 writeLinks($opt);
 my $links_path = catfile($temp_dir, "logs", "links.json");
-$links = HMF::Pipeline::Metadata::readJson($links_path);
+$links = HMF::Pipeline::Functions::Metadata::readJson($links_path);
 is_deeply(
     $links, {
         artefact_a => "filename_a",
@@ -95,7 +95,7 @@ $opt->{LINKS} = {"artefact_a" => catfile($temp_dir, "filename_a")};
 writeLinks($opt);
 is_deeply(readLinks($opt), {"artefact_a" => "filename_a"}, "converts absolute path in existing links.json");
 
-HMF::Pipeline::Metadata::writeJson(
+HMF::Pipeline::Functions::Metadata::writeJson(
     $metadata_path, {
         ref_sample => "ref",
         tumor_sample => "tumor",
@@ -105,7 +105,7 @@ my $names = [ sampleControlNames($opt) ];
 is_deeply($names, [ "ref", "tumor", "ref_tumor" ], "gets sample/control/joint names");
 
 my $exception;
-HMF::Pipeline::Metadata::writeJson(
+HMF::Pipeline::Functions::Metadata::writeJson(
     $metadata_path, {
         tumor_sample => "tumor",
     }
@@ -113,7 +113,7 @@ HMF::Pipeline::Metadata::writeJson(
 $exception = exception { my $names = [ sampleControlNames($opt) ] };
 like($exception, qr/metadata missing ref_sample/, "detects missing ref sample");
 
-HMF::Pipeline::Metadata::writeJson(
+HMF::Pipeline::Functions::Metadata::writeJson(
     $metadata_path, {
         ref_sample => "ref",
     }
@@ -122,9 +122,9 @@ $exception = exception { my $names = [ sampleControlNames($opt) ] };
 like($exception, qr/metadata missing tumor_sample/, "detects missing tumor sample");
 
 $temp_dir->DESTROY();
-$exception = exception { $metadata = HMF::Pipeline::Metadata::readJson($links_path) };
+$exception = exception { $metadata = HMF::Pipeline::Functions::Metadata::readJson($links_path) };
 like($exception, qr/Can't open $links_path:/, "fails to open missing file");
-$exception = exception { HMF::Pipeline::Metadata::writeJson($links_path, {}) };
+$exception = exception { HMF::Pipeline::Functions::Metadata::writeJson($links_path, {}) };
 like($exception, qr/Can't open $links_path:/, "fails to write to non-existent directory");
 
 $exception = exception { $metadata = parse($opt) };
@@ -138,8 +138,8 @@ is_deeply($metadata, {}, "metadata empty when missing and not required");
 
 is(metaSampleName("filename_a", $opt), "sample", "default name for missing metadata (single-sample)");
 
-is(HMF::Pipeline::Metadata::stripPath("/a/b/c.vcf", "b"), "c.vcf", "strip path to irrelevant part");
-is(HMF::Pipeline::Metadata::stripPath("/a/b/c.vcf", "a"), "b/c.vcf", "strip path includes sub-directories");
-is(HMF::Pipeline::Metadata::stripPath("/a/b/c.vcf", "t"), "/a/b/c.vcf", "strip path failure returns original path");
+is(HMF::Pipeline::Functions::Metadata::stripPath("/a/b/c.vcf", "b"), "c.vcf", "strip path to irrelevant part");
+is(HMF::Pipeline::Functions::Metadata::stripPath("/a/b/c.vcf", "a"), "b/c.vcf", "strip path includes sub-directories");
+is(HMF::Pipeline::Functions::Metadata::stripPath("/a/b/c.vcf", "t"), "/a/b/c.vcf", "strip path failure returns original path");
 
 done_testing();

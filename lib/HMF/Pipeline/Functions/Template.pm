@@ -1,4 +1,4 @@
-package HMF::Pipeline::Template;
+package HMF::Pipeline::Functions::Template;
 
 use FindBin::libs;
 use discipline;
@@ -9,7 +9,7 @@ use File::Spec::Functions;
 use FindBin;
 use Template;
 
-use HMF::Pipeline::Config;
+use HMF::Pipeline::Functions::Config;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(writeFromTemplate);

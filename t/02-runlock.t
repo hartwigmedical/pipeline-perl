@@ -9,7 +9,6 @@ use Test::More;
 
 use HMF::Pipeline qw(lockRun);
 
-
 my $temp_dir = File::Temp->newdir();
 
 my $lock_file = lockRun($temp_dir);

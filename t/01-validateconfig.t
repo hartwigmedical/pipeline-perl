@@ -7,14 +7,13 @@ use File::Touch;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Config::Validate;
-
+use HMF::Pipeline::Functions::Validate;
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
         }, {
             REQUIRED_KEY => 1,
         },
@@ -24,8 +23,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
         },
         {},
     ),
@@ -37,8 +36,8 @@ is_deeply(
 my $temp_file = File::Temp->new();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_FILE => \&HMF::Pipeline::Config::Validate::missing_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_FILE => \&HMF::Pipeline::Functions::Validate::missing_file,
         }, {
             REQUIRED_FILE => $temp_file->filename,
         },
@@ -48,8 +47,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_FILE => \&HMF::Pipeline::Config::Validate::missing_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_FILE => \&HMF::Pipeline::Functions::Validate::missing_file,
         },
         {},
     ),
@@ -60,8 +59,8 @@ is_deeply(
 $temp_file->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_FILE => \&HMF::Pipeline::Config::Validate::missing_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_FILE => \&HMF::Pipeline::Functions::Validate::missing_file,
         }, {
             REQUIRED_FILE => $temp_file->filename,
         },
@@ -74,8 +73,8 @@ is_deeply(
 $temp_file = File::Temp->new();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILE => \&HMF::Pipeline::Config::Validate::missing_optional_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILE => \&HMF::Pipeline::Functions::Validate::missing_optional_file,
         }, {
             OPTIONAL_FILE => $temp_file->filename,
         },
@@ -85,8 +84,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILE => \&HMF::Pipeline::Config::Validate::missing_optional_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILE => \&HMF::Pipeline::Functions::Validate::missing_optional_file,
         },
         {},
     ),
@@ -97,8 +96,8 @@ is_deeply(
 $temp_file->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILE => \&HMF::Pipeline::Config::Validate::missing_optional_file,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILE => \&HMF::Pipeline::Functions::Validate::missing_optional_file,
         }, {
             OPTIONAL_FILE => $temp_file->filename,
         },
@@ -111,8 +110,8 @@ my $temp_file_a = File::Temp->new();
 my $temp_file_b = File::Temp->new();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => \&HMF::Pipeline::Config::Validate::missing_optional_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => \&HMF::Pipeline::Functions::Validate::missing_optional_files,
         }, {
             OPTIONAL_FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -122,8 +121,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => \&HMF::Pipeline::Config::Validate::missing_optional_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => \&HMF::Pipeline::Functions::Validate::missing_optional_files,
         },
         {},
     ),
@@ -134,8 +133,8 @@ is_deeply(
 $temp_file_a->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => \&HMF::Pipeline::Config::Validate::missing_optional_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => \&HMF::Pipeline::Functions::Validate::missing_optional_files,
         }, {
             OPTIONAL_FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -147,8 +146,8 @@ is_deeply(
 $temp_file_b->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => \&HMF::Pipeline::Config::Validate::missing_optional_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => \&HMF::Pipeline::Functions::Validate::missing_optional_files,
         }, {
             OPTIONAL_FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -164,8 +163,8 @@ $temp_file_a = File::Temp->new();
 $temp_file_b = File::Temp->new();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Functions::Validate::missing_files,
         }, {
             FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -175,8 +174,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Functions::Validate::missing_files,
         },
         {},
     ),
@@ -187,8 +186,8 @@ is_deeply(
 $temp_file_a->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Functions::Validate::missing_files,
         }, {
             FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -200,8 +199,8 @@ is_deeply(
 $temp_file_b->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            FILES => \&HMF::Pipeline::Config::Validate::missing_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            FILES => \&HMF::Pipeline::Functions::Validate::missing_files,
         }, {
             FILES => join("\t", ($temp_file_a->filename, $temp_file_b->filename)),
         },
@@ -214,8 +213,8 @@ FILES file $temp_file_b does not exist"
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => HMF::Pipeline::Config::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => HMF::Pipeline::Functions::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
         }, {
             OPTIONAL_FILES => "CHOICE_B",
         },
@@ -225,8 +224,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            OPTIONAL_FILES => HMF::Pipeline::Config::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            OPTIONAL_FILES => HMF::Pipeline::Functions::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
         },
         {},
     ),
@@ -237,8 +236,8 @@ is_deeply(
 my $temp_dir = File::Temp->newdir();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_DIRECTORY => \&HMF::Pipeline::Config::Validate::missing_directory,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_DIRECTORY => \&HMF::Pipeline::Functions::Validate::missing_directory,
         }, {
             REQUIRED_DIRECTORY => $temp_dir->dirname,
         },
@@ -248,8 +247,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_DIRECTORY => \&HMF::Pipeline::Config::Validate::missing_directory,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_DIRECTORY => \&HMF::Pipeline::Functions::Validate::missing_directory,
         },
         {},
     ),
@@ -260,8 +259,8 @@ is_deeply(
 $temp_dir->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_DIRECTORY => \&HMF::Pipeline::Config::Validate::missing_directory,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_DIRECTORY => \&HMF::Pipeline::Functions::Validate::missing_directory,
         }, {
             REQUIRED_DIRECTORY => $temp_dir->dirname,
         },
@@ -276,8 +275,8 @@ $temp_file_b = "${temp_file}.bwt";
 touch($temp_file_a, $temp_file_b);
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         }, {
             KEY => $temp_file,
         },
@@ -287,8 +286,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         },
         {},
     ),
@@ -299,8 +298,8 @@ is_deeply(
 unlink($temp_file_b);
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         }, {
             KEY => $temp_file,
         },
@@ -313,8 +312,8 @@ touch($temp_file_b);
 unlink($temp_file_a);
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         }, {
             KEY => $temp_file,
         },
@@ -327,8 +326,8 @@ touch($temp_file_a);
 $temp_file->DESTROY();
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         }, {
             KEY => $temp_file,
         },
@@ -341,8 +340,8 @@ unlink($temp_file_a);
 unlink($temp_file_b);
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => \&HMF::Pipeline::Config::Validate::missing_genome_files,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => \&HMF::Pipeline::Functions::Validate::missing_genome_files,
         }, {
             KEY => $temp_file,
         },
@@ -353,8 +352,8 @@ is_deeply(
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            CHOICE => HMF::Pipeline::Config::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            CHOICE => HMF::Pipeline::Functions::Validate::invalid_choice([ "CHOICE_A", "CHOICE_B" ]),
         }, {
             CHOICE => "INVALID_CHOICE",
         },
@@ -365,8 +364,8 @@ is_deeply(
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::key_not_present_and_not_present("OTHER_KEY"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::key_not_present_and_not_present("OTHER_KEY"),
         }, {
             KEY => 1,
             OTHER_KEY => 2,
@@ -377,8 +376,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::key_not_present_and_not_present("OTHER_KEY"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::key_not_present_and_not_present("OTHER_KEY"),
         }, {
             OTHER_KEY => 2,
         },
@@ -388,8 +387,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::key_not_present_and_not_present("OTHER_KEY"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::key_not_present_and_not_present("OTHER_KEY"),
         }, {
             KEY => 1,
         },
@@ -399,8 +398,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::key_not_present_and_not_present("OTHER_KEY"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::key_not_present_and_not_present("OTHER_KEY"),
         },
         {},
     ),
@@ -410,8 +409,8 @@ is_deeply(
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
         }, {
             KEY => 1,
             OTHER_KEY => 1,
@@ -422,8 +421,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
         }, {
             OTHER_KEY => 1,
         },
@@ -433,8 +432,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
         }, {
             KEY => 1,
         },
@@ -444,8 +443,8 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::compare_to("OTHER_KEY", sub { $_[0] eq $_[1] }, "equal to"),
         }, {
             KEY => 1,
             OTHER_KEY => 2,
@@ -457,9 +456,9 @@ is_deeply(
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::if_enabled({
-                    OTHER_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::if_enabled({
+                    OTHER_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
                 }
             ),
         }, {
@@ -472,9 +471,9 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::if_enabled({
-                    OTHER_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::if_enabled({
+                    OTHER_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
                 }
             ),
         }, {
@@ -486,9 +485,9 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::if_enabled({
-                    OTHER_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::if_enabled({
+                    OTHER_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
                 }
             ),
         }, {
@@ -500,9 +499,9 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            KEY => HMF::Pipeline::Config::Validate::if_enabled({
-                    OTHER_KEY => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            KEY => HMF::Pipeline::Functions::Validate::if_enabled({
+                    OTHER_KEY => \&HMF::Pipeline::Functions::Validate::key_not_present,
                 }
             ),
         },
@@ -514,9 +513,9 @@ is_deeply(
 
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_KEY_A => \&HMF::Pipeline::Config::Validate::key_not_present,
-            REQUIRED_KEY_B => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_KEY_A => \&HMF::Pipeline::Functions::Validate::key_not_present,
+            REQUIRED_KEY_B => \&HMF::Pipeline::Functions::Validate::key_not_present,
         }, {
             REQUIRED_KEY_A => 1,
             REQUIRED_KEY_B => 1,
@@ -527,9 +526,9 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::applyChecks({
-            REQUIRED_KEY_A => \&HMF::Pipeline::Config::Validate::key_not_present,
-            REQUIRED_KEY_B => \&HMF::Pipeline::Config::Validate::key_not_present,
+    HMF::Pipeline::Functions::Validate::applyChecks({
+            REQUIRED_KEY_A => \&HMF::Pipeline::Functions::Validate::key_not_present,
+            REQUIRED_KEY_B => \&HMF::Pipeline::Functions::Validate::key_not_present,
         }, {
             REQUIRED_KEY_A => 1,
         },
@@ -541,9 +540,9 @@ is_deeply(
 is_deeply(
     [
         sort(@{
-                HMF::Pipeline::Config::Validate::applyChecks({
-                        REQUIRED_KEY_A => \&HMF::Pipeline::Config::Validate::key_not_present,
-                        REQUIRED_KEY_B => \&HMF::Pipeline::Config::Validate::key_not_present,
+                HMF::Pipeline::Functions::Validate::applyChecks({
+                        REQUIRED_KEY_A => \&HMF::Pipeline::Functions::Validate::key_not_present,
+                        REQUIRED_KEY_B => \&HMF::Pipeline::Functions::Validate::key_not_present,
                     },
                     {},
                 )
@@ -558,7 +557,7 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::parseFastqName("CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz"), {
+    HMF::Pipeline::Functions::Validate::parseFastqName("CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz"), {
         R1 => "CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz",
         R2 => "CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz",
         coreName => "CPCT12345678R_HJJLGCCXX_S1_L001_001",
@@ -574,7 +573,7 @@ is_deeply(
 );
 
 is_deeply(
-    HMF::Pipeline::Config::Validate::parseFastqName("CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz"), {
+    HMF::Pipeline::Functions::Validate::parseFastqName("CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz"), {
         R1 => "CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz",
         R2 => "CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz",
         coreName => "CPCT12345678R_HJJLGCCXX_S1_L001_001",
@@ -590,15 +589,15 @@ is_deeply(
 );
 
 my $invalid_name = "INVALID.fastq.gz";
-my $exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+my $exception = exception { my $fastq = HMF::Pipeline::Functions::Validate::parseFastqName($invalid_name) };
 like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects bad FASTQ name");
 
 $invalid_name = "CPCT12345678T_HJJLGCCXX_S3_L001_001_2.fastq.gz";
-$exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+$exception = exception { my $fastq = HMF::Pipeline::Functions::Validate::parseFastqName($invalid_name) };
 like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects FASTQ name missing pair tag");
 
 $invalid_name = "-dox_HJJLGCCXX_S3_L001_R1_001.fastq.gz";
-$exception = exception { my $fastq = HMF::Pipeline::Config::Validate::parseFastqName($invalid_name) };
+$exception = exception { my $fastq = HMF::Pipeline::Functions::Validate::parseFastqName($invalid_name) };
 like($exception, qr/^ERROR: FASTQ filename '$invalid_name' must match regex/, "detects sample name with leading dash");
 
 done_testing();

@@ -6,12 +6,13 @@ use discipline;
 use Fcntl qw/O_WRONLY O_CREAT O_EXCL/;
 use File::Spec::Functions;
 
+use HMF::Pipeline::Functions::Metadata;
+
 use HMF::Pipeline::PreStats;
 use HMF::Pipeline::Mapping;
 use HMF::Pipeline::Realignment;
 use HMF::Pipeline::DamageEstimate;
 use HMF::Pipeline::PostStats;
-use HMF::Pipeline::Metadata;
 use HMF::Pipeline::Amber;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::Finalize;

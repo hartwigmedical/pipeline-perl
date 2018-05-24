@@ -6,11 +6,11 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Template qw(writeFromTemplate);
-use HMF::Pipeline::Metadata qw(linkArtefact);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
+use HMF::Pipeline::Functions::Template qw(writeFromTemplate);
+use HMF::Pipeline::Functions::Metadata qw(linkArtefact);
 
 use List::Util qw[min max];
 

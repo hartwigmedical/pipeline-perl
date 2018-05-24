@@ -6,10 +6,10 @@ use discipline;
 use File::Spec::Functions;
 use Sort::Key::Natural qw(mkkey_natural);
 
-use HMF::Pipeline::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile);
-use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile);
+use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
+use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkExtraArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

@@ -1,4 +1,4 @@
-package HMF::Pipeline::Job::Bam;
+package HMF::Pipeline::Functions::Bam;
 
 use FindBin::libs;
 use discipline;
@@ -6,9 +6,9 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Sge qw(qsubTemplate jobNative qsubJava);
+use HMF::Pipeline::Functions::Config qw(createDirs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Sge qw(qsubTemplate jobNative qsubJava);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
@@ -22,7 +22,6 @@ our @EXPORT_OK = qw(
     operationWithSliceChecks
     bamOperationWithSliceChecks
 );
-
 
 # SABR: "sort" would clash with Perl function
 sub sorted {

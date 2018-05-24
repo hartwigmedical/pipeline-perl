@@ -1,4 +1,4 @@
-package HMF::Pipeline::Metadata;
+package HMF::Pipeline::Functions::Metadata;
 
 use FindBin::libs;
 use discipline;
@@ -8,7 +8,7 @@ use File::Basename;
 use File::Spec::Functions qw(:ALL);
 use JSON;
 
-use HMF::Pipeline::Config qw(sampleBamAndJobs);
+use HMF::Pipeline::Functions::Config qw(sampleBamAndJobs);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(

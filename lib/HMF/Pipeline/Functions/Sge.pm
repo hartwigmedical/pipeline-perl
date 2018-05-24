@@ -1,4 +1,4 @@
-package HMF::Pipeline::Sge;
+package HMF::Pipeline::Functions::Sge;
 
 use FindBin;
 use lib "$FindBin::Bin";

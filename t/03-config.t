@@ -13,7 +13,7 @@ use lib "t";
 # bug in Test::Prereq 1.x needs filename for test dependencies
 require "Util.pm"; ## no critic (Modules::RequireBarewordIncludes)
 
-use HMF::Pipeline::Config qw(parse validate addSamples recordAllSampleJob sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs allRunningJobs);
+use HMF::Pipeline::Functions::Config qw(parse validate addSamples recordAllSampleJob sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs allRunningJobs);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -23,7 +23,7 @@ sub testParse {
 
     my $opt = {};
     open my $fh, "<", $string;
-    HMF::Pipeline::Config::parseFile($fh, $opt);
+    HMF::Pipeline::Functions::Config::parseFile($fh, $opt);
     close $fh;
     return $opt;
 }
@@ -82,7 +82,7 @@ is_deeply($opt, {KEY => "value"}, "ignores blank");
 
 
 my $test_ini_path = catfile("t", "data", "test.ini");
-$path = catfile(HMF::Pipeline::Config::pipelinePath(), $test_ini_path);
+$path = catfile(HMF::Pipeline::Functions::Config::pipelinePath(), $test_ini_path);
 is($test_ini_path, abs2rel($test_ini_path), "test path is relative");
 $opt = {};
 $opt = testParse(\<<"_EOF_");
@@ -91,7 +91,7 @@ _EOF_
 is_deeply($opt, {INIFILE => [$path], VALID => "other_value"}, "parses relative INIFILE");
 
 $test_ini_path = catfile("t", "data", "test.ini");
-$path = catfile(HMF::Pipeline::Config::pipelinePath(), $test_ini_path);
+$path = catfile(HMF::Pipeline::Functions::Config::pipelinePath(), $test_ini_path);
 is($path, rel2abs($path), "test path is absolute");
 $opt = {};
 $opt = testParse(\<<"_EOF_");
@@ -99,7 +99,7 @@ INIFILE	$path
 _EOF_
 is_deeply($opt, {INIFILE => [$path], VALID => "other_value"}, "parses absolute INIFILE");
 
-$path = catfile(HMF::Pipeline::Config::pipelinePath(), $test_ini_path);
+$path = catfile(HMF::Pipeline::Functions::Config::pipelinePath(), $test_ini_path);
 $opt = {};
 $opt = testParse(\<<"_EOF_");
 VALID	value
@@ -107,7 +107,7 @@ INIFILE	$test_ini_path
 _EOF_
 is_deeply($opt, {INIFILE => [$path], VALID => "other_value"}, "later INIFILE overrides earlier key");
 
-$path = catfile(HMF::Pipeline::Config::pipelinePath(), $test_ini_path);
+$path = catfile(HMF::Pipeline::Functions::Config::pipelinePath(), $test_ini_path);
 $opt = {};
 $opt = testParse(\<<"_EOF_");
 INIFILE	$test_ini_path
@@ -182,7 +182,7 @@ SKIP: {
         SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
         GENOME => catfile("t", "data", "empty.fasta"),
     };
-    $exception = exception { HMF::Pipeline::Config::addSamples($opt) };
+    $exception = exception { HMF::Pipeline::Functions::Config::addSamples($opt) };
     like($exception, qr/sample 'empty' from $other_path already used by $path/, "refuses duplicate BAM sample") or diag explain $opt;
 }
 
@@ -190,33 +190,33 @@ my $temp_dir = File::Temp->newdir();
 my ($test_path_a, $test_path_b);
 
 $test_path_a = catfile($temp_dir, "dir_a");
-HMF::Pipeline::Config::makePaths($test_path_a);
+HMF::Pipeline::Functions::Config::makePaths($test_path_a);
 dir_exists_ok($test_path_a, "makes single path");
 
-HMF::Pipeline::Config::makePaths($test_path_a);
+HMF::Pipeline::Functions::Config::makePaths($test_path_a);
 dir_exists_ok($test_path_a, "makes pre-existing path");
 
 $test_path_a = catfile($temp_dir, "dir_a");
 $test_path_a = catfile($temp_dir, "dir_b");
-HMF::Pipeline::Config::makePaths($test_path_a, $test_path_b);
+HMF::Pipeline::Functions::Config::makePaths($test_path_a, $test_path_b);
 dir_exists_ok($test_path_a, "makes first path");
 dir_exists_ok($test_path_a, "makes second path");
 
 $test_path_a = catfile($temp_dir, "nested", "dir_a");
-HMF::Pipeline::Config::makePaths($test_path_a);
+HMF::Pipeline::Functions::Config::makePaths($test_path_a);
 dir_exists_ok($test_path_a, "makes nested path");
 
 $temp_dir = File::Temp->newdir();
 chmod 0000, $temp_dir;
 $test_path_a = catfile($temp_dir, "dir_a");
-$exception = exception { HMF::Pipeline::Config::makePaths($test_path_a) };
+$exception = exception { HMF::Pipeline::Functions::Config::makePaths($test_path_a) };
 dir_not_exists_ok($test_path_a, "no directory on failure");
 like($exception, qr(Couldn't create directories: .*/dir_a: Permission denied), "fails when directory cannot be created");
 
 $temp_dir = File::Temp->newdir();
 my $output_dir = catfile($temp_dir, "module");
 
-my $dirs = HMF::Pipeline::Config::createDirs($output_dir, extra => "extra_dir", nested => catfile("base", "nested_dir"));
+my $dirs = HMF::Pipeline::Functions::Config::createDirs($output_dir, extra => "extra_dir", nested => catfile("base", "nested_dir"));
 is_deeply(
     $dirs, {
         out => $output_dir,
@@ -237,15 +237,15 @@ dir_exists_ok(catfile($output_dir, "base", "nested_dir"), "makes nested extra di
 
 my $subdir;
 
-$subdir = HMF::Pipeline::Config::addSubDir($dirs, "subdir");
+$subdir = HMF::Pipeline::Functions::Config::addSubDir($dirs, "subdir");
 is($subdir, catfile($output_dir, "subdir"), "returns sub-directory");
 dir_exists_ok(catfile($output_dir, "subdir"), "adds sub-directory");
 
-$subdir = HMF::Pipeline::Config::addSubDir($dirs, "subdir");
+$subdir = HMF::Pipeline::Functions::Config::addSubDir($dirs, "subdir");
 is($subdir, catfile($output_dir, "subdir"), "returns already-existing sub-directory");
 dir_exists_ok(catfile($output_dir, "subdir"), "adds already-existing sub-directory");
 
-$subdir = HMF::Pipeline::Config::addSubDir($dirs, catfile("base", "subdir"));
+$subdir = HMF::Pipeline::Functions::Config::addSubDir($dirs, catfile("base", "subdir"));
 is($subdir, catfile($output_dir, "base", "subdir"), "returns nested sub-directory");
 dir_exists_ok(catfile($output_dir, "base", "subdir"), "adds nested sub-directory");
 

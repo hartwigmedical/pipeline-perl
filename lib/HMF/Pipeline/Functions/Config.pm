@@ -1,4 +1,4 @@
-package HMF::Pipeline::Config;
+package HMF::Pipeline::Functions::Config;
 
 use FindBin::libs;
 use discipline;
@@ -15,8 +15,8 @@ use List::MoreUtils qw(uniq);
 use POSIX qw(strftime);
 use Time::HiRes qw(gettimeofday);
 
-use HMF::Pipeline::Config::Validate qw(parseFastqName verifyConfig verifyBam);
-use HMF::Pipeline::Metadata;
+use HMF::Pipeline::Functions::Validate qw(parseFastqName verifyConfig verifyBam);
+use HMF::Pipeline::Functions::Metadata;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(

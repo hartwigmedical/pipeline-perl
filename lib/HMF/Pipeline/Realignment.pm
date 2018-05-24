@@ -5,7 +5,7 @@ use discipline;
 
 use File::Spec::Functions;
 
-use HMF::Pipeline::Job::Bam;
+use HMF::Pipeline::Functions::Bam;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

@@ -5,12 +5,12 @@ use discipline;
 
 use File::Basename;
 use File::Spec::Functions;
-use HMF::Pipeline::Job::Bam;
+use HMF::Pipeline::Functions::Bam;
+use HMF::Pipeline::Functions::Config qw(createDirs addSubDir sampleControlBamsAndJobs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Metadata;
+use HMF::Pipeline::Functions::Sge qw(qsubJava);
 
-use HMF::Pipeline::Config qw(createDirs addSubDir sampleControlBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Metadata;
-use HMF::Pipeline::Sge qw(qsubJava);
 use List::MoreUtils qw(uniq);
 
 use parent qw(Exporter);

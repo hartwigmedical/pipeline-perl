@@ -1,4 +1,4 @@
-package HMF::Pipeline::Job;
+package HMF::Pipeline::Functions::Job;
 
 use FindBin::libs;
 use discipline;
@@ -8,8 +8,8 @@ use File::Basename;
 use File::Spec::Functions;
 use File::Temp qw(tmpnam);
 
-use HMF::Pipeline::Template qw(writeFromTemplate);
-use HMF::Pipeline::Sge qw(qsubSimple);
+use HMF::Pipeline::Functions::Template qw(writeFromTemplate);
+use HMF::Pipeline::Functions::Sge qw(qsubSimple);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(

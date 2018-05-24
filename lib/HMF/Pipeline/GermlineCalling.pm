@@ -6,10 +6,10 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs refSampleBamAndJobs recordAllSampleJob);
-use HMF::Pipeline::Sge qw(jobNative qsubJava);
-use HMF::Pipeline::Job qw(fromTemplate);
-use HMF::Pipeline::Metadata qw(linkArtefact linkVcfArtefacts);
+use HMF::Pipeline::Functions::Config qw(createDirs refSampleBamAndJobs recordAllSampleJob);
+use HMF::Pipeline::Functions::Sge qw(jobNative qsubJava);
+use HMF::Pipeline::Functions::Job qw(fromTemplate);
+use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkVcfArtefacts);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

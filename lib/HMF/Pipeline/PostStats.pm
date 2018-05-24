@@ -5,10 +5,10 @@ use discipline;
 
 use File::Spec::Functions qw(:ALL);
 
-use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Sge qw(qsubTemplate);
-use HMF::Pipeline::Metadata qw(linkArtefact linkExtraArtefact);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleBamsAndJobs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
+use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkExtraArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

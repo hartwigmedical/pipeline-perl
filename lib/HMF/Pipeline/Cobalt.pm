@@ -4,9 +4,9 @@ use FindBin::libs;
 use discipline;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleControlBamsAndJobs);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Sge qw(qsubJava);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Sge qw(qsubJava);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

@@ -5,11 +5,11 @@ use discipline;
 
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs);
-use HMF::Pipeline::Config::Validate qw(parseFastqName verifyBai verifyFlagstat);
-use HMF::Pipeline::Sge qw(qsubSimple qsubTemplate);
-use HMF::Pipeline::Job qw(fromTemplate checkReportedDoneFile markDone);
-use HMF::Pipeline::Job::Bam qw(sorted indexed flagstat readCountCheck);
+use HMF::Pipeline::Functions::Config qw(createDirs);
+use HMF::Pipeline::Functions::Validate qw(parseFastqName verifyBai verifyFlagstat);
+use HMF::Pipeline::Functions::Sge qw(qsubSimple qsubTemplate);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Bam qw(sorted indexed flagstat readCountCheck);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run runBamPrep);

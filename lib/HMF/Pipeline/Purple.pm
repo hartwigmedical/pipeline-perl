@@ -5,10 +5,10 @@ use discipline;
 
 use File::Spec::Functions;
 
-use HMF::Pipeline::Config qw(createDirs sampleBamsAndJobs);
-use HMF::Pipeline::Sge qw(qsubJava);
-use HMF::Pipeline::Job qw(fromTemplate);
-use HMF::Pipeline::Metadata qw(parse linkArtefact);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleBamsAndJobs);
+use HMF::Pipeline::Functions::Sge qw(qsubJava);
+use HMF::Pipeline::Functions::Job qw(fromTemplate);
+use HMF::Pipeline::Functions::Metadata qw(parse linkArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);

@@ -1,4 +1,4 @@
-package HMF::Pipeline::Config::Validate;
+package HMF::Pipeline::Functions::Validate;
 
 use FindBin::libs;
 use discipline;
