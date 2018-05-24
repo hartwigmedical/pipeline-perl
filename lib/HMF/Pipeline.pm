@@ -42,7 +42,7 @@ sub run {
     if ($opt->{FASTQ} or $opt->{BAM}) {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
-        HMF::Pipeline::Metadata::linkBamArtefacts($opt);
+        HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt);
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
@@ -60,7 +60,7 @@ sub run {
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
 
-        HMF::Pipeline::Metadata::writeLinks($opt);
+        HMF::Pipeline::Functions::Metadata::writeLinks($opt);
     }
     return;
 }
