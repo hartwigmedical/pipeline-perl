@@ -151,7 +151,7 @@ sub testPipeline {
     my $output_dir = File::Temp->newdir();
     my $data_dir = catfile("t", "data", $mode);
 
-    $test_create_config->run(args => "-iniFile ${ini_file} -${mode}Dir $data_dir -outputDir $output_dir -mail foo\@example.com");
+    $test_create_config->run(args => "-iniFile ${ini_file} -${mode}Dir $data_dir -outputDir $output_dir");
     is($?, 0, "$test_description created config successfully") or diag $test_create_config->stderr;
 
     my $config_file = catfile($output_dir, "settings.config");

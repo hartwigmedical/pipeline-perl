@@ -198,7 +198,6 @@ sub configChecks {
         INIFILE => \&key_not_present,
         OUTPUT_DIR => \&key_not_present,
         FASTQ => key_not_present_and_not_present("BAM"),
-        MAIL => \&key_not_present,
         CLUSTER_PATH => \&missing_directory,
         CLUSTER_TMP => \&key_not_present,
         CLUSTER_RESERVATION => \&key_not_present,

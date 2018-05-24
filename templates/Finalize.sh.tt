@@ -12,10 +12,8 @@ then
 fi
 [% END -%]
 
-if [[ "${failed}" == "true" ]]
+if [[ "${failed}" == "false" ]]
 then
-    mail -s "Pipeline FAILED [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% pipeline_check_file %]
-else
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
@@ -54,7 +52,6 @@ else
     zip -r "[% extras_zip %]" "[% opt.EXTRAS.join('" "') %]"
 [% END -%]
 
-    mail -s "Pipeline DONE [% opt.RUN_NAME %]" "[% opt.MAIL %]" < [% pipeline_check_file %]
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi
