@@ -1,7 +1,6 @@
 ### SETTINGS ###
 INIFILE	[% iniFile %]
 OUTPUT_DIR	[% outputDir %]
-MAIL	[% mail %]
 
 [%- IF fastqFiles.size -%]
 
@@ -17,10 +16,4 @@ FASTQ	[% fastqFile %]
 [% FOREACH bamFile IN bamFiles -%]
 BAM	[% bamFile %]
 [% END -%]
-[% END -%]
-
-[%- IF vcfFiles.defined(0) -%]
-
-### VCF FILE###
-VCF	[% vcfFiles.0 %]
 [% END -%]
