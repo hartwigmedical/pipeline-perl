@@ -291,7 +291,7 @@ is_deeply(allRunningJobs({RUNNING_JOBS => {a => ["job"], b => ["job"]}}), ["job"
 
 
 my $metadata_path = catfile($temp_dir, "metadata");
-HMF::Pipeline::Metadata::writeJson(
+HMF::Pipeline::Functions::Metadata::writeJson(
     $metadata_path, {
         ref_sample => "a",
         tumor_sample => "b",

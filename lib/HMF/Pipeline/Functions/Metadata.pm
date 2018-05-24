@@ -8,7 +8,7 @@ use File::Basename;
 use File::Spec::Functions qw(:ALL);
 use JSON;
 
-use HMF::Pipeline::Functions::Config qw(sampleBamAndJobs);
+use HMF::Pipeline::Functions::Config;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(
@@ -116,7 +116,7 @@ sub linkBamArtefacts {
     my ($opt) = @_;
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my ($bam_path) = HMF::Pipeline::Config::sampleBamAndJobs($sample, $opt);
+        my ($bam_path) = HMF::Pipeline::Functions::Config::sampleBamAndJobs($sample, $opt);
         my $sample_name = metaSampleName($sample, $opt);
         linkArtefact($bam_path, "${sample_name}_bam", $opt);
         linkArtefact("${bam_path}.bai", "${sample_name}_bai", $opt);

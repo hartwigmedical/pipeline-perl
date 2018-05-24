@@ -40,7 +40,7 @@ sub run {
     $opt->{GERMLINE_VCF_FILE} = $germline_vcf_path;
     return unless $job_id;
 
-    HMF::Pipeline::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
+    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
     recordAllSampleJob($opt, $job_id);
     return;
 }

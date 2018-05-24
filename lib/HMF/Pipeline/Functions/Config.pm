@@ -188,7 +188,7 @@ sub sampleBamsAndJobs {
 
 sub refSampleBamAndJobs {
     my ($opt) = @_;
-    my ($ref_sample) = HMF::Pipeline::Metadata::refSampleName($opt);
+    my ($ref_sample) = HMF::Pipeline::Functions::Metadata::refSampleName($opt);
     $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
     my ($ref_sample_bam, $ref_sample_jobs) = sampleBamAndJobs($ref_sample, $opt);
     return ($ref_sample, $ref_sample_bam, [ uniq @{$ref_sample_jobs} ]);
@@ -197,7 +197,7 @@ sub refSampleBamAndJobs {
 sub sampleControlBamsAndJobs {
     my ($opt) = @_;
 
-    my ($ref_sample, $tumor_sample, $joint_name) = HMF::Pipeline::Metadata::sampleControlNames($opt);
+    my ($ref_sample, $tumor_sample, $joint_name) = HMF::Pipeline::Functions::Metadata::sampleControlNames($opt);
 
     $opt->{BAM_FILES}->{$ref_sample} or die "metadata ref_sample $ref_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
     $opt->{BAM_FILES}->{$tumor_sample} or die "metadata tumor_sample $tumor_sample not in BAM file list: " . join ", ", keys %{$opt->{BAM_FILES}};
@@ -246,7 +246,7 @@ sub copyConfigAndScripts {
     open my $fh, ">", $final_ini or die "Couldn't open $final_ini: $!";
     say $fh join "\n", map { "$_\t$opt->{$_}" } grep { defined $opt->{$_} and not ref $opt->{$_} } sort keys %{$opt};
     close $fh;
-    HMF::Pipeline::Metadata::linkExtraArtefact($final_ini, $opt);
+    HMF::Pipeline::Functions::Metadata::linkExtraArtefact($final_ini, $opt);
 
     return;
 }

@@ -26,7 +26,7 @@ sub writeFromTemplate {
 
 sub templateDir {
     ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
-    my $source_template_dir = catfile(HMF::Pipeline::Config::pipelinePath(), "templates");
+    my $source_template_dir = catfile(HMF::Pipeline::Functions::Config::pipelinePath(), "templates");
     ## use critic
     return $TEMPLATES ? $TEMPLATES : $source_template_dir;
 }

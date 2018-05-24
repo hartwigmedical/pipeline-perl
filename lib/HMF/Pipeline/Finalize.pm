@@ -36,8 +36,8 @@ sub run {
         pipeline_check_file => catfile($dirs->{log}, $opt->{PIPELINE_CHECK_FILE}),
     );
 
-    HMF::Pipeline::Metadata::linkArtefact($extras_tar, "extras_tar", $opt) if $opt->{EXTRAS};
-    HMF::Pipeline::Metadata::linkArtefact($extras_zip, "extras_zip", $opt) if $opt->{EXTRAS};
+    HMF::Pipeline::Functions::Metadata::linkArtefact($extras_tar, "extras_tar", $opt) if $opt->{EXTRAS};
+    HMF::Pipeline::Functions::Metadata::linkArtefact($extras_zip, "extras_zip", $opt) if $opt->{EXTRAS};
 
     return;
 }

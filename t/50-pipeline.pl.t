@@ -39,6 +39,7 @@ sub setupTestConfig {
         HMF_GERMLINE_PON
         HMF_SOMATIC_PON
         HMF_SOMATIC_HOTSPOTS
+        BAF_SNPS
         GC_PROFILE
     );
     my @fake_directory_keys = qw(
@@ -94,9 +95,8 @@ sub setupTestConfig {
 sub setupDoneFiles {
     my ($output_dir) = @_;
 
-    # TODO: should be able to test sub-jobs separately
     my @done_files = map { catfile($output_dir, $_) } (
-        # add to this when adding new modules
+        # SABR: Add to this when adding new modules
         catfile("logs", "PostStats.done"),
         catfile("logs", "GermlineCalling.done"),
         catfile("logs", "GermlineAnnotation.done"),
@@ -197,7 +197,7 @@ _METADATA_
         if (not $done_files or $job_name =~ /^Finalize_/) {
             like($stdout, qr/^Your job [0-9]+ \("$job_name"\) has been submitted$/m, "$job_script job submitted");
         } else {
-            # loop will not be entered if jobs (correctly) not created, but test will make failure clearer
+            # SABR: loop will not be entered if jobs (correctly) not created, but test will make failure clearer
             unlike($stdout, qr/^Your job [0-9]+ \("$job_name"\) has been submitted$/m, "$job_script job not submitted");
         }
     }

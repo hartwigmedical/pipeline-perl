@@ -70,7 +70,7 @@ sub runRecalibrationOnSample {
     my $known_files = "";
     $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
 
-    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Job::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
+    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Functions::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
     return ($recalibrated_bam, $job_ids);
 }
 
@@ -120,7 +120,7 @@ sub postProcessStrelka {
         joint_name => $joint_name,
     );
 
-    HMF::Pipeline::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt) if $job_id;
+    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt) if $job_id;
 
     return $job_id;
 }

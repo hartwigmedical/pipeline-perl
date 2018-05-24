@@ -29,7 +29,7 @@ sub testDoneFile {
     my $opt = {};
     my $returned_done_file;
     stdout_is {
-        $returned_done_file = HMF::Pipeline::Job::checkDoneFile($name, $step, $is_reported, {log => $temp_dir, mapping => $temp_dir}, $opt)
+        $returned_done_file = HMF::Pipeline::Functions::Job::checkDoneFile($name, $step, $is_reported, {log => $temp_dir, mapping => $temp_dir}, $opt)
     }
     $skip ? "WARNING: $done_file exists, skipping\n" : "", $skip ? "notifies of skip" : "no output when not skipping";
     is($returned_done_file, $skip ? undef : $done_file, $skip ? "returns undef when skipping job" : "returns standardised job name when not skipping");
@@ -73,31 +73,31 @@ my $temp_dir = File::Temp->newdir();
 my $opt = {};
 my $returned_done_file;
 stdout_is {
-    $returned_done_file = HMF::Pipeline::Job::checkReportedDoneFile("name", "step", {log => $temp_dir}, $opt)
+    $returned_done_file = HMF::Pipeline::Functions::Job::checkReportedDoneFile("name", "step", {log => $temp_dir}, $opt)
 }
 "", "no output when no done file";
 is($returned_done_file, catfile($temp_dir, "name_step.done"), "returns standard done file");
 is_deeply($opt, {DONE_FILES => [ catfile($temp_dir, "name_step.done") ]}, "records standard done file for finalize");
 
 
-is(HMF::Pipeline::Job::fullname("name", undef), "name", "names job with one step");
-is(HMF::Pipeline::Job::fullname("name", "step"), "name_step", "names job with multiple steps");
+is(HMF::Pipeline::Functions::Job::fullname("name", undef), "name", "names job with one step");
+is(HMF::Pipeline::Functions::Job::fullname("name", "step"), "name_step", "names job with multiple steps");
 
 
-my %ids = map { HMF::Pipeline::Job::getId() => 1 } (1 .. 1000);
+my %ids = map { HMF::Pipeline::Functions::Job::getId() => 1 } (1 .. 1000);
 is(keys %ids, 1000, "IDs somewhat unique");
 
 
-my $param = HMF::Pipeline::Job::hold_jid([]);
+my $param = HMF::Pipeline::Functions::Job::hold_jid([]);
 is($param, "", "no hold_jid param with no jobs");
-$param = HMF::Pipeline::Job::hold_jid(["jobid"]);
+$param = HMF::Pipeline::Functions::Job::hold_jid(["jobid"]);
 is($param, "-hold_jid jobid", "hold_jid param with one job");
-$param = HMF::Pipeline::Job::hold_jid([ "jobid1", "jobid2" ]);
+$param = HMF::Pipeline::Functions::Job::hold_jid([ "jobid1", "jobid2" ]);
 is($param, "-hold_jid jobid1,jobid2", "hold_jid param with multiple jobs");
 
 
 stdout_like {
-    HMF::Pipeline::Job::submit("qsub", "job_name", "job_id", [], "bash_file.sh", {log => "logs"})
+    HMF::Pipeline::Functions::Job::submit("qsub", "job_name", "job_id", [], "bash_file.sh", {log => "logs"})
 }
 qr/Your job [0-9]+ \("job_id"\) has been submitted/, "calls qsub";
 
@@ -105,7 +105,7 @@ my $unwriteable_file = File::Temp->new();
 chmod 0000, $unwriteable_file->filename;
 my $module = Test::MockModule->new('File::Temp');
 $module->mock(new => sub { return $unwriteable_file->filename; });
-my $exception = exception { HMF::Pipeline::Job::submit("qsub", "job_name", "job_id", [], "bash_file.sh", {log => "logs"}) };
+my $exception = exception { HMF::Pipeline::Functions::Job::submit("qsub", "job_name", "job_id", [], "bash_file.sh", {log => "logs"}) };
 like($exception, qr/failed to write qsub parameter file $unwriteable_file/, "fails when qsub options cannot be written");
 
 
@@ -116,7 +116,7 @@ sub testJobFromTemplate {
     my $log_dir = File::Temp->newdir();
 
     my (@check_args, @template_args, @submit_args);
-    my $module = Test::MockModule->new('HMF::Pipeline::Job');
+    my $module = Test::MockModule->new('HMF::Pipeline::Functions::Job');
     my $expected_job_id = "${expected_job_name}_randomID";
     my $expected_done_file = catfile($log_dir, "${expected_job_name}.done");
     $module->mock(getId => sub { return "randomID" });
@@ -127,7 +127,7 @@ sub testJobFromTemplate {
     my $qsub = "qsub param1 param2";
     my $dirs = {job => $job_dir, log => $log_dir};
     my $opt = {};
-    my $job_id = HMF::Pipeline::Job::fromTemplate($name, $step, $is_reported_job, $qsub, $hold_jids, $dirs, $opt);
+    my $job_id = HMF::Pipeline::Functions::Job::fromTemplate($name, $step, $is_reported_job, $qsub, $hold_jids, $dirs, $opt);
     is_deeply([@check_args], [ $name, $step, $is_reported_job, $dirs, $opt ], "checked .done file",);
     is_deeply(
         [@template_args],
@@ -177,14 +177,14 @@ foreach my $skip (0, 1) {
 
 
 my (@job_args, @qsub_args);
-$module = Test::MockModule->new('HMF::Pipeline::Job');
+$module = Test::MockModule->new('HMF::Pipeline::Functions::Job');
 $module->mock(fromTemplate => sub { @job_args = @_; return "jobid"; });
 $module->mock(qsubSimple => sub { @qsub_args = @_ });
 
-is(HMF::Pipeline::Job::markDone(undef, [], {}, {}), undef, "skips marking done file already detected as written");
+is(HMF::Pipeline::Functions::Job::markDone(undef, [], {}, {}), undef, "skips marking done file already detected as written");
 is_deeply([@job_args], [], "no job run");
 
-my $job_id = HMF::Pipeline::Job::markDone(catfile($temp_dir, "something.done"), ["jobid"], {}, {});
+my $job_id = HMF::Pipeline::Functions::Job::markDone(catfile($temp_dir, "something.done"), ["jobid"], {}, {});
 is($job_id, "jobid", "runs mark done job");
 
 done_testing();

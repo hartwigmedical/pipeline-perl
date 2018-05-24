@@ -20,7 +20,7 @@ sub run {
     $known_files = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        HMF::Pipeline::Job::Bam::operationWithSliceChecks("Realignment", $sample, $known_files, "realigned", "realign", $opt);
+        HMF::Pipeline::Functions::Bam::operationWithSliceChecks("Realignment", $sample, $known_files, "realigned", "realign", $opt);
     }
     return;
 }

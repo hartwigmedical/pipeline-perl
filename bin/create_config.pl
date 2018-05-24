@@ -10,7 +10,7 @@ use File::Path qw(make_path);
 use File::Spec::Functions;
 use File::Find::Rule;
 
-use HMF::Pipeline::Template qw(writeFromTemplate);
+use HMF::Pipeline::Functions::Template qw(writeFromTemplate);
 
 
 my $settingsDir = catfile(dirname(abs_path($0)), updir(), "settings");
