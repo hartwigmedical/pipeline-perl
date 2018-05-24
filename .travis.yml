@@ -11,7 +11,6 @@ perl:
 env:
   global:
     - SAMTOOLS_VERSION=1.2
-    - SHELLCHECK_VERSION=v0.4.7
 
 before_install:
   - git clone --branch $SAMTOOLS_VERSION --depth 1 https://github.com/samtools/samtools.git

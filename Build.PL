@@ -2,12 +2,13 @@
 
 use strict;
 use warnings;
-
 use Module::Build;
 
 my $build = Module::Build->new(
     module_name => 'HMF::Pipeline',
     license => 'mit',
+    dist_author => 'HMF',
+    dist_abstract => 'HMF pipeline',
     requires => {
         'perl' => '5.16.0',
         'strictures' => '2.0',
