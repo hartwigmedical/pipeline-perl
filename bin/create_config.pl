@@ -90,10 +90,10 @@ sub getIniFiles {
     my ($iniDir) = @_;
 
     -d $iniDir or die "Can't get INI files from $iniDir: $!";
-    my @iniFiles = File::Find::Rule->file()
-        ->name("*.ini")
-        ->maxdepth(1)
-        ->in($iniDir);
+    my @iniFiles = File::Find::Rule->file() #
+        ->name("*.ini")                     #
+        ->maxdepth(1)                       #
+        ->in($iniDir);                      #
 
     return \@iniFiles;
 }
