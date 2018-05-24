@@ -12,7 +12,7 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 [% END -%]
     -output_dir "[% dirs.out %]" \
     -run_name [% opt.RUN_NAME %] \
-    -genome "[% opt.GENOME %]" \
+    -genome "[% opt.REF_GENOME %]" \
     -queue [% opt.POSTSTATS_QUEUE %] \
     -queue_threads [% opt.POSTSTATS_THREADS %] \
     -queue_mem [% opt.POSTSTATS_MEM %] \
@@ -36,7 +36,7 @@ perl [% opt.BAMMETRICS_PATH %]/bamMetrics.pl \
 java -Xmx[% opt.POSTSTATS_MEM %]G -jar \
     "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T UnifiedGenotyper \
-    -R "[% opt.GENOME %]" \
+    -R "[% opt.REF_GENOME %]" \
     -L "[% opt.OUTPUT_DIR %]/settings/slicing/[% design %].vcf" \
     --output_mode EMIT_ALL_SITES \
     -I "[% pair.value %]" \

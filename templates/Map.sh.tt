@@ -10,7 +10,7 @@ cd "[% dirs.mapping %]"
     -t [% opt.MAPPING_THREADS %] \
     [% opt.MAPPING_SETTINGS %] \
     -R "@RG	ID:[% fastq.coreName %]	SM:[% fastq.sampleName %]	PL:ILLUMINA	LB:[% fastq.sampleName %]	PU:[% fastq.flowcellID %]" \
-    "[% opt.GENOME %]" \
+    "[% opt.REF_GENOME %]" \
     "[% fastq.R1 %]" \
     [%- IF fastq.exists('R2') %]
     "[% fastq.R2 %]" \

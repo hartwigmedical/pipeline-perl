@@ -43,18 +43,15 @@ sub setupTestConfig {
         GC_PROFILE
     );
     my @fake_directory_keys = qw(
-        BAM_SLICER_PATH
         BAMMETRICS_PATH
         BAMUTIL_PATH
         DAMAGE_ESTIMATOR_PATH
-        BIOVCF_PATH
         BWA_PATH
         CLUSTER_PATH
         FASTQC_PATH
         GATK_PATH
         IGVTOOLS_PATH
         MANTA_PATH
-        PBGZIP_PATH
         PICARD_PATH
         AMBER_PATH
         COBALT_PATH
@@ -67,14 +64,12 @@ sub setupTestConfig {
         STRELKA_PATH
         STRELKA_POST_PROCESS_PATH
         TABIX_PATH
-        VCFTOOLS_PATH
         BPI_PATH
         HEALTH_CHECKER_PATH
     );
     my %required_keys = (
         SAMTOOLS_PATH => defined $ENV{SAMTOOLS_PATH} ? $ENV{SAMTOOLS_PATH} : $temp_dir,
-        GENOME => $genome,
-        CORE_GENOME => $genome,
+        REF_GENOME => $genome,
     );
 
     foreach my $key (@fake_file_keys) {

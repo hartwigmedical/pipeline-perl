@@ -121,7 +121,7 @@ sub bamReads {
 sub refGenomeContigs {
     my ($opt) = @_;
 
-    my $fai_file = "$opt->{GENOME}.fai";
+    my $fai_file = "$opt->{REF_GENOME}.fai";
     my @lines = qx(cat $fai_file);
     $? == 0 or confess "could not read from $fai_file";
 
@@ -202,36 +202,40 @@ sub configChecks {
         CLUSTER_TMP => \&key_not_present,
         CLUSTER_RESERVATION => \&key_not_present,
         CLUSTER_PROJECT => \&key_not_present,
-        GENOME => \&missing_genome_files,
-        CORE_GENOME => \&missing_genome_files,
+
+        REF_GENOME => \&missing_genome_files,
+
+        # KODU: GATK and SAM tools are used all over the place so check them regardless of configuration.
         GATK_PATH => \&missing_directory,
         QUEUE_PATH => \&missing_directory,
-        # SABR: these are required for BAM input, regardless of settings
         SAMTOOLS_PATH => \&missing_directory,
+
+        # KODU: Sambamba creates bam indices regardless of how pipeline is run so we always need below params.
         SAMBAMBA_PATH => \&missing_directory,
-        MAPPING_THREADS => \&key_not_present,
-        BAM_SLICER_PATH => \&missing_directory,
+        INDEXING_THREADS => \&key_not_present,
 
         PRESTATS => if_enabled({
                 FASTQC_PATH => \&missing_directory,
-                PRESTATS_THREADS => \&key_not_present,
                 PRESTATS_MEM => \&key_not_present,
                 PRESTATS_QUEUE => \&key_not_present,
+                PRESTATS_THREADS => \&key_not_present,
                 PRESTATS_TIME => \&key_not_present,
             }
         ),
         MAPPING => if_enabled({
                 BWA_PATH => \&missing_directory,
-                MAPPING_THREADS => \&key_not_present,
-                MAPPING_MEM => \&key_not_present,
                 MAPPING_QUEUE => \&key_not_present,
                 MAPPING_TIME => \&key_not_present,
+                MAPPING_THREADS => \&key_not_present,
+                MAPPING_MEM => \&key_not_present,
                 MAPPING_SETTINGS => \&key_not_present,
+
                 MARKDUP_QUEUE => \&key_not_present,
                 MARKDUP_TIME => \&key_not_present,
                 MARKDUP_THREADS => \&key_not_present,
                 MARKDUP_MEM => \&key_not_present,
                 MARKDUP_OVERFLOW_LIST_SIZE => \&key_not_present,
+
                 FLAGSTAT_QUEUE => \&key_not_present,
                 FLAGSTAT_THREADS => \&key_not_present,
                 FLAGSTAT_MEM => \&key_not_present,
@@ -241,14 +245,14 @@ sub configChecks {
         POSTSTATS => if_enabled({
                 BAMMETRICS_PATH => \&missing_directory,
                 PICARD_PATH => \&missing_directory,
-                POSTSTATS_THREADS => \&key_not_present,
-                POSTSTATS_MEM => \&key_not_present,
+
                 POSTSTATS_QUEUE => \&key_not_present,
                 POSTSTATS_TIME => \&key_not_present,
+                POSTSTATS_THREADS => \&key_not_present,
+                POSTSTATS_MEM => \&key_not_present,
             }
         ),
         DAMAGE_ESTIMATE => if_enabled({
-                # KODU: DamageEstimator also depends on SAMTOOLS and SAMBAMBA but they are assumed to be checked already at this point.
                 DAMAGE_ESTIMATOR_PATH => \&missing_directory,
                 DAMAGE_ESTIMATE_QUEUE => \&key_not_present,
                 DAMAGE_ESTIMATE_TIME => \&key_not_present,
@@ -262,6 +266,7 @@ sub configChecks {
         ),
         INDEL_REALIGNMENT => if_enabled({
                 BAMUTIL_PATH => \&missing_directory,
+
                 REALIGNMENT_MASTER_QUEUE => \&key_not_present,
                 REALIGNMENT_MASTER_THREADS => \&key_not_present,
                 REALIGNMENT_MASTER_TIME => \&key_not_present,
@@ -270,10 +275,12 @@ sub configChecks {
                 REALIGNMENT_THREADS => \&key_not_present,
                 REALIGNMENT_MEM => \&key_not_present,
                 REALIGNMENT_TIME => \&key_not_present,
+
                 REALIGNMENT_MERGETHREADS => \&key_not_present,
                 REALIGNMENT_SCALA => \&key_not_present,
                 REALIGNMENT_SCATTER => \&key_not_present,
                 REALIGNMENT_KNOWN => \&missing_optional_files,
+
                 FLAGSTAT_QUEUE => \&key_not_present,
                 FLAGSTAT_THREADS => \&key_not_present,
                 FLAGSTAT_MEM => \&key_not_present,
@@ -285,10 +292,12 @@ sub configChecks {
                 GERMLINE_CALLING_MASTER_TIME => \&key_not_present,
                 GERMLINE_CALLING_MASTER_THREADS => \&key_not_present,
                 GERMLINE_CALLING_MASTER_MEM => \&key_not_present,
+
                 GERMLINE_CALLING_QUEUE => \&key_not_present,
+                GERMLINE_CALLING_TIME => \&key_not_present,
                 GERMLINE_CALLING_THREADS => \&key_not_present,
                 GERMLINE_CALLING_MEM => \&key_not_present,
-                GERMLINE_CALLING_TIME => \&key_not_present,
+
                 GERMLINE_CALLING_SCATTER => \&key_not_present,
                 GERMLINE_CALLING_SCALA => \&key_not_present,
                 GERMLINE_CALLING_UGMODE => invalid_choice([ "SNP", "INDEL", "BOTH" ]),
@@ -356,9 +365,9 @@ sub configChecks {
             }
         ),
         STRELKA => if_enabled({
-                SAMTOOLS_PATH => \&missing_directory,
                 QUEUE_LOW_GZIP_COMPRESSION_PATH => \&missing_directory,
                 BAMUTIL_PATH => \&missing_directory,
+
                 BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,
                 BASERECALIBRATION_MASTER_TIME => \&key_not_present,
                 BASERECALIBRATION_MASTER_THREADS => \&key_not_present,
@@ -370,11 +379,12 @@ sub configChecks {
                 BASERECALIBRATION_SCALA => \&key_not_present,
                 BASERECALIBRATION_SCATTER => \&key_not_present,
                 BASERECALIBRATION_KNOWN => \&missing_optional_files,
+
                 FLAGSTAT_QUEUE => \&key_not_present,
                 FLAGSTAT_THREADS => \&key_not_present,
                 FLAGSTAT_MEM => \&key_not_present,
                 FLAGSTAT_TIME => \&key_not_present,
-                SOMVAR_TARGETS => \&missing_optional_file,
+
                 STRELKA_PATH => \&missing_directory,
                 STRELKA_POST_PROCESS_PATH => \&missing_directory,
                 STRELKA_INI => \&key_not_present,
@@ -382,11 +392,13 @@ sub configChecks {
                 STRELKA_THREADS => \&key_not_present,
                 STRELKA_MEM => \&key_not_present,
                 STRELKA_TIME => \&key_not_present,
+
                 HIGH_CONFIDENCE_BED => \&missing_file,
                 STRELKAPOSTPROCESS_QUEUE => \&key_not_present,
                 STRELKAPOSTPROCESS_THREADS => \&key_not_present,
                 STRELKAPOSTPROCESS_MEM => \&key_not_present,
                 STRELKAPOSTPROCESS_TIME => \&key_not_present,
+
                 ANNOTATE_DB => \&key_not_present,
                 ANNOTATE_FLAGS => \&key_not_present,
                 ANNOTATE_IDNAME => \&key_not_present,

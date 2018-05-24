@@ -16,7 +16,7 @@ java -Xmx[% opt.GERMLINE_FILTER_MASTER_MEM %]G \
     -jobRunner GridEngine \
     -jobReport [% dirs.log %]/GermlineFilter.jobReport.txt \
     -S [% opt.OUTPUT_DIR %]/QScripts/[% opt.GERMLINE_FILTER_SCALA %] \
-    -R [% opt.GENOME %] \
+    -R [% opt.REF_GENOME %] \
     -V [% input_vcf %] \
     -O [% opt.RUN_NAME %] \
     -mem [% opt.GERMLINE_FILTER_MEM %] \

@@ -14,7 +14,7 @@ export PATH
     --tmpdir=[% dirs.tmp %] \
     -L "[% opt.BAF_SNPS %]" \
     "[% sample_bam %]" \
-    --samtools "-q 1 -f [% opt.GENOME %]" \
+    --samtools "-q 1 -f [% opt.REF_GENOME %]" \
     > "[% sample_bam %].amber.pileup"
 
 success

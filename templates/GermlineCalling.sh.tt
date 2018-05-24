@@ -20,7 +20,7 @@ java -Xmx[% opt.GERMLINE_CALLING_MASTER_MEM %]G \
     [%- IF opt.exists('GERMLINE_CALLING_UGMODE') %]
     -glm [% opt.GERMLINE_CALLING_UGMODE %] \
     [%- END %]
-    -R [% opt.GENOME %] \
+    -R [% opt.REF_GENOME %] \
     -O [% opt.RUN_NAME %] \
     -mem [% opt.GERMLINE_CALLING_MEM %] \
     -nct [% opt.GERMLINE_CALLING_THREADS %] \

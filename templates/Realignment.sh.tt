@@ -15,7 +15,7 @@ java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G \
     -jobNative "[% job_native %]" \
     -jobRunner GridEngine \
     -S "[% opt.OUTPUT_DIR %]/QScripts/[% opt.REALIGNMENT_SCALA %]" \
-    -R "[% opt.GENOME %]" \
+    -R "[% opt.REF_GENOME %]" \
     -I "[% sample_bam_path %]" \
     -nt [% opt.REALIGNMENT_THREADS %] \
     -mem [% opt.REALIGNMENT_MEM %] \

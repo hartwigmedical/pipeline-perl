@@ -17,7 +17,7 @@ outputDir="[% damage_estimate_out_path %]"
 
 [% opt.DAMAGE_ESTIMATOR_PATH %]/split_mapped_reads.pl \
     --bam "[% damage_estimate_bam_path %]" \
-    --genome "[% opt.GENOME %]" \
+    --genome "[% opt.REF_GENOME %]" \
     --mpileup1 "${mpileupPath1}" \
     --mpileup2 "${mpileupPath2}" \
     --sample "[% opt.DAMAGE_ESTIMATE_DOWNSAMPLE_BAM_SIZE %]"

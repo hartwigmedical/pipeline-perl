@@ -70,7 +70,7 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
     -T VariantAnnotator \
     -nt [% opt.ANNOTATE_THREADS %] \
-    -R [% opt.GENOME %] \
+    -R [% opt.REF_GENOME %] \
     -o "[% output_vcf %]" \
     --variant "[% input_vcf %]" \
     --dbsnp [% opt.ANNOTATE_IDDB %] \

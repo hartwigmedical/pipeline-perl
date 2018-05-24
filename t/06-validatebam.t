@@ -29,7 +29,7 @@ SKIP: {
     $sample = HMF::Pipeline::Functions::Validate::verifyBam(
         $bam_path, {
             SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-            GENOME => catfile("t", "data", "empty.fasta"),
+            REF_GENOME => catfile("t", "data", "empty.fasta"),
         }
     );
     is($sample, "empty", "validates empty bam");
@@ -38,7 +38,7 @@ SKIP: {
     $sample = HMF::Pipeline::Functions::Validate::verifyBam(
         $bam_path, {
             SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-            GENOME => catfile("t", "data", "empty.fasta"),
+            REF_GENOME => catfile("t", "data", "empty.fasta"),
         }
     );
     is($sample, "samplename", "sample name from bam");
@@ -48,7 +48,7 @@ SKIP: {
         $sample = HMF::Pipeline::Functions::Validate::verifyBam(
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
             )
     }
@@ -60,7 +60,7 @@ SKIP: {
         $sample = HMF::Pipeline::Functions::Validate::verifyBam(
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
             )
     };
@@ -72,7 +72,7 @@ SKIP: {
             $sample = HMF::Pipeline::Functions::Validate::verifyBam(
                 $bam_path, {
                     SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                    GENOME => catfile("t", "data", "empty.fasta"),
+                    REF_GENOME => catfile("t", "data", "empty.fasta"),
                 }
                 )
         }
@@ -85,7 +85,7 @@ SKIP: {
         $sample = HMF::Pipeline::Functions::Validate::verifyBam(
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
             )
     };
@@ -97,7 +97,7 @@ SKIP: {
             "${bam_path}.bai",
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
         ),
         1,
@@ -112,7 +112,7 @@ SKIP: {
             "${bam_path}.bai",
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
         ),
         0,
@@ -125,7 +125,7 @@ SKIP: {
             "${bam_path}.bai",
             $bam_path, {
                 SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-                GENOME => catfile("t", "data", "empty.fasta"),
+                REF_GENOME => catfile("t", "data", "empty.fasta"),
             }
         ),
         0,
@@ -144,7 +144,7 @@ SKIP: {
     #                    "${basic_bam_path}.bai",
     #                    $basic_bam_path, {
     #                        SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-    #                        GENOME => catfile("t", "data", "empty.fasta"),
+    #                        REF_GENOME => catfile("t", "data", "empty.fasta"),
     #                    }
     #                )
     #                }
@@ -429,7 +429,7 @@ SKIP: {
     like($exception, qr/^could not read index stats from $temp_file/, "detects missing BAM for index contigs");
 
     stderr_isnt {
-        $exception = exception { $reads = HMF::Pipeline::Functions::Validate::refGenomeContigs({GENOME => $temp_file->filename}) }
+        $exception = exception { $reads = HMF::Pipeline::Functions::Validate::refGenomeContigs({REF_GENOME => $temp_file->filename}) }
     }
     "", "samtools shows errors for missing BAM for ref genome contigs";
     like($exception, qr/^could not read from ${temp_file}.fai/, "detects missing BAM for ref genome contigs");

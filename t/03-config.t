@@ -161,14 +161,14 @@ SKIP: {
     $opt = {
         BAM => {$path => 1},
         SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-        GENOME => catfile("t", "data", "empty.fasta"),
+        REF_GENOME => catfile("t", "data", "empty.fasta"),
     };
     addSamples($opt);
     is_deeply(
         $opt, {
             BAM => {$path => 1},
             SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-            GENOME => catfile("t", "data", "empty.fasta"),
+            REF_GENOME => catfile("t", "data", "empty.fasta"),
             SAMPLES => {empty => [$path]},
             RUNNING_JOBS => {empty => []},
         },
@@ -180,7 +180,7 @@ SKIP: {
     $opt = {
         BAM => {$path => 1, $other_path => 1},
         SAMTOOLS_PATH => $ENV{SAMTOOLS_PATH},
-        GENOME => catfile("t", "data", "empty.fasta"),
+        REF_GENOME => catfile("t", "data", "empty.fasta"),
     };
     $exception = exception { HMF::Pipeline::Functions::Config::addSamples($opt) };
     like($exception, qr/sample 'empty' from $other_path already used by $path/, "refuses duplicate BAM sample") or diag explain $opt;

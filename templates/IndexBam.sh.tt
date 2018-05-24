@@ -6,7 +6,7 @@
 
 assert_not_empty "[% bam_path %]"
 
-[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.MAPPING_THREADS %] "[% bam_path %]" "[% bai_path %]"
+[% opt.SAMBAMBA_PATH %]/sambamba index -t [% opt.INDEXING_THREADS %] "[% bam_path %]" "[% bai_path %]"
 
 assert_not_empty "[% bai_path %]"
 success

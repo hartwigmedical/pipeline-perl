@@ -18,7 +18,7 @@ rm -rf "[% dirs.strelka.out %]"
 [% opt.STRELKA_PATH %]/bin/configureStrelkaWorkflow.pl \
     --tumor "[% tumor_bam_path %]" \
     --normal "[% ref_bam_path %]" \
-    --ref "[% opt.GENOME %]" \
+    --ref "[% opt.REF_GENOME %]" \
     --config "[% opt.OUTPUT_DIR %]/settings/strelka/[% opt.STRELKA_INI %]" \
     --output-dir "[% dirs.strelka.out %]"
 
@@ -43,7 +43,7 @@ ${bcftools} filter -i 'FILTER="PASS"' -o ${snvs_passed}
 java -Xmx[% opt.STRELKA_MEM %]G \
     -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
     -T CombineVariants \
-    -R "[% opt.GENOME %]" \
+    -R "[% opt.REF_GENOME %]" \
     --genotypemergeoption unsorted \
     -V:snvs "${snvs_passed}" \
     -V:indels "${indels_passed}" \
