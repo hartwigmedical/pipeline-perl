@@ -50,7 +50,6 @@ sub setupTestConfig {
         CLUSTER_PATH
         FASTQC_PATH
         GATK_PATH
-        IGVTOOLS_PATH
         MANTA_PATH
         PICARD_PATH
         AMBER_PATH

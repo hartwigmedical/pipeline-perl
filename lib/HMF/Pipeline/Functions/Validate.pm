@@ -320,7 +320,6 @@ sub configChecks {
                 GERMLINE_FILTER_INDELNAME => \&key_not_present,
                 GERMLINE_FILTER_INDELEXPR => \&key_not_present,
                 SNPEFF_PATH => \&missing_directory,
-                IGVTOOLS_PATH => \&missing_directory,
                 TABIX_PATH => \&missing_directory,
                 ANNOTATE_QUEUE => \&key_not_present,
                 ANNOTATE_THREADS => \&key_not_present,
