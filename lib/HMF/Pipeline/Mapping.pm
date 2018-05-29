@@ -172,7 +172,7 @@ sub runBamPrepOnSample {
         my $index_job_id = indexed($sample, $sample_bam, $sample_bai, [], $dirs, $opt);
         my $flagstat_job_id = flagstat($sample, $sample_bam, $sample_flagstat, [$index_job_id], $dirs, $opt);
         my $check_job_id = fromTemplate(
-            "ContigCheck",
+            "BamContigCheck",
             $sample,
             0,
             qsubSimple($opt),

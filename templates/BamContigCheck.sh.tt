@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="ContigCheck" main_step=bam_path log_name="${step}.log" %]
+[% INCLUDE Logging.tt job_name="BamContigCheck" main_step=bam_path log_name="${step}.log" %]
 
 assert_not_empty "[% bam_path %]" "[% bam_path %].bai"
 

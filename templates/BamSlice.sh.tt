@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="SliceBam" main_step=slice_name log_name="${step}.log" %]
+[% INCLUDE Logging.tt job_name="BamSlice" main_step=slice_name log_name="${step}.log" %]
 
 assert_not_empty "[% input_bam %]"
 

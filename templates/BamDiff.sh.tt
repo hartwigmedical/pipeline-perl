@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="DiffBams" main_step=diff_name log_name="${step}.log" %]
+[% INCLUDE Logging.tt job_name="BamDiff" main_step=diff_name log_name="${step}.log" %]
 
 assert_not_empty "[% input_bam1 %]" "[% input_bam2 %]"
 

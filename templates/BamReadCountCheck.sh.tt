@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="ReadCountCheck" main_step=post_flagstat_name log_name="${step}.log" %]
+[% INCLUDE Logging.tt job_name="BamReadCountCheck" main_step=post_flagstat_name log_name="${step}.log" %]
 
 assert_not_empty "[% pre_flagstat_paths.join('" "') %]" "[% post_flagstat_path %]"
 

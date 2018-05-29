@@ -29,7 +29,7 @@ sub sorted {
 
     my $sorted_bam_name = fileparse($sorted_bam_path);
     return fromTemplate(
-        "SortBam",
+        "BamSort",
         $sorted_bam_name,
         0,
         qsubTemplate($opt, "MAPPING"),
@@ -48,7 +48,7 @@ sub slice {
 
     my $slice_name = fileparse($sliced_bam);
     return fromTemplate(
-        "SliceBam",
+        "BamSlice",
         $slice_name,
         0,
         qsubTemplate($opt, "FLAGSTAT"),
@@ -69,7 +69,7 @@ sub indexed {
 
     my $bai_name = fileparse($bai_path);
     return fromTemplate(
-        "IndexBam",
+        "BamIndex",
         $bai_name,
         0,
         qsubTemplate($opt, "MAPPING"),
@@ -87,7 +87,7 @@ sub flagstat {
 
     my $flagstat_name = fileparse($flagstat_path);
     return fromTemplate(
-        "Flagstat",
+        "BamFlagstat",
         $flagstat_name,
         0,
         qsubTemplate($opt, "FLAGSTAT"),
@@ -106,7 +106,7 @@ sub readCountCheck {
 
     my $post_flagstat_name = fileparse($post_flagstat_path);
     return fromTemplate(
-        "ReadCountCheck",
+        "BamReadCountCheck",
         $post_flagstat_name,
         0,
         qsubTemplate($opt, "FLAGSTAT"),
@@ -126,7 +126,7 @@ sub diff {
     my ($step, $input_bam1, $input_bam2, $diff_name, $hold_jids, $dirs, $opt) = @_;
 
     return fromTemplate(
-        "DiffBams",
+        "BamDiff",
         $diff_name,
         0,
         qsubTemplate($opt, "FLAGSTAT"),
