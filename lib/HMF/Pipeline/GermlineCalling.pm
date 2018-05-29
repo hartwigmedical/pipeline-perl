@@ -64,7 +64,6 @@ sub runCaller {
 sub runFiltering {
     my ($opt) = @_;
 
-    my (undef, undef, $running_jobs) = refSampleBamAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
     my $filtered_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
@@ -73,7 +72,7 @@ sub runFiltering {
         undef,
         1,
         qsubJava($opt, "GERMLINE_FILTER_MASTER"),
-        $running_jobs,
+        $opt->{RUNNING_JOBS}->{germline},
         $dirs,
         $opt,
         input_vcf => $opt->{GERMLINE_VCF_FILE},
@@ -93,7 +92,6 @@ sub runFiltering {
 sub runAnnotation {
     my ($opt) = @_;
 
-    my (undef, undef, $running_jobs) = refSampleBamAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
     my $annotated_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.annotated.vcf");
@@ -102,7 +100,7 @@ sub runAnnotation {
         undef,
         1,
         qsubJava($opt, "ANNOTATE"),
-        $running_jobs,
+        $opt->{RUNNING_JOBS}->{germline},
         $dirs,
         $opt,
         input_vcf => $opt->{GERMLINE_VCF_FILE},
