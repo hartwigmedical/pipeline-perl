@@ -17,8 +17,6 @@ use HMF::Pipeline::Amber;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::Finalize;
 use HMF::Pipeline::GermlineCalling;
-use HMF::Pipeline::GermlineFiltering;
-use HMF::Pipeline::GermlineAnnotation;
 use HMF::Pipeline::Strelka;
 use HMF::Pipeline::StructuralVariants;
 use HMF::Pipeline::Purple;
@@ -49,8 +47,6 @@ sub run {
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
-        HMF::Pipeline::GermlineFiltering::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
-        HMF::Pipeline::GermlineAnnotation::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
 
         HMF::Pipeline::Strelka::run($opt) if $opt->{STRELKA} eq "yes";
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{STRUCTURAL_VARIANT_CALLING} eq "yes";
