@@ -108,7 +108,7 @@ sub linkVcfArtefacts {
     my ($source_path, $vcf_type, $opt) = @_;
 
     linkArtefact($source_path, "${vcf_type}_vcf", $opt);
-    linkArtefact("${source_path}.idx", "${vcf_type}_vcf_index", $opt);
+    linkArtefact("${source_path}.tbi", "${vcf_type}_vcf_index", $opt);
     return;
 }
 
