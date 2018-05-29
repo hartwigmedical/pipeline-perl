@@ -302,7 +302,6 @@ sub configChecks {
                 GERMLINE_CALLING_SCALA => \&key_not_present,
                 GERMLINE_CALLING_UGMODE => invalid_choice([ "SNP", "INDEL", "BOTH" ]),
                 GERMLINE_CALLING_STANDCALLCONF => \&key_not_present,
-                GERMLINE_CALLING_TARGETS => \&missing_optional_file,
                 DBSNP_VCF => \&missing_optional_file,
                 GERMLINE_FILTER_MASTER_QUEUE => \&key_not_present,
                 GERMLINE_FILTER_MASTER_TIME => \&key_not_present,

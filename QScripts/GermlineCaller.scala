@@ -34,12 +34,6 @@ class GermlineCaller extends QScript {
     @Input(doc="An optional file with known SNP sites.", shortName="D", required=false)
     var dbsnpFile: File = _
 
-    @Input(doc="An optional file with targets intervals.", shortName="L", required=false)
-    var targetFile: File = _
-
-    @Argument(doc="Amount of padding (in bp) to add to each interval", shortName="ip", required=false)
-    var intervalPadding: Int = 0
-
     @Argument(doc="Ploidy (number of chromosomes) per sample", shortName="ploidy", required=false)
     var samplePloidy: Int = 2
 
@@ -65,14 +59,8 @@ class GermlineCaller extends QScript {
 
 					haplotypeCaller.emitRefConfidence = ReferenceConfidenceMode.GVCF
 					haplotypeCaller.GVCFGQBands = GVCFGQBands
-                                        haplotypeCaller.variant_index_type = GATKVCFIndexType.LINEAR
+					haplotypeCaller.variant_index_type = GATKVCFIndexType.LINEAR
 					haplotypeCaller.variant_index_parameter = 128000
-
-					if (targetFile != null) {
-						haplotypeCaller.L :+= targetFile
-						haplotypeCaller.ip = intervalPadding
-					}
-
 					haplotypeCaller.sample_ploidy = samplePloidy
 
 					gvcfFiles :+= haplotypeCaller.out
@@ -90,11 +78,6 @@ class GermlineCaller extends QScript {
 
 			if (dbsnpFile != null) {
 					genotypeGVCFs.D = dbsnpFile
-			}
-
-			if (targetFile != null) {
-					genotypeGVCFs.L :+= targetFile
-					genotypeGVCFs.ip = intervalPadding
 			}
 
 			add(genotypeGVCFs)

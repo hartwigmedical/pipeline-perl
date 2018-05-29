@@ -52,6 +52,5 @@ class IndelRealignment extends QScript {
 
 				add(targetCreator, indelRealigner)
 			}
-
     }
 }

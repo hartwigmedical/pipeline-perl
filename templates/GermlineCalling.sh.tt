@@ -30,15 +30,6 @@ java -Xmx[% opt.GERMLINE_CALLING_MASTER_MEM %]G \
     [%- IF opt.exists('DBSNP_VCF') %]
     -D [% opt.DBSNP_VCF %] \
     [%- END %]
-    [%- IF opt.exists('GERMLINE_CALLING_TARGETS') %]
-    -L [% opt.GERMLINE_CALLING_TARGETS %] \
-        [%- IF opt.exists('GERMLINE_CALLING_INTERVALPADDING') %]
-    -ip [% opt.GERMLINE_CALLING_INTERVALPADDING %] \
-        [%- END %]
-    [%- END %]
-    [%- IF opt.exists('GERMLINE_CALLING_PLOIDY') %]
-    -ploidy [% opt.GERMLINE_CALLING_PLOIDY %] \
-    [%- END %]
     -run
 
 assert_exists "[% dirs.tmp %]/.[% opt.RUN_NAME %].raw_variants.vcf.done"
