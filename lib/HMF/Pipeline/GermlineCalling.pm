@@ -19,11 +19,11 @@ sub run {
 
     say "\n### SCHEDULING GERMLINE CALLING ###";
 
-    my $caller_job_id = runCaller($opt);
-    my $filter_job_id = runFiltering($opt, $caller_job_id);
-    runAnnotation($opt, $filter_job_id);
+    my ($caller_job_id, $caller_vcf) = runCaller($opt);
+    my ($filter_job_id, $filtered_vcf) = runFiltering($opt, $caller_job_id, $caller_vcf);
+    my $annotated_vcf = runAnnotation($opt, $filter_job_id, $filtered_vcf);
 
-    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
+    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($annotated_vcf, "germline", $opt);
 
     return;
 }
@@ -38,8 +38,6 @@ sub runCaller {
     my $final_gvcf = catfile($dirs->{gvcf}, $ref_sample . ".g.vcf.gz");
     my $ref_sample_bam_name = fileparse($ref_sample_bam);
     (my $tmp_scala_gvcf = $ref_sample_bam_name) =~ s/\.bam/\.g\.vcf\.gz/;
-
-    $opt->{GERMLINE_VCF_FILE} = $calling_vcf;
 
     my $job_id = fromTemplate(
         "GermlineCalling",
@@ -58,11 +56,11 @@ sub runCaller {
 
     push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
 
-    return $job_id;
+    return ($job_id, $calling_vcf);
 }
 
 sub runFiltering {
-    my ($opt, $caller_job_id) = @_;
+    my ($opt, $caller_job_id, $input_vcf) = @_;
 
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
@@ -75,22 +73,20 @@ sub runFiltering {
         [$caller_job_id],
         $dirs,
         $opt,
-        input_vcf => $opt->{GERMLINE_VCF_FILE},
+        input_vcf => $input_vcf,
         final_vcf => $filtered_vcf,
         snp_config => snpConfig($opt),
         indel_config => indelConfig($opt),
         job_native => jobNative($opt, "GERMLINE_FILTER"),
     );
 
-    $opt->{GERMLINE_VCF_FILE} = $filtered_vcf;
-
     push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
 
-    return $job_id;
+    return ($job_id, $filtered_vcf);
 }
 
 sub runAnnotation {
-    my ($opt, $filter_job_id) = @_;
+    my ($opt, $filter_job_id, $input_vcf) = @_;
 
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
@@ -103,15 +99,14 @@ sub runAnnotation {
         [$filter_job_id],
         $dirs,
         $opt,
-        input_vcf => $opt->{GERMLINE_VCF_FILE},
+        input_vcf => $input_vcf,
         final_vcf => $annotated_vcf,
     );
 
-    $opt->{GERMLINE_VCF_FILE} = catfile($annotated_vcf, ".gz");
-
     push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
 
-    return;
+    # KODU: We implicitly gzip the final vcf in the annotation bash script.
+    return catfile($annotated_vcf, ".gz");
 }
 
 # NB: SABR: these functions have not been made more general in order to maintain easy search of config key names
