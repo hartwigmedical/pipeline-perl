@@ -9,7 +9,7 @@ use File::Spec::Functions;
 use HMF::Pipeline::Functions::Config qw(createDirs refSampleBamAndJobs);
 use HMF::Pipeline::Functions::Sge qw(jobNative qsubJava);
 use HMF::Pipeline::Functions::Job qw(fromTemplate);
-use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkVcfArtefacts);
+use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
