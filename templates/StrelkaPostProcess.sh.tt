@@ -119,4 +119,9 @@ mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.tbi" "[% final_vcf %].tbi"
 rm ./*${TMP_STRING}*
 
+echo "[INFO] Cleaning up recalibrated bams - $(date)"
+[% FOREACH sample IN opt.SAMPLES.keys -%]
+rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
+[% END -%]
+
 success

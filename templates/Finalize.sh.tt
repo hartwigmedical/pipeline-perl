@@ -28,12 +28,6 @@ then
 [% END -%]
 [% END -%]
 
-[% IF opt.STRELKA == "yes" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
-[% END -%]
-[% END -%]
-
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi
