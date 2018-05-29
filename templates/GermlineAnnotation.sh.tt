@@ -95,7 +95,6 @@ finish_step
 
 assert_last_position_unchanged "[% pre_annotated_vcf %]" "[% output_vcf %]"
 mv "[% output_vcf %]" "[% final_vcf %]"
-mv "[% output_vcf %].idx" "[% final_vcf %].idx"
 
 ## KODU: Do a final zip and tabix
 
