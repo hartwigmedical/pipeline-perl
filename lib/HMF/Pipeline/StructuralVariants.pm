@@ -88,7 +88,7 @@ sub runBreakpointInspector {
         input_vcf => $manta_vcf,
     );
 
-    $opt->{BPI_VCF_FILE} = catfile($opt->{BPI_VCF_FILE}, ".gz");
+    $opt->{BPI_VCF_FILE} = join($opt->{BPI_VCF_FILE}, ".gz");
     linkVcfArtefacts($opt->{BPI_VCF_FILE}, 'somatic_sv', $opt);
 
     return $job_id;

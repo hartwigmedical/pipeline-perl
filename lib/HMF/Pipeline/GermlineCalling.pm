@@ -106,7 +106,7 @@ sub runAnnotation {
     push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
 
     # KODU: We implicitly gzip the final vcf in the annotation bash script.
-    return catfile($annotated_vcf, ".gz");
+    return join($annotated_vcf, ".gz");
 }
 
 # NB: SABR: these functions have not been made more general in order to maintain easy search of config key names
