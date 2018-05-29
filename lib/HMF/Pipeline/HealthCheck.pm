@@ -37,8 +37,6 @@ sub run {
 
     push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $job_id;
 
-    HMF::Pipeline::Functions::Metadata::linkExtraArtefact($health_check_file, $opt);
-
     return;
 }
 

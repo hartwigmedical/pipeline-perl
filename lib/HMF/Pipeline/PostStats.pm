@@ -8,7 +8,6 @@ use File::Spec::Functions qw(:ALL);
 use HMF::Pipeline::Functions::Config qw(createDirs sampleBamsAndJobs);
 use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
-use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkExtraArtefact);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
@@ -39,6 +38,7 @@ sub run {
         sample_bams => $sample_bams,
         designs => \@designs,
     );
+
     my $check_job_id = fromTemplate(
         "PostStatsCheck",
         undef,
@@ -53,24 +53,7 @@ sub run {
     my $job_id = markDone($done_file, [ $stats_job_id, $check_job_id ], $dirs, $opt);
 
     $opt->{RUNNING_JOBS}->{poststats} = [$job_id];
-    linkArtefacts(\@designs, $dirs, $opt);
 
-    return;
-}
-
-sub linkArtefacts {
-    my ($designs, $dirs, $opt) = @_;
-
-    # SABR: dependent on implicit bamMetrics naming
-    my $metrics_path = catfile($dirs->{out}, "$opt->{RUN_NAME}.bamMetrics.pdf");
-    linkArtefact($metrics_path, "qc", $opt);
-
-    foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        # SABR: dependent on implicit SNPcheck naming (easier to fix)
-        foreach my $design (@{$designs}) {
-            linkExtraArtefact(catfile($dirs->{$sample}, "${sample}_${design}.vcf"), $opt);
-        }
-    }
     return;
 }
 

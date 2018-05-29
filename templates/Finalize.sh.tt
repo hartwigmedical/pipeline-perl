@@ -34,24 +34,6 @@ then
 [% END -%]
 [% END -%]
 
-[% IF opt.exists('EXTRAS') -%]
-    cd "[% opt.OUTPUT_DIR %]"
-
-    # genuine failures to produce artefacts should be caught elsewhere
-    # providing empty files where tools are successful but produce no
-    # output prevents tar from failing, failing the pipeline
-    for artefact in "[% opt.EXTRAS.join('" "') %]"
-    do
-        if [ ! -e "$artefact" ]
-        then
-            touch "$artefact"
-        fi
-    done
-
-    tar -zcf "[% extras_tar %]" "[% opt.EXTRAS.join('" "') %]"
-    zip -r "[% extras_zip %]" "[% opt.EXTRAS.join('" "') %]"
-[% END -%]
-
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi

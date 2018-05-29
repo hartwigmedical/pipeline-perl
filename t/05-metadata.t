@@ -9,7 +9,7 @@ use File::Temp;
 use Test::Fatal;
 use Test::More;
 
-use HMF::Pipeline::Functions::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkExtraArtefact linkVcfArtefacts linkBamArtefacts readLinks writeLinks);
+use HMF::Pipeline::Functions::Metadata qw(parse metaSampleName sampleControlNames linkArtefact linkVcfArtefacts linkBamArtefacts readLinks writeLinks);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -64,12 +64,7 @@ is_deeply($opt->{LINKS}, {artefact_a => "filename_a", artefact_b => "filename_b"
 delete $opt->{LINKS};
 linkVcfArtefacts("filename", "artefact", $opt);
 ok(exists $opt->{LINKS}, "vcf links stored in \$opt");
-is_deeply($opt->{LINKS}, {artefact_vcf => "filename", artefact_vcf_index => "filename.idx"}, "vcf artefact links stored");
-
-linkExtraArtefact(catfile($temp_dir, "filename_a"), $opt);
-linkExtraArtefact(catfile($temp_dir, "filename_b"), $opt);
-ok(exists $opt->{EXTRAS}, "extra links stored in \$opt");
-is_deeply($opt->{EXTRAS}, [ "filename_a", "filename_b" ], "extra artefact filenames stored");
+is_deeply($opt->{LINKS}, {artefact_vcf => "filename", artefact_vcf_index => "filename.tbi"}, "vcf artefact links stored");
 
 my $links = readLinks($opt);
 is_deeply($links, {}, "empty links when nothing written to file");

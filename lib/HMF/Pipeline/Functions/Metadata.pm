@@ -14,7 +14,6 @@ use parent qw(Exporter);
 our @EXPORT_OK = qw(
     parse
     linkArtefact
-    linkExtraArtefact
     linkVcfArtefacts
     linkBamArtefacts
     metaSampleName
@@ -93,14 +92,6 @@ sub linkArtefact {
     $opt->{LINKS} = readLinks($opt) if not exists $opt->{LINKS};
     $source_path = abs2rel($source_path, $opt->{OUTPUT_DIR}) if file_name_is_absolute($source_path);
     $opt->{LINKS}->{$canonical_name} = $source_path;
-    return;
-}
-
-sub linkExtraArtefact {
-    my ($source_path, $opt) = @_;
-
-    $opt->{EXTRAS} = [] if not exists $opt->{EXTRAS};
-    push @{$opt->{EXTRAS}}, abs2rel($source_path, $opt->{OUTPUT_DIR});
     return;
 }
 

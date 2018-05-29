@@ -9,7 +9,7 @@ use Sort::Key::Natural qw(mkkey_natural);
 use HMF::Pipeline::Functions::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs);
 use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile);
 use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
-use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkExtraArtefact);
+use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
@@ -34,9 +34,10 @@ sub runManta {
 
     my @manta_jobs;
     my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-    say "\n$joint_name \t $ref_sample_bam \t $tumor_sample_bam";
+
     my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
     push @manta_jobs, $job_id;
+
     $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $job_id, $opt);
     push @manta_jobs, $job_id;
     return \@manta_jobs;
@@ -59,13 +60,6 @@ sub runMantaJob {
         control_bam => $control_bam,
         joint_name => $joint_name,
     );
-
-    linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz"), $opt);
-    linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "diploidSV.vcf.gz.tbi"), $opt);
-    if (defined $control_bam) {
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz"), $opt);
-        linkExtraArtefact(catfile($dirs->{out}, "results", "variants", "somaticSV.vcf.gz.tbi"), $opt);
-    }
 
     return $job_id;
 }
@@ -94,10 +88,8 @@ sub runBreakpointInspector {
         input_vcf => $manta_vcf,
     );
 
-    linkArtefact($opt->{BPI_VCF_FILE}, 'somatic_sv', $opt);
-    linkExtraArtefact(catfile($dirs->{out}, "${control}_sliced.bam"), $opt);
-    linkExtraArtefact(catfile($dirs->{out}, "${sample}_sliced.bam"), $opt);
-    linkExtraArtefact(catfile($dirs->{out}, "${joint_name}_bpi_stats.tsv"), $opt);
+    $opt->{BPI_VCF_FILE} = catfile($opt->{BPI_VCF_FILE}, ".gz");
+    linkVcfArtefacts($opt->{BPI_VCF_FILE}, 'somatic_sv', $opt);
 
     return $job_id;
 }

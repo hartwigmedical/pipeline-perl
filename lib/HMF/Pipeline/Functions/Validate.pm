@@ -409,6 +409,8 @@ sub configChecks {
                 MAPPABILITY_BED => \&missing_file,
                 MAPPABILITY_HDR => \&missing_file,
                 HMF_SOMATIC_HOTSPOTS => \&missing_file,
+
+                TABIX_PATH => \&missing_directory,
             }
         ),
         STRUCTURAL_VARIANT_CALLING => if_enabled({
@@ -418,11 +420,14 @@ sub configChecks {
                         MANTA_THREADS => \&key_not_present,
                         MANTA_MEM => \&key_not_present,
                         MANTA_TIME => \&key_not_present,
+
                         BPI_PATH => \&missing_directory,
                         BPI_QUEUE => \&key_not_present,
                         BPI_THREADS => \&key_not_present,
                         BPI_MEM => \&key_not_present,
                         BPI_TIME => \&key_not_present,
+
+                        TABIX_PATH => \&missing_directory,
                     }
                 ),
             }
