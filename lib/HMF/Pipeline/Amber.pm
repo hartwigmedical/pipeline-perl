@@ -39,16 +39,13 @@ sub run {
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
 
-    my $baf_txt_path = "${sub_dir}/${tumor_sample}.amber.baf";
-    linkArtefact($baf_txt_path, 'somatic_amber_baf', $opt);
-
     return;
 }
 
 sub runAmber {
     my ($tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt) = @_;
 
-    say "\n### SCHEDULING AMBER ###";
+    say "\n### SCHEDULING AMBER MAIN ###";
     my $job_id = fromTemplate(
         "Amber",
         undef,
