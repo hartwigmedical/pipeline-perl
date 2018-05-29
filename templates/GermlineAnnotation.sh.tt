@@ -18,19 +18,15 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
     -c [% opt.SNPEFF_PATH %]/snpEff.config \
-    [% opt.ANNOTATE_DB %] \
+    [% opt.ANNOTATE_SNPEFF_DB %] \
     -v "[% input_vcf %]" \
-    [% opt.ANNOTATE_FLAGS %] \
+    [% opt.ANNOTATE_SNPEFF_FLAGS %] \
     > "[% output_vcf %]"
-
-[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-rm igv.log
 
 [%- input_vcf = output_vcf %]
 finish_step
 
-
-start_step "ANNOTATE_SNPSIFT"
+start_step "ANNOTATE_DBNSFP"
 
 assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('\.vcf$', '_snpSift.vcf') %]
@@ -41,27 +37,20 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
     dbnsfp \
     -v \
-    -f [% opt.ANNOTATE_FIELDS %] \
-    -db [% opt.ANNOTATE_DBNSFP %] \
+    -f [% opt.ANNOTATE_DBNSFP_FIELDS %] \
+    -db [% opt.ANNOTATE_DBNSFP_DB %] \
     "[% input_vcf %]" \
     > "[% output_vcf %]"
 
-[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-rm igv.log
-
-if [ -s "[% output_vcf %]" ]
-then
-    rm "[% input_vcf %]" "[% input_vcf %].idx"
-fi
+rm "[% input_vcf %]" "[% input_vcf %].idx"
 
 [%- input_vcf = output_vcf %]
 finish_step
 
-
-start_step "ANNOTATE_IDFIELD"
+start_step "ANNOTATE_COSMIC"
 
 assert_not_empty "[% input_vcf %]"
-[%- suffix = '_' _ opt.ANNOTATE_IDNAME _ '.vcf' -%]
+[%- suffix = '_' _ opt.ANNOTATE_COSMIC_ID _ '.vcf' -%]
 [%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
@@ -73,22 +62,18 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     -R [% opt.REF_GENOME %] \
     -o "[% output_vcf %]" \
     --variant "[% input_vcf %]" \
-    --dbsnp [% opt.ANNOTATE_IDDB %] \
+    --dbsnp [% opt.ANNOTATE_COSMIC_DB %] \
     --alwaysAppendDbsnpId
 
-if [ -s "[% output_vcf %]" ]
-then
-    rm "[% input_vcf %]" "[% input_vcf %].idx"
-fi
+rm "[% input_vcf %]" "[% input_vcf %].idx"
 
 [%- input_vcf = output_vcf %]
 finish_step
 
-
 start_step "ANNOTATE_FREQUENCIES"
 
 assert_not_empty "[% input_vcf %]"
-[%- suffix = '_' _ opt.ANNOTATE_FREQNAME _ '.vcf' -%]
+[%- suffix = '_' _ opt.ANNOTATE_FREQ_NAME _ '.vcf' -%]
 [%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
@@ -97,19 +82,13 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
     annotate \
     -tabix \
-    -name [% opt.ANNOTATE_FREQNAME %]_ \
-    -info [% opt.ANNOTATE_FREQINFO %] \
-    [% opt.ANNOTATE_FREQDB %] \
+    -name [% opt.ANNOTATE_FREQ_NAME %]_ \
+    -info [% opt.ANNOTATE_FREQ_INFO %] \
+    [% opt.ANNOTATE_FREQ_DB %] \
     "[% input_vcf %]" \
     > "[% output_vcf %]"
 
-[% opt.IGVTOOLS_PATH %]/igvtools index "[% output_vcf %]"
-rm igv.log
-
-if [ -s "[% output_vcf %]" ]
-then
-    rm "[% input_vcf %]" "[% input_vcf %].idx"
-fi
+rm "[% input_vcf %]" "[% input_vcf %].idx"
 
 [%- input_vcf = output_vcf %]
 finish_step
@@ -117,4 +96,9 @@ finish_step
 assert_last_position_unchanged "[% pre_annotated_vcf %]" "[% output_vcf %]"
 mv "[% output_vcf %]" "[% final_vcf %]"
 mv "[% output_vcf %].idx" "[% final_vcf %].idx"
+
+## KODU: Do a final zip and tabix
+
+[% opt.TABIX_PATH %]/bgzip -f "[% final_vcf %]"
+[% opt.TABIX_PATH %]/tabix -p vcf "[% final_vcf %].gz"
 success

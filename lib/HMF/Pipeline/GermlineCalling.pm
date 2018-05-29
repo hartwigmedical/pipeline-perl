@@ -6,7 +6,7 @@ use discipline;
 use File::Basename;
 use File::Spec::Functions;
 
-use HMF::Pipeline::Functions::Config qw(createDirs refSampleBamAndJobs recordAllSampleJob);
+use HMF::Pipeline::Functions::Config qw(createDirs refSampleBamAndJobs);
 use HMF::Pipeline::Functions::Sge qw(jobNative qsubJava);
 use HMF::Pipeline::Functions::Job qw(fromTemplate);
 use HMF::Pipeline::Functions::Metadata qw(linkArtefact linkVcfArtefacts);
@@ -34,13 +34,12 @@ sub runCaller {
     my ($ref_sample, $ref_sample_bam, $running_jobs) = refSampleBamAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR}, gvcf => "gvcf");
 
-    my $final_vcf = catfile($dirs->{out}, "$opt->{RUN_NAME}.raw_variants.vcf");
+    my $calling_vcf = catfile($dirs->{out}, "$opt->{RUN_NAME}.raw_variants.vcf");
     my $final_gvcf = catfile($dirs->{gvcf}, $ref_sample . ".g.vcf.gz");
     my $ref_sample_bam_name = fileparse($ref_sample_bam);
     (my $tmp_scala_gvcf = $ref_sample_bam_name) =~ s/\.bam/\.g\.vcf\.gz/;
 
-    $opt->{GERMLINE_VCF_FILE} = $final_vcf;
-    $opt->{GERMLINE_GVCF_FILE} = $final_gvcf;
+    $opt->{GERMLINE_VCF_FILE} = $calling_vcf;
 
     my $job_id = fromTemplate(
         "GermlineCalling",
@@ -51,14 +50,14 @@ sub runCaller {
         $dirs,
         $opt,
         ref_sample_bam => $ref_sample_bam,
-        final_vcf => $final_vcf,
+        final_vcf => $calling_vcf,
         final_gvcf => $final_gvcf,
         tmp_scala_gvcf => $tmp_scala_gvcf,
         job_native => jobNative($opt, "GERMLINE_CALLING"),
     );
-    return unless $job_id;
 
-    recordAllSampleJob($opt, $job_id);
+    push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
+
     return;
 }
 
@@ -68,7 +67,7 @@ sub runFiltering {
     my (undef, undef, $running_jobs) = refSampleBamAndJobs($opt);
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
-    my $germline_vcf_path = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
+    my $filtered_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.filtered_variants.vcf");
     my $job_id = fromTemplate(
         "GermlineFiltering",
         undef,
@@ -78,16 +77,16 @@ sub runFiltering {
         $dirs,
         $opt,
         input_vcf => $opt->{GERMLINE_VCF_FILE},
-        final_vcf => $germline_vcf_path,
+        final_vcf => $filtered_vcf,
         snp_config => snpConfig($opt),
         indel_config => indelConfig($opt),
         job_native => jobNative($opt, "GERMLINE_FILTER"),
     );
 
-    $opt->{GERMLINE_VCF_FILE} = $germline_vcf_path;
-    return unless $job_id;
+    $opt->{GERMLINE_VCF_FILE} = $filtered_vcf;
 
-    recordAllSampleJob($opt, $job_id);
+    push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
+
     return;
 }
 
@@ -110,11 +109,10 @@ sub runAnnotation {
         final_vcf => $annotated_vcf,
     );
 
-    $opt->{GERMLINE_VCF_FILE} = $annotated_vcf;
-    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id;
-    return unless $job_id;
+    $opt->{GERMLINE_VCF_FILE} = catfile($annotated_vcf, ".gz");
 
-    recordAllSampleJob($opt, $job_id);
+    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
+
     return;
 }
 

@@ -12,8 +12,6 @@ bgzip=[% opt.TABIX_PATH %]/bgzip
 
 MAPPABILITY_BED="[% opt.MAPPABILITY_BED %]"
 MAPPABILITY_HDR="[% opt.MAPPABILITY_HDR %]"
-DBSNP_VCF="[% opt.DBSNP_VCF %]"
-ANNOTATE_IDDB="[% opt.ANNOTATE_IDDB %]"
 GERMLINE_PON="[% opt.HMF_GERMLINE_PON %]"
 SOMATIC_PON="[% opt.HMF_SOMATIC_PON %]"
 TMP_STRING="tmpFileToBeDeleted"
@@ -75,9 +73,9 @@ echo "[INFO] Annotating with snpEff - $(date)"
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
-    -c "[% opt.SNPEFF_PATH %]/snpEff.config" "[% opt.ANNOTATE_DB %]" \
+    -c "[% opt.SNPEFF_PATH %]/snpEff.config" "[% opt.ANNOTATE_SNPEFF_DB %]" \
     -v "$input_vcf" \
-    [% opt.ANNOTATE_FLAGS %] \
+    [% opt.ANNOTATE_SNPEFF_FLAGS %] \
     > "$output_vcf"
 
 assert_last_position_unchanged "$input_vcf" "$output_vcf"
@@ -91,16 +89,16 @@ output_vcf="${basefile}_${TMP_STRING}.dbsnp.vcf.gz"
 
 ## =====
 echo "[INFO] Annotating DBSNP - $(date)"
-${bcftools} annotate -a ${DBSNP_VCF} -c ID -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
+${bcftools} annotate -a [% opt.DBSNP_DB %] -c ID -o ${output_vcf} -O z ${input_vcf}
+${tabix} -p vcf ${output_vcf}
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.[% opt.ANNOTATE_IDNAME %].vcf.gz"
+output_vcf="${basefile}_${TMP_STRING}.[% opt.ANNOTATE_COSMIC_ID %].vcf.gz"
 
 ## =====
 echo "[INFO] Annotating IDDB - $(date)"
-${bcftools} annotate -a ${ANNOTATE_IDDB} -c =ID -o ${output_vcf} -O z ${input_vcf}
+${bcftools} annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o ${output_vcf} -O z ${input_vcf}
 ${tabix} ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"

@@ -13,7 +13,7 @@ use lib "t";
 # bug in Test::Prereq 1.x needs filename for test dependencies
 require "Util.pm"; ## no critic (Modules::RequireBarewordIncludes)
 
-use HMF::Pipeline::Functions::Config qw(parse validate addSamples recordAllSampleJob sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs allRunningJobs);
+use HMF::Pipeline::Functions::Config qw(parse validate addSamples sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs allRunningJobs);
 
 
 ## no critic (Subroutines::ProhibitCallsToUnexportedSubs)
@@ -263,10 +263,12 @@ $opt = {
         c => "c.bam",
     },
 };
-recordAllSampleJob($opt, "job1");
-is_deeply($opt->{RUNNING_JOBS}, {a => ["job1"], b => ["job1"]}, "records a job for all samples");
-recordAllSampleJob($opt, "job2");
-is_deeply($opt->{RUNNING_JOBS}, {a => [ "job1", "job2" ], b => [ "job1", "job2" ]}, "records another job for all samples");
+
+push @{$opt->{RUNNING_JOBS}->{a}}, "job1";
+push @{$opt->{RUNNING_JOBS}->{b}}, "job1";
+
+push @{$opt->{RUNNING_JOBS}->{a}}, "job2";
+push @{$opt->{RUNNING_JOBS}->{b}}, "job2";
 
 push @{$opt->{RUNNING_JOBS}->{a}}, "joba";
 push @{$opt->{RUNNING_JOBS}->{b}}, "jobb";

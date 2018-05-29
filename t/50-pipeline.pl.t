@@ -27,12 +27,12 @@ sub setupTestConfig {
     ok($test->read($config, $config_file), "read original $config_file") or diag $test->stderr;
 
     my @fake_file_keys = qw(
-        ANNOTATE_DBNSFP
-        ANNOTATE_FREQDB
-        ANNOTATE_IDDB
+        ANNOTATE_DBNSFP_DB
+        ANNOTATE_FREQ_DB
+        ANNOTATE_COSMIC_DB
+        DBSNP_DB
         REALIGNMENT_KNOWN
         BASERECALIBRATION_KNOWN
-        DBSNP_VCF
         MAPPABILITY_BED
         MAPPABILITY_HDR
         HIGH_CONFIDENCE_BED

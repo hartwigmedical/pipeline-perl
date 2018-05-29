@@ -27,8 +27,8 @@ java -Xmx[% opt.GERMLINE_CALLING_MASTER_MEM %]G \
     -nsc [% opt.GERMLINE_CALLING_SCATTER %] \
     -stand_call_conf [% opt.GERMLINE_CALLING_STANDCALLCONF %] \
     -I [% ref_sample_bam %] \
-    [%- IF opt.exists('DBSNP_VCF') %]
-    -D [% opt.DBSNP_VCF %] \
+    [%- IF opt.exists('DBSNP_DB') %]
+    -D [% opt.DBSNP_DB %] \
     [%- END %]
     -run
 
