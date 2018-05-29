@@ -33,7 +33,6 @@ sub run {
 sub runCobalt {
     my ($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt) = @_;
 
-    say "\n### SCHEDULING COBALT ###";
     my $job_id = fromTemplate(
         "Cobalt",
         undef,
