@@ -19,9 +19,9 @@ sub run {
 
     say "\n### SCHEDULING GERMLINE CALLING ###";
 
-    runCaller($opt);
-    runFiltering($opt);
-    runAnnotation($opt);
+    my $caller_job_id = runCaller($opt);
+    my $filter_job_id = runFiltering($opt, $caller_job_id);
+    runAnnotation($opt, $filter_job_id);
 
     HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($opt->{GERMLINE_VCF_FILE}, "germline", $opt);
 
@@ -58,11 +58,11 @@ sub runCaller {
 
     push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
 
-    return;
+    return $job_id;
 }
 
 sub runFiltering {
-    my ($opt) = @_;
+    my ($opt, $caller_job_id) = @_;
 
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
@@ -72,7 +72,7 @@ sub runFiltering {
         undef,
         1,
         qsubJava($opt, "GERMLINE_FILTER_MASTER"),
-        $opt->{RUNNING_JOBS}->{germline},
+        [$caller_job_id],
         $dirs,
         $opt,
         input_vcf => $opt->{GERMLINE_VCF_FILE},
@@ -86,11 +86,11 @@ sub runFiltering {
 
     push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
 
-    return;
+    return $job_id;
 }
 
 sub runAnnotation {
-    my ($opt) = @_;
+    my ($opt, $filter_job_id) = @_;
 
     my $dirs = createDirs($opt->{OUTPUT_DIR});
 
@@ -100,7 +100,7 @@ sub runAnnotation {
         undef,
         1,
         qsubJava($opt, "ANNOTATE"),
-        $opt->{RUNNING_JOBS}->{germline},
+        [$filter_job_id],
         $dirs,
         $opt,
         input_vcf => $opt->{GERMLINE_VCF_FILE},
