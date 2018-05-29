@@ -23,7 +23,7 @@ sub run {
     my ($filter_job_id, $filtered_vcf) = runFiltering($opt, $caller_job_id, $caller_vcf);
     my $annotated_vcf = runAnnotation($opt, $filter_job_id, $filtered_vcf);
 
-    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($annotated_vcf, "germline", $opt);
+    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($annotated_vcf, "germline_variant", $opt);
 
     return;
 }

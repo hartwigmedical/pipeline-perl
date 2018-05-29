@@ -89,7 +89,7 @@ sub runBreakpointInspector {
     );
 
     $opt->{BPI_VCF_FILE} = join "", $opt->{BPI_VCF_FILE}, ".gz";
-    linkVcfArtefacts($opt->{BPI_VCF_FILE}, 'somatic_sv', $opt);
+    linkVcfArtefacts($opt->{BPI_VCF_FILE}, 'structural_variant', $opt);
 
     return $job_id;
 }

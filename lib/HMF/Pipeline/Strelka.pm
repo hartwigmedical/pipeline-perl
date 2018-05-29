@@ -120,7 +120,7 @@ sub postProcessStrelka {
         joint_name => $joint_name,
     );
 
-    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "somatic", $opt) if $job_id;
+    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "somatic_variant", $opt) if $job_id;
 
     return $job_id;
 }
