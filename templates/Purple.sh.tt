@@ -14,6 +14,4 @@ java -Xmx[% opt.PURPLE_MEM %]G \
     -output_dir [% dirs.purple %] \
     -run_dir [% opt.OUTPUT_DIR %]
 
-rm -f [% dirs.purple %]/*.pcf1
-
 success
