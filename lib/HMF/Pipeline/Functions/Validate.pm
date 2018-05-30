@@ -431,13 +431,6 @@ sub configChecks {
                 ),
             }
         ),
-        FINALIZE => if_enabled({
-                FINALIZE_QUEUE => \&key_not_present,
-                FINALIZE_THREADS => \&key_not_present,
-                FINALIZE_MEM => \&key_not_present,
-                FINALIZE_TIME => \&key_not_present,
-            }
-        ),
         HEALTHCHECK => if_enabled({
                 HEALTHCHECK_QUEUE => \&key_not_present,
                 HEALTHCHECK_THREADS => \&key_not_present,
@@ -445,6 +438,10 @@ sub configChecks {
                 HEALTHCHECK_TIME => \&key_not_present,
             }
         ),
+        FINALIZE_THREADS => \&key_not_present,
+        FINALIZE_QUEUE => \&key_not_present,
+        FINALIZE_MEM => \&key_not_present,
+        FINALIZE_TIME => \&key_not_present,
     };
 }
 

@@ -15,13 +15,12 @@ use HMF::Pipeline::DamageEstimate;
 use HMF::Pipeline::PostStats;
 use HMF::Pipeline::Amber;
 use HMF::Pipeline::Cobalt;
-use HMF::Pipeline::Finalize;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::Strelka;
 use HMF::Pipeline::StructuralVariants;
 use HMF::Pipeline::Purple;
-use HMF::Pipeline::PipelineCheck;
 use HMF::Pipeline::HealthCheck;
+use HMF::Pipeline::Finalize;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
@@ -53,9 +52,8 @@ sub run {
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{STRUCTURAL_VARIANT_CALLING} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
 
-        HMF::Pipeline::PipelineCheck::run($opt);
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
-        HMF::Pipeline::Finalize::run($opt) if $opt->{FINALIZE} eq "yes";
+        HMF::Pipeline::Finalize::run($opt);
 
         HMF::Pipeline::Functions::Metadata::writeLinks($opt);
     }
