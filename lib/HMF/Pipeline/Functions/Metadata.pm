@@ -41,7 +41,7 @@ sub writeJson {
     my ($path, $data) = @_;
     open my $json_fh, ">:encoding(UTF-8)", $path or confess "Can't open $path: $!";
     if ($data) {
-        my $json = to_json($data, { utf8 => 1, pretty => 1, canonical => 1 });
+        my $json = to_json($data, {utf8 => 1, pretty => 1, canonical => 1});
         print $json_fh $json;
     } else {
         print $json_fh "{/n}";
