@@ -44,7 +44,7 @@ sub writeJson {
         my $json = to_json($data, {utf8 => 1, pretty => 1, canonical => 1});
         print $json_fh $json;
     } else {
-        print $json_fh "{/n}";
+        print $json_fh "{\n}";
     }
     close $json_fh;
     return;
