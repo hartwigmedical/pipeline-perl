@@ -38,11 +38,13 @@ sub run {
 
     my $circos_path = "${sub_dir}/plot/${tumor_sample}.circos.png";
     my $purple_cnv = "${sub_dir}/${tumor_sample}.purple.cnv";
+    my $purple_gene_cnv = "${sub_dir}/${tumor_sample}.purple.gene.cnv";
     my $purple_germline_cnv = "${sub_dir}/${tumor_sample}.purple.germline.cnv";
     my $purple_purity = "${sub_dir}/${tumor_sample}.purple.purity";
 
     linkArtefact($circos_path, 'circos_plot', $opt);
     linkArtefact($purple_cnv, 'purple_cnv', $opt);
+    linkArtefact($purple_gene_cnv, 'purple_gene_cnv', $opt);
     linkArtefact($purple_germline_cnv, 'purple_germline_cnv', $opt);
     linkArtefact($purple_purity, 'purple_purity', $opt);
 

@@ -39,6 +39,9 @@ sub run {
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
 
+    my $baf_path = "${sub_dir}/${tumor_sample}.amber.baf";
+    linkArtefact($baf_path, 'amber_baf', $opt);
+
     return;
 }
 
