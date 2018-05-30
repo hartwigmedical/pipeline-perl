@@ -112,7 +112,7 @@ sub markDone {
 sub checkDoneFile {
     my ($name, $step, $is_reported_job, $dirs, $opt) = @_;
 
-    # need suffix to prevent hash clashes below, can use fullname() when removing backwards-compatibility
+    # SABR: need suffix to prevent hash clashes below, can use fullname() when removing backwards-compatibility
     my $suffix = "";
     $suffix = "_${step}" if $step;
 
@@ -125,12 +125,6 @@ sub checkDoneFile {
 
     #<<< no perltidy
     my %old_done_files = (
-        "Freec.done" => [
-            catfile($dirs->{log}, "freec.done"),
-        ],
-        "QDNAseq.done" => [
-            catfile($dirs->{log}, "qdnaseq.done"),
-        ],
         "Strelka.done" => [
             catfile($dirs->{log}, "strelka.done"),
         ],
