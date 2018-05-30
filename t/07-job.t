@@ -52,8 +52,6 @@ foreach my $is_reported (0, 1) {
 SKIP: {
         skip "case-insensitive filesystem (macOS) always matches some names", 6 if case_tolerant();
 
-        testDoneFile("Freec", undef, "freec.done", $is_reported, 1);
-        testDoneFile("QDNAseq", undef, "qdnaseq.done", $is_reported, 1);
         testDoneFile("Strelka", undef, "strelka.done", $is_reported, 1);
     }
 
