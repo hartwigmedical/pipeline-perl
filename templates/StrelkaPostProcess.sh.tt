@@ -6,57 +6,53 @@
 
 cd "[% dirs.out %]"
 
-bcftools=[% opt.BCFTOOLS_PATH %]/bcftools
-tabix=[% opt.TABIX_PATH %]/tabix
-bgzip=[% opt.TABIX_PATH %]/bgzip
-
-MAPPABILITY_BED="[% opt.MAPPABILITY_BED %]"
-MAPPABILITY_HDR="[% opt.MAPPABILITY_HDR %]"
-GERMLINE_PON="[% opt.HMF_GERMLINE_PON %]"
-SOMATIC_PON="[% opt.HMF_SOMATIC_PON %]"
-TMP_STRING="tmpFileToBeDeleted"
-
 basefile=[% dirs.out %]/[% joint_name %]
+tmp_file_suffix="tmpFileToBeDeleted"
 tumor_bam="[% tumor_bam_path %]"
 input_vcf="[% strelka_vcf %]"
 
-assert_not_empty "$input_vcf"
-assert_not_empty "$tumor_bam"
+assert_not_empty "${input_vcf}"
+assert_not_empty "${tumor_bam}"
 
-## =====
-output_vcf="${basefile}_${TMP_STRING}.mappability.vcf.gz"
-
-## =====
+## ===== MAPPABILITY ANNOTATION
 echo "[INFO] Annotating Mappability - $(date)"
-${bcftools} annotate -a ${MAPPABILITY_BED} -h ${MAPPABILITY_HDR} -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
+
+output_vcf="${basefile}_${tmp_file_suffix}.mappability.vcf.gz"
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a "[% opt.MAPPABILITY_BED %]" -h "[% opt.MAPPABILITY_HDR %]" -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
+[% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.germlinepon.vcf.gz"
 
-## =====
+## ===== GERMLINE PON ANNOTATION
 echo "[INFO] Annotating Germline PON - $(date)"
-${bcftools} annotate -a ${GERMLINE_PON} -c GERMLINE_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
+
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}.germlinepon.vcf.gz"
+
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a "[% opt.HMF_GERMLINE_PON %]" -c GERMLINE_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
+[% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}".sompon.vcf.gz
 
-## =====
+## ===== SOMATIC PON ANNOTATION
 echo "[INFO] Annotating Somatic PON - $(date)"
-${bcftools} annotate -a ${SOMATIC_PON} -c SOMATIC_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
+
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}".sompon.vcf.gz
+
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a "[% opt.HMF_SOMATIC_PON %]" -c SOMATIC_PON_COUNT -o ${output_vcf} -O z ${input_vcf}
+[% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}".filtered.vcf.gz
- 
-## =====
+
+## ===== STRELKA POST PROCESS
 echo "[INFO] Running hmftool strelka-post-process - $(date)"
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}".filtered.vcf.gz
+
 input_vcf_uncompressed="${input_vcf%.*}"
 gunzip -c ${input_vcf} > ${input_vcf_uncompressed}
+
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
     -v "$input_vcf_uncompressed" \
@@ -65,11 +61,12 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -o "$output_vcf" \
     -b $tumor_bam
 
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.snpEff.vcf"
-
-## =====
+## ===== SNPEFF ANNOTATION
 echo "[INFO] Annotating with snpEff - $(date)"
+
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}.snpEff.vcf"
+
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar "[% opt.SNPEFF_PATH %]/snpEff.jar" \
@@ -80,44 +77,52 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
 
 assert_last_position_unchanged "$input_vcf" "$output_vcf"
 
-## =====
-echo "[INFO] Bgzip and index vcf - $(date)"
-${bgzip} -f ${output_vcf}
+## ===== ZIP AND TABIX INDEX
+echo "[INFO] Bgzip and create tabix index - $(date)"
+[% opt.TABIX_PATH %]/bgzip -f ${output_vcf}
 input_vcf=${output_vcf}.gz
-${tabix} -p vcf ${input_vcf}
-output_vcf="${basefile}_${TMP_STRING}.dbsnp.vcf.gz"
 
-## =====
+[% opt.TABIX_PATH %]/tabix -p vcf ${input_vcf}
+
+## ===== DBSNP ANNOTATION
 echo "[INFO] Annotating DBSNP - $(date)"
-${bcftools} annotate -a [% opt.DBSNP_DB %] -c ID -o ${output_vcf} -O z ${input_vcf}
-${tabix} -p vcf ${output_vcf}
+
+output_vcf="${basefile}_${tmp_file_suffix}.dbsnp.vcf.gz"
+
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.DBSNP_DB %] -c ID -o ${output_vcf} -O z ${input_vcf}
+[% opt.TABIX_PATH %]/tabix -p vcf ${output_vcf}
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.[% opt.ANNOTATE_COSMIC_ID %].vcf.gz"
 
-## =====
-echo "[INFO] Annotating IDDB - $(date)"
-${bcftools} annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o ${output_vcf} -O z ${input_vcf}
-${tabix} ${output_vcf} -p vcf
+## ===== COSMIC ANNOTATION
+echo "[INFO] Annotating COSMIC - $(date)"
+
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}.[% opt.ANNOTATE_COSMIC_ID %].vcf.gz"
+
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o ${output_vcf} -O z ${input_vcf}
+[% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
-input_vcf="$output_vcf"
-output_vcf="${basefile}_${TMP_STRING}.pon.vcf.gz"
 
-## =====
+## ===== APPLICATION OF PON FILTERING
 echo "[INFO] Applying PON Filters - $(date)"
-${bcftools} filter -e 'GERMLINE_PON_COUNT!="." && MIN(GERMLINE_PON_COUNT) > 5' -s GERMLINE_PON -m+ ${input_vcf} -O u | \
-${bcftools} filter -e 'SOMATIC_PON_COUNT!="." && MIN(SOMATIC_PON_COUNT) > 3' -s SOMATIC_PON -m+ -O z -o ${output_vcf}
-${tabix} -p vcf ${output_vcf}
+
+input_vcf="$output_vcf"
+output_vcf="${basefile}_${tmp_file_suffix}.pon.vcf.gz"
+
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e 'GERMLINE_PON_COUNT!="." && MIN(GERMLINE_PON_COUNT) > 5' -s GERMLINE_PON -m+ ${input_vcf} -O u | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e 'SOMATIC_PON_COUNT!="." && MIN(SOMATIC_PON_COUNT) > 3' -s SOMATIC_PON -m+ -O z -o ${output_vcf}
+[% opt.TABIX_PATH %]/tabix -p vcf ${output_vcf}
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
 
-## =====
+## ===== FINAL CLEAN UP
 echo "[INFO] Renaming to final and cleanup - $(date)"
 mv "$output_vcf" "[% final_vcf %]"
 mv "$output_vcf.tbi" "[% final_vcf %].tbi"
-rm ./*${TMP_STRING}*
+
+rm ./*${tmp_file_suffix}*
 
 echo "[INFO] Cleaning up recalibrated bams - $(date)"
 [% FOREACH sample IN opt.SAMPLES.keys -%]
