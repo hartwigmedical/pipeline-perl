@@ -19,9 +19,11 @@ java -Xmx[% opt.BPI_MEM %]G \
 
 assert_not_empty "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
 
-## KODU: Do a final zip and tabix
+## KODU: Do a final zip and tabix, and remove the initial index.
 
 [% opt.TABIX_PATH %]/bgzip -f "[% opt.BPI_VCF_FILE %]"
 [% opt.TABIX_PATH %]/tabix -p vcf "[% opt.BPI_VCF_FILE %].gz"
+
+rm "[% opt.BPI_VCF_FILE %]".idx
 
 success
