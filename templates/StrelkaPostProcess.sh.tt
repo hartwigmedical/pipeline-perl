@@ -55,7 +55,7 @@ gunzip -c ${input_vcf} > ${input_vcf_uncompressed}
 
 java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -jar "[% opt.STRELKA_POST_PROCESS_PATH %]/strelka-post-process.jar" \
-    -v "$input_vcf_uncompressed" \
+    -v "$input_vcf" \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
     -t "[% tumor_sample %]" \
     -o "$output_vcf" \
