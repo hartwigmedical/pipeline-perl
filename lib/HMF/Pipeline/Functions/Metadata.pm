@@ -39,12 +39,16 @@ sub readJson {
 
 sub writeJson {
     my ($path, $data) = @_;
-
-    my $json = to_json($data, {utf8 => 1, pretty => 1, canonical => 1});
     open my $json_fh, ">:encoding(UTF-8)", $path or confess "Can't open $path: $!";
-    print $json_fh $json;
+    if ($data) {
+        my $json = to_json($data, { utf8 => 1, pretty => 1, canonical => 1 });
+        print $json_fh $json;
+    } else {
+        print $json_fh "{/n}";
+    }
     close $json_fh;
     return;
+
 }
 
 sub parse {
