@@ -6,7 +6,7 @@ use discipline;
 use File::Spec::Functions;
 use Sort::Key::Natural qw(mkkey_natural);
 
-use HMF::Pipeline::Functions::Config qw(createDirs sampleBamAndJobs sampleBamsAndJobs sampleControlBamsAndJobs);
+use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile);
 use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
 use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
@@ -24,17 +24,45 @@ sub run {
         my $manta_jobs = runManta($opt);
         push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$manta_jobs};
     }
+
+    #    if ($opt->{GRIDSS} eq "yes") {
+    #        my $gridss_jobs = runGridss($opt);
+    #        push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+    #    }
+
     return;
 }
+
+#sub runGridss {
+#    my ($opt) = @_;
+#
+#    say "\n### SCHEDULING GRIDSS ###";
+#
+#    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+#    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
+#
+#    my $job_id = fromTemplate(
+#        "Gridss",
+#        undef,
+#        1,
+#        qsubTemplate($opt, "GRIDSS"),
+#        $running_jobs,
+#        $dirs,
+#        $opt,
+#        sample_bam => $sample_bam,
+#        control_bam => $control_bam,
+#        joint_name => $joint_name,
+#    );
+#}
 
 sub runManta {
     my ($opt) = @_;
 
     say "\n### SCHEDULING MANTA ###";
 
-    my @manta_jobs;
     my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
 
+    my @manta_jobs;
     my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
     push @manta_jobs, $job_id;
 
