@@ -97,7 +97,7 @@ echo "[INFO] Annotating COSMIC - $(date)"
 input_vcf="$output_vcf"
 output_vcf="${basefile}_${tmp_file_suffix}.[% opt.ANNOTATE_COSMIC_ID %].vcf.gz"
 
-[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o ${output_vcf} -O z ${input_vcf}
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID,INFO -o ${output_vcf} -O z ${input_vcf}
 [% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
 
 assert_no_genomic_positions_lost "$input_vcf" "$output_vcf"
