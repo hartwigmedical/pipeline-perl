@@ -11,7 +11,8 @@ java -Xmx[% opt.AMBER_MEM %]G \
     -tumor "[% tumor_bam_path %].amber.pileup" \
     -output_dir "[% dirs.amber %]"
 
-rm "[% ref_bam_path %].amber.pileup"
-rm "[% tumor_bam_path %].amber.pileup"
-rm "[% dirs.amber %]/*.pcf1"
+rm "[% ref_bam_path %]".amber.pileup
+rm "[% tumor_bam_path %]".amber.pileup
+rm "[% dirs.amber %]"/*.pcf1
+
 success

@@ -14,6 +14,6 @@ java -Xmx[% opt.COBALT_MEM %]G \
     -output_dir "[% dirs.cobalt %]" \
     -gc_profile "[% opt.GC_PROFILE %]" \
 
-rm "[% dirs.cobalt %]/*.pcf1"
+rm "[% dirs.cobalt %]"/*.pcf1
 
 success
