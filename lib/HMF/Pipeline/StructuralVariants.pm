@@ -49,9 +49,6 @@ sub runGridss {
         runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $running_jobs, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
-    say $ref_sv_bam;
-    say $tumor_sv_bam;
-
     return \@gridss_jobs;
 }
 
