@@ -29,13 +29,14 @@ sub run {
     # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
     $opt->{SOMVAR_VCF_FILE} = $final_vcf;
 
+    my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
+
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
     $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
 
     say "\nRunning somatic calling on:";
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
-    my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
     my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;

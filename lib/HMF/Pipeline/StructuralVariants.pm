@@ -25,35 +25,56 @@ sub run {
         push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$manta_jobs};
     }
 
-    #    if ($opt->{GRIDSS} eq "yes") {
-    #        my $gridss_jobs = runGridss($opt);
-    #        push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
-    #    }
+    if ($opt->{GRIDSS} eq "yes") {
+        my $gridss_jobs = runGridss($opt);
+        push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+    }
 
     return;
 }
 
-#sub runGridss {
-#    my ($opt) = @_;
-#
-#    say "\n### SCHEDULING GRIDSS ###";
-#
-#    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-#    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
-#
-#    my $job_id = fromTemplate(
-#        "Gridss",
-#        undef,
-#        1,
-#        qsubTemplate($opt, "GRIDSS"),
-#        $running_jobs,
-#        $dirs,
-#        $opt,
-#        sample_bam => $sample_bam,
-#        control_bam => $control_bam,
-#        joint_name => $joint_name,
-#    );
-#}
+sub runGridss {
+    my ($opt) = @_;
+
+    say "\n### SCHEDULING GRIDSS ###";
+
+    my @gridss_jobs;
+    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
+
+    my ($ref_pre_process_job_id, $ref_sv_bam) =
+        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $running_jobs, $opt);
+    push @gridss_jobs, $ref_pre_process_job_id;
+    my ($tumor_pre_process_job_id, $tumor_sv_bam) =
+        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $running_jobs, $opt);
+    push @gridss_jobs, $tumor_pre_process_job_id;
+
+    say $ref_sv_bam;
+    say $tumor_sv_bam;
+
+    return \@gridss_jobs;
+}
+
+sub runGridssPreProcess {
+    my ($dirs, $sample, $sample_bam, $insert_size_metrics, $dependent_jobs, $opt) = @_;
+    my $sv_bam = catfile($dirs->{out}, join "", $sample, ".sv.bam");
+
+    my $job_id = fromTemplate(
+        "GridssPreProcess",
+        undef,
+        0,
+        qsubTemplate($opt, "GRIDSS"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        sample => $sample,
+        sample_bam => $sample_bam,
+        insert_size_metrics => $insert_size_metrics,
+        pre_process_bam => $sv_bam,
+    );
+
+    return ($job_id, $sv_bam);
+}
 
 sub runManta {
     my ($opt) = @_;

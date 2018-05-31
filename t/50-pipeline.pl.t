@@ -51,6 +51,7 @@ sub setupTestConfig {
         FASTQC_PATH
         GATK_PATH
         MANTA_PATH
+        GRIDSS_PATH
         PICARD_PATH
         AMBER_PATH
         COBALT_PATH
@@ -93,8 +94,8 @@ sub setupDoneFiles {
         # SABR: Add to this when adding new modules
         catfile("logs", "PostStats.done"),
         catfile("logs", "GermlineCalling.done"),
-        catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "GermlineFiltering.done"),
+        catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "PipelineCheck.done"),
         catfile("logs", "Amber_CPCT12345678R_CPCT12345678T.done"),
         catfile("logs", "Cobalt_CPCT12345678R_CPCT12345678T.done"),
@@ -114,10 +115,8 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "DamageEstimate_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "Realignment_CPCT12345678R.done"),
         catfile("CPCT12345678R", "logs", "BaseRecalibration_CPCT12345678R.done"),
-        catfile("CPCT12345678R", "logs", "Pileup_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "Realignment_CPCT12345678T.done"),
         catfile("CPCT12345678T", "logs", "BaseRecalibration_CPCT12345678T.done"),
-        catfile("CPCT12345678T", "logs", "Pileup_CPCT12345678T.done"),
         catfile("CPCT12345678R", "logs", "BamPrep_CPCT12345678R.done"),
         catfile("CPCT12345678T", "logs", "BamPrep_CPCT12345678T.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
@@ -125,6 +124,7 @@ sub setupDoneFiles {
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
+        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess.done"),
         catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
     );
     make_path(
@@ -185,7 +185,8 @@ _METADATA_
         my $test_job = Test::Cmd->new(prog => "/usr/bin/env", workdir => "");
         $test_job->run(args => "bash -n $job");
         is($?, 0, "$test_description $job_script job has valid bash syntax") or diag $test_job->stderr;
-        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117 $job");
+        # KODU: SC2034,SC2036 ignored since GRIDSS taken parameters as input that violate SC2034 and SC2036
+        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
         if (not $done_files or $job_name =~ /^Finalize_/) {

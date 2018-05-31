@@ -429,6 +429,16 @@ sub configChecks {
                         TABIX_PATH => \&missing_directory,
                     }
                 ),
+                GRIDSS => if_enabled({
+                        GRIDSS_PATH => \&missing_directory,
+                        GRIDSS_QUEUE => \&key_not_present,
+                        GRIDSS_THREADS => \&key_not_present,
+                        GRIDSS_MEM => \&key_not_present,
+                        GRIDSS_TIME => \&key_not_present,
+
+                        GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
+                    }
+                ),
             }
         ),
         HEALTHCHECK => if_enabled({
