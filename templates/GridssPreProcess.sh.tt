@@ -60,7 +60,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
 
 echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% sample %] - $(date)"
 
-java -Xmx[% opt.GRIDSS_MEM %]Gs ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     -Dgridss.output_to_temp_file=true \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %] \
