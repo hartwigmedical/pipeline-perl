@@ -40,9 +40,6 @@ sub run {
     $opt->{REF_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $ref_sample_name, join "", $ref_sample_name, $suffix);
     $opt->{TUMOR_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $tumor_sample_name, join "", $tumor_sample_name, $suffix);
 
-    say join "", "\nRef insert size: ", $opt->{REF_INSERT_SIZE_METRICS};
-    say join "", "\nTumor insert size: ", $opt->{TUMOR_INSERT_SIZE_METRICS};
-
     my $done_file = checkReportedDoneFile("PostStats", undef, $dirs, $opt) or return;
 
     my $qsub = qsubTemplate($opt, "POSTSTATS");
