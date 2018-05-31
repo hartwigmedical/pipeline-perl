@@ -4,16 +4,11 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GridssPreProcess" main_step=sample log_name="GridssPreProcess_${sample}.log" %]
 
-jvm_args="
-    -ea
-    -Dsamjdk.create_index=true
-    -Dsamjdk.use_async_io_read_samtools=true
-    -Dsamjdk.use_async_io_write_samtools=true
-    -Dsamjdk.use_async_io_write_tribble=true"
+jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true"
 echo "[INFO] Running GRIDSS CollectGridssMetricsAndExtractSVReads for [% sample %] - $(date)"
 
 extract_tmp_bam=[% dirs.tmp %]/gridss.tmp.querysorted.[% sample %].sv.bam
-java -Xmx[% opt.GRIDSS_MEM %]G "${jvm_args}" -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.CollectGridssMetricsAndExtractSVReads \
     TMP_DIR= [% dirs.tmp %]\
     ASSUME_SORTED=true \
@@ -41,7 +36,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G "${jvm_args}" -cp "[% opt.GRIDSS_PATH %]/gridss.j
 echo "[INFO] Running GRIDSS ComputeSamTags for [% sample %] - $(date)"
 
 tag_tmp_bam=[% dirs.tmp %]/gridss.tmp.withtags.[% sample %].sv.bam
-java -Xmx[% opt.GRIDSS_MEM %] "${jvm_args}" -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_MEM %] ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.ComputeSamTags \
     TMP_DIR=[% dirs.tmp %]
     WORKING_DIR=[% dirs.out %]
@@ -65,7 +60,7 @@ java -Xmx[% opt.GRIDSS_MEM %] "${jvm_args}" -cp "[% opt.GRIDSS_PATH %]/gridss.ja
 
 echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% sample %] - $(date)"
 
-java -Xmx[% opt.GRIDSS_MEM %] "${jvm_args}" -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_MEM %] ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     -Dgridss.output_to_temp_file=true \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %]

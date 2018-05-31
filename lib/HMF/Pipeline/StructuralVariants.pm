@@ -39,14 +39,15 @@ sub runGridss {
     say "\n### SCHEDULING GRIDSS ###";
 
     my @gridss_jobs;
-    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, undef) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
 
-    my ($ref_pre_process_job_id, $ref_sv_bam) =
-        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $running_jobs, $opt);
+    # KODU: Poststats depends on the BAM creation, so fine to depend on the poststats job.
+    my ($ref_pre_process_job_id, undef) =
+        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $ref_pre_process_job_id;
-    my ($tumor_pre_process_job_id, $tumor_sv_bam) =
-        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $running_jobs, $opt);
+    my ($tumor_pre_process_job_id, undef) =
+        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
     return \@gridss_jobs;

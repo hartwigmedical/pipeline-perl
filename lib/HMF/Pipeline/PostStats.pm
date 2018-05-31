@@ -68,9 +68,9 @@ sub run {
         sample_bams => $all_samples,
         designs => \@designs,
     );
-    my $job_id = markDone($done_file, [ $stats_job_id, $check_job_id ], $dirs, $opt);
+    my $done_job_id = markDone($done_file, [ $stats_job_id, $check_job_id ], $dirs, $opt);
 
-    $opt->{RUNNING_JOBS}->{poststats} = [$job_id];
+    $opt->{RUNNING_JOBS}->{poststats} = [$done_job_id];
 
     return;
 }
