@@ -54,18 +54,11 @@ assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
-java -Xmx[% opt.ANNOTATE_MEM %]G \
-    -Djava.io.tmpdir=[% dirs.tmp %] \
-    -jar [% opt.GATK_PATH %]/GenomeAnalysisTK.jar \
-    -T VariantAnnotator \
-    -nt [% opt.ANNOTATE_THREADS %] \
-    -R [% opt.REF_GENOME %] \
-    -o "[% output_vcf %]" \
-    --variant "[% input_vcf %]" \
-    --dbsnp [% opt.ANNOTATE_COSMIC_DB %] \
-    --alwaysAppendDbsnpId
+[% opt.TABIX_PATH %]/bgzip -f "[% input_vcf %]"
+[% opt.TABIX_PATH %]/tabix -p vcf "[% input_vcf %]"
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o "[% output_vcf %]" -O v "[% input_vcf %],gz"
 
-rm "[% input_vcf %]" "[% input_vcf %].idx"
+rm "[% input_vcf %].gz" "[% input_vcf %].idx"
 
 [%- input_vcf = output_vcf %]
 finish_step
