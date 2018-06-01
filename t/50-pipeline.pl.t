@@ -185,8 +185,8 @@ _METADATA_
         my $test_job = Test::Cmd->new(prog => "/usr/bin/env", workdir => "");
         $test_job->run(args => "bash -n $job");
         is($?, 0, "$test_description $job_script job has valid bash syntax") or diag $test_job->stderr;
-        # KODU: SC2034,SC2036,SC2086 ignored since GRIDSS taken parameters as input that violate SC2034, SC2036 and SC2086
-        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036,SC2086 $job");
+        # KODU: SC2034,SC2036,SC2086,SC2016 ignored for GRIDSS
+        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036,SC2086,SC2016 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
         if (not $done_files or $job_name =~ /^Finalize_/) {

@@ -73,9 +73,9 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     ALIGNER_COMMAND_LINE=[% opt.BWA_PATH %]/bwa \
     ALIGNER_COMMAND_LINE=mem \
     ALIGNER_COMMAND_LINE=-t \
-    ‘ALIGNER_COMMAND_LINE=%3$d’ \
-    ‘ALIGNER_COMMAND_LINE=%2$s’ \
-    ‘ALIGNER_COMMAND_LINE=%1$s’ \
+    'ALIGNER_COMMAND_LINE=%3$d' \
+    'ALIGNER_COMMAND_LINE=%2$s' \
+    'ALIGNER_COMMAND_LINE=%1$s' \
 
 assert_not_empty [% pre_process_bam %]
 
