@@ -4,6 +4,7 @@ use FindBin::libs;
 use discipline;
 
 use File::Spec::Functions;
+use File::Basename;
 use Sort::Key::Natural qw(mkkey_natural);
 
 use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
@@ -41,17 +42,17 @@ sub runGridss {
     say "\n### SCHEDULING GRIDSS ###";
 
     my @gridss_jobs;
-    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, undef) = sampleControlBamsAndJobs($opt);
+    my (undef, undef, $ref_sample_bam, $tumor_sample_bam, $joint_name, undef) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
 
     my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
 
     # KODU: Poststats depends on the BAM creation, so fine to depend on the poststats job.
     my ($ref_pre_process_job_id, undef) =
-        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
+        runGridssPreProcess($dirs, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $ref_pre_process_job_id;
     my ($tumor_pre_process_job_id, undef) =
-        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
+        runGridssPreProcess($dirs, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
     my $done_job_id = markDone($done_file, [ $ref_pre_process_job_id, $tumor_pre_process_job_id ], $dirs, $opt);
@@ -61,8 +62,9 @@ sub runGridss {
 }
 
 sub runGridssPreProcess {
-    my ($dirs, $sample, $sample_bam, $insert_size_metrics, $dependent_jobs, $opt) = @_;
-    my $sv_bam = catfile($dirs->{out}, join "", $sample, ".sv.bam");
+    my ($dirs, $sample_bam, $insert_size_metrics, $dependent_jobs, $opt) = @_;
+    my $working_dir = catfile($dirs->{out}, join "", basename($sample_bam), ".gridss.working");
+    my $pre_process_bam = catfile($working_dir, join "", basename($sample_bam), ".sv.bam");
 
     my $job_id = fromTemplate(
         "GridssPreProcess",
@@ -72,13 +74,14 @@ sub runGridssPreProcess {
         $dependent_jobs,
         $dirs,
         $opt,
-        sample => $sample,
+        sample => basename($sample_bam),
         sample_bam => $sample_bam,
         insert_size_metrics => $insert_size_metrics,
-        pre_process_bam => $sv_bam,
+        working_dir => $working_dir,
+        pre_process_bam => $pre_process_bam,
     );
 
-    return ($job_id, $sv_bam);
+    return ($job_id, $pre_process_bam);
 }
 
 sub runManta {

@@ -5,6 +5,9 @@
 [% INCLUDE Logging.tt job_name="GridssPreProcess" main_step=sample log_name="GridssPreProcess_${sample}.log" %]
 
 jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true"
+
+mkdir -p [% working_dir %]
+
 echo "[INFO] Running GRIDSS CollectGridssMetricsAndExtractSVReads for [% sample %] - $(date)"
 
 extract_tmp_bam=[% dirs.tmp %]/gridss.tmp.querysorted.[% sample %].sv.bam
@@ -13,7 +16,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     TMP_DIR= [% dirs.tmp %]\
     ASSUME_SORTED=true \
     I=[% sample_bam %] \
-    O=[% dirs.out %]/[% sample %] \
+    O=[% working_dir %]/[% sample %] \
     THRESHOLD_COVERAGE=[% opt.GRIDSS_THRESHOLD_COVERAGE %] \
     FILE_EXTENSION=null \
     GRIDSS_PROGRAM=null \
@@ -26,12 +29,12 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     PROGRAM=CollectInsertSizeMetrics \
     SV_OUTPUT=/dev/stdout \
     COMPRESSION_LEVEL=0 \
-    METRICS_OUTPUT=[% dirs.tmp %]/[% sample %].sv_metrics \
+    METRICS_OUTPUT=[% working_dir %]/[% sample %].sv_metrics \
     INSERT_SIZE_METRICS=[% insert_size_metrics %] \
     UNMAPPED_READS=false \
     MIN_CLIP_LENGTH=5 \
     INCLUDE_DUPLICATES=true | \
-        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.out %]/[% sample %].samtools.sort.tmp. -n -l 0 -@ [% opt.GRIDSS_THREADS %] -o ${extract_tmp_bam}
+        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.tmp %]/[% sample %].samtools.sort.tmp. -n -l 0 -@ [% opt.GRIDSS_THREADS %] -o ${extract_tmp_bam}
 
 echo "[INFO] Running GRIDSS ComputeSamTags for [% sample %] - $(date)"
 
