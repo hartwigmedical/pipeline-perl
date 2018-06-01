@@ -42,7 +42,7 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     "[% input_vcf %]" \
     > "[% output_vcf %]"
 
-rm "[% input_vcf %]"
+rm -f "[% input_vcf %]"
 
 [%- input_vcf = output_vcf %]
 finish_step
@@ -52,13 +52,13 @@ start_step "ANNOTATE_COSMIC"
 assert_not_empty "[% input_vcf %]"
 [%- suffix = '_' _ opt.ANNOTATE_COSMIC_ID _ '.vcf' -%]
 [%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
-rm -f "[% output_vcf %]" "[% output_vcf %].idx"
+rm -f "[% output_vcf %]"
 
 [% opt.TABIX_PATH %]/bgzip -f "[% input_vcf %]"
 [% opt.TABIX_PATH %]/tabix -p vcf "[% input_vcf %].gz"
 [% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o "[% output_vcf %]" -O v "[% input_vcf %].gz"
 
-rm "[% input_vcf %].gz"
+rm -f "[% input_vcf %].gz"
 
 [%- input_vcf = output_vcf %]
 finish_step
@@ -81,7 +81,7 @@ java -Xmx[% opt.ANNOTATE_MEM %]G \
     "[% input_vcf %]" \
     > "[% output_vcf %]"
 
-rm "[% input_vcf %]" "[% input_vcf %].idx"
+rm -f "[% input_vcf %]"
 
 [%- input_vcf = output_vcf %]
 finish_step
