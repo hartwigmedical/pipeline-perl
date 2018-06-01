@@ -7,7 +7,7 @@ use File::Spec::Functions;
 use Sort::Key::Natural qw(mkkey_natural);
 
 use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
-use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile);
+use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
 use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
 
@@ -27,7 +27,9 @@ sub run {
 
     if ($opt->{GRIDSS} eq "yes") {
         my $gridss_jobs = runGridss($opt);
-        push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+        if ($gridss_jobs) {
+            push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+        }
     }
 
     return;
@@ -42,6 +44,8 @@ sub runGridss {
     my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, undef) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
 
+    my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
+
     # KODU: Poststats depends on the BAM creation, so fine to depend on the poststats job.
     my ($ref_pre_process_job_id, undef) =
         runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
@@ -49,6 +53,9 @@ sub runGridss {
     my ($tumor_pre_process_job_id, undef) =
         runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
+
+    my $done_job_id = markDone($done_file, [ $ref_pre_process_job_id, $tumor_pre_process_job_id ], $dirs, $opt);
+    push @gridss_jobs, $done_job_id;
 
     return \@gridss_jobs;
 }
@@ -60,7 +67,7 @@ sub runGridssPreProcess {
     my $job_id = fromTemplate(
         "GridssPreProcess",
         undef,
-        0,
+        1,
         qsubTemplate($opt, "GRIDSS"),
         $dependent_jobs,
         $dirs,
