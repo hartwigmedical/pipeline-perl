@@ -95,6 +95,7 @@ sub runGridssAssemble {
 
     my $assembly_bam = catfile($dirs->{out}, $assembly_bam_name);
     my $metrics_output_dir = catfile($dirs->{out}, $working_dir_name);
+    my $metrics_output = catfile($metrics_output_dir, $assembly_bam_name);
     my $sv_bam = catfile($dirs->{out}, $working_dir_name, join "", $assembly_bam_name, ".sv.bam");
 
     my $job_id = fromTemplate(
@@ -110,6 +111,7 @@ sub runGridssAssemble {
         joint_name => $joint_name,
         assembly_bam => $assembly_bam,
         metrics_output_dir => $metrics_output_dir,
+        metrics_output => $metrics_output,
         sv_bam => $sv_bam
     );
 
