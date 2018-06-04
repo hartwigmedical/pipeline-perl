@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssCalling" main_step=joint_name log_name="GridssCalling_${joint_name}.log" %]
+
+echo "[INFO] Running GRIDSS IdentifyVariants for [% joint_name %] - $(date)"
+
+jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true"
+
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.IdentifyVariants \
+    TMP_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.tmp %] \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    INPUT=[% ref_sample_bam %] \
+    INPUT=[% tumor_sample_bam %] \
+    OUTPUT_VCF=[% gridss_raw_vcf %] \
+    ASSEMBLY=[% assembly_bam %] \
+    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    BLACKLIST=[% opt.GRIDSS_BLACKLIST %] \
+    CONFIGURATION_FILE=[% opt.GRIDSS_CONFIG %]
+
+assert_not_empty [% gridss_raw_vcf %]

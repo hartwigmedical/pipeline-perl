@@ -48,15 +48,18 @@ sub runGridss {
     my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
 
     # KODU: Poststats depends on the BAM creation, so fine to depend on the poststats job.
-    my ($ref_pre_process_job_id, undef) =
+    my ($ref_pre_process_job_id) =
         runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $ref_pre_process_job_id;
-    my ($tumor_pre_process_job_id, undef) =
+    my ($tumor_pre_process_job_id) =
         runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
-    my ($assemble_job_id) = runGridssAssemble($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, \@gridss_jobs, $opt);
+    my ($assemble_job_id, $assembly_bam) = runGridssAssemble($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, \@gridss_jobs, $opt);
     push @gridss_jobs, $assemble_job_id;
+
+    my ($calling_job_id) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
+    push @gridss_jobs, $calling_job_id;
 
     my $done_job_id = markDone($done_file, [ $ref_pre_process_job_id, $tumor_pre_process_job_id ], $dirs, $opt);
     push @gridss_jobs, $done_job_id;
@@ -84,7 +87,7 @@ sub runGridssPreProcess {
         pre_process_bam => $pre_process_bam,
     );
 
-    return ($job_id, $pre_process_bam);
+    return ($job_id);
 }
 
 sub runGridssAssemble {
@@ -115,8 +118,32 @@ sub runGridssAssemble {
         sv_bam => $sv_bam
     );
 
+    return ($job_id, $assembly_bam);
+}
+
+sub runGridssCalling {
+    my ($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $dependent_jobs, $opt) = @_;
+
+    my $gridss_raw_vcf = catfile($dirs->{out}, join "", $joint_name, ".raw.gridss.vcf");
+
+    my $job_id = fromTemplate(
+        "GridssCalling",
+        undef,
+        1,
+        qsubTemplate($opt, "GRIDSS"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
+        gridss_raw_vcf => $gridss_raw_vcf
+    );
+
     return ($job_id);
 }
+
 
 sub runManta {
     my ($opt) = @_;

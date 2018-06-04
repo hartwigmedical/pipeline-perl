@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# -*- TT -*-
-
-[% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="Gridss" main_step=joint_name log_name="Gridss_${joint_name}.log" %]
