@@ -58,6 +58,8 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss
     ALIGNER_COMMAND_LINE=-t \
     'ALIGNER_COMMAND_LINE=%3$d' \
     'ALIGNER_COMMAND_LINE=%2$s' \
-    'ALIGNER_COMMAND_LINE=%1$s' 
+    'ALIGNER_COMMAND_LINE=%1$s'
 
 assert_not_empty [% sv_bam %]
+
+success

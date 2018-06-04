@@ -22,3 +22,5 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp
     CONFIGURATION_FILE=[% opt.GRIDSS_CONFIG %]
 
 assert_not_empty [% gridss_raw_vcf %]
+
+success
