@@ -127,9 +127,6 @@ sub setupDoneFiles {
         catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
         catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "Gridss_CPCT12345678R_CPCT12345678T.done"),
-        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess_CPCT12345678R.done"),
-        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess_CPCT12345678T.done"),
-        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssAssemble.done"),
     );
     make_path(
         map {
