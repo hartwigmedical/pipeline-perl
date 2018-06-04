@@ -41,6 +41,7 @@ sub setupTestConfig {
         HMF_SOMATIC_HOTSPOTS
         BAF_SNPS
         GC_PROFILE
+        GRIDSS_BLACKLIST
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
@@ -124,9 +125,11 @@ sub setupDoneFiles {
         catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
         catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
-        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "Gridss_CPCT12345678R_CPCT12345678T.done"),
-        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess.done"),
         catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
+        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "Gridss_CPCT12345678R_CPCT12345678T.done"),
+        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess_CPCT12345678R.done"),
+        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssPreProcess_CPCT12345678T.done"),
+        catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "GridssAssemble.done"),
     );
     make_path(
         map {

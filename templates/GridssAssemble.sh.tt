@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssAssemble" main_step=joint_name log_name="GridssAssemble_${joint_name}.log" %]
+
+jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true"
+
+echo "[INFO] Running GRIDSS AssembleBreakends for [% joint_name %] - $(date)"
+
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.AssembleBreakends \
+    TMP_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.tmp %] \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    INPUT=[% ref_sample_bam %] \
+    INPUT=[% tumor_sample_bam %] \
+    OUTPUT=[% assembly_bam %] \
+    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    BLACKLIST=[% opt.GRIDSS_BLACKLIST %] \
+    CONFIGURATION_FILE=[% opt.OUTPUT_DIR %]/settings/gridss/[% opt.GRIDSS_CONFIG %]
+
+assert_not_empty [% assembly_bam %]
+
+echo "[INFO] Running GRIDSS CollectGridssMetrics for [% joint_name %] - $(date)"
+
+java -Xmx256M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.analysis.CollectGridssMetrics \
+    ASSUME_SORTED=true \
+    I=[% assembly_bam %] \
+    O=[% metrics_output_dir %] \
+    THRESHOLD_COVERAGE=[% opt.GRIDSS_THRESHOLD_COVERAGE %] \
+    FILE_EXTENSION=null \
+    GRIDSS_PROGRAM=null \
+    GRIDSS_PROGRAM=CollectCigarMetrics \
+    GRIDSS_PROGRAM=CollectMapqMetrics \
+    GRIDSS_PROGRAM=CollectTagMetrics \
+    GRIDSS_PROGRAM=CollectIdsvMetrics \
+    GRIDSS_PROGRAM=ReportThresholdCoverage \
+    PROGRAM=null \
+    PROGRAM=CollectInsertSizeMetrics
+
+echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% joint_name %] - $(date)"
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss.output_to_temp_file=true \
+    -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.SoftClipsToSplitReads \
+    TMP_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.tmp %] \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    I=[% assembly_bam %] \
+    O=[% sv_bam %]\
+    REALIGN_ENTIRE_READ=true \
+    WORKER_THREADS=[% opt.GRIDSS_THREADS %]
+
+assert_not_empty [% sv_bam %]

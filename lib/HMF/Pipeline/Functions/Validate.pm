@@ -437,6 +437,8 @@ sub configChecks {
                         GRIDSS_TIME => \&key_not_present,
 
                         GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
+                        GRIDSS_BLACKLIST => \&missing_file,
+                        GRIDSS_CONFIG => \&key_not_present,
 
                         BWA_PATH => \&missing_directory,
                     }

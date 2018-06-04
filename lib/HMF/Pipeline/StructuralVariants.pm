@@ -55,6 +55,9 @@ sub runGridss {
         runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
+    my ($assemble_job_id) = runGridssAssemble($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, \@gridss_jobs, $opt);
+    push @gridss_jobs, $assemble_job_id;
+
     my $done_job_id = markDone($done_file, [ $ref_pre_process_job_id, $tumor_pre_process_job_id ], $dirs, $opt);
     push @gridss_jobs, $done_job_id;
 
@@ -82,6 +85,35 @@ sub runGridssPreProcess {
     );
 
     return ($job_id, $pre_process_bam);
+}
+
+sub runGridssAssemble {
+    my ($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $dependent_jobs, $opt) = @_;
+
+    my $assembly_bam_name = join "", $joint_name, ".assembly.bam";
+    my $working_dir_name = join "", $assembly_bam_name, ".gridss.working";
+
+    my $assembly_bam = catfile($dirs->{out}, $assembly_bam_name);
+    my $metrics_output_dir = catfile($dirs->{out}, $working_dir_name);
+    my $sv_bam = catfile($dirs->{out}, $working_dir_name, join "", $assembly_bam_name, ".sv.bam");
+
+    my $job_id = fromTemplate(
+        "GridssAssemble",
+        undef,
+        1,
+        qsubTemplate($opt, "GRIDSS"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
+        metrics_output_dir => $metrics_output_dir,
+        sv_bam => $sv_bam
+    );
+
+    return ($job_id);
 }
 
 sub runManta {
