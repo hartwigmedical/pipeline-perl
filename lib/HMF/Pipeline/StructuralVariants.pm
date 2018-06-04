@@ -58,10 +58,13 @@ sub runGridss {
     my ($assemble_job_id, $assembly_bam) = runGridssAssemble($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, \@gridss_jobs, $opt);
     push @gridss_jobs, $assemble_job_id;
 
-    my ($calling_job_id) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
+    my ($calling_job_id, $gridss_raw_vcf) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $calling_job_id;
 
-    my $done_job_id = markDone($done_file, [ $ref_pre_process_job_id, $tumor_pre_process_job_id ], $dirs, $opt);
+    my ($annotation_job_id) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
+    push @gridss_jobs, $annotation_job_id;
+
+    my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
     push @gridss_jobs, $done_job_id;
 
     return \@gridss_jobs;
@@ -139,6 +142,30 @@ sub runGridssCalling {
         joint_name => $joint_name,
         assembly_bam => $assembly_bam,
         gridss_raw_vcf => $gridss_raw_vcf
+    );
+
+    return ($job_id, $gridss_raw_vcf);
+}
+
+sub runGridssAnnotation {
+    my ($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, $dependent_jobs, $opt) = @_;
+
+    my $gridss_annotated_vcf = catfile($dirs->{out}, join "", $joint_name, ".gridss.vcf");
+
+    my $job_id = fromTemplate(
+        "GridssAnnotation",
+        undef,
+        1,
+        qsubTemplate($opt, "GRIDSS"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
+        gridss_raw_vcf => $gridss_raw_vcf,
+        gridss_annotated_vcf => $gridss_annotated_vcf
     );
 
     return ($job_id);

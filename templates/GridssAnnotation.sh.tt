@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssAnnotation" main_step=joint_name log_name="GridssAnnotation_${joint_name}.log" %]
+
+jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true -Dgridss.output_to_temp_file=true"
+
+intermediate_vcf=[% dirs.tmp %]/[% joint_name %].intermediate.vcf
+echo "[INFO] Running GRIDSS AnnotateVariants for [% joint_name %] - $(date)"
+
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.AnnotateVariants \
+    TMP_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.tmp %] \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    INPUT=[% ref_sample_bam %] \
+    INPUT=[% tumor_sample_bam %] \
+    INPUT_VCF=[% gridss_raw_vcf %] \
+    OUTPUT_VCF=${intermediate_vcf} \
+    ASSEMBLY=[% assembly_bam %] \
+    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    BLACKLIST=[% opt.GRIDSS_BLACKLIST %] \
+    CONFIGURATION_FILE=[% opt.GRIDSS_CONFIG %]
+
+assert_last_position_unchanged "${intermediate_vcf}" "[% gridss_raw_vcf %]"
+
+echo "[INFO] Running GRIDSS AnnotateUntemplatedSequence for [% joint_name %] - $(date)"
+
+java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.AnnotateUntemplatedSequence \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    INPUT=${intermediate_vcf} \
+    OUTPUT=[% gridss_annotated_vcf %] \
+    WORKER_THREADS=[% opt.GRIDSS_THREADS %]
+
+assert_last_position_unchanged [% gridss_annotated_vcf %] "[% gridss_raw_vcf %]"
+
+success
