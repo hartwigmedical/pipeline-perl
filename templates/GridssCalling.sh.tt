@@ -19,7 +19,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp
     ASSEMBLY=[% assembly_bam %] \
     WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
     BLACKLIST=[% opt.GRIDSS_BLACKLIST %] \
-    CONFIGURATION_FILE=[% opt.GRIDSS_CONFIG %]
+    CONFIGURATION_FILE=[% opt.OUTPUT_DIR %]/settings/gridss/[% opt.GRIDSS_CONFIG %]
 
 assert_not_empty [% gridss_raw_vcf %]
 
