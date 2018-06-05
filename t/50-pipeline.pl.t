@@ -51,6 +51,7 @@ sub setupTestConfig {
         CLUSTER_PATH
         FASTQC_PATH
         GATK_PATH
+        GATK_QUEUE_PATH
         MANTA_PATH
         GRIDSS_PATH
         PICARD_PATH
@@ -58,8 +59,6 @@ sub setupTestConfig {
         COBALT_PATH
         PURPLE_PATH
         CIRCOS_PATH
-        QUEUE_PATH
-        QUEUE_LOW_GZIP_COMPRESSION_PATH
         SAMBAMBA_PATH
         SNPEFF_PATH
         STRELKA_PATH

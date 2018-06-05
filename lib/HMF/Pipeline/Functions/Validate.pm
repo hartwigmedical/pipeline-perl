@@ -207,7 +207,7 @@ sub configChecks {
 
         # KODU: GATK and SAM tools are used all over the place so check them regardless of configuration.
         GATK_PATH => \&missing_directory,
-        QUEUE_PATH => \&missing_directory,
+        GATK_QUEUE_PATH => \&missing_directory,
         SAMTOOLS_PATH => \&missing_directory,
 
         # KODU: Sambamba creates bam indices regardless of how pipeline is run so we always need below params.
@@ -364,7 +364,6 @@ sub configChecks {
             }
         ),
         STRELKA => if_enabled({
-                QUEUE_LOW_GZIP_COMPRESSION_PATH => \&missing_directory,
                 BAMUTIL_PATH => \&missing_directory,
 
                 BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,

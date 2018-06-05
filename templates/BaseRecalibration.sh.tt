@@ -10,7 +10,7 @@ assert_not_empty "[% sample_bam_path %]"
 
 java -Xmx[% opt.BASERECALIBRATION_MASTER_MEM %]G \
      -Djava.io.tmpdir="[% dirs.tmp %]" \
-     -jar "[% opt.QUEUE_LOW_GZIP_COMPRESSION_PATH %]/Queue.jar" \
+     -jar "[% opt.GATK_QUEUE_PATH %]/Queue.jar" \
      -jobQueue [% opt.BASERECALIBRATION_QUEUE %] \
      -jobNative "[% job_native %]" \
      -jobRunner GridEngine \
