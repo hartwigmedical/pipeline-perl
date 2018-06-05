@@ -223,10 +223,12 @@ sub copyConfigAndScripts {
     my $pipeline_path = pipelinePath();
     my $slice_dir = catfile($pipeline_path, "settings", "slicing");
     my $strelka_dir = catfile($pipeline_path, "settings", "strelka");
+    my $gridss_dir = catfile($pipeline_path, "settings", "gridss");
     my $qscript_dir = catfile($pipeline_path, "QScripts");
 
     rcopy $slice_dir, catfile($opt->{OUTPUT_DIR}, "settings", "slicing") or die "Failed to copy slice settings $slice_dir: $!";
     rcopy $strelka_dir, catfile($opt->{OUTPUT_DIR}, "settings", "strelka") or die "Failed to copy Strelka settings $strelka_dir: $!";
+    rcopy $gridss_dir, catfile($opt->{OUTPUT_DIR}, "settings", "gridss") or die "Failed to copy Gridss settings $gridss_dir: $!";
     rcopy $qscript_dir, catfile($opt->{OUTPUT_DIR}, "QScripts") or die "Failed to copy QScripts $qscript_dir: $!";
     foreach my $ini_file (@{$opt->{INIFILE}}) {
         rcopy $ini_file, catfile($opt->{OUTPUT_DIR}, "logs") or die "Failed to copy INI file $ini_file: $!";
