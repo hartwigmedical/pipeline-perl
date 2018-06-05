@@ -1,4 +1,4 @@
-# note: http://mywiki.wooledge.org/BashFAQ/105
+# SABR: note: http://mywiki.wooledge.org/BashFAQ/105
 
 set -o errtrace
 set -o pipefail
@@ -24,11 +24,6 @@ function pipe() {
     echo "$pipe_file"
 }
 
-function wait_no_sigpipe() {
-    local pid=$1 && shift
-    wait "$pid" || if [[ $? -eq 141 ]]; then return 0; else return $?; fi
-}
-
 function cleanup() {
     rm -rf "$PIPE_DIR"
 }
@@ -45,15 +40,6 @@ function assert_not_empty() {
     for target_path in "$@"
     do
         [ -s "${target_path}" ] || failure "${target_path} does not exist or is empty."
-    done
-}
-
-function assert_empty() {
-    local target_path
-    for target_path in "$@"
-    do
-        # also allowed to not exist...
-        [ ! -s "${target_path}" ] || failure "${target_path} is not empty."
     done
 }
 

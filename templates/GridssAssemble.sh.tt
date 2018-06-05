@@ -11,7 +11,7 @@ echo "[INFO] Running GRIDSS AssembleBreakends for [% joint_name %] - $(date)"
 java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.AssembleBreakends \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     INPUT=[% ref_sample_bam %] \
     INPUT=[% tumor_sample_bam %] \
@@ -46,7 +46,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss
     -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     I=[% assembly_bam %] \
     O=[% sv_bam %]\

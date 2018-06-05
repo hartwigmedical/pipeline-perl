@@ -73,7 +73,7 @@ sub runGridss {
 sub runGridssPreProcess {
     my ($dirs, $sample, $sample_bam, $insert_size_metrics, $dependent_jobs, $opt) = @_;
     my $working_dir = catfile($dirs->{out}, join "", basename($sample_bam), ".gridss.working");
-    my $pre_process_bam = catfile($working_dir, join "", basename($sample_bam), ".sv.bam");
+    my $sv_bam = catfile($working_dir, join "", basename($sample_bam), ".sv.bam");
 
     my $job_id = fromTemplate(
         "GridssPreProcess",
@@ -87,7 +87,7 @@ sub runGridssPreProcess {
         sample_bam => $sample_bam,
         insert_size_metrics => $insert_size_metrics,
         working_dir => $working_dir,
-        pre_process_bam => $pre_process_bam,
+        sv_bam => $sv_bam,
     );
 
     return ($job_id);

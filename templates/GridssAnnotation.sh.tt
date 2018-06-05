@@ -12,7 +12,7 @@ echo "[INFO] Running GRIDSS AnnotateVariants for [% joint_name %] - $(date)"
 java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.AnnotateVariants \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     INPUT=[% ref_sample_bam %] \
     INPUT=[% tumor_sample_bam %] \

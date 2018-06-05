@@ -11,7 +11,7 @@ jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=tru
 java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.IdentifyVariants \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     INPUT=[% ref_sample_bam %] \
     INPUT=[% tumor_sample_bam %] \

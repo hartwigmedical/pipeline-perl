@@ -42,7 +42,7 @@ tag_tmp_bam=[% dirs.tmp %]/gridss.tmp.withtags.[% sample %].sv.bam
 java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.ComputeSamTags \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     COMPRESSION_LEVEL=0 \
     I=$extract_tmp_bam \
@@ -67,10 +67,10 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     -Dgridss.output_to_temp_file=true \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %] \
-    WORKING_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     I=${tag_tmp_bam} \
-    O=[% pre_process_bam %] \
+    O=[% sv_bam %] \
     WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
     ALIGNER_COMMAND_LINE=null \
     ALIGNER_COMMAND_LINE=[% opt.BWA_PATH %]/bwa \
@@ -80,7 +80,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     'ALIGNER_COMMAND_LINE=%2$s' \
     'ALIGNER_COMMAND_LINE=%1$s'
 
-assert_not_empty [% pre_process_bam %]
+assert_not_empty [% sv_bam %]
 
 rm $tag_tmp_bam
 
