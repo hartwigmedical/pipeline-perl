@@ -11,7 +11,7 @@ mkdir -p [% working_dir %]
 echo "[INFO] Running GRIDSS CollectGridssMetricsAndExtractSVReads for [% sample %] - $(date)"
 
 extract_tmp_bam=[% dirs.tmp %]/gridss.tmp.querysorted.[% sample %].sv.bam
-java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx512M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.CollectGridssMetricsAndExtractSVReads \
     TMP_DIR= [% dirs.tmp %]\
     ASSUME_SORTED=true \
@@ -34,12 +34,12 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     UNMAPPED_READS=false \
     MIN_CLIP_LENGTH=5 \
     INCLUDE_DUPLICATES=true | \
-        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.tmp %]/[% sample %].samtools.sort.tmp. -n -l 0 -@ [% opt.GRIDSS_THREADS %] -o ${extract_tmp_bam}
+        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.tmp %]/[% sample %].samtools.sort.tmp. -n -l 0 -@ [% opt.GRIDSS_PREPROCESS_THREADS %] -o ${extract_tmp_bam}
 
 echo "[INFO] Running GRIDSS ComputeSamTags for [% sample %] - $(date)"
 
 tag_tmp_bam=[% dirs.tmp %]/gridss.tmp.withtags.[% sample %].sv.bam
-java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_PREPROCESS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.ComputeSamTags \
     TMP_DIR=[% dirs.tmp %] \
     WORKING_DIR=[% dirs.out %] \
@@ -59,11 +59,11 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     TAGS=MC \
     TAGS=MQ \
     ASSUME_SORTED=true | \
-        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.out %]/[% sample %].samtools.sort.tmp. -@ [% opt.GRIDSS_THREADS %] -o ${tag_tmp_bam}
+        [% opt.SAMTOOLS_PATH %]/samtools sort -O bam -T [% dirs.out %]/[% sample %].samtools.sort.tmp. -@ [% opt.GRIDSS_PREPROCESS_THREADS %] -o ${tag_tmp_bam}
 
 echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% sample %] - $(date)"
 
-java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_PREPROCESS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     -Dgridss.output_to_temp_file=true \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %] \
@@ -71,7 +71,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar
     REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
     I=${tag_tmp_bam} \
     O=[% sv_bam %] \
-    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    WORKER_THREADS=[% opt.GRIDSS_PREPROCESS_THREADS %] \
     ALIGNER_COMMAND_LINE=null \
     ALIGNER_COMMAND_LINE=[% opt.BWA_PATH %]/bwa \
     ALIGNER_COMMAND_LINE=mem \

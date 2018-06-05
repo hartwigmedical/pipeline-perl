@@ -430,10 +430,26 @@ sub configChecks {
                 ),
                 GRIDSS => if_enabled({
                         GRIDSS_PATH => \&missing_directory,
-                        GRIDSS_QUEUE => \&key_not_present,
-                        GRIDSS_THREADS => \&key_not_present,
-                        GRIDSS_MEM => \&key_not_present,
-                        GRIDSS_TIME => \&key_not_present,
+
+                        GRIDSS_PREPROCESS_QUEUE => \&key_not_present,
+                        GRIDSS_PREPROCESS_THREADS => \&key_not_present,
+                        GRIDSS_PREPROCESS_MEM => \&key_not_present,
+                        GRIDSS_PREPROCESS_TIME => \&key_not_present,
+
+                        GRIDSS_ASSEMBLE_QUEUE => \&key_not_present,
+                        GRIDSS_ASSEMBLE_THREADS => \&key_not_present,
+                        GRIDSS_ASSEMBLE_MEM => \&key_not_present,
+                        GRIDSS_ASSEMBLE_TIME => \&key_not_present,
+
+                        GRIDSS_CALLING_QUEUE => \&key_not_present,
+                        GRIDSS_CALLING_THREADS => \&key_not_present,
+                        GRIDSS_CALLING_MEM => \&key_not_present,
+                        GRIDSS_CALLING_TIME => \&key_not_present,
+
+                        GRIDSS_ANNOTATE_QUEUE => \&key_not_present,
+                        GRIDSS_ANNOTATE_THREADS => \&key_not_present,
+                        GRIDSS_ANNOTATE_MEM => \&key_not_present,
+                        GRIDSS_ANNOTATE_TIME => \&key_not_present,
 
                         GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
                         GRIDSS_BLACKLIST => \&missing_file,

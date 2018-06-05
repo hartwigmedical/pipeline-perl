@@ -8,7 +8,7 @@ jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=tru
 
 echo "[INFO] Running GRIDSS AssembleBreakends for [% joint_name %] - $(date)"
 
-java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_ASSEMBLE_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.AssembleBreakends \
     TMP_DIR=[% dirs.tmp %] \
     WORKING_DIR=[% dirs.out %] \
@@ -16,7 +16,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.output_to_temp_file=true -cp
     INPUT=[% ref_sample_bam %] \
     INPUT=[% tumor_sample_bam %] \
     OUTPUT=[% assembly_bam %] \
-    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    WORKER_THREADS=[% opt.GRIDSS_ASSEMBLE_THREADS %] \
     BLACKLIST=[% opt.GRIDSS_BLACKLIST %] \
     CONFIGURATION_FILE=[% opt.OUTPUT_DIR %]/settings/gridss/[% opt.GRIDSS_CONFIG %]
 
@@ -42,7 +42,7 @@ java -Xmx256M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     PROGRAM=CollectInsertSizeMetrics
 
 echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% joint_name %] - $(date)"
-java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss.output_to_temp_file=true \
+java -Xmx[% opt.GRIDSS_ASSEMBLE_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss.output_to_temp_file=true \
     -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.SoftClipsToSplitReads \
     TMP_DIR=[% dirs.tmp %] \
@@ -51,7 +51,7 @@ java -Xmx[% opt.GRIDSS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss
     I=[% assembly_bam %] \
     O=[% sv_bam %]\
     REALIGN_ENTIRE_READ=true \
-    WORKER_THREADS=[% opt.GRIDSS_THREADS %] \
+    WORKER_THREADS=[% opt.GRIDSS_ASSEMBLE_THREADS %] \
     ALIGNER_COMMAND_LINE=null \
     ALIGNER_COMMAND_LINE=[% opt.BWA_PATH %]/bwa \
     ALIGNER_COMMAND_LINE=mem \
