@@ -58,7 +58,7 @@ rm -f "[% output_vcf %]"
 [% opt.TABIX_PATH %]/tabix -p vcf "[% input_vcf %].gz"
 [% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.ANNOTATE_COSMIC_DB %] -c =ID -o "[% output_vcf %]" -O v "[% input_vcf %].gz"
 
-rm -f "[% input_vcf %].gz" "[% input_vcf %].idx"
+rm -f "[% input_vcf %].gz" "[% input_vcf %].gz.tbi"
 
 [%- input_vcf = output_vcf %]
 finish_step
