@@ -48,7 +48,7 @@ sub runGridss {
     my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
 
     # KODU: GRIDSS requires the insert size metrics output from poststats, so should wait on poststats to finish.
-    my $dependent_jobs = [ @{$running_sample_jobs}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
+    my $dependent_jobs = [ @{$running_sample_jobs}, $opt->{RUNNING_JOBS}->{poststats} ];
 
     my ($ref_pre_process_job_id) =
         runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
