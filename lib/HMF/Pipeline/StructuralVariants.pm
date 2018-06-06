@@ -6,6 +6,7 @@ use discipline;
 use File::Spec::Functions;
 use File::Basename;
 use Sort::Key::Natural qw(mkkey_natural);
+use List::MoreUtils qw(uniq);
 
 use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
@@ -48,7 +49,7 @@ sub runGridss {
     my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
 
     # KODU: GRIDSS requires the insert size metrics output from poststats, so should wait on poststats to finish.
-    my $dependent_jobs = [ @{$running_sample_jobs}, $opt->{RUNNING_JOBS}->{poststats} ];
+    my $dependent_jobs = [ uniq @{$running_sample_jobs}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
 
     my ($ref_pre_process_job_id) =
         runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
