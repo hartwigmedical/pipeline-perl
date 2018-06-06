@@ -73,7 +73,7 @@ sub runGridss {
 sub runGridssPreProcess {
     my ($dirs, $sample, $sample_bam, $insert_size_metrics, $dependent_jobs, $opt) = @_;
     my $working_dir = catfile($dirs->{out}, join "", basename($sample_bam), ".gridss.working");
-    my $sv_bam = catfile($working_dir, join "", basename($sample_bam), ".sv.bam");
+    my $sample_sv_bam = catfile($working_dir, join "", basename($sample_bam), ".sv.bam");
 
     my $job_id = fromTemplate(
         "GridssPreProcess",
@@ -87,7 +87,7 @@ sub runGridssPreProcess {
         sample_bam => $sample_bam,
         insert_size_metrics => $insert_size_metrics,
         working_dir => $working_dir,
-        sv_bam => $sv_bam,
+        sv_bam => $sample_sv_bam,
     );
 
     return ($job_id);
@@ -102,7 +102,7 @@ sub runGridssAssemble {
     my $assembly_bam = catfile($dirs->{out}, $assembly_bam_name);
     my $metrics_output_dir = catfile($dirs->{out}, $working_dir_name);
     my $metrics_output = catfile($metrics_output_dir, $assembly_bam_name);
-    my $sv_bam = catfile($dirs->{out}, $working_dir_name, join "", $assembly_bam_name, ".sv.bam");
+    my $assembly_sv_bam = catfile($dirs->{out}, $working_dir_name, join "", $assembly_bam_name, ".sv.bam");
 
     my $job_id = fromTemplate(
         "GridssAssemble",
@@ -118,7 +118,7 @@ sub runGridssAssemble {
         assembly_bam => $assembly_bam,
         metrics_output_dir => $metrics_output_dir,
         metrics_output => $metrics_output,
-        sv_bam => $sv_bam
+        sv_bam => $assembly_sv_bam
     );
 
     return ($job_id, $assembly_bam);

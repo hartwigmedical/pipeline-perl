@@ -43,4 +43,12 @@ java -Xmx[% opt.GRIDSS_ANNOTATE_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/g
 
 assert_not_empty [% gridss_annotated_vcf %]
 
+rm [% gridss_raw_vcf %]
+rm -r [% gridss_raw_vcf %].gridss.working
+
+[% opt.TABIX_PATH %]/bgzip -f "[% gridss_annotated_vcf %]"
+[% opt.TABIX_PATH %]/tabix -p vcf "[% gridss_annotated_vcf %].gz"
+
+rm [% gridss_annotated_vcf %].idx
+
 success

@@ -62,4 +62,7 @@ java -Xmx[% opt.GRIDSS_ASSEMBLE_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16
 
 assert_not_empty [% sv_bam %]
 
+# KODU: Not sure why we have both an assembly bam and sv bam. Lets keep for now.
+# rm [% assembly_bam %]
+
 success

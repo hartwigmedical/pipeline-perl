@@ -38,7 +38,7 @@ java -Xmx512M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
 
 echo "[INFO] Running GRIDSS ComputeSamTags for [% sample %] - $(date)"
 
-tag_tmp_bam=[% dirs.tmp %]/gridss.tmp.withtags.[% sample %].sv.bam
+tag_tmp_bam=[% dirs.out %]/gridss.tmp.withtags.[% sample %].sv.bam
 java -Xmx[% opt.GRIDSS_PREPROCESS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.ComputeSamTags \
     TMP_DIR=[% dirs.tmp %] \
@@ -82,6 +82,6 @@ java -Xmx[% opt.GRIDSS_PREPROCESS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]
 
 assert_not_empty [% sv_bam %]
 
-rm $tag_tmp_bam
+rm -r [% dirs.out %]/gridss.tmp.withtags.[% sample %].sv.bam*
 
 success
