@@ -27,7 +27,7 @@ sub run {
 
     my $final_vcf = catfile($dirs->{out}, "${joint_name}_post_processed.vcf.gz");
     # JOBA: This should be set before early 'checkReportedDoneFile' exit as it is required by downstream processing
-    $opt->{SOMVAR_VCF_FILE} = $final_vcf;
+    $opt->{SOMATIC_VARIANT_VCF} = $final_vcf;
 
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 

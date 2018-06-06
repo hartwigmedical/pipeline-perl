@@ -189,7 +189,7 @@ sub runManta {
 }
 
 sub runMantaJob {
-    my ($sample_bam, $control_bam, $joint_name, $running_jobs, $opt) = @_;
+    my ($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt) = @_;
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
 
@@ -201,8 +201,8 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        sample_bam => $sample_bam,
-        control_bam => $control_bam,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
         joint_name => $joint_name,
     );
 
@@ -215,7 +215,7 @@ sub runBreakpointInspector {
     my $manta_vcf = catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name, "results", "variants", "somaticSV.vcf.gz");
 
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "bpi", $joint_name));
-    $opt->{BPI_VCF_FILE} = catfile($dirs->{out}, "${joint_name}_somaticSV_bpi.vcf");
+    $opt->{STRUCTURAL_VARIANT_VCF} = catfile($dirs->{out}, "${joint_name}_somaticSV_bpi.vcf");
 
     my $job_id = fromTemplate(
         "BreakpointInspector",
@@ -233,8 +233,8 @@ sub runBreakpointInspector {
         input_vcf => $manta_vcf,
     );
 
-    $opt->{BPI_VCF_FILE} = join "", $opt->{BPI_VCF_FILE}, ".gz";
-    linkVcfArtefacts($opt->{BPI_VCF_FILE}, 'structural_variant', $opt);
+    $opt->{STRUCTURAL_VARIANT_VCF} = join "", $opt->{STRUCTURAL_VARIANT_VCF}, ".gz";
+    linkVcfArtefacts($opt->{STRUCTURAL_VARIANT_VCF}, 'structural_variant', $opt);
 
     return $job_id;
 }

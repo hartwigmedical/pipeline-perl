@@ -8,8 +8,8 @@ java -Xmx[% opt.PURPLE_MEM %]G \
     -jar "[% opt.PURPLE_PATH %]/purple.jar" \
     -threads [% opt.PURPLE_THREADS %] \
     -gc_profile "[% opt.GC_PROFILE %]" \
-    -somatic_vcf [% opt.SOMVAR_VCF_FILE %]  \
-    -structural_vcf [% opt.BPI_VCF_FILE %] \
+    -somatic_vcf [% opt.SOMATIC_VARIANT_VCF %]  \
+    -structural_vcf [% opt.STRUCTURAL_VARIANT_VCF %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
     -output_dir [% dirs.purple %] \
     -run_dir [% opt.OUTPUT_DIR %]

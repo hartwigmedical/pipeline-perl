@@ -14,16 +14,16 @@ java -Xmx[% opt.BPI_MEM %]G \
     -vcf "[% input_vcf %]" \
     -ref_slice "[% dirs.out %]/[% control %]_sliced.bam" \
     -tumor_slice "[% dirs.out %]/[% sample %]_sliced.bam" \
-    -output_vcf "[% opt.BPI_VCF_FILE %]" \
+    -output_vcf "[% opt.STRUCTURAL_VARIANT_VCF %]" \
     > "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
 
 assert_not_empty "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
 
 ## KODU: Do a final zip and tabix, and remove the initial index.
 
-[% opt.TABIX_PATH %]/bgzip -f "[% opt.BPI_VCF_FILE %]"
-[% opt.TABIX_PATH %]/tabix -p vcf "[% opt.BPI_VCF_FILE %].gz"
+[% opt.TABIX_PATH %]/bgzip -f "[% opt.STRUCTURAL_VARIANT_VCF %]"
+[% opt.TABIX_PATH %]/tabix -p vcf "[% opt.STRUCTURAL_VARIANT_VCF %].gz"
 
-rm "[% opt.BPI_VCF_FILE %]".idx
+rm "[% opt.STRUCTURAL_VARIANT_VCF %]".idx
 
 success
