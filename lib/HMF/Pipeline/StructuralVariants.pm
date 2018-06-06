@@ -42,17 +42,19 @@ sub runGridss {
     say "\n### SCHEDULING GRIDSS ###";
 
     my @gridss_jobs;
-    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, undef) = sampleControlBamsAndJobs($opt);
+    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_sample_jobs) = sampleControlBamsAndJobs($opt);
     my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "gridss", $joint_name));
 
     my $done_file = checkReportedDoneFile("Gridss_$joint_name", undef, $dirs, $opt) or return;
 
-    # KODU: Poststats depends on the BAM creation, so fine to depend on the poststats job.
+    # KODU: GRIDSS requires the insert size metrics output from poststats, so should wait on poststats to finish.
+    my $dependent_jobs = [ @{$running_sample_jobs}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
+    say $dependent_jobs;
     my ($ref_pre_process_job_id) =
-        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
+        runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
     push @gridss_jobs, $ref_pre_process_job_id;
     my ($tumor_pre_process_job_id) =
-        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $opt->{RUNNING_JOBS}->{poststats}, $opt);
+        runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
     my ($assemble_job_id, $assembly_bam) = runGridssAssemble($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, \@gridss_jobs, $opt);
