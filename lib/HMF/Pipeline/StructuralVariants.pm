@@ -28,9 +28,13 @@ sub run {
     }
 
     if ($opt->{GRIDSS} eq "yes") {
-        my $gridss_jobs = runGridss($opt);
-        if ($gridss_jobs) {
-            push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+        if ($opt->{POSTSTATS} eq "no") {
+            say "\n[WARN] Cannot schedule gridss without scheduling post stats!";
+        } else {
+            my $gridss_jobs = runGridss($opt);
+            if ($gridss_jobs) {
+                push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+            }
         }
     }
 
