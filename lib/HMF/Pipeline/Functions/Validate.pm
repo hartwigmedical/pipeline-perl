@@ -453,6 +453,7 @@ sub configChecks {
                         GRIDSS_ANNOTATE_TIME => \&key_not_present,
 
                         GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
+                        GRIDSS_BWA_BASES_PER_BATCH => \&key_not_present,
                         GRIDSS_BLACKLIST => \&missing_file,
                         GRIDSS_CONFIG => \&key_not_present,
 
