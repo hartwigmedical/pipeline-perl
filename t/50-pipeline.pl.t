@@ -54,6 +54,7 @@ sub setupTestConfig {
         GATK_QUEUE_PATH
         MANTA_PATH
         GRIDSS_PATH
+        GRIDSS_BWA_PATH
         PICARD_PATH
         AMBER_PATH
         COBALT_PATH

@@ -430,6 +430,7 @@ sub configChecks {
                 ),
                 GRIDSS => if_enabled({
                         GRIDSS_PATH => \&missing_directory,
+                        GRIDSS_BWA_PATH => \&missing_directory,
 
                         GRIDSS_PREPROCESS_QUEUE => \&key_not_present,
                         GRIDSS_PREPROCESS_THREADS => \&key_not_present,
@@ -455,7 +456,7 @@ sub configChecks {
                         GRIDSS_BLACKLIST => \&missing_file,
                         GRIDSS_CONFIG => \&key_not_present,
 
-                        BWA_PATH => \&missing_directory,
+                        TABIX_PATH => \&missing_directory,
                     }
                 ),
             }
