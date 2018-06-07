@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssCleanup" main_step=joint_name log_name="GridssCleanup_${joint_name}.log" %]
+
+echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% ref_sample %] - $(date)"
+
+rm -r "[% ref_sample_working_dir %]"
+
+echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% tumor_sample %] - $(date)"
+
+rm -r "[% tumor_sample_working_dir %]"
+
+echo "[INFO] Cleaning up assembly bam for [% joint_name %] - $(date)"
+
+rm "[% assembly_bam %]" "[% assembly_bai %]"
+
+success
