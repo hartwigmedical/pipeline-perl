@@ -167,7 +167,7 @@ sub operationWithSliceChecks {
     (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
-    my ($post_operation_bam_path, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
+    my (undef, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
 
     push @{$opt->{RUNNING_JOBS}->{$sample}}, @{$job_ids};
 
@@ -213,7 +213,7 @@ sub bamOperationWithSliceChecks {
         [ $sample_flagstat_path ],
         $post_flagstat_path,
         "${job_template}Success.tt",
-        { post_bam => $post_bam, post_bai => $post_bai },
+        { post_bam => $post_bam, post_bai => $post_bai, pre_bam => $sample_bam_path},
         [ $flagstat_job_id ],
         $dirs,
         $opt,

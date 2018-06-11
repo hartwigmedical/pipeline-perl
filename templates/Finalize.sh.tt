@@ -22,12 +22,6 @@ then
     find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
 [% END -%]
 
-[% IF opt.INDEL_REALIGNMENT == "yes" -%]
-[% FOREACH sample IN opt.SAMPLES.keys -%]
-    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]_dedup.ba*
-[% END -%]
-[% END -%]
-
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi
