@@ -75,7 +75,7 @@ sub hold_jid {
     return @{$jids} ? "-hold_jid " . join ",", @{$jids} : "";
 }
 
-# reported jobs are often the result of combining or post-processing
+# SABR: reported jobs are often the result of combining or post-processing
 # steps which are: a) part of a multi-stage module b) checked before
 # doing any work; c) run after the real work is done by unreported jobs
 # (e.g. per-chromosome/lane -> combine). this function allows them to
@@ -88,8 +88,7 @@ sub checkReportedDoneFile {
     return checkDoneFile($name, $step, 1, $dirs, $opt);
 }
 
-# only used for multi-stage, reported jobs
-# they want to report a specific name during finalize as described above
+# SABR: only used for multi-stage, reported jobs. They want to report a specific name during finalize as described above
 sub markDone {
     my ($done_file, $hold_job_ids, $dirs, $opt) = @_;
 

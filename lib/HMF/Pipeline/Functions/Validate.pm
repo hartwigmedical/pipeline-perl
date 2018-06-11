@@ -303,6 +303,7 @@ sub configChecks {
                 GERMLINE_CALLING_UGMODE => invalid_choice([ "SNP", "INDEL", "BOTH" ]),
                 GERMLINE_CALLING_STANDCALLCONF => \&key_not_present,
                 DBSNP_DB => \&missing_optional_file,
+
                 GERMLINE_FILTER_MASTER_QUEUE => \&key_not_present,
                 GERMLINE_FILTER_MASTER_TIME => \&key_not_present,
                 GERMLINE_FILTER_MASTER_THREADS => \&key_not_present,
@@ -319,12 +320,15 @@ sub configChecks {
                 GERMLINE_FILTER_INDELTYPES => \&key_not_present,
                 GERMLINE_FILTER_INDELNAME => \&key_not_present,
                 GERMLINE_FILTER_INDELEXPR => \&key_not_present,
+
+                GERMLINE_ANNOTATE_QUEUE => \&key_not_present,
+                GERMLINE_ANNOTATE_THREADS => \&key_not_present,
+                GERMLINE_ANNOTATE_MEM => \&key_not_present,
+                GERMLINE_ANNOTATE_TIME => \&key_not_present,
+
                 SNPEFF_PATH => \&missing_directory,
                 TABIX_PATH => \&missing_directory,
-                ANNOTATE_QUEUE => \&key_not_present,
-                ANNOTATE_THREADS => \&key_not_present,
-                ANNOTATE_MEM => \&key_not_present,
-                ANNOTATE_TIME => \&key_not_present,
+
                 ANNOTATE_SNPEFF_DB => \&key_not_present,
                 ANNOTATE_SNPEFF_FLAGS => \&key_not_present,
                 ANNOTATE_DBNSFP_DB => \&missing_file,
@@ -469,10 +473,10 @@ sub configChecks {
                 HEALTHCHECK_TIME => \&key_not_present,
             }
         ),
-        FINALIZE_THREADS => \&key_not_present,
-        FINALIZE_QUEUE => \&key_not_present,
-        FINALIZE_MEM => \&key_not_present,
-        FINALIZE_TIME => \&key_not_present,
+        PIPELINE_CHECK_THREADS => \&key_not_present,
+        PIPELINE_CHECK_QUEUE => \&key_not_present,
+        PIPELINE_CHECK_MEM => \&key_not_present,
+        PIPELINE_CHECK_TIME => \&key_not_present,
     };
 }
 

@@ -1,4 +1,4 @@
-package HMF::Pipeline::Finalize;
+package HMF::Pipeline::PipelineCheck;
 
 use FindBin::libs;
 use discipline;
@@ -24,7 +24,7 @@ sub run {
         "PipelineCheck",
         undef,
         0,
-        qsubTemplate($opt, "FINALIZE"),
+        qsubTemplate($opt, "PIPELINE_CHECK"),
         allRunningJobs($opt),
         $dirs,
         $opt,
@@ -38,7 +38,7 @@ sub run {
         "Finalize",
         undef,
         0,
-        qsubTemplate($opt, "FINALIZE"),
+        qsubTemplate($opt, "PIPELINE_CHECK"),
         [$pipeline_check_job_id],
         $dirs,
         $opt,

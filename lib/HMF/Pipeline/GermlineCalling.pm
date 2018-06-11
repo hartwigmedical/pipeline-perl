@@ -95,7 +95,7 @@ sub runAnnotation {
         "GermlineAnnotation",
         undef,
         1,
-        qsubJava($opt, "ANNOTATE"),
+        qsubJava($opt, "GERMLINE_ANNOTATE"),
         [$filter_job_id],
         $dirs,
         $opt,

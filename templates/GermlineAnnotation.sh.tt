@@ -14,7 +14,7 @@ assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('\.vcf$', '_snpEff.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
-java -Xmx[% opt.ANNOTATE_MEM %]G \
+java -Xmx[% opt.GERMLINE_ANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/snpEff.jar \
     -c [% opt.SNPEFF_PATH %]/snpEff.config \
@@ -32,7 +32,7 @@ assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('\.vcf$', '_snpSift.vcf') %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
-java -Xmx[% opt.ANNOTATE_MEM %]G \
+java -Xmx[% opt.GERMLINE_ANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
     dbnsfp \
@@ -70,7 +70,7 @@ assert_not_empty "[% input_vcf %]"
 [%- output_vcf = input_vcf.replace('\.vcf$', suffix) %]
 rm -f "[% output_vcf %]" "[% output_vcf %].idx"
 
-java -Xmx[% opt.ANNOTATE_MEM %]G \
+java -Xmx[% opt.GERMLINE_ANNOTATE_MEM %]G \
     -Djava.io.tmpdir=[% dirs.tmp %] \
     -jar [% opt.SNPEFF_PATH %]/SnpSift.jar \
     annotate \

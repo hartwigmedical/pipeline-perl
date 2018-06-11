@@ -20,7 +20,7 @@ use HMF::Pipeline::Strelka;
 use HMF::Pipeline::StructuralVariants;
 use HMF::Pipeline::Purple;
 use HMF::Pipeline::HealthCheck;
-use HMF::Pipeline::Finalize;
+use HMF::Pipeline::PipelineCheck;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
@@ -53,7 +53,7 @@ sub run {
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
 
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
-        HMF::Pipeline::Finalize::run($opt);
+        HMF::Pipeline::PipelineCheck::run($opt);
 
         HMF::Pipeline::Functions::Metadata::writeLinks($opt);
     }
