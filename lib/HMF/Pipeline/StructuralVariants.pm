@@ -5,7 +5,6 @@ use discipline;
 
 use File::Spec::Functions;
 use File::Basename;
-use Sort::Key::Natural qw(mkkey_natural);
 use List::MoreUtils qw(uniq);
 
 use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);

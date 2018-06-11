@@ -3,7 +3,7 @@ package HMF::Pipeline::DamageEstimate;
 use FindBin::libs;
 use discipline;
 use File::Spec::Functions;
-use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
+use HMF::Pipeline::Functions::Job qw(fromTemplate);
 use HMF::Pipeline::Functions::Config qw(createDirs sampleBamAndJobs);
 use HMF::Pipeline::Functions::Sge qw(qsubJava);
 

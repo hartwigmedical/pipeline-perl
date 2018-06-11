@@ -9,7 +9,6 @@ use File::Spec::Functions;
 use HMF::Pipeline::Functions::Job qw(fromTemplate);
 use HMF::Pipeline::Functions::Sge qw(qsubJava);
 use HMF::Pipeline::Functions::Config qw(allRunningJobs createDirs);
-use HMF::Pipeline::Functions::Metadata;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run

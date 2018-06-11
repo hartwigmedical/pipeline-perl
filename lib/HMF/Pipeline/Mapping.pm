@@ -14,7 +14,6 @@ use HMF::Pipeline::Functions::Bam qw(sorted indexed flagstat readCountCheck);
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run runBamPrep);
 
-
 sub run {
     my ($opt) = @_;
 
