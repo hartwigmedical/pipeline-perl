@@ -71,7 +71,7 @@ sub runRecalibrationOnSample {
     my $known_files = "";
     $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
 
-    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Functions::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
+    my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Functions::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, "false", $known_files, "recalibrated", "recal", $opt);
     return ($recalibrated_bam, $job_ids);
 }
 
