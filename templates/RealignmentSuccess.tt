@@ -3,6 +3,3 @@ mv "[% dirs.tmp %]/[% post_bai %]" "[% dirs.mapping %]/[% post_bam %].bai"
 
 mv "[% dirs.tmp %]/IndelRealignment.jobreport.txt" "[% dirs.log %]/IndelRealignment.jobreport.txt"
 mv "[% dirs.tmp %]/IndelRealignment.jobreport.pdf" "[% dirs.log %]/IndelRealignment.jobreport.pdf"
-
-rm "[% pre_bam %]"
-rm "[% pre_bam %]".bai
