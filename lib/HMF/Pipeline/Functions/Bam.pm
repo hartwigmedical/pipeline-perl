@@ -204,9 +204,13 @@ sub bamOperationWithSliceChecks {
         known_files => $known_files,
     ) or return ($post_bam_path, []);
 
+    my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$operation_job_id], $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
+
     my $sample_flagstat_path = catfile($dirs->{mapping}, $sample_flagstat);
     my $post_flagstat_path = catfile($dirs->{mapping}, $post_flagstat);
-    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, [$operation_job_id], $dirs, $opt);
+    my $flagstat_job_id = flagstat($sample, catfile($dirs->{tmp}, $post_bam), $post_flagstat_path, $qc_job_ids, $dirs, $opt);
+
     my $check_job_id = readCountCheck(
         #<<< no perltidy
         $sample,
@@ -220,10 +224,7 @@ sub bamOperationWithSliceChecks {
         #>>> no perltidy
     );
 
-    my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
-
-    my $qc_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$qc_job_ids};
+    my $job_id = markDone($done_file, [$check_job_id], $dirs, $opt);
 
     return ($post_bam_path, [$job_id]);
 }
