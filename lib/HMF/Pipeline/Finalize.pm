@@ -35,8 +35,6 @@ sub run {
 
     push @{$opt->{RUNNING_JOBS}->{pipelinecheck}}, $pipeline_check_job_id;
 
-    say "\n### SCHEDULING FINALIZE ###";
-
     fromTemplate(
         "Finalize",
         undef,
