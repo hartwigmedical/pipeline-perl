@@ -18,10 +18,6 @@ then
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
 
-[% IF opt.STRELKA == "yes" -%]
-    find [% opt.OUTPUT_DIR %]/somaticVariants/*/logs -size 0 -not -name "*.done" -delete
-[% END -%]
-
     # finalize should not touch its own done file; it should always run
     success_no_done
 fi
