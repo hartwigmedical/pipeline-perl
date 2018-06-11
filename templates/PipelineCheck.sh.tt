@@ -13,7 +13,7 @@ echo >> [% log_file %]
 
 [%- FOREACH done_file IN done_files %]
 echo -n "$(basename "[% done_file %]"): " >> [% log_file %]
-if [ -f "[% done_file %]" ]
+if [[ -f "[% done_file %]" ]]
 then
     echo "succeeded" >> [% log_file %]
 else
@@ -24,21 +24,56 @@ fi
 
 echo >> [% log_file %]
 
+coreDumpFiles=$(find "[% opt.OUTPUT_DIR %]" -type f -name "core.*" 2>/dev/null)
+echo -n "CoreDumpCheck: " >> [% log_file %]
+if [[ -z "${coreDumpFiles}" ]]
+then
+    echo "succeeded" >> [% log_file %]
+else
+    echo "failed" >> [% log_file %]
+    succeed=false
+fi
+
+unhandledErrorLog="[% opt.OUTPUT_DIR %]"/logs/unhandled_job_errors
+echo -n "UnhandledErrorsCheck: " >> [% log_file %]
+if [[ ! -s "${unhandledErrorLog}" ]]
+then
+    echo "succeeded" >> [% log_file %]
+else
+    echo "failed" >> [% log_file %]
+    succeed=false
+fi
+
+submitErrorLogs=$(find "[% opt.OUTPUT_DIR %]/logs" -maxdepth 1 -type f -name "submitlog*.err")
+
+submitlogSucceed=true
+for submitErrorLog in ${submitErrorLogs}; do
+    if [[ -s "${submitErrorLog}" ]]; then
+        ${submitlogSucceed}=false
+    fi
+done
+
+echo -n "SubmitlogErrorCheck: " >> [% log_file %]
+if [[ "${submitlogSucceed}" == "true" ]]
+then
+    echo "succeeded" >> [% log_file %]
+else
+    echo "failed" >> [% log_file %]
+    succeed=false
+fi
+
 if [[ "${succeed}" == "true" ]]
 then
-    echo "The pipeline completed successfully." >> [% log_file %]
+    echo "Pipeline Success = TRUE" >> [% log_file %]
 
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
     find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
     find [% dirs.log %] -size 0 -not -name "*.done" -delete
 else
-    echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
+    echo "Pipeline Success = FALSE" >> [% log_file %]
 fi
 
 rm -f [% opt.OUTPUT_DIR %]/run.lock
 
-if [[ "${succeed}" == "true" ]]
-then
-    # SABR: don't touch done file; it should always run
-    success_no_done
-fi
+# SABR: don't touch done file; it should always run
+success_no_done
