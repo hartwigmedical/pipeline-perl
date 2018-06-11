@@ -4,7 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="PipelineCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
-failed=false
+succeed=true
 rm -f [% log_file %]
 
 echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
@@ -18,17 +18,27 @@ then
     echo "succeeded" >> [% log_file %]
 else
     echo "failed" >> [% log_file %]
-    failed=true
+    succeed=false
 fi
 [% END -%]
 
 echo >> [% log_file %]
 
-if [[ "${failed}" == "true" ]]
+if [[ "${succeed}" == "true" ]]
 then
-    echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
-else
     echo "The pipeline completed successfully." >> [% log_file %]
-    # don't touch done file; it should always run
+
+    find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
+    find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
+    find [% dirs.log %] -size 0 -not -name "*.done" -delete
+else
+    echo "One or multiple step(s) of the pipeline failed." >> [% log_file %]
+fi
+
+rm -f [% opt.OUTPUT_DIR %]/run.lock
+
+if [[ "${succeed}" == "true" ]]
+then
+    # SABR: don't touch done file; it should always run
     success_no_done
 fi

@@ -190,7 +190,7 @@ _METADATA_
         $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036,SC2086,SC2016 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
-        if (not $done_files or $job_name =~ /^Finalize_/) {
+        if (not $done_files or $job_name =~ /^PipelineCheck/) {
             like($stdout, qr/^Your job [0-9]+ \("$job_name"\) has been submitted$/m, "$job_script job submitted");
         } else {
             # SABR: loop will not be entered if jobs (correctly) not created, but test will make failure clearer

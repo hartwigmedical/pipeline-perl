@@ -53,6 +53,6 @@ rm -r chromosomes
 rm -f ${indels_passed}*
 rm -f ${snvs_passed}*
 
-find [% dirs.strelka %]/logs -size 0 -not -name "*.done" -delete
+find [% dirs.strelka.out %]/logs -size 0 -not -name "*.done" -delete
 
 success

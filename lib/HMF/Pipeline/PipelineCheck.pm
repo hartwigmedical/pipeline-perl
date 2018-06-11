@@ -34,18 +34,6 @@ sub run {
 
     push @{$opt->{RUNNING_JOBS}->{pipelinecheck}}, $pipeline_check_job_id;
 
-    fromTemplate(
-        "Finalize",
-        undef,
-        0,
-        qsubTemplate($opt, "PIPELINE_CHECK"),
-        [$pipeline_check_job_id],
-        $dirs,
-        $opt,
-        done_files => $opt->{DONE_FILES},
-        pipeline_check_file => catfile($dirs->{log}, $pipeline_check_file),
-    );
-
     return;
 }
 
