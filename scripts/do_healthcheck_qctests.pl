@@ -12,11 +12,7 @@ GetOptions("healthcheck-log-file|f=s" => \$healthcheck_stdout_log)
 say "Run with: --healthcheck-log-file /path/to/health-checks.txt" and exit(1) unless $healthcheck_stdout_log;
 die "[ERROR] Provided healthcheck stdout log file ($healthcheck_stdout_log) does not exist\n" unless -f $healthcheck_stdout_log;
 
-## ----------
-## MAIN
-## ----------
-
-my $hcdata = parseHealthcheckLog($healthcheck_stdout_log);
+my $hcdata = parseHealthCheckerOutput($healthcheck_stdout_log);
 my $sampleCount = $hcdata->{'sampleCount'};
 
 if ($sampleCount == 1) {
@@ -62,44 +58,51 @@ sub doSomaticTests {
 
     my $SAMPLE_NAMES = join(", ", @samples);
     my $SOM_SNP_COUNT = getValueBySample($hcdata, $tumorSample, 'SOMATIC_SNP_COUNT');
-    my $SOM_IND_COUNT = getValueBySample($hcdata, $tumorSample, 'SOMATIC_INDEL_COUNT');
     my $SOM_SNP_DBSNP_COUNT = getValueBySample($hcdata, $tumorSample, 'SOMATIC_SNP_DBSNP_COUNT');
-    my $KINSHIP_TEST = getValueBySample($hcdata, $tumorSample, 'KINSHIP_TEST');
+    my $AMBER_MEAN_BAF = getValueBySample($hcdata, $tumorSample, 'MEAN_BAF');
+    my $PURPLE_QC_STATUS = getValueBySample($hcdata, $tumorSample, 'QC_STATUS');
     my $COV_PCT_10X_R = getValueBySample($hcdata, $refSample, 'COVERAGE_10X');
     my $COV_PCT_20X_R = getValueBySample($hcdata, $refSample, 'COVERAGE_20X');
     my $COV_PCT_30X_T = getValueBySample($hcdata, $tumorSample, 'COVERAGE_30X');
     my $COV_PCT_60X_T = getValueBySample($hcdata, $tumorSample, 'COVERAGE_60X');
 
-    ## construct required variables not present in health check output
-    my $SOM_SNP_DBSNP_PROP = $SOM_SNP_DBSNP_COUNT / $SOM_SNP_COUNT;
     my $SOM_SNP_DBSNP_PCT = roundNumber($SOM_SNP_DBSNP_COUNT * 100 / $SOM_SNP_COUNT);
-
-    ## setup check booleans
-    my $som_check1_fail = $SOM_SNP_DBSNP_COUNT > 250000;
-    my $som_check2_fail = $SOM_SNP_COUNT > 1000000;
-    my $som_check3_fail = $SOM_SNP_DBSNP_COUNT / $SOM_SNP_COUNT < 0.2;
-
-    ## print general info
     say "[INFO] Info Summary:";
     say "[INFO]   SAMPLES = $SAMPLE_NAMES";
     say "[INFO]   SOMATIC_SNP_COUNT = " . commify($SOM_SNP_COUNT);
     say "[INFO]   SOMATIC_SNP_DBSNP_COUNT = " . commify($SOM_SNP_DBSNP_COUNT) . " (" . $SOM_SNP_DBSNP_PCT . "% of all SOMATIC_SNP)";
-    say "[INFO]   SOMATIC_INDELS_COUNT = " . commify($SOM_IND_COUNT);
     say "[INFO] QC Tests:";
 
-    ## keep track of fail counts
     my $fails = 0;
 
-    ## perform tests
     my $test = 'DBSNP_CONTAMINATION';
+    my $som_check1_fail = $SOM_SNP_DBSNP_COUNT > 250000;
     if ($som_check1_fail) {
         printMsg('FAIL', $test) and $fails++;
     } else {
         printMsg('INFO', "  [OK] $test");
     }
 
-    $test = 'NONDBSNP_CONTAMINATION';
+    $test = 'NON_DBSNP_CONTAMINATION';
+    my $som_check2_fail = $SOM_SNP_COUNT > 1000000;
+    my $som_check3_fail = $SOM_SNP_DBSNP_COUNT / $SOM_SNP_COUNT < 0.2;
     if ($som_check2_fail and $som_check3_fail) {
+        printMsg('FAIL', $test) and $fails++;
+    } else {
+        printMsg('INFO', "  [OK] $test");
+    }
+
+    $test = 'AMBER_MEAN_BAF';
+    my $amber_check_fail = $AMBER_MEAN_BAF < 0.45;
+    if ($amber_check_fail) {
+        printMsg('FAIL', $test) and $fails++;
+    } else {
+        printMsg('INFO', "  [OK] $test");
+    }
+
+    $test = 'PURPLE_QC';
+    my $purple_qc_fail = ($PURPLE_QC_STATUS ne "PASS");
+    if ($purple_qc_fail) {
         printMsg('FAIL', $test) and $fails++;
     } else {
         printMsg('INFO', "  [OK] $test");
@@ -109,7 +112,6 @@ sub doSomaticTests {
     ifLowerFail(\$fails, 0.70, $COV_PCT_20X_R, 'COVERAGE_20X_R');
     ifLowerFail(\$fails, 0.80, $COV_PCT_30X_T, 'COVERAGE_30X_T');
     ifLowerFail(\$fails, 0.65, $COV_PCT_60X_T, 'COVERAGE_60X_T');
-    ifLowerFail(\$fails, 0.35, $KINSHIP_TEST, 'KINSHIP');
 
     generateFinalResultMessage($tumorSample, $fails);
 }
@@ -166,7 +168,7 @@ sub printMsg {
     }
 }
 
-sub parseHealthcheckLog {
+sub parseHealthCheckerOutput {
     my %hcdata = ();
     my ($file) = @_;
     open FILE, "<", $file or die "Unable to open \"$file\"\n";
