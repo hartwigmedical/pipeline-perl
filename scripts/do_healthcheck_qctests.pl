@@ -126,7 +126,7 @@ sub generateFinalResultMessage {
     my $final_msg = "TEST RESULT for $sample (fails:$fails) = $final_status";
 
     if ($final_status ne 'OK') {
-        warn "[FAIL] $final_msg\n" and exit(1);
+        say "[FAIL] $final_msg";
     } else {
         say "[INFO] $final_msg";
     }
@@ -163,11 +163,7 @@ sub getValueBySample {
 
 sub printMsg {
     my ($type, $msg) = @_;
-    if ($type =~ /ERR|FAIL/) {
-        warn "[$type] $msg\n";
-    } else {
-        say "[$type] $msg";
-    }
+    say "[$type] $msg\n";
 }
 
 sub parseHealthCheckerOutput {
