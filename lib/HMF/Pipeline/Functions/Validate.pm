@@ -467,6 +467,8 @@ sub configChecks {
             }
         ),
         HEALTHCHECK => if_enabled({
+                HEALTH_CHECKER_PATH => \&missing_directory,
+
                 HEALTHCHECK_QUEUE => \&key_not_present,
                 HEALTHCHECK_THREADS => \&key_not_present,
                 HEALTHCHECK_MEM => \&key_not_present,
