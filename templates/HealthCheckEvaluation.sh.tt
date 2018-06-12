@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="HealthCheckEvaluation" main_step="" log_name="${opt.RUN_NAME}.log" %]
+
+perl [% dirs.out %]/scripts/do_healthcheck_qctests.pl --healthcheck-log-file [% dirs.log %]/HealthCheck.out

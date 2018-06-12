@@ -64,6 +64,27 @@ fi
 
 echo >> [% log_file %]
 
+[%- IF opt.HEALTHCHECK == "yes" %]
+healthCheckErrorLog=$(find "[% opt.OUTPUT_DIR %]/logs" -maxdepth 1 -type f -name "HealthCheckEvaluation*.err")
+
+healthCheckSucceed=true
+if [[ -s "${healthCheckErrorLog}" ]]; then
+    ${submitlogSucceed}=false
+fi
+
+echo -n "HealthCheck: " >> [% log_file %]
+if [[ "${healthCheckSucceed}" == "true" ]]
+then
+    echo "succeeded" >> [% log_file %]
+else
+    echo "failed" >> [% log_file %]
+    succeed=false
+fi
+
+echo >> [% log_file %]
+
+[%- END %]
+
 if [[ "${succeed}" == "true" ]]
 then
     echo "Pipeline Status = SUCCESS" >> [% log_file %]

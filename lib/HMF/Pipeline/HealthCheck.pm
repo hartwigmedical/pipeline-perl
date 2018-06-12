@@ -22,7 +22,7 @@ sub run {
     my $dirs = createDirs($opt->{OUTPUT_DIR});
     my $health_check_file = catfile($dirs->{log}, "$opt->{RUN_NAME}.healthcheck.json");
 
-    my $job_id = fromTemplate(
+    my $health_check_job_id = fromTemplate(
         "HealthCheck",
         undef,
         0,
@@ -34,7 +34,21 @@ sub run {
         report_file_path => $health_check_file,
     );
 
-    push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $job_id;
+    push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $health_check_job_id;
+
+    my $health_check_evaluation_job_id = fromTemplate(
+        #<<< no perltidy
+        "HealthCheckEvaluation",
+        undef,
+        0,
+        qsubJava($opt, "HEALTHCHECK"),
+        [ $health_check_job_id ],
+        $dirs,
+        $opt,
+        #>>> no perltidy
+    );
+
+    push @{$opt->{RUNNING_JOBS}->{healthcheck}}, $health_check_evaluation_job_id;
 
     return;
 }

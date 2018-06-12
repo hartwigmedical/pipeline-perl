@@ -102,6 +102,7 @@ sub setupDoneFiles {
         catfile("logs", "Cobalt_CPCT12345678R_CPCT12345678T.done"),
         catfile("logs", "Purple.done"),
         catfile("logs", "HealthCheck.done"),
+        catfile("logs", "HealthCheckEvaluation.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),
         catfile("CPCT12345678R", "logs", "PreStats_CPCT12345678R_HJJLGCCXX_S1_L001_R2_001.fastq.gz.done"),
         catfile("CPCT12345678T", "logs", "PreStats_CPCT12345678T_HJJLGCCXX_S1_L001_R1_001.fastq.gz.done"),
