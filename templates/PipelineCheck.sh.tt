@@ -65,11 +65,12 @@ fi
 echo >> [% log_file %]
 
 [%- IF opt.HEALTHCHECK == "yes" %]
-healthCheckErrorLog=$(find "[% opt.OUTPUT_DIR %]/logs" -maxdepth 1 -type f -name "HealthCheckEvaluation*.err")
+# TODO (KODU): Actually check for PASS/FAIL in the evaluation output log.
+healthCheckOutputLog="[% opt.OUTPUT_DIR %]"/logs/HealthCheckEvaluation.out
 
 healthCheckSucceed=true
-if [[ -s "${healthCheckErrorLog}" ]]; then
-    ${submitlogSucceed}=false
+if [[ -s "${healthCheckOutputLog}" ]]; then
+    ${healthCheckSucceed}=false
 fi
 
 echo -n "HealthCheck: " >> [% log_file %]
