@@ -235,8 +235,8 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        ref_sample_bam => $ref_sample_bam,
-        tumor_sample_bam => $tumor_sample_bam,
+        ref_sample_bam => $tumor_sample_bam,
+        tumor_sample_bam => $ref_sample_bam,
         joint_name => $joint_name,
     );
 
@@ -244,7 +244,7 @@ sub runMantaJob {
 }
 
 sub runBreakpointInspector {
-    my ($sample, $sample_bam, $control, $control_bam, $joint_name, $manta_job_id, $opt) = @_;
+    my ($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $manta_job_id, $opt) = @_;
 
     my $manta_vcf = catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name, "results", "variants", "somaticSV.vcf.gz");
 
@@ -259,10 +259,10 @@ sub runBreakpointInspector {
         [$manta_job_id],
         $dirs,
         $opt,
-        sample => $sample,
-        control => $control,
-        sample_bam => $sample_bam,
-        control_bam => $control_bam,
+        ref_sample => $ref_sample,
+        tumor_sample => $tumor_sample,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
         joint_name => $joint_name,
         input_vcf => $manta_vcf,
     );

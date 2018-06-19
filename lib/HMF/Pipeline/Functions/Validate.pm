@@ -429,6 +429,8 @@ sub configChecks {
                         BPI_MEM => \&key_not_present,
                         BPI_TIME => \&key_not_present,
 
+                        BPI_CONTAMINATION_FRACTION => \&key_not_present,
+
                         TABIX_PATH => \&missing_directory,
                     }
                 ),
