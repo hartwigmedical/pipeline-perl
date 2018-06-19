@@ -65,12 +65,11 @@ fi
 echo >> [% log_file %]
 
 [%- IF opt.HEALTHCHECK == "yes" %]
-# TODO (KODU): Actually check for PASS/FAIL in the evaluation output log.
-healthCheckOutputLog="[% opt.OUTPUT_DIR %]"/logs/HealthCheckEvaluation.success
 
-healthCheckSucceed=true
-if [[ -s "${healthCheckOutputLog}" ]]; then
-    healthCheckSucceed=false
+healthCheckSuccessFile="[% opt.OUTPUT_DIR %]"/logs/HealthCheckEvaluation.success
+healthCheckSucceed=false
+if [[ -f "${healthCheckSuccessFile}" ]]; then
+    healthCheckSucceed=true
 fi
 
 echo -n "HealthCheck: " >> [% log_file %]
