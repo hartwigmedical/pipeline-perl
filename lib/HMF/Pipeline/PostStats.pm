@@ -32,7 +32,8 @@ sub run {
     if ($opt->{BAM}) {
         $ref_sample_name = $ref_sample;
         $tumor_sample_name = $tumor_sample;
-    } else { # KODU: Run from FASTQ
+    } else {
+        # KODU: Run from FASTQ
         $ref_sample_name = join "", $ref_sample, "_dedup";
         $tumor_sample_name = join "", $tumor_sample, "_dedup";
     }
