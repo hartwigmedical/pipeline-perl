@@ -14,6 +14,7 @@ use HMF::Pipeline::Realignment;
 use HMF::Pipeline::DamageEstimate;
 use HMF::Pipeline::PostStats;
 use HMF::Pipeline::Amber;
+use HMF::Pipeline::AmberBAFSegmentation;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::Strelka;
@@ -36,13 +37,14 @@ sub run {
         HMF::Pipeline::Mapping::runBamPrep($opt);
     }
 
-    if ($opt->{FASTQ} or $opt->{BAM}) {
+    if (($opt->{FASTQ} and $opt->{MAPPING} eq "yes") or $opt->{BAM}) {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
         # KODU: If we run from BAM and don't realign, we don't actually have a (new) BAM file to link up.
         HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt) if $opt->{INDEL_REALIGNMENT} eq "yes" or $opt->{FASTQ};
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
+        HMF::Pipeline::AmberBAFSegmentation::run($opt) if $opt->{AMBER_BAF_SEGMENTATION} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
@@ -54,9 +56,10 @@ sub run {
 
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";
         HMF::Pipeline::PipelineCheck::run($opt);
-
-        HMF::Pipeline::Functions::Metadata::writeLinks($opt);
     }
+
+    HMF::Pipeline::Functions::Metadata::writeLinks($opt);
+
     return;
 }
 

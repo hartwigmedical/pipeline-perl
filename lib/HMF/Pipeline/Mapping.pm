@@ -130,8 +130,6 @@ sub runPerLane {
 sub runBamPrep {
     my ($opt) = @_;
 
-    $opt->{MAPPING} = "no";
-    $opt->{PRESTATS} = "no";
     say "\n### SCHEDULING BAM PREP ###";
 
     while (my ($sample, $input_bams) = each %{$opt->{SAMPLES}}) {

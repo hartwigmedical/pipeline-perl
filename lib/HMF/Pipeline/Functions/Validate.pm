@@ -340,6 +340,10 @@ sub configChecks {
                 ANNOTATE_FREQ_INFO => \&key_not_present,
             }
         ),
+        AMBER_BAF_SEGMENTATION => if_enabled({
+                BAF_SEGMENTATION_SCRIPT => \&missing_file,
+            }
+        ),
         AMBER => if_enabled({
                 AMBER_PATH => \&missing_directory,
                 AMBER_QUEUE => \&key_not_present,

@@ -20,10 +20,10 @@ sub run {
 
     say "\n### SCHEDULING STRUCTURAL VARIANT CALLING ###";
 
-    $opt->{RUNNING_JOBS}->{'sv'} = [];
+    $opt->{RUNNING_JOBS}->{sv} = [];
     if ($opt->{MANTA} eq "yes") {
         my $manta_jobs = runManta($opt);
-        push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$manta_jobs};
+        push @{$opt->{RUNNING_JOBS}->{sv}}, @{$manta_jobs};
     }
 
     if ($opt->{GRIDSS} eq "yes") {
@@ -32,7 +32,7 @@ sub run {
         } else {
             my $gridss_jobs = runGridss($opt);
             if ($gridss_jobs) {
-                push @{$opt->{RUNNING_JOBS}->{'sv'}}, @{$gridss_jobs};
+                push @{$opt->{RUNNING_JOBS}->{sv}}, @{$gridss_jobs};
             }
         }
     }

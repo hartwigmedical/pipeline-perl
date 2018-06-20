@@ -15,7 +15,7 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING COBALT ###";
-    $opt->{RUNNING_JOBS}->{'cobalt'} = [];
+    $opt->{RUNNING_JOBS}->{cobalt} = [];
 
     my $sub_dir = "cobalt";
     my $dirs = createDirs($opt->{OUTPUT_DIR}, cobalt => $sub_dir);
@@ -25,7 +25,7 @@ sub run {
     my @cobalt_jobs;
     push @cobalt_jobs, runCobalt($ref_sample, $tumor_sample, $ref_bam_path, $tumor_bam_path, $running_jobs, $dirs, $opt);
     push @cobalt_jobs, markDone($done_file, \@cobalt_jobs, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{'cobalt'}}, @cobalt_jobs;
+    push @{$opt->{RUNNING_JOBS}->{cobalt}}, @cobalt_jobs;
 
     return;
 }

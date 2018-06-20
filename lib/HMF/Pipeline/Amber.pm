@@ -20,7 +20,7 @@ sub run {
     my ($opt) = @_;
 
     say "\n### SCHEDULING AMBER ###";
-    $opt->{RUNNING_JOBS}->{'amber'} = [];
+    $opt->{RUNNING_JOBS}->{amber} = [];
 
     my $sub_dir = "amber";
     my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => $sub_dir);
@@ -36,7 +36,7 @@ sub run {
     push @amber_jobs, runAmberPileup($tumor_sample, $tumor_bam_path, $tumor_threads, $running_jobs, $dirs, $opt);
     push @amber_jobs, runAmber($tumor_sample, $ref_bam_path, $tumor_bam_path, \@amber_jobs, $dirs, $opt);
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{'amber'}}, @amber_jobs;
+    push @{$opt->{RUNNING_JOBS}->{amber}}, @amber_jobs;
 
     my $baf_path = "${sub_dir}/${tumor_sample}.amber.baf";
     linkArtefact($baf_path, 'amber_baf', $opt);
