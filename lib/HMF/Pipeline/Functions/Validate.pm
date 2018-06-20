@@ -359,6 +359,8 @@ sub configChecks {
                 COBALT_TIME => \&key_not_present,
                 COBALT_THREADS => \&key_not_present,
                 COBALT_MEM => \&key_not_present,
+
+                COBALT_RERUN => \&key_not_present,
             }
         ),
         PURPLE => if_enabled({

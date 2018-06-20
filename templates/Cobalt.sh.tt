@@ -4,15 +4,25 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Cobalt" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
 
-java -Xmx[% opt.COBALT_MEM %]G \
-    -cp "[% opt.COBALT_PATH %]/cobalt.jar" com.hartwig.hmftools.cobalt.CountBamLinesApplication \
+[%- IF opt.COBALT_RERUN == "yes" %]
+    echo "[INFO] Running cobalt from existing cobalt run"
+    rm -f "[% dirs.cobalt %]"/*.len
+[%- ELSE %]
+    echo "[INFO] Running cobalt"
+[%- END %]
+
+java -Xmx[% opt.COBALT_MEM %]G -jar "[% opt.COBALT_PATH %]/cobalt.jar" \
     -threads "[% opt.COBALT_THREADS %]" \
     -reference "[% ref_sample %]" \
+    [%- IF opt.COBALT_RERUN == "no" %]
     -reference_bam "[% ref_bam_path %]" \
+    [%- END %]
     -tumor "[% tumor_sample %]" \
+    [%- IF opt.COBALT_RERUN == "no" %]
     -tumor_bam "[% tumor_bam_path %]" \
+    [%- END %]
     -output_dir "[% dirs.cobalt %]" \
-    -gc_profile "[% opt.GC_PROFILE %]" \
+    -gc_profile "[% opt.GC_PROFILE %]"
 
 rm "[% dirs.cobalt %]"/*.pcf1
 
