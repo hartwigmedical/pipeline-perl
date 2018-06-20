@@ -64,6 +64,14 @@ fi
 
 echo >> [% log_file %]
 
+# KODU: Clean up prior to checking the health check output, since if we get to here it means technicaly the pipeline ran fine.
+if [[ "${succeed}" == "true" ]]
+then
+    find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
+    find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
+    find [% dirs.log %] -size 0 -not -name "*.done" -delete
+fi
+
 [%- IF opt.HEALTHCHECK == "yes" %]
 
 healthCheckSuccessFile="[% opt.OUTPUT_DIR %]"/logs/HealthCheckEvaluation.success
@@ -88,10 +96,6 @@ echo >> [% log_file %]
 if [[ "${succeed}" == "true" ]]
 then
     echo "Pipeline Status = SUCCESS" >> [% log_file %]
-
-    find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
-    find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
-    find [% dirs.log %] -size 0 -not -name "*.done" -delete
 else
     echo "Pipeline Status = FAIL" >> [% log_file %]
 fi
