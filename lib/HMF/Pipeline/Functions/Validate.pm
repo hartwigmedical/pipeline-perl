@@ -341,7 +341,7 @@ sub configChecks {
             }
         ),
         AMBER_BAF_SEGMENTATION => if_enabled({
-                BAF_SEGMENTATION_SCRIPT => \&missing_file,
+                BAF_SEGMENTATION_SCRIPT => \&key_not_present,
             }
         ),
         AMBER => if_enabled({
