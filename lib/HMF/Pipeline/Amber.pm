@@ -41,7 +41,6 @@ sub run {
     my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
     linkArtefact($amber_output, 'amber_baf', $opt);
     $opt->{AMBER_BAF_FILE} = join "", $opt->{OUTPUT_DIR}, $amber_output;
-    say $opt->{AMBER_BAF_FILE};
 
     return;
 }
@@ -97,8 +96,10 @@ sub runAmberBAFSegmentation {
     my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => $sub_dir);
 
     my (undef, $tumor_sample, undef, undef, undef, $running_jobs) = sampleControlBamsAndJobs($opt);
-    $opt->{AMBER_BAF_FILE} = "${sub_dir}/${tumor_sample}.amber.baf";
-    linkArtefact($opt->{AMBER_BAF_FILE}, 'amber_baf', $opt);
+    my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
+    linkArtefact($amber_output, 'amber_baf', $opt);
+    $opt->{AMBER_BAF_FILE} = join "", $opt->{OUTPUT_DIR}, $amber_output;
+    say join "", "\n", $opt->{AMBER_BAF_FILE};
 
     my $segmentation_job_id = fromTemplate(
         "AmberBAFSegmentation",
