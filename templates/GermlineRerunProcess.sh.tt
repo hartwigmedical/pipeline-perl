@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GermlineRerunProcess" main_step="" log_name="${opt.RUN_NAME}.log" %]
+
+cd [% dirs.out %]
+
+current_germline_vcf=$(ls | grep .vcf | grep -v .idx)
+
+assert_not_empty ${current_germline_vcf}
+
+echo "[INFO] Running Germline Rerun Process - $(date)"
+
+[% opt.TABIX_PATH %]/bgzip -f "${current_germline_vcf}"
+[% opt.TABIX_PATH %]/tabix -p vcf "${current_germline_vcf}".gz
+
+mv ${current_germline_vcf}.gz [% final_vcf %]
+mv ${current_germline_vcf}.gz.tbi [% final_vcf %].tbi
+
+rm -f ${current_germline_vcf}
+rm -f ${current_germline_vcf}.idx

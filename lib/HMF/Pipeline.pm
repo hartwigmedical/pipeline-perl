@@ -49,6 +49,7 @@ sub run {
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
+        HMF::Pipeline::GermlineCalling::runGermlineRerun($opt) if $opt->{GERMLINE_RERUN} eq "yes";
 
         HMF::Pipeline::Strelka::run($opt) if $opt->{STRELKA} eq "yes";
         HMF::Pipeline::StructuralVariants::run($opt) if $opt->{STRUCTURAL_VARIANT_CALLING} eq "yes";

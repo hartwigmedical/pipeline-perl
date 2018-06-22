@@ -340,6 +340,15 @@ sub configChecks {
                 ANNOTATE_FREQ_INFO => \&key_not_present,
             }
         ),
+        GERMLINE_RERUN => if_enabled({
+                GERMLINE_CALLING_QUEUE => \&key_not_present,
+                GERMLINE_CALLING_TIME => \&key_not_present,
+                GERMLINE_CALLING_THREADS => \&key_not_present,
+                GERMLINE_CALLING_MEM => \&key_not_present,
+
+                TABIX_PATH => \&missing_directory,
+            }
+        ),
         AMBER_BAF_SEGMENTATION => if_enabled({
                 BAF_SEGMENTATION_SCRIPT => \&key_not_present,
             }
