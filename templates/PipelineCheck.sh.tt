@@ -5,7 +5,9 @@
 [% INCLUDE Logging.tt job_name="PipelineCheck" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
 succeed=true
+pipelineSuccessFile="[% opt.OUTPUT_DIR %]"/logs/Pipeline.success
 rm -f [% log_file %]
+rm -f ${pipelineSuccessFile}
 
 echo "Check and cleanup for run: [% opt.RUN_NAME %]" >> [% log_file %]
 echo "Pipeline version: [% opt.VERSION %]" >> [% log_file %]
@@ -96,6 +98,7 @@ echo >> [% log_file %]
 if [[ "${succeed}" == "true" ]]
 then
     echo "Pipeline Status = SUCCESS" >> [% log_file %]
+    touch ${pipelineSuccessFile}
 else
     echo "Pipeline Status = FAIL" >> [% log_file %]
 fi
