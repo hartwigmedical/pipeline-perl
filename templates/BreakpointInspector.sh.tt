@@ -4,7 +4,10 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="BreakpointInspector" main_step=joint_name log_name="BPI_${joint_name}.log" %]
 
-cd "[% opt.OUTPUT_DIR %]"
+echo "[INFO] Running BPI for [% joint_name %] - $(date)"
+
+# KODU: Remove the output directory, relevant when we are in rerun-mode.
+rm -f "[% dirs.out %]"
 
 java -Xmx[% opt.BPI_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar "[% opt.BPI_PATH %]/break-point-inspector.jar" \
     -ref_bam "[% ref_sample_bam %]" \
@@ -24,5 +27,7 @@ assert_not_empty "[% dirs.out %]/[% joint_name %]_bpi_stats.tsv"
 [% opt.TABIX_PATH %]/tabix -p vcf "[% opt.STRUCTURAL_VARIANT_VCF %].gz"
 
 rm "[% opt.STRUCTURAL_VARIANT_VCF %]".idx
+
+assert_not_empty "[% opt.STRUCTURAL_VARIANT_VCF %].gz"
 
 success

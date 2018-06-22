@@ -26,6 +26,12 @@ sub run {
         push @{$opt->{RUNNING_JOBS}->{sv}}, @{$manta_jobs};
     }
 
+    if ($opt->{BPI_RERUN} eq "yes") {
+        my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
+        my $bpi_job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
+        push @{$opt->{RUNNING_JOBS}->{sv}}, $bpi_job_id;
+    }
+
     if ($opt->{GRIDSS} eq "yes") {
         if ($opt->{POSTSTATS} eq "no") {
             say "\n[WARN] Cannot schedule gridss without scheduling post stats!";
@@ -207,7 +213,7 @@ sub runGridssCleanup {
 
     (my $assembly_bai = $assembly_bam) =~ s/\.bam$/.bai/;
 
-    # KODU: Run with GRIDSS annotate settings, this doens't matter. Cleanup takes no resources.
+    # KODU: Run with GRIDSS annotate settings, this doesn't matter. Cleanup takes no resources.
     my $job_id = fromTemplate(
         "GridssCleanup",
         undef,
@@ -239,7 +245,7 @@ sub runManta {
     my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
     push @manta_jobs, $job_id;
 
-    $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $job_id, $opt);
+    $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, \@manta_jobs, $opt);
     push @manta_jobs, $job_id;
     return \@manta_jobs;
 }
@@ -266,7 +272,7 @@ sub runMantaJob {
 }
 
 sub runBreakpointInspector {
-    my ($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $manta_job_id, $opt) = @_;
+    my ($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $dependent_job_ids, $opt) = @_;
 
     my $manta_vcf = catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name, "results", "variants", "somaticSV.vcf.gz");
 
@@ -278,7 +284,7 @@ sub runBreakpointInspector {
         undef,
         1,
         qsubTemplate($opt, "BPI"),
-        [$manta_job_id],
+        $dependent_job_ids,
         $dirs,
         $opt,
         ref_sample => $ref_sample,

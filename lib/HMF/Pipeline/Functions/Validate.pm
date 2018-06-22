@@ -440,6 +440,18 @@ sub configChecks {
                         TABIX_PATH => \&missing_directory,
                     }
                 ),
+                BPI_RERUN => if_enabled({
+                        BPI_PATH => \&missing_directory,
+                        BPI_QUEUE => \&key_not_present,
+                        BPI_THREADS => \&key_not_present,
+                        BPI_MEM => \&key_not_present,
+                        BPI_TIME => \&key_not_present,
+
+                        BPI_CONTAMINATION_FRACTION => \&key_not_present,
+
+                        TABIX_PATH => \&missing_directory,
+                    }
+                ),
                 GRIDSS => if_enabled({
                         GRIDSS_PATH => \&missing_directory,
                         GRIDSS_BWA_PATH => \&missing_directory,
