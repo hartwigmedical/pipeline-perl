@@ -98,7 +98,7 @@ sub runAmberBAFSegmentation {
     my (undef, $tumor_sample, undef, undef, undef, $running_jobs) = sampleControlBamsAndJobs($opt);
     my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
     linkArtefact($amber_output, 'amber_baf', $opt);
-    $opt->{AMBER_BAF_FILE} = join "", $opt->{OUTPUT_DIR}, $amber_output;
+    $opt->{AMBER_BAF_FILE} = catfile($opt->{OUTPUT_DIR}, $amber_output);
     say join "", "\n", $opt->{AMBER_BAF_FILE};
 
     my $segmentation_job_id = fromTemplate(
