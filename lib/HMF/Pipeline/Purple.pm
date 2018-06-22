@@ -5,7 +5,7 @@ use discipline;
 
 use File::Spec::Functions;
 
-use HMF::Pipeline::Functions::Config qw(createDirs sampleBamsAndJobs);
+use HMF::Pipeline::Functions::Config qw(createDirs);
 use HMF::Pipeline::Functions::Sge qw(qsubJava);
 use HMF::Pipeline::Functions::Job qw(fromTemplate);
 use HMF::Pipeline::Functions::Metadata qw(parse linkArtefact);
