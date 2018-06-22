@@ -6,9 +6,6 @@
 
 echo "[INFO] Running BPI for [% joint_name %] - $(date)"
 
-# KODU: Remove the output directory, relevant when we are in rerun-mode.
-rm -f "[% dirs.out %]"
-
 java -Xmx[% opt.BPI_MEM %]G -Djava.io.tmpdir=[% dirs.tmp %] -jar "[% opt.BPI_PATH %]/break-point-inspector.jar" \
     -ref_bam "[% ref_sample_bam %]" \
     -tumor_bam "[% tumor_sample_bam %]" \
