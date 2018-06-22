@@ -4,13 +4,13 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="AmberBAFSegmentation" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
 
-amber_pcf=[% dirs.out %]/[% baf_path %].pcf
+amber_pcf=[% baf_path %].pcf
 
-column=$(head -1 [% dirs.out %]/[% baf_path %] | cut -f 4)
+column=$(head -1 [% baf_path %] | cut -f 4)
 segmentation_script=[% dirs.out %]/scripts/[% opt.BAF_SEGMENTATION_SCRIPT %]
-echo "INFO - Executing PCF Segmentation with command: Rscript ${segmentation_script} [% dirs.out %]/[% baf_path %] ${column} ${amber_pcf}"
+echo "INFO - Executing PCF Segmentation with command: Rscript ${segmentation_script} [% baf_path %] ${column} ${amber_pcf}"
 
-Rscript ${segmentation_script} [% dirs.out %]/[% baf_path %] ${column} ${amber_pcf}
+Rscript ${segmentation_script} [% baf_path %] ${column} ${amber_pcf}
 rm ${amber_pcf}1
 
 assert_not_empty ${amber_pcf}
