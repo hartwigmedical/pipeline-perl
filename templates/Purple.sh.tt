@@ -9,7 +9,7 @@ echo "[INFO] Running Purple - $(date)"
 java -Xmx[% opt.PURPLE_MEM %]G -jar "[% opt.PURPLE_PATH %]/purple.jar" \
     -threads [% opt.PURPLE_THREADS %] \
     -gc_profile "[% opt.GC_PROFILE %]" \
-    -baf "[% opt.AMBER_BAF_FILE %]" \
+    -baf [% opt.AMBER_BAF_FILE %] \
     -somatic_vcf [% opt.SOMATIC_VARIANT_VCF %]  \
     -structural_vcf [% opt.STRUCTURAL_VARIANT_VCF %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
