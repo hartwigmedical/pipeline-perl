@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="StrelkaUnfilterHotspots" main_step=joint_name log_name="Somatic_${joint_name}.log" %]
+
+snvs_all_vcf="results/all.somatic.snvs.vcf"
+indels_all_vcf="results/all.somatic.indels.vcf"
+snvs_passed="[% final_vcf %]".snvs
+indels_passed="[% final_vcf %]".indels
+
+cd "[% dirs.strelka.out %]"
+
+echo "[INFO] Annotate and filter INDEL hotspots - $(date)"
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.HMF_SOMATIC_HOTSPOTS %] -c CHROM,POS,REF,ALT -m +HOTSPOT ${indels_all_vcf} -O u | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e HOTSPOT=1 -s PASS -O u | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -i 'FILTER="PASS"' -o ${indels_passed}
+
+echo "[INFO] Annotate and filter SNV hotspots - $(date)"
+[% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.HMF_SOMATIC_HOTSPOTS %] -c CHROM,POS,REF,ALT -m +HOTSPOT ${snvs_all_vcf} -O u | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -e HOTSPOT=1 -s PASS -O u | \
+[% opt.BCFTOOLS_PATH %]/bcftools filter -i 'FILTER="PASS"' -o ${snvs_passed}
+
+java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G -jar "[% opt.GATK_PATH %]/GenomeAnalysisTK.jar" \
+    -T CombineVariants \
+    -R "[% opt.REF_GENOME %]" \
+    --genotypemergeoption unsorted \
+    -V:snvs "${snvs_passed}" \
+    -V:indels "${indels_passed}" \
+    -o "[% final_vcf %]"
+
+assert_not_empty "[% final_vcf %]"
+
+## ===== CLEANUP
+rm -f ${indels_passed}*
+rm -f ${snvs_passed}*
+
+success

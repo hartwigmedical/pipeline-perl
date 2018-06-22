@@ -38,10 +38,13 @@ sub run {
     say "\nRunning somatic calling on:";
     say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
 
-    my ($strelka_job_id, $strelka_vcf) = runStrelka($tumor_sample, $recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
+    my ($strelka_job_id) = runStrelka($recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;
 
-    my $post_process_job_id = postProcessStrelka($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
+    my ($unfilter_hotspots_job_id, $strelka_vcf) = runStrelkaUnfilterHotspots($joint_name, $running_jobs, $dirs, $opt);
+    push @{$opt->{RUNNING_JOBS}->{strelka}}, $unfilter_hotspots_job_id;
+
+    my $post_process_job_id = runStrelkaPostProcess($joint_name, $final_vcf, $unfilter_hotspots_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $post_process_job_id;
 
     my $done_job_id = markDone($done_file, [ $strelka_job_id, $post_process_job_id ], $dirs, $opt);
@@ -76,12 +79,11 @@ sub runRecalibrationOnSample {
 }
 
 sub runStrelka {
-    my ($tumor_sample, $ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
+    my ($ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA ###";
 
     $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
-    my $output_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf.gz");
 
     my $job_id = fromTemplate(
         "Strelka",
@@ -91,18 +93,37 @@ sub runStrelka {
         $running_jobs,
         $dirs,
         $opt,
-        tumor_sample => $tumor_sample,
         joint_name => $joint_name,
         ref_bam_path => $ref_bam_path,
         tumor_bam_path => $tumor_bam_path,
-        final_vcf => $output_vcf,
     );
 
-    return ($job_id, $output_vcf);
+    return ($job_id);
 }
 
-sub postProcessStrelka {
-    my ($joint_name, $final_vcf, $strelka_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt) = @_;
+sub runStrelkaUnfilterHotspots {
+    my ($joint_name, $dependent_jobs, $dirs, $opt) = @_;
+
+    my $final_vcf = catfile($dirs->{strelka}->{out}, "passed.somatic.merged.vcf.gz");
+
+    my $job_id = fromTemplate(
+        "StrelkaUnfilterHotspots",
+        undef,
+        1,
+        qsubJava($opt, "STRELKAPOSTPROCESS"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        joint_name => $joint_name,
+        final_vcf => $final_vcf,
+    );
+
+    return ($job_id, $final_vcf);
+}
+
+
+sub runStrelkaPostProcess {
+    my ($joint_name, $final_vcf, $unfilter_hotspots_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA POST PROCESS ###";
 
@@ -111,7 +132,7 @@ sub postProcessStrelka {
         undef,
         0,
         qsubJava($opt, "STRELKAPOSTPROCESS"),
-        [$strelka_job_id],
+        [$unfilter_hotspots_job_id],
         $dirs,
         $opt,
         tumor_sample => $tumor_sample,

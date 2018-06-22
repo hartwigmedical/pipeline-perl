@@ -8,15 +8,13 @@ cd "[% dirs.out %]"
 
 basefile=[% dirs.out %]/[% joint_name %]
 tmp_file_suffix="tmpFileToBeDeleted"
-tumor_bam="[% tumor_bam_path %]"
-input_vcf="[% strelka_vcf %]"
 
-assert_not_empty "${input_vcf}"
-assert_not_empty "${tumor_bam}"
+assert_not_empty "[% strelka_vcf %]" "[% tumor_bam_path %]"
 
 ## ===== MAPPABILITY ANNOTATION
 echo "[INFO] Annotating Mappability - $(date)"
 
+input_vcf="[% strelka_vcf %]"
 output_vcf="${basefile}_${tmp_file_suffix}.mappability.vcf.gz"
 [% opt.BCFTOOLS_PATH %]/bcftools annotate -a "[% opt.MAPPABILITY_BED %]" -h "[% opt.MAPPABILITY_HDR %]" -c CHROM,FROM,TO,-,MAPPABILITY -o ${output_vcf} -O z ${input_vcf}
 [% opt.TABIX_PATH %]/tabix ${output_vcf} -p vcf
@@ -56,7 +54,7 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G \
     -hc_bed "[% opt.HIGH_CONFIDENCE_BED %]" \
     -t "[% tumor_sample %]" \
     -o "$output_vcf" \
-    -b $tumor_bam
+    -b "[% tumor_bam_path %]"
 
 ## ===== SNPEFF ANNOTATION
 echo "[INFO] Annotating with snpEff - $(date)"
@@ -123,7 +121,9 @@ rm ./*${tmp_file_suffix}*
 
 echo "[INFO] Cleaning up recalibrated bams - $(date)"
 [% FOREACH sample IN opt.SAMPLES.keys -%]
-rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
+    rm -f [% opt.OUTPUT_DIR %]/[% sample %]/mapping/[% sample %]*.recalibrated.ba*
 [% END -%]
+
+assert_not_empty "[% final_vcf %]"
 
 success
