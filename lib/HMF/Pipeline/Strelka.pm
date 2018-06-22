@@ -31,23 +31,30 @@ sub run {
 
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
-    my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
-    my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
-    $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
+    $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
+    my $unfilter_dependent_jobs;
+    if ($opt->{RUN_STRELKA_MAIN} eq "yes") {
+        my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
+        my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
+        $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
 
-    say "\nRunning somatic calling on:";
-    say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
+        say "\nRunning somatic calling on:";
+        say "$joint_name \t $recalibrated_ref_bam \t $recalibrated_tumor_bam";
 
-    my ($strelka_job_id) = runStrelka($recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;
+        my ($strelka_job_id) = runStrelka($recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
+        push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;
+        $unfilter_dependent_jobs = $opt->{RUNNING_JOBS}->{strelka};
+    } else {
+        $unfilter_dependent_jobs = $running_jobs;
+    }
 
-    my ($unfilter_hotspots_job_id, $strelka_vcf) = runStrelkaUnfilterHotspots($joint_name, $running_jobs, $dirs, $opt);
+    my ($unfilter_hotspots_job_id, $strelka_vcf) = runStrelkaUnfilterHotspots($joint_name, $unfilter_dependent_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $unfilter_hotspots_job_id;
 
     my $post_process_job_id = runStrelkaPostProcess($joint_name, $final_vcf, $unfilter_hotspots_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $post_process_job_id;
 
-    my $done_job_id = markDone($done_file, [ $strelka_job_id, $post_process_job_id ], $dirs, $opt);
+    my $done_job_id = markDone($done_file, [$post_process_job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $done_job_id;
     return;
 }
@@ -82,8 +89,6 @@ sub runStrelka {
     my ($ref_bam_path, $tumor_bam_path, $joint_name, $running_jobs, $dirs, $opt) = @_;
 
     say "\n### SCHEDULING STRELKA ###";
-
-    $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
 
     my $job_id = fromTemplate(
         "Strelka",

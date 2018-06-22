@@ -374,8 +374,9 @@ sub configChecks {
             }
         ),
         STRELKA => if_enabled({
-                BAMUTIL_PATH => \&missing_directory,
+                RUN_STRELKA_MAIN => \&key_not_present,
 
+                BAMUTIL_PATH => \&missing_directory,
                 BASERECALIBRATION_MASTER_QUEUE => \&key_not_present,
                 BASERECALIBRATION_MASTER_TIME => \&key_not_present,
                 BASERECALIBRATION_MASTER_THREADS => \&key_not_present,
