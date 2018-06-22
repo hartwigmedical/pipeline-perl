@@ -20,3 +20,5 @@ mv ${current_germline_vcf}.gz.tbi [% final_vcf %].tbi
 
 rm -f ${current_germline_vcf}
 rm -f ${current_germline_vcf}.idx
+
+success
