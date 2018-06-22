@@ -11,6 +11,8 @@ indels_passed="[% final_vcf %]".indels
 
 cd "[% dirs.strelka.out %]"
 
+assert_not_empty ${snvs_all_vcf} ${indels_all_vcf}
+
 echo "[INFO] Annotate and filter INDEL hotspots - $(date)"
 [% opt.BCFTOOLS_PATH %]/bcftools annotate -a [% opt.HMF_SOMATIC_HOTSPOTS %] -c CHROM,POS,REF,ALT -m +HOTSPOT ${indels_all_vcf} -O u | \
 [% opt.BCFTOOLS_PATH %]/bcftools filter -e HOTSPOT=1 -s PASS -O u | \
@@ -31,7 +33,6 @@ java -Xmx[% opt.STRELKAPOSTPROCESS_MEM %]G -jar "[% opt.GATK_PATH %]/GenomeAnaly
 
 assert_not_empty "[% final_vcf %]"
 
-## ===== CLEANUP
 rm -f ${indels_passed}*
 rm -f ${snvs_passed}*
 
