@@ -38,8 +38,9 @@ sub run {
     push @amber_jobs, markDone($done_file, \@amber_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{amber}}, @amber_jobs;
 
-    $opt->{AMBER_BAF_FILE} = "${sub_dir}/${tumor_sample}.amber.baf";
-    linkArtefact($opt->{AMBER_BAF_FILE}, 'amber_baf', $opt);
+    my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
+    linkArtefact($amber_output, 'amber_baf', $opt);
+    $opt->{AMBER_BAF_FILE} = catfile($opt->{OUTPUT_DIR}, $amber_output);
 
     return;
 }
