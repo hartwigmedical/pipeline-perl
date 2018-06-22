@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssAssemblePostProcess" main_step=joint_name log_name="GridssAssemblePostProcess_${joint_name}.log" %]
+
+jvm_args="-ea -Dsamjdk.create_index=true -Dsamjdk.use_async_io_read_samtools=true -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=true"
+
+echo "[INFO] Running GRIDSS CollectGridssMetrics for [% joint_name %] - $(date)"
+
+mkdir -p [% metrics_output_dir %]
+
+java -Xmx256M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.analysis.CollectGridssMetrics \
+    ASSUME_SORTED=true \
+    I=[% assembly_bam %] \
+    O=[% metrics_output %] \
+    THRESHOLD_COVERAGE=[% opt.GRIDSS_THRESHOLD_COVERAGE %] \
+    FILE_EXTENSION=null \
+    GRIDSS_PROGRAM=null \
+    GRIDSS_PROGRAM=CollectCigarMetrics \
+    GRIDSS_PROGRAM=CollectMapqMetrics \
+    GRIDSS_PROGRAM=CollectTagMetrics \
+    GRIDSS_PROGRAM=CollectIdsvMetrics \
+    GRIDSS_PROGRAM=ReportThresholdCoverage \
+    PROGRAM=null \
+    PROGRAM=CollectInsertSizeMetrics
+
+echo "[INFO] Running GRIDSS SoftClipsToSplitReads for [% joint_name %] - $(date)"
+
+java -Xmx[% opt.GRIDSS_ASSEMBLE_POST_PROCESS_MEM %]G ${jvm_args} -Dgridss.async.buffersize=16 -Dgridss.output_to_temp_file=true \
+    -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+    gridss.SoftClipsToSplitReads \
+    TMP_DIR=[% dirs.tmp %] \
+    WORKING_DIR=[% dirs.out %] \
+    REFERENCE_SEQUENCE=[% opt.REF_GENOME %] \
+    I=[% assembly_bam %] \
+    O=[% sv_bam %]\
+    REALIGN_ENTIRE_READ=true \
+    WORKER_THREADS=[% opt.GRIDSS_ASSEMBLE_POST_PROCESS_THREADS %] \
+    ALIGNER_COMMAND_LINE=null \
+    ALIGNER_COMMAND_LINE=[% opt.GRIDSS_BWA_PATH %]/bwa \
+    ALIGNER_COMMAND_LINE=mem \
+    'ALIGNER_COMMAND_LINE=-K [% opt.GRIDSS_BWA_BASES_PER_BATCH  %]' \
+    ALIGNER_COMMAND_LINE=-t \
+    'ALIGNER_COMMAND_LINE=%3$d' \
+    'ALIGNER_COMMAND_LINE=%2$s' \
+    'ALIGNER_COMMAND_LINE=%1$s'
+
+assert_not_empty [% sv_bam %]
+
+success

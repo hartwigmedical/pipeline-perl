@@ -454,6 +454,11 @@ sub configChecks {
                         GRIDSS_ASSEMBLE_MEM => \&key_not_present,
                         GRIDSS_ASSEMBLE_TIME => \&key_not_present,
 
+                        GRIDSS_ASSEMBLE_POST_PROCESS_QUEUE => \&key_not_present,
+                        GRIDSS_ASSEMBLE_POST_PROCESS_THREADS => \&key_not_present,
+                        GRIDSS_ASSEMBLE_POST_PROCESS_MEM => \&key_not_present,
+                        GRIDSS_ASSEMBLE_POST_PROCESS_TIME => \&key_not_present,
+
                         GRIDSS_CALLING_QUEUE => \&key_not_present,
                         GRIDSS_CALLING_THREADS => \&key_not_present,
                         GRIDSS_CALLING_MEM => \&key_not_present,
