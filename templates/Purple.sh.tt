@@ -16,6 +16,6 @@ java -Xmx[% opt.PURPLE_MEM %]G -jar "[% opt.PURPLE_PATH %]/purple.jar" \
     -output_dir [% dirs.purple %] \
     -run_dir [% opt.OUTPUT_DIR %]
 
-assert_not_empty [% purple_purity_path %]
+assert_not_empty [% dirs.out %]/[% purple_purity_path %]
 
 success
