@@ -24,6 +24,12 @@ java -Xmx[% opt.COBALT_MEM %]G -jar "[% opt.COBALT_PATH %]/cobalt.jar" \
     -output_dir "[% dirs.cobalt %]" \
     -gc_profile "[% opt.GC_PROFILE %]"
 
-rm "[% dirs.cobalt %]"/*.pcf1
+assert_not_empty [% dirs.cobalt %]/[% tumor_sample %].cobalt
+
+# TODO (KODU): Determine which cleanups need to run as part of the rerun.
+rm -f "[% dirs.cobalt %]"/*.pcf1
+rm -f "[% dirs.cobalt %]"/*.ratio
+rm -f "[% dirs.cobalt %]"/*.ratio.gc
+rm -f "[% dirs.cobalt %]"/*.count
 
 success
