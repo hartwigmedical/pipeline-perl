@@ -40,7 +40,8 @@ sub run {
 
     my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
     linkArtefact($amber_output, 'amber_baf', $opt);
-    $opt->{AMBER_BAF_FILE} = catfile($opt->{OUTPUT_DIR}, $amber_output);
+    $opt->{AMBER_BAF_FILE} = join "", $opt->{OUTPUT_DIR}, $amber_output;
+    say $opt->{AMBER_BAF_FILE};
 
     return;
 }
