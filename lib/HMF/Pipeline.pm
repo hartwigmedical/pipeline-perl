@@ -14,7 +14,6 @@ use HMF::Pipeline::Realignment;
 use HMF::Pipeline::DamageEstimate;
 use HMF::Pipeline::PostStats;
 use HMF::Pipeline::Amber;
-use HMF::Pipeline::AmberBAFSegmentation;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::Strelka;
@@ -45,7 +44,7 @@ sub run {
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         # KODU: Amber BAF Segmentation is for rerunning only and expects (previously run) amber output.
-        HMF::Pipeline::AmberBAFSegmentation::run($opt) if $opt->{AMBER_BAF_SEGMENTATION} eq "yes";
+        HMF::Pipeline::Amber::runAmberBAFSegmentation($opt) if $opt->{AMBER_BAF_SEGMENTATION} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
