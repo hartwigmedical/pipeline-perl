@@ -23,6 +23,13 @@ sub run {
     my $sub_dir = "purple";
     my $dirs = createDirs($opt->{OUTPUT_DIR}, purple => $sub_dir);
     my $dependent_jobs = dependencies($opt);
+
+    my $circos_path = "${sub_dir}/plot/${tumor_sample}.circos.png";
+    my $purple_cnv = "${sub_dir}/${tumor_sample}.purple.cnv";
+    my $purple_gene_cnv = "${sub_dir}/${tumor_sample}.purple.gene.cnv";
+    my $purple_germline_cnv = "${sub_dir}/${tumor_sample}.purple.germline.cnv";
+    my $purple_purity = "${sub_dir}/${tumor_sample}.purple.purity";
+
     my $job_id = fromTemplate(
         "Purple",
         undef,
@@ -31,16 +38,11 @@ sub run {
         $dependent_jobs,
         $dirs,
         $opt,
+        purple_purity_path => $purple_purity,
         # SABR: comment to avoid perltidy putting on one line
     );
 
     $opt->{RUNNING_JOBS}->{purple} = [$job_id] if $job_id;
-
-    my $circos_path = "${sub_dir}/plot/${tumor_sample}.circos.png";
-    my $purple_cnv = "${sub_dir}/${tumor_sample}.purple.cnv";
-    my $purple_gene_cnv = "${sub_dir}/${tumor_sample}.purple.gene.cnv";
-    my $purple_germline_cnv = "${sub_dir}/${tumor_sample}.purple.germline.cnv";
-    my $purple_purity = "${sub_dir}/${tumor_sample}.purple.purity";
 
     linkArtefact($circos_path, 'circos_plot', $opt);
     linkArtefact($purple_cnv, 'purple_cnv', $opt);
