@@ -32,8 +32,7 @@ sub run {
     if ($opt->{BAM}) {
         $ref_sample_name = $ref_sample;
         $tumor_sample_name = $tumor_sample;
-    } else {
-        # KODU: Run from FASTQ
+    } elsif ($opt->{FASTQ} or $opt->{GRIDSS_REUSE_POSTSTATS} eq "yes") {
         $ref_sample_name = join "", $ref_sample, "_dedup";
         $tumor_sample_name = join "", $tumor_sample, "_dedup";
     }

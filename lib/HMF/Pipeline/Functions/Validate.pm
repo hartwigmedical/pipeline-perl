@@ -497,6 +497,8 @@ sub configChecks {
                         GRIDSS_CONFIG => \&key_not_present,
 
                         TABIX_PATH => \&missing_directory,
+
+                        GRIDSS_REUSE_POSTSTATS => \&key_not_present,
                     }
                 ),
             }
