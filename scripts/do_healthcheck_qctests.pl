@@ -95,7 +95,12 @@ sub doSomaticTests {
     }
 
     $test = 'AMBER_MEAN_BAF';
-    my $amber_check_fail = $AMBER_MEAN_BAF < 0.45;
+
+    # KODU:
+    # Complete sample swap  =>  <0.4
+    # 10%+ contamination in tumor =>  < 0.486
+    # Significant Tumor contamination in Ref  => >0.5
+    my $amber_check_fail = $AMBER_MEAN_BAF < 0.48 or $AMBER_MEAN_BAF > 0.51;
     if ($amber_check_fail) {
         printMsg('FAIL', $test) and $fails++;
     } else {
