@@ -2,7 +2,7 @@
 # -*- TT -*-
 
 [% INCLUDE ErrorHandling.tt %]
-[% INCLUDE Logging.tt job_name="AmberBAFSegmentation" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
+[% INCLUDE Logging.tt job_name="AmberRerun" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
 
 amber_pcf=[% baf_path %].pcf
 

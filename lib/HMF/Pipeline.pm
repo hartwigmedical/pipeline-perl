@@ -44,8 +44,8 @@ sub run {
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         # KODU: Amber BAF Segmentation is for rerunning only and expects (previously run) amber output.
-        HMF::Pipeline::Amber::runAmberBAFSegmentation($opt) if $opt->{AMBER_BAF_SEGMENTATION} eq "yes";
-        HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
+        HMF::Pipeline::Amber::runAmberRerun($opt) if $opt->{AMBER_RERUN} eq "yes";
+        HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes" or $opt->{COBALT_RERUN} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";

@@ -14,7 +14,7 @@ use HMF::Pipeline::Functions::Metadata qw(linkArtefact);
 use List::Util qw[min max];
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(run runAmberBAFSegmentation);
+our @EXPORT_OK = qw(run runAmberRerun);
 
 sub run {
     my ($opt) = @_;
@@ -85,11 +85,10 @@ sub runAmberPileup {
     return $job_id;
 }
 
-sub runAmberBAFSegmentation {
+sub runAmberRerun {
     my ($opt) = @_;
 
-    # KODU: This step is only needed for rerunning
-    say "\n### SCHEDULING AMBER BAF SEGMENTATION ###";
+    say "\n### SCHEDULING AMBER RERUN ###";
     $opt->{RUNNING_JOBS}->{amber} = [];
 
     my $sub_dir = "amber";
@@ -101,7 +100,7 @@ sub runAmberBAFSegmentation {
     $opt->{AMBER_BAF_FILE} = catfile($opt->{OUTPUT_DIR}, $amber_output);
 
     my $segmentation_job_id = fromTemplate(
-        "AmberBAFSegmentation",
+        "AmberRerun",
         undef,
         1,
         qsubTemplate($opt, "AMBER"),
@@ -116,6 +115,5 @@ sub runAmberBAFSegmentation {
 
     return;
 }
-
 
 1;

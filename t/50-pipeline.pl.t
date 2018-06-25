@@ -101,7 +101,7 @@ sub setupDoneFiles {
         catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "PipelineCheck.done"),
         catfile("logs", "Amber_CPCT12345678R_CPCT12345678T.done"),
-        catfile("logs", "AmberBAFSegmentation.done"),
+        catfile("logs", "AmberRerun.done"),
         catfile("logs", "Cobalt_CPCT12345678R_CPCT12345678T.done"),
         catfile("logs", "Purple.done"),
         catfile("logs", "HealthCheck.done"),

@@ -349,7 +349,7 @@ sub configChecks {
                 TABIX_PATH => \&missing_directory,
             }
         ),
-        AMBER_BAF_SEGMENTATION => if_enabled({
+        AMBER_RERUN => if_enabled({
                 BAF_SEGMENTATION_SCRIPT => \&key_not_present,
             }
         ),
@@ -362,14 +362,20 @@ sub configChecks {
                 BAF_SNPS => \&missing_file,
             }
         ),
+        COBALT_RERUN => if_enabled({
+                COBALT_PATH => \&missing_directory,
+                COBALT_QUEUE => \&key_not_present,
+                COBALT_TIME => \&key_not_present,
+                COBALT_THREADS => \&key_not_present,
+                COBALT_MEM => \&key_not_present,
+            }
+        ),
         COBALT => if_enabled({
                 COBALT_PATH => \&missing_directory,
                 COBALT_QUEUE => \&key_not_present,
                 COBALT_TIME => \&key_not_present,
                 COBALT_THREADS => \&key_not_present,
                 COBALT_MEM => \&key_not_present,
-
-                COBALT_RERUN => \&key_not_present,
             }
         ),
         PURPLE => if_enabled({
