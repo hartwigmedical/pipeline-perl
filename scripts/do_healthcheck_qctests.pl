@@ -38,7 +38,6 @@ sub doSingleSampleTests {
 
     say "[INFO] Info Summary:";
     say "[INFO]   SAMPLE = $sample";
-
     say "[INFO] QC Tests:";
 
     my $fails = 0;
@@ -67,8 +66,8 @@ sub doSomaticTests {
     my $COV_PCT_20X_R = getValueBySample($hcdata, $refSample, 'COVERAGE_20X');
     my $COV_PCT_30X_T = getValueBySample($hcdata, $tumorSample, 'COVERAGE_30X');
     my $COV_PCT_60X_T = getValueBySample($hcdata, $tumorSample, 'COVERAGE_60X');
-
     my $SOM_SNP_DBSNP_PCT = roundNumber($SOM_SNP_DBSNP_COUNT * 100 / $SOM_SNP_COUNT);
+
     say "[INFO] Info Summary:";
     say "[INFO]   SAMPLES = $SAMPLE_NAMES";
     say "[INFO]   SOMATIC_SNP_COUNT = " . commify($SOM_SNP_COUNT);
@@ -94,26 +93,19 @@ sub doSomaticTests {
         printMsg('INFO', "  [OK] $test");
     }
 
-    $test = 'AMBER_MEAN_BAF';
+    $test = 'PURPLE_QC';
+    if ($PURPLE_QC_STATUS ne "PASS") {
+        printMsg('FAIL', "$test ($PURPLE_QC_STATUS)") and $fails++;
+    } else {
+        printMsg('INFO', "  [OK] $test ($PURPLE_QC_STATUS)");
+    }
 
     # KODU:
     # Complete sample swap  =>  <0.4
     # 10%+ contamination in tumor =>  < 0.486
     # Significant Tumor contamination in Ref  => >0.5
-    my $amber_check_fail = $AMBER_MEAN_BAF < 0.48 or $AMBER_MEAN_BAF > 0.51;
-    if ($amber_check_fail) {
-        printMsg('FAIL', $test) and $fails++;
-    } else {
-        printMsg('INFO', "  [OK] $test");
-    }
-
-    $test = 'PURPLE_QC';
-    my $purple_qc_fail = ($PURPLE_QC_STATUS ne "PASS");
-    if ($purple_qc_fail) {
-        printMsg('FAIL', $test) and $fails++;
-    } else {
-        printMsg('INFO', "  [OK] $test");
-    }
+    ifLowerFail(\$fails, 0.48, $AMBER_MEAN_BAF, 'AMBER_MEAN_BAF');
+    ifHigherFail(\$fails, 0.51, $AMBER_MEAN_BAF, 'AMBER_MEAN_BAF');
 
     ifLowerFail(\$fails, 0.90, $COV_PCT_10X_R, 'COVERAGE_10X_R');
     ifLowerFail(\$fails, 0.70, $COV_PCT_20X_R, 'COVERAGE_20X_R');
@@ -138,15 +130,26 @@ sub generateFinalResultMessage {
 }
 
 sub ifLowerFail {
-    my ($failCount, $failLimit, $checkValue, $testName) = @_;
-    my $printValue = commify(roundNumber($checkValue));
+    my ($totalFailCount, $limit, $value, $msg) = @_;
     my $fail = 0;
-    $fail = $checkValue < $failLimit unless $failLimit eq 'NA';
+    $fail = $value < $limit unless $limit eq 'NA';
 
     if ($fail) {
-        printMsg('FAIL', "$testName: $printValue < $failLimit") and $$failCount++;
+        printMsg('FAIL', "$msg: $value < $limit") and $$totalFailCount++;
     } else {
-        printMsg('INFO', "  [OK] $testName: $printValue > $failLimit");
+        printMsg('INFO', "  [OK] $msg: $value > $limit");
+    }
+}
+
+sub ifHigherFail {
+    my ($totalFailCount, $limit, $value, $msg) = @_;
+    my $fail = 0;
+    $fail = $value > $limit unless $limit eq 'NA';
+
+    if ($fail) {
+        printMsg('FAIL', "$msg: $value < $limit") and $$totalFailCount++;
+    } else {
+        printMsg('INFO', "  [OK] $msg: $value > $limit");
     }
 }
 
@@ -168,7 +171,7 @@ sub getValueBySample {
 
 sub printMsg {
     my ($type, $msg) = @_;
-    say "[$type] $msg\n";
+    say "[$type] $msg";
 }
 
 sub parseHealthCheckerOutput {
