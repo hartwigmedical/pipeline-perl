@@ -4,21 +4,20 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="AmberRerun" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
 
-echo "INFO - Executing PCF Segmentation with command: Rscript ${segmentation_script} [% baf_path %] ${column} ${amber_pcf} - $(date)"
 amber_pcf=[% baf_path %].pcf
 
 column=$(head -1 [% baf_path %] | cut -f 4)
 segmentation_script=[% dirs.out %]/scripts/[% opt.BAF_SEGMENTATION_SCRIPT %]
 
+echo "INFO - Executing PCF Segmentation with command: Rscript ${segmentation_script} [% baf_path %] ${column} ${amber_pcf} - $(date)"
 Rscript ${segmentation_script} [% baf_path %] ${column} ${amber_pcf}
 rm ${amber_pcf}1
 
 assert_not_empty ${amber_pcf}
 
-echo "INFO - Generating Amber QC file - $(date)"
+amber_qc=[% dirs.amber %]/$(basename [% baf_path %] .baf).qc
 
-amber_qc=$(basename [% baf_path %] .baf).qc
-rm -f ${amber_qc}
+echo "INFO - Generating Amber QC file ${amber_qc} - $(date)"
 
 meanBaf=$(grep -v X [% baf_path %] | grep -v Y | grep -v Chromo | cut -f 3 | awk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }')
 qcStatus=PASS
