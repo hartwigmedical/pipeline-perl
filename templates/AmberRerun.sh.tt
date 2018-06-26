@@ -31,7 +31,7 @@ elif (( $(echo "$meanBaf < 0.487" | bc -l) )); then
     qcStatus=WARN
 fi
 
-echo -e 'QCStatus\t'${meanBaf} > ${amber_qc}
+echo -e 'QCStatus\t'${qcStatus} > ${amber_qc}
 echo -e 'MeanBAF\t'${meanBaf} >> ${amber_qc}
 
 assert_not_empty ${amber_qc}
