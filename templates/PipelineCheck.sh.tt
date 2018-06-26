@@ -70,8 +70,8 @@ echo >> [% log_file %]
 if [[ "${succeed}" == "true" ]]
 then
     find [% opt.OUTPUT_DIR %] -type d -name tmp -prune -exec rm -rf "{}" \;
-    find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -delete
-    find [% dirs.log %] -size 0 -not -name "*.done" -delete
+    find [% opt.OUTPUT_DIR %]/*/logs -size 0 -not -name "*.done" -not -name "*.success" -delete
+    find [% dirs.log %] -size 0 -not -name "*.done" -not -name "*.success" -delete
 fi
 
 [%- IF opt.HEALTHCHECK == "yes" %]
