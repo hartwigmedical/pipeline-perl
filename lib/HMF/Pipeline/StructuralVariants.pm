@@ -33,9 +33,25 @@ sub run {
     }
 
     if ($opt->{GRIDSS} eq "yes") {
-        if ($opt->{POSTSTATS} eq "no") {
-            say "\n[WARN] Cannot schedule gridss without scheduling post stats!";
+        if ($opt->{POSTSTATS} eq "no" and $opt->{GRIDSS_REUSE_POSTSTATS} eq "no") {
+            say "\n[WARN] Cannot schedule gridss without scheduling post stats or without reusing existing poststats!";
         } else {
+            # KODU: We need the insert size metrics when running gridss. Their naming comes out of poststats and is dependent on the mode we run in.
+            my ($ref_sample, $tumor_sample, undef, undef, undef, undef) = sampleControlBamsAndJobs($opt);
+            my $suffix = "_MultipleMetrics.txt.insert_size_metrics";
+            my $ref_sample_name;
+            my $tumor_sample_name;
+            if ($opt->{BAM}) {
+                $ref_sample_name = $ref_sample;
+                $tumor_sample_name = $tumor_sample;
+            } elsif ($opt->{FASTQ} or $opt->{GRIDSS_REUSE_POSTSTATS} eq "yes") {
+                $ref_sample_name = join "", $ref_sample, "_dedup";
+                $tumor_sample_name = join "", $tumor_sample, "_dedup";
+            }
+
+            $opt->{REF_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $ref_sample_name, join "", $ref_sample_name, $suffix);
+            $opt->{TUMOR_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $tumor_sample_name, join "", $tumor_sample_name, $suffix);
+
             my $gridss_jobs = runGridss($opt);
             if ($gridss_jobs) {
                 push @{$opt->{RUNNING_JOBS}->{sv}}, @{$gridss_jobs};
