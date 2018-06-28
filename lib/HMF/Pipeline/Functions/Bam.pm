@@ -44,7 +44,7 @@ sub sorted {
 }
 
 sub slice {
-    my ($step, $sample_bam, $remove_bam_after_slice, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
+    my ($step, $sample_bam, $sliced_bam, $bed_name, $hold_jids, $dirs, $opt) = @_;
 
     my $slice_name = fileparse($sliced_bam);
     return fromTemplate(
@@ -57,7 +57,6 @@ sub slice {
         $opt,
         step => $step,
         input_bam => catfile($dirs->{mapping}, $sample_bam),
-        remove_bam_after_slice => $remove_bam_after_slice,
         bed_file => catfile($opt->{OUTPUT_DIR}, "settings", "slicing", $bed_name),
         sliced_bam => catfile($dirs->{mapping}, $sliced_bam),
         slice_name => $slice_name,
@@ -143,7 +142,7 @@ sub diff {
 }
 
 sub prePostSliceAndDiff {
-    my ($sample, $operation, $pre_bam, $post_bam, $remove_pre_bam_after_slice, $hold_jids, $dirs, $opt) = @_;
+    my ($sample, $operation, $pre_bam, $post_bam, $hold_jids, $dirs, $opt) = @_;
 
     (my $pre_sliced_bam = $pre_bam) =~ s/\.bam$/.qc.pre${operation}.sliced.bam/;
     (my $post_sliced_bam = $pre_bam) =~ s/\.bam$/.qc.post${operation}.sliced.bam/;
@@ -153,8 +152,8 @@ sub prePostSliceAndDiff {
     my $post_sliced_bam_path = catfile($dirs->{mapping}, $post_sliced_bam);
     my $post_sliced_flagstat_path = catfile($dirs->{mapping}, $post_sliced_flagstat);
 
-    my $pre_job_id = slice($sample, $pre_bam, $remove_pre_bam_after_slice, $pre_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
-    my $post_job_id = slice($sample, $post_bam, "false", $post_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
+    my $pre_job_id = slice($sample, $pre_bam, $pre_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
+    my $post_job_id = slice($sample, $post_bam, $post_sliced_bam, "QC_Slicing.bed", $hold_jids, $dirs, $opt);
     my $diff_job_id = diff($sample, $pre_sliced_bam, $post_sliced_bam, $pre_post_diff, [ $pre_job_id, $post_job_id ], $dirs, $opt);
     my $flagstat_job_id = flagstat($sample, $post_sliced_bam_path, $post_sliced_flagstat_path, [$post_job_id], $dirs, $opt);
 
@@ -168,7 +167,7 @@ sub operationWithSliceChecks {
     (my $post_bam = $sample_bam) =~ s/\.bam$/.${post_tag}.bam/;
     $opt->{BAM_FILES}->{$sample} = $post_bam;
 
-    my (undef, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, "true", $known_files, $post_tag, $slice_tag, $opt);
+    my (undef, $job_ids) = bamOperationWithSliceChecks($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt);
 
     push @{$opt->{RUNNING_JOBS}->{$sample}}, @{$job_ids};
 
@@ -176,7 +175,7 @@ sub operationWithSliceChecks {
 }
 
 sub bamOperationWithSliceChecks {
-    my ($job_template, $sample, $sample_bam, $remove_bam_after_operation, $known_files, $post_tag, $slice_tag, $opt) = @_;
+    my ($job_template, $sample, $sample_bam, $known_files, $post_tag, $slice_tag, $opt) = @_;
 
     (my $sample_flagstat = $sample_bam) =~ s/\.bam$/.flagstat/;
     (my $post_bai = $sample_bam) =~ s/\.bam$/.${post_tag}.bai/;
@@ -223,7 +222,7 @@ sub bamOperationWithSliceChecks {
 
     my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
 
-    my $slicing_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, $remove_bam_after_operation, [$job_id], $dirs, $opt);
+    my $slicing_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$slicing_job_ids};
 
     return ($post_bam_path, [$job_id]);

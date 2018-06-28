@@ -14,9 +14,4 @@ assert_not_empty "[% sliced_bam %]"
 
 assert_not_empty "[% sliced_bam %].bai"
 
-[%- IF remove_bam_after_slice == "true" %]
-rm "[% input_bam %]"
-rm "[% input_bam %]".bai
-[%- END %]
-
 success
