@@ -18,7 +18,9 @@ sub run {
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
         my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), damageEstimate => "damageEstimate");
         my ($bam_path, $running_jobs) = sampleBamAndJobs($sample, $opt);
-        runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
+        my $damage_estimate_job = runDamageEstimate($sample, $bam_path, $running_jobs, $dirs, $opt);
+
+        push @{$opt->{RUNNING_JOBS}->{damageestimate}}, $damage_estimate_job;
     }
     return;
 }
@@ -39,9 +41,10 @@ sub runDamageEstimate {
         sample => $sample,
         damage_estimate_bam_path => $bam_path,
         damage_estimate_out_path => $out_dir_path,
-        joint_name => "DamageEstimate_" . $sample,
+        step_name => "DamageEstimate_" . $sample,
     );
-    return ($job_id);
+
+    return $job_id;
 }
 
 1;

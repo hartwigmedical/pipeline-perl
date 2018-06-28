@@ -39,6 +39,7 @@ sub run {
     if (($opt->{FASTQ} and $opt->{MAPPING} eq "yes") or $opt->{BAM}) {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
+
         # KODU: If we run from BAM and don't realign, we don't actually have a (new) BAM file to link up.
         HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt) if $opt->{INDEL_REALIGNMENT} eq "yes" or $opt->{FASTQ};
 
