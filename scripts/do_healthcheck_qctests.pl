@@ -103,9 +103,9 @@ sub doSomaticTests {
     # KODU:
     # Complete sample swap  =>  <0.4
     # 10%+ contamination in tumor =>  < 0.486
-    # Significant Tumor contamination in Ref  => >0.5
+    # Potential Tumor contamination in Ref  => >0.5
     ifLowerFail(\$fails, 0.48, $AMBER_MEAN_BAF, 'AMBER_MEAN_BAF');
-    ifHigherFail(\$fails, 0.51, $AMBER_MEAN_BAF, 'AMBER_MEAN_BAF');
+    ifHigherFail(\$fails, 0.6, $AMBER_MEAN_BAF, 'AMBER_MEAN_BAF');
 
     ifLowerFail(\$fails, 0.90, $COV_PCT_10X_R, 'COVERAGE_10X_R');
     ifLowerFail(\$fails, 0.70, $COV_PCT_20X_R, 'COVERAGE_20X_R');
