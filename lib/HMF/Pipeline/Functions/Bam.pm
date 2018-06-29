@@ -223,7 +223,7 @@ sub bamOperationWithSliceChecks {
     my $job_id = markDone($done_file, [ $operation_job_id, $flagstat_job_id, $check_job_id ], $dirs, $opt);
 
     my $slicing_job_ids = prePostSliceAndDiff($sample, $slice_tag, $sample_bam, $post_bam, [$job_id], $dirs, $opt);
-    push @{$opt->{RUNNING_JOBS}->{slicing}}, @{$slicing_job_ids};
+    push @{$opt->{RUNNING_JOBS}->{$sample}}, @{$slicing_job_ids};
 
     return ($post_bam_path, [$job_id]);
 }
