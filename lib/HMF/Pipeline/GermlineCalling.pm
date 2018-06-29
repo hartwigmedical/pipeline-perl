@@ -50,7 +50,7 @@ sub runGermlineRerun {
         # SABR: comment to avoid perltidy putting on one line
     );
 
-    push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
+    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
 
     HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "germline_variant", $opt);
     return;
@@ -83,7 +83,7 @@ sub runCaller {
         job_native => jobNative($opt, "GERMLINE_CALLING"),
     );
 
-    push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
+    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
 
     return ($job_id, $calling_vcf);
 }
@@ -109,7 +109,7 @@ sub runFiltering {
         job_native => jobNative($opt, "GERMLINE_FILTER"),
     );
 
-    push @{$opt->{RUNNING_JOBS}->{germline}}, [$job_id] if $job_id;
+    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
 
     return ($job_id, $filtered_vcf);
 }
