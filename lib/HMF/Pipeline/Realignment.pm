@@ -32,7 +32,7 @@ sub run {
         my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
         my $original_bam_path = catfile($dirs->{mapping}, $original_bam_file);
 
-        my $dependent_jobs = [ uniq $opt->{RUNNING_JOBS}->{$sample}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
+        my $dependent_jobs = [ uniq @{$opt->{RUNNING_JOBS}->{$sample}}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
         my $realign_cleanup_job = fromTemplate(
             "RealignmentCleanup",
             $sample,
