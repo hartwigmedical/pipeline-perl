@@ -59,7 +59,7 @@ sub verifyBam {
 sub verifyBai {
     my ($bai_file, $bam_file, $opt) = @_;
 
-    (-f $bai_file && -M $bam_file > -M $bai_file) or return 0;
+    (-f $bai_file && -M $bam_file >= -M $bai_file) or return 0;
 
     # this check does not happen if the .bai is missing/old, so re-implemented in the job :(
     my $headers = bamHeaders($bam_file, $opt);
@@ -71,7 +71,7 @@ sub verifyBai {
 sub verifyFlagstat {
     my ($flagstat_file, $bam_file) = @_;
 
-    return -f $flagstat_file && -M $bam_file > -M $flagstat_file;
+    return -f $flagstat_file && -M $bam_file >= -M $flagstat_file;
 }
 
 sub bamHeaders {
