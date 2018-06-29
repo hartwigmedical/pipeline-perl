@@ -24,12 +24,14 @@ sub run {
     $known_files = join " ", map { "-known $_" } split '\t', $opt->{REALIGNMENT_KNOWN} if $opt->{REALIGNMENT_KNOWN};
 
     foreach my $sample (keys %{$opt->{SAMPLES}}) {
-        my $original_bam_path = $opt->{BAM_FILES}->{$sample};
+        my $original_bam_file = $opt->{BAM_FILES}->{$sample};
 
         HMF::Pipeline::Functions::Bam::operationWithSliceChecks("Realignment", $sample, $known_files, "realigned", "realign", $opt);
 
         # KODU (DEV-440): Cleanup after realignment needs to wait on poststats.
-        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample));
+        my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, $sample), mapping => "mapping");
+        my $original_bam_path = catfile($dirs->{mapping}, $original_bam_file);
+
         my $dependent_jobs = [ uniq $opt->{RUNNING_JOBS}->{$sample}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
         my $realign_cleanup_job = fromTemplate(
             "RealignmentCleanup",
