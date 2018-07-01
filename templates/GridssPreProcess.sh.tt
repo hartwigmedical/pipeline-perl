@@ -13,7 +13,7 @@ echo "[INFO] Running GRIDSS CollectGridssMetricsAndExtractSVReads for [% sample 
 extract_tmp_bam=[% dirs.tmp %]/gridss.tmp.querysorted.[% sample %].sv.bam
 java -Xmx512M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.CollectGridssMetricsAndExtractSVReads \
-    TMP_DIR= [% dirs.tmp %]\
+    TMP_DIR=[% dirs.tmp %]\
     ASSUME_SORTED=true \
     I=[% sample_bam %] \
     O=[% working_dir %]/[% sample %] \
