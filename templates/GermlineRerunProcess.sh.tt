@@ -15,12 +15,12 @@ echo "[INFO] Running Germline Rerun Process - $(date)"
 [% opt.TABIX_PATH %]/bgzip -f "${current_germline_vcf}"
 [% opt.TABIX_PATH %]/tabix -p vcf "${current_germline_vcf}".gz
 
-if [[ "${current_germline_vcf}".gz != "[% final_vcf %]" ]]; then
-    mv ${current_germline_vcf}.gz [% final_vcf %]
+if [[ "[% dirs.out %]/${current_germline_vcf}".gz != "[% final_vcf %]" ]]; then
+    mv [% dirs.out %]/${current_germline_vcf}.gz [% final_vcf %]
 fi
 
-if [[ "${current_germline_vcf}".gz.tbi != "[% final_vcf %]".tbi ]]; then
-    mv ${current_germline_vcf}.gz.tbi [% final_vcf %].tbi
+if [[ "[% dirs.out %]/${current_germline_vcf}".gz.tbi != "[% final_vcf %]".tbi ]]; then
+    mv [% dirs.out %]/${current_germline_vcf}.gz.tbi [% final_vcf %].tbi
 fi
 
 rm -f ${current_germline_vcf}
