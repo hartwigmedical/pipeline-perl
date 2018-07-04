@@ -4,6 +4,17 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GermlineRerunProcess" main_step="" log_name="${opt.RUN_NAME}.log" %]
 
+function get_file_inode() {
+    local file_path=$1 && shift
+
+    if [ -f $file_path ];
+    then
+      echo $(ls -i $file_path | awk '{ print $1 }')
+    else
+      echo "notfound"
+    fi
+}
+
 cd [% dirs.out %]
 
 current_germline_vcf=$(ls | grep .vcf | grep -v .idx)
@@ -15,11 +26,11 @@ echo "[INFO] Running Germline Rerun Process - $(date)"
 [% opt.TABIX_PATH %]/bgzip -f "${current_germline_vcf}"
 [% opt.TABIX_PATH %]/tabix -p vcf "${current_germline_vcf}".gz
 
-if [[ "[% dirs.out %]/${current_germline_vcf}".gz != "[% final_vcf %]" ]]; then
+if [ "$(get_file_inode [% dirs.out %]/${current_germline_vcf}.gz)" != "$(get_file_inode [% final_vcf %])" ]; then
     mv [% dirs.out %]/${current_germline_vcf}.gz [% final_vcf %]
 fi
 
-if [[ "[% dirs.out %]/${current_germline_vcf}".gz.tbi != "[% final_vcf %]".tbi ]]; then
+if [ "$(get_file_inode [% dirs.out %]/${current_germline_vcf}.gz.tbi)" != "$(get_file_inode [% final_vcf %].tbi)" ]; then
     mv [% dirs.out %]/${current_germline_vcf}.gz.tbi [% final_vcf %].tbi
 fi
 
