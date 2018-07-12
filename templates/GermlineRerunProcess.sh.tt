@@ -7,11 +7,11 @@
 function get_file_inode() {
     local file_path=$1 && shift
 
-    if [ -f $file_path ];
+    if [ -f ${file_path} ];
     then
-      echo $(ls -i $file_path | awk '{ print $1 }')
+        echo $(ls -i ${file_path} | awk '{ print $1 }')
     else
-      echo "notfound"
+        echo "notfound"
     fi
 }
 

@@ -193,7 +193,8 @@ _METADATA_
         $test_job->run(args => "bash -n $job");
         is($?, 0, "$test_description $job_script job has valid bash syntax") or diag $test_job->stderr;
         # KODU: SC2034,SC2036,SC2086,SC2016 ignored for GRIDSS
-        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036,SC2086,SC2016,SC2010 $job");
+        # KODU: SC2046,SC2005,SC2012 ignored for germline rerun
+        $test_job->run(args => "shellcheck --exclude SC1091,SC2050,SC2129,SC1117,SC2034,SC2036,SC2086,SC2016,SC2010,SC2046,SC2005,SC2012 $job");
         is($?, 0, "$test_description $job_script job passes shellcheck") or diag $test_job->stdout;
         (my $job_name = $job_script) =~ s/\.sh$//;
         if (not $done_files or $job_name =~ /^PipelineCheck/) {
