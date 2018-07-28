@@ -279,8 +279,8 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        ref_sample_bam => $tumor_sample_bam,
-        tumor_sample_bam => $ref_sample_bam,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
         joint_name => $joint_name,
     );
 
