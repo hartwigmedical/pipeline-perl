@@ -147,9 +147,9 @@ sub ifHigherFail {
     $fail = $value > $limit unless $limit eq 'NA';
 
     if ($fail) {
-        printMsg('FAIL', "$msg: $value < $limit") and $$totalFailCount++;
+        printMsg('FAIL', "$msg: $value > $limit") and $$totalFailCount++;
     } else {
-        printMsg('INFO', "  [OK] $msg: $value > $limit");
+        printMsg('INFO', "  [OK] $msg: $value < $limit");
     }
 }
 
