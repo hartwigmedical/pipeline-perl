@@ -11,7 +11,7 @@ mkdir -p [% working_dir %]
 echo "[INFO] Running GRIDSS CollectGridssMetricsAndExtractSVReads for [% sample %] - $(date)"
 
 extract_tmp_bam=[% dirs.tmp %]/gridss.tmp.querysorted.[% sample %].sv.bam
-java -Xmx512M ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
+java -Xmx[% opt.GRIDSS_PREPROCESS_MEM %]G ${jvm_args} -cp "[% opt.GRIDSS_PATH %]/gridss.jar" \
     gridss.CollectGridssMetricsAndExtractSVReads \
     TMP_DIR=[% dirs.tmp %]\
     ASSUME_SORTED=true \
