@@ -94,11 +94,12 @@ sub runGridss {
     my ($calling_job_id, $gridss_raw_vcf) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $calling_job_id;
 
-    my ($annotation_job_id) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
+    my ($annotation_job_id, $gridss_annotated_vcf) =
+        runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $annotation_job_id;
 
     my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir,
-        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, \@gridss_jobs, $opt);
+        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
@@ -224,12 +225,12 @@ sub runGridssAnnotation {
         gridss_annotated_vcf => $gridss_annotated_vcf
     );
 
-    return($job_id);
+    return($job_id, $gridss_annotated_vcf);
 }
 
 sub runGridssCleanup {
     my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir,
-        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $dependent_jobs, $opt) = @_;
+        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, $dependent_jobs, $opt) = @_;
 
     (my $assembly_bai = $assembly_bam) =~ s/\.bam$/.bai/;
     (my $ref_sample_sv_bai = $ref_sample_sv_bam) =~ s/\.bam$/.bai/;
@@ -254,7 +255,8 @@ sub runGridssCleanup {
         tumor_sample_sv_bam      => $tumor_sample_sv_bam,
         tumor_sample_sv_bai      => $tumor_sample_sv_bai,
         assembly_bam             => $assembly_bam,
-        assembly_bai             => $assembly_bai
+        assembly_bai             => $assembly_bai,
+        gridss_annotated_vcf     => $gridss_annotated_vcf
     );
 
     return($job_id);
