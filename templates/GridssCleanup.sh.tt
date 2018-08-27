@@ -6,15 +6,11 @@
 
 echo "[INFO] Cleaning up SV BAM for [% ref_sample %] - $(date)"
 
-# KODU: Exact name is "$sample.bam.sv.bam", eg 'COLO829R_dedup.bam.sv.bam'
-rm "[% ref_sample_working_dir %]"/*.sv.bam
-rm "[% ref_sample_working_dir %]"/*.sv.bai
+rm "[% ref_sample_sv_bam %]" "[% ref_sample_sv_bai %]"
 
 echo "[INFO] Cleaning up SV BAM for [% tumor_sample %] - $(date)"
 
-# KODU: Exact name is "$sample.bam.sv.bam", eg 'COLO829T_dedup.bam.sv.bam'
-rm "[% tumor_sample_working_dir %]"/*.sv.bam
-rm "[% tumor_sample_working_dir %]"/*.sv.bai
+rm "[% tumor_sample_sv_bam %]" "[% tumor_sample_sv_bai %]"
 
 echo "[INFO] Cleaning up assembly bam for [% joint_name %] - $(date)"
 
