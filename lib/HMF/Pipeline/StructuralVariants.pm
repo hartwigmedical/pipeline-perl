@@ -98,8 +98,8 @@ sub runGridss {
         runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $annotation_job_id;
 
-    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir,
-        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
+    my ($cleanup_job_id) =
+        runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
@@ -121,14 +121,14 @@ sub runGridssPreProcess {
         $dependent_jobs,
         $dirs,
         $opt,
-        sample              => basename($sample_bam),
-        sample_bam          => $sample_bam,
+        sample => basename($sample_bam),
+        sample_bam => $sample_bam,
         insert_size_metrics => $insert_size_metrics,
-        working_dir         => $working_dir,
-        sv_bam              => $sample_sv_bam,
+        working_dir => $working_dir,
+        sv_bam => $sample_sv_bam,
     );
 
-    return($job_id, $working_dir, $sample_sv_bam);
+    return ($job_id, $working_dir, $sample_sv_bam);
 }
 
 sub runGridssAssemble {
@@ -145,13 +145,13 @@ sub runGridssAssemble {
         $dependent_jobs,
         $dirs,
         $opt,
-        ref_sample_bam   => $ref_sample_bam,
+        ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
-        joint_name       => $joint_name,
-        assembly_bam     => $assembly_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
     );
 
-    return($job_id, $assembly_bam_name, $assembly_bam);
+    return ($job_id, $assembly_bam_name, $assembly_bam);
 }
 
 sub runGridssAssemblePostProcess {
@@ -171,14 +171,14 @@ sub runGridssAssemblePostProcess {
         $dependent_jobs,
         $dirs,
         $opt,
-        joint_name         => $joint_name,
-        assembly_bam       => $assembly_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
         metrics_output_dir => $metrics_output_dir,
-        metrics_output     => $metrics_output,
-        sv_bam             => $assembly_sv_bam
+        metrics_output => $metrics_output,
+        sv_bam => $assembly_sv_bam
     );
 
-    return($job_id);
+    return ($job_id);
 }
 
 sub runGridssCalling {
@@ -194,14 +194,14 @@ sub runGridssCalling {
         $dependent_jobs,
         $dirs,
         $opt,
-        ref_sample_bam   => $ref_sample_bam,
+        ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
-        joint_name       => $joint_name,
-        assembly_bam     => $assembly_bam,
-        gridss_raw_vcf   => $gridss_raw_vcf
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
+        gridss_raw_vcf => $gridss_raw_vcf
     );
 
-    return($job_id, $gridss_raw_vcf);
+    return ($job_id, $gridss_raw_vcf);
 }
 
 sub runGridssAnnotation {
@@ -217,15 +217,15 @@ sub runGridssAnnotation {
         $dependent_jobs,
         $dirs,
         $opt,
-        ref_sample_bam       => $ref_sample_bam,
-        tumor_sample_bam     => $tumor_sample_bam,
-        joint_name           => $joint_name,
-        assembly_bam         => $assembly_bam,
-        gridss_raw_vcf       => $gridss_raw_vcf,
+        ref_sample_bam => $ref_sample_bam,
+        tumor_sample_bam => $tumor_sample_bam,
+        joint_name => $joint_name,
+        assembly_bam => $assembly_bam,
+        gridss_raw_vcf => $gridss_raw_vcf,
         gridss_annotated_vcf => $gridss_annotated_vcf
     );
 
-    return($job_id, $gridss_annotated_vcf);
+    return ($job_id, $gridss_annotated_vcf);
 }
 
 sub runGridssCleanup {
@@ -245,21 +245,21 @@ sub runGridssCleanup {
         $dependent_jobs,
         $dirs,
         $opt,
-        ref_sample               => $ref_sample,
-        tumor_sample             => $tumor_sample,
-        joint_name               => $joint_name,
-        ref_sample_working_dir   => $ref_sample_working_dir,
+        ref_sample => $ref_sample,
+        tumor_sample => $tumor_sample,
+        joint_name => $joint_name,
+        ref_sample_working_dir => $ref_sample_working_dir,
         tumor_sample_working_dir => $tumor_sample_working_dir,
-        ref_sample_sv_bam        => $ref_sample_sv_bam,
-        ref_sample_sv_bai        => $ref_sample_sv_bai,
-        tumor_sample_sv_bam      => $tumor_sample_sv_bam,
-        tumor_sample_sv_bai      => $tumor_sample_sv_bai,
-        assembly_bam             => $assembly_bam,
-        assembly_bai             => $assembly_bai,
-        gridss_annotated_vcf     => $gridss_annotated_vcf
+        ref_sample_sv_bam => $ref_sample_sv_bam,
+        ref_sample_sv_bai => $ref_sample_sv_bai,
+        tumor_sample_sv_bam => $tumor_sample_sv_bam,
+        tumor_sample_sv_bai => $tumor_sample_sv_bai,
+        assembly_bam => $assembly_bam,
+        assembly_bai => $assembly_bai,
+        gridss_annotated_vcf => $gridss_annotated_vcf
     );
 
-    return($job_id);
+    return ($job_id);
 }
 
 sub runManta {
@@ -291,9 +291,9 @@ sub runMantaJob {
         $running_jobs,
         $dirs,
         $opt,
-        ref_sample_bam   => $ref_sample_bam,
+        ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
-        joint_name       => $joint_name,
+        joint_name => $joint_name,
     );
 
     return $job_id;
@@ -315,12 +315,12 @@ sub runBreakpointInspector {
         $dependent_job_ids,
         $dirs,
         $opt,
-        ref_sample       => $ref_sample,
-        tumor_sample     => $tumor_sample,
-        ref_sample_bam   => $ref_sample_bam,
+        ref_sample => $ref_sample,
+        tumor_sample => $tumor_sample,
+        ref_sample_bam => $ref_sample_bam,
         tumor_sample_bam => $tumor_sample_bam,
-        joint_name       => $joint_name,
-        input_vcf        => $manta_vcf,
+        joint_name => $joint_name,
+        input_vcf => $manta_vcf,
     );
 
     $opt->{STRUCTURAL_VARIANT_VCF} = join "", $opt->{STRUCTURAL_VARIANT_VCF}, ".gz";
