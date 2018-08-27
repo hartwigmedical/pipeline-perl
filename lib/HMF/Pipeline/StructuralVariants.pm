@@ -92,10 +92,10 @@ sub runGridss {
     my ($calling_job_id, $gridss_raw_vcf) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $calling_job_id;
 
-    my ($annotation_job_id, $gridss_annotated_vcf) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
+    my ($annotation_job_id, $gridss_final_vcf) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $annotation_job_id;
 
-    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
+    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_final_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
@@ -221,17 +221,19 @@ sub runGridssAnnotation {
         gridss_annotated_vcf => $gridss_annotated_vcf
     );
 
-    return ($job_id, $gridss_annotated_vcf);
+    # KODU: The annotated VCF is zipped at the end of the annotation job.
+    my $gridss_final_vcf = join "", $gridss_annotated_vcf, ".gz";
+    return ($job_id, $gridss_final_vcf);
 }
 
 sub runGridssCleanup {
-    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, $dependent_jobs, $opt) = @_;
+    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_final_vcf, $dependent_jobs, $opt) = @_;
 
     (my $assembly_bai = $assembly_bam) =~ s/\.bam$/.bai/;
     (my $ref_sample_sv_bai = $ref_sample_sv_bam) =~ s/\.bam$/.bai/;
     (my $tumor_sample_sv_bai = $tumor_sample_sv_bam) =~ s/\.bam$/.bai/;
 
-    # KODU: Run with GRIDSS annotate settings, this doesn't matter. Cleanup takes no resources.
+    # KODU: Run with GRIDSS annotate settings, this hardly matters (slicing takes little resources).
     my $job_id = fromTemplate(
         "GridssCleanup",
         undef,
@@ -251,7 +253,7 @@ sub runGridssCleanup {
         tumor_sample_sv_bai => $tumor_sample_sv_bai,
         assembly_bam => $assembly_bam,
         assembly_bai => $assembly_bai,
-        gridss_annotated_vcf => $gridss_annotated_vcf
+        gridss_final_vcf => $gridss_final_vcf
     );
 
     return ($job_id);

@@ -10,7 +10,7 @@ java -Xmx[% opt.GRIDSS_ANNOTATE_MEM %]G -jar "[% opt.BAM_SLICER_PATH %]/bam-slic
     -file \
     -input "[% ref_sample_sv_bam %]" \
     -output "[% ref_sample_working_dir %]/[% ref_sample %]_sliced.sv.bam" \
-    -vcf "[% gridss_annotated_vcf %]"
+    -vcf "[% gridss_final_vcf %]"
 
 rm "[% ref_sample_sv_bam %]" "[% ref_sample_sv_bai %]"
 
@@ -20,7 +20,7 @@ java -Xmx[% opt.GRIDSS_ANNOTATE_MEM %]G -jar "[% opt.BAM_SLICER_PATH %]/bam-slic
     -file \
     -input "[% tumor_sample_sv_bam %]" \
     -output "[% tumor_sample_working_dir %]/[% tumor_sample %]_sliced.sv.bam" \
-    -vcf "[% gridss_annotated_vcf %]"
+    -vcf "[% gridss_final_vcf %]"
 
 rm "[% tumor_sample_sv_bam %]" "[% tumor_sample_sv_bai %]"
 
