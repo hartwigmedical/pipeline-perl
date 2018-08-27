@@ -35,8 +35,7 @@ sub run {
     if ($opt->{GRIDSS} eq "yes") {
         if ($opt->{POSTSTATS} eq "no" and $opt->{GRIDSS_REUSE_POSTSTATS} eq "no") {
             say "\n[WARN] Cannot schedule gridss without scheduling post stats or without reusing existing poststats!";
-        }
-        else {
+        } else {
             # KODU: We need the insert size metrics when running gridss. Their naming comes out of poststats and is dependent on the mode we run in.
             my ($ref_sample, $tumor_sample, undef, undef, undef, undef) = sampleControlBamsAndJobs($opt);
             my $suffix = "_MultipleMetrics.txt.insert_size_metrics";
@@ -45,8 +44,7 @@ sub run {
             if ($opt->{BAM}) {
                 $ref_sample_name = $ref_sample;
                 $tumor_sample_name = $tumor_sample;
-            }
-            elsif ($opt->{FASTQ} or $opt->{GRIDSS_REUSE_POSTSTATS} eq "yes") {
+            } elsif ($opt->{FASTQ} or $opt->{GRIDSS_REUSE_POSTSTATS} eq "yes") {
                 $ref_sample_name = join "", $ref_sample, "_dedup";
                 $tumor_sample_name = join "", $tumor_sample, "_dedup";
             }
@@ -94,12 +92,10 @@ sub runGridss {
     my ($calling_job_id, $gridss_raw_vcf) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $calling_job_id;
 
-    my ($annotation_job_id, $gridss_annotated_vcf) =
-        runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
+    my ($annotation_job_id, $gridss_annotated_vcf) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $annotation_job_id;
 
-    my ($cleanup_job_id) =
-        runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
+    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
@@ -229,8 +225,7 @@ sub runGridssAnnotation {
 }
 
 sub runGridssCleanup {
-    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir,
-        $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, $dependent_jobs, $opt) = @_;
+    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_annotated_vcf, $dependent_jobs, $opt) = @_;
 
     (my $assembly_bai = $assembly_bam) =~ s/\.bam$/.bai/;
     (my $ref_sample_sv_bai = $ref_sample_sv_bam) =~ s/\.bam$/.bai/;

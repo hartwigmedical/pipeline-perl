@@ -46,6 +46,7 @@ sub setupTestConfig {
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
+        BAM_SLICER_PATH
         BAMUTIL_PATH
         DAMAGE_ESTIMATOR_PATH
         BWA_PATH
