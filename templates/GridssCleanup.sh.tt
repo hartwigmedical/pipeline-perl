@@ -4,19 +4,20 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GridssCleanup" main_step=joint_name log_name="GridssCleanup_${joint_name}.log" %]
 
-echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% ref_sample %] - $(date)"
+echo "[INFO] Cleaning up SV BAM for [% ref_sample %] - $(date)"
 
-# KODU (TODO): Uncomment the cleanup
-# rm -r "[% ref_sample_working_dir %]"
+# KODU: Exact name is "$sample.bam.sv.bam", eg 'COLO829R_dedup.bam.sv.bam'
+rm "[% ref_sample_working_dir %]"/*.sv.bam
+rm "[% ref_sample_working_dir %]"/*.sv.bam
 
-echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% tumor_sample %] - $(date)"
+echo "[INFO] Cleaning up SV BAM for [% tumor_sample %] - $(date)"
 
-# KODU (TODO): Uncomment the cleanup
-# rm -r "[% tumor_sample_working_dir %]"
+# KODU: Exact name is "$sample.bam.sv.bam", eg 'COLO829T_dedup.bam.sv.bam'
+rm "[% tumor_sample_working_dir %]"/*.sv.bam
+rm "[% tumor_sample_working_dir %]"/*.sv.bam
 
 echo "[INFO] Cleaning up assembly bam for [% joint_name %] - $(date)"
 
-# KODU (TODO): Uncomment the cleanup
-# rm "[% assembly_bam %]" "[% assembly_bai %]"
+rm "[% assembly_bam %]" "[% assembly_bai %]"
 
 success
