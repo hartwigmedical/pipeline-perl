@@ -6,14 +6,17 @@
 
 echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% ref_sample %] - $(date)"
 
-rm -r "[% ref_sample_working_dir %]"
+# KODU (TODO): Uncomment the cleanup
+# rm -r "[% ref_sample_working_dir %]"
 
 echo "[INFO] Cleaning up sample working directory (including SV BAM) for [% tumor_sample %] - $(date)"
 
-rm -r "[% tumor_sample_working_dir %]"
+# KODU (TODO): Uncomment the cleanup
+# rm -r "[% tumor_sample_working_dir %]"
 
 echo "[INFO] Cleaning up assembly bam for [% joint_name %] - $(date)"
 
-rm "[% assembly_bam %]" "[% assembly_bai %]"
+# KODU (TODO): Uncomment the cleanup
+# rm "[% assembly_bam %]" "[% assembly_bai %]"
 
 success
