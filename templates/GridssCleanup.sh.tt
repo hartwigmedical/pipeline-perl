@@ -4,23 +4,11 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GridssCleanup" main_step=joint_name log_name="GridssCleanup_${joint_name}.log" %]
 
-echo "[INFO] Slicing and cleaning up SV BAM for [% ref_sample %] - $(date)"
-
-java -Xmx[% opt.GRIDSS_ANNOTATE_MEM %]G -jar "[% opt.BAM_SLICER_PATH %]/bam-slicer.jar" \
-    -file \
-    -input "[% ref_sample_sv_bam %]" \
-    -output "[% ref_sample_working_dir %]/[% ref_sample %]_sliced.sv.bam" \
-    -vcf "[% gridss_final_vcf %]"
+echo "[INFO] Cleaning up SV BAM for [% ref_sample %] - $(date)"
 
 rm "[% ref_sample_sv_bam %]" "[% ref_sample_sv_bai %]"
 
-echo "[INFO] Slicing and cleaning up SV BAM for [% tumor_sample %] - $(date)"
-
-java -Xmx[% opt.GRIDSS_ANNOTATE_MEM %]G -jar "[% opt.BAM_SLICER_PATH %]/bam-slicer.jar" \
-    -file \
-    -input "[% tumor_sample_sv_bam %]" \
-    -output "[% tumor_sample_working_dir %]/[% tumor_sample %]_sliced.sv.bam" \
-    -vcf "[% gridss_final_vcf %]"
+echo "[INFO] Cleaning up SV BAM for [% tumor_sample %] - $(date)"
 
 rm "[% tumor_sample_sv_bam %]" "[% tumor_sample_sv_bai %]"
 

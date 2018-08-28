@@ -76,10 +76,10 @@ sub runGridss {
     # KODU: GRIDSS requires the insert size metrics output from poststats, so should wait on poststats to finish.
     my $dependent_jobs = [ uniq @{$running_sample_jobs}, @{$opt->{RUNNING_JOBS}->{poststats}} ];
 
-    my ($ref_pre_process_job_id, $ref_sample_working_dir, $ref_sample_sv_bam) =
+    my ($ref_pre_process_job_id, $ref_sample_sv_bam) =
         runGridssPreProcess($dirs, $ref_sample, $ref_sample_bam, $opt->{REF_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
     push @gridss_jobs, $ref_pre_process_job_id;
-    my ($tumor_pre_process_job_id, $tumor_sample_working_dir, $tumor_sample_sv_bam) =
+    my ($tumor_pre_process_job_id, $tumor_sample_sv_bam) =
         runGridssPreProcess($dirs, $tumor_sample, $tumor_sample_bam, $opt->{TUMOR_INSERT_SIZE_METRICS}, $dependent_jobs, $opt);
     push @gridss_jobs, $tumor_pre_process_job_id;
 
@@ -92,10 +92,10 @@ sub runGridss {
     my ($calling_job_id, $gridss_raw_vcf) = runGridssCalling($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $calling_job_id;
 
-    my ($annotation_job_id, $gridss_final_vcf) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
+    my ($annotation_job_id) = runGridssAnnotation($dirs, $ref_sample_bam, $tumor_sample_bam, $joint_name, $assembly_bam, $gridss_raw_vcf, \@gridss_jobs, $opt);
     push @gridss_jobs, $annotation_job_id;
 
-    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_final_vcf, \@gridss_jobs, $opt);
+    my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
@@ -124,7 +124,7 @@ sub runGridssPreProcess {
         sv_bam => $sample_sv_bam,
     );
 
-    return ($job_id, $working_dir, $sample_sv_bam);
+    return ($job_id, $sample_sv_bam);
 }
 
 sub runGridssAssemble {
@@ -222,18 +222,18 @@ sub runGridssAnnotation {
     );
 
     # KODU: The annotated VCF is zipped at the end of the annotation job.
-    my $gridss_final_vcf = join "", $gridss_annotated_vcf, ".gz";
-    return ($job_id, $gridss_final_vcf);
+    # my $gridss_final_vcf = join "", $gridss_annotated_vcf, ".gz";
+    return ($job_id);
 }
 
 sub runGridssCleanup {
-    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_working_dir, $tumor_sample_working_dir, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $gridss_final_vcf, $dependent_jobs, $opt) = @_;
+    my ($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, $dependent_jobs, $opt) = @_;
 
     (my $assembly_bai = $assembly_bam) =~ s/\.bam$/.bai/;
     (my $ref_sample_sv_bai = $ref_sample_sv_bam) =~ s/\.bam$/.bai/;
     (my $tumor_sample_sv_bai = $tumor_sample_sv_bam) =~ s/\.bam$/.bai/;
 
-    # KODU: Run with GRIDSS annotate settings, this hardly matters (slicing takes little resources).
+    # KODU: Run with GRIDSS annotate settings, cleanup takes no resources.
     my $job_id = fromTemplate(
         "GridssCleanup",
         undef,
@@ -245,15 +245,12 @@ sub runGridssCleanup {
         ref_sample => $ref_sample,
         tumor_sample => $tumor_sample,
         joint_name => $joint_name,
-        ref_sample_working_dir => $ref_sample_working_dir,
-        tumor_sample_working_dir => $tumor_sample_working_dir,
         ref_sample_sv_bam => $ref_sample_sv_bam,
         ref_sample_sv_bai => $ref_sample_sv_bai,
         tumor_sample_sv_bam => $tumor_sample_sv_bam,
         tumor_sample_sv_bai => $tumor_sample_sv_bai,
         assembly_bam => $assembly_bam,
         assembly_bai => $assembly_bai,
-        gridss_final_vcf => $gridss_final_vcf
     );
 
     return ($job_id);
