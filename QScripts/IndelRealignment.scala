@@ -49,6 +49,7 @@ class IndelRealignment extends QScript {
 				indelRealigner.targetIntervals = targetCreator.out
 				indelRealigner.input_file +:= bamFile
 				indelRealigner.scatterCount = numScatters
+
 				indelRealigner.out = swapExt(bamFile, "bam", "realigned.bam")
 				indelRealigner.filter_bases_not_stored=TRUE
 
