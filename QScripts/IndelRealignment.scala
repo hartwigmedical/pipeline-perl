@@ -44,14 +44,14 @@ class IndelRealignment extends QScript {
 				targetCreator.num_threads = numDataThreads
 				targetCreator.scatterCount = numScatters
 				targetCreator.out = swapExt(bamFile, "bam", "target.intervals.list")
-				targetCreator.filter_bases_not_stored=TRUE
+				targetCreator.filter_bases_not_stored=true
 
 				indelRealigner.targetIntervals = targetCreator.out
 				indelRealigner.input_file +:= bamFile
 				indelRealigner.scatterCount = numScatters
 
 				indelRealigner.out = swapExt(bamFile, "bam", "realigned.bam")
-				indelRealigner.filter_bases_not_stored=TRUE
+				indelRealigner.filter_bases_not_stored=true
 
 				add(targetCreator, indelRealigner)
 			}
