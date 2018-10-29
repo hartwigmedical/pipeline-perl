@@ -24,7 +24,7 @@ use HMF::Pipeline::PipelineCheck;
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(lockRun run);
-our $VERSION = 'v4.4';
+our $VERSION = 'v4.5';
 
 sub run {
     my ($opt) = @_;
