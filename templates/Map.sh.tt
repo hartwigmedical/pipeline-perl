@@ -9,7 +9,7 @@ cd "[% dirs.mapping %]"
 [% opt.BWA_PATH %]/bwa mem \
     -t [% opt.MAPPING_THREADS %] \
     [% opt.MAPPING_SETTINGS %] \
-    -R "@RG	ID:[% fastq.coreName %]	SM:[% fastq.sampleName %]	PL:ILLUMINA	LB:[% fastq.sampleName %]	PU:[% fastq.flowcellID %]" \
+    -R "@RG ID:[% fastq.coreName %]\tSM:[% fastq.sampleName %]\tPL:ILLUMINA\tLB:[% fastq.sampleName %]\tPU:[% fastq.flowcellID %]" \
     "[% opt.REF_GENOME %]" \
     "[% fastq.R1 %]" \
     [%- IF fastq.exists('R2') %]
