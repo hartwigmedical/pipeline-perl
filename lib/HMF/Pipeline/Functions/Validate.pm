@@ -458,6 +458,7 @@ sub configChecks {
                         GRIDSS_BWA_BASES_PER_BATCH => \&key_not_present,
                         GRIDSS_BLACKLIST => \&missing_file,
                         GRIDSS_CONFIG => \&key_not_present,
+                        GRIDSS_PON => \&missing_directory,
 
                         TABIX_PATH => \&missing_directory,
                     }
