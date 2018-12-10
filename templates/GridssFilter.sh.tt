@@ -4,6 +4,7 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="GridssFilter" main_step=joint_name log_name="GridssFilter_${joint_name}.log" %]
 
+echo "[INFO] Running GRIDSS Filter for [% joint_name %] - $(date)"
 
 libgridss=[% opt.OUTPUT_DIR %]/scripts
 gridss_pon=[% opt.GRIDSS_PON_FILE %]
