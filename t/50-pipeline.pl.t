@@ -40,7 +40,6 @@ sub setupTestConfig {
         HMF_SOMATIC_PON
         HMF_SOMATIC_HOTSPOTS
         BAF_SNPS
-        BAF_SEGMENTATION_SCRIPT
         GC_PROFILE
         GRIDSS_BLACKLIST
     );
@@ -96,12 +95,10 @@ sub setupDoneFiles {
         # SABR: Add to this when adding new modules
         catfile("logs", "PostStats.done"),
         catfile("logs", "GermlineCalling.done"),
-        catfile("logs", "GermlineRerunProcess.done"),
         catfile("logs", "GermlineFiltering.done"),
         catfile("logs", "GermlineAnnotation.done"),
         catfile("logs", "PipelineCheck.done"),
         catfile("logs", "Amber_CPCT12345678R_CPCT12345678T.done"),
-        catfile("logs", "AmberRerun.done"),
         catfile("logs", "Cobalt_CPCT12345678R_CPCT12345678T.done"),
         catfile("logs", "Purple.done"),
         catfile("logs", "HealthCheck.done"),

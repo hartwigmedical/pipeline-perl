@@ -4,29 +4,19 @@
 [% INCLUDE ErrorHandling.tt %]
 [% INCLUDE Logging.tt job_name="Cobalt" main_step=tumor_sample log_name="${opt.RUN_NAME}.log" %]
 
-[%- IF opt.COBALT_RERUN == "yes" %]
-    echo "[INFO] Running cobalt from existing cobalt run"
-    rm -f "[% dirs.cobalt %]"/*.len
-[%- ELSE %]
-    echo "[INFO] Running cobalt"
-[%- END %]
+echo "[INFO] Running cobalt - $(date)"
 
 java -Xmx[% opt.COBALT_MEM %]G -jar "[% opt.COBALT_PATH %]/cobalt.jar" \
     -threads "[% opt.COBALT_THREADS %]" \
     -reference "[% ref_sample %]" \
-    [%- IF opt.COBALT_RERUN == "no" %]
     -reference_bam "[% ref_bam_path %]" \
-    [%- END %]
     -tumor "[% tumor_sample %]" \
-    [%- IF opt.COBALT_RERUN == "no" %]
     -tumor_bam "[% tumor_bam_path %]" \
-    [%- END %]
     -output_dir "[% dirs.cobalt %]" \
     -gc_profile "[% opt.GC_PROFILE %]"
 
 assert_not_empty [% dirs.cobalt %]/[% tumor_sample %].cobalt
 
-# TODO (KODU): Determine which cleanups need to run as part of the rerun.
 rm -f "[% dirs.cobalt %]"/*.pcf1
 rm -f "[% dirs.cobalt %]"/*.ratio
 rm -f "[% dirs.cobalt %]"/*.ratio.gc

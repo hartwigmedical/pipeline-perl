@@ -14,7 +14,7 @@ use HMF::Pipeline::Functions::Metadata qw(linkArtefact);
 use List::Util qw[min max];
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(run runAmberRerun);
+our @EXPORT_OK = qw(run);
 
 sub run {
     my ($opt) = @_;
@@ -83,37 +83,6 @@ sub runAmberPileup {
     );
 
     return $job_id;
-}
-
-sub runAmberRerun {
-    my ($opt) = @_;
-
-    say "\n### SCHEDULING AMBER RERUN ###";
-    $opt->{RUNNING_JOBS}->{amber} = [];
-
-    my $sub_dir = "amber";
-    my $dirs = createDirs($opt->{OUTPUT_DIR}, amber => $sub_dir);
-
-    my (undef, $tumor_sample, undef, undef, undef, $running_jobs) = sampleControlBamsAndJobs($opt);
-    my $amber_output = "${sub_dir}/${tumor_sample}.amber.baf";
-    linkArtefact($amber_output, 'amber_baf', $opt);
-    $opt->{AMBER_BAF_FILE} = catfile($opt->{OUTPUT_DIR}, $amber_output);
-
-    my $segmentation_job_id = fromTemplate(
-        "AmberRerun",
-        undef,
-        1,
-        qsubTemplate($opt, "AMBER"),
-        $running_jobs,
-        $dirs,
-        $opt,
-        tumor_sample => $tumor_sample,
-        baf_path => $opt->{AMBER_BAF_FILE},
-    );
-
-    push @{$opt->{RUNNING_JOBS}->{amber}}, $segmentation_job_id;
-
-    return;
 }
 
 1;

@@ -214,14 +214,6 @@ sub configChecks {
         SAMBAMBA_PATH => \&missing_directory,
         INDEXING_THREADS => \&key_not_present,
 
-        PRESTATS => if_enabled({
-                FASTQC_PATH => \&missing_directory,
-                PRESTATS_MEM => \&key_not_present,
-                PRESTATS_QUEUE => \&key_not_present,
-                PRESTATS_THREADS => \&key_not_present,
-                PRESTATS_TIME => \&key_not_present,
-            }
-        ),
         MAPPING => if_enabled({
                 BWA_PATH => \&missing_directory,
                 MAPPING_QUEUE => \&key_not_present,
@@ -340,19 +332,6 @@ sub configChecks {
                 ANNOTATE_FREQ_INFO => \&key_not_present,
             }
         ),
-        GERMLINE_RERUN => if_enabled({
-                GERMLINE_CALLING_QUEUE => \&key_not_present,
-                GERMLINE_CALLING_TIME => \&key_not_present,
-                GERMLINE_CALLING_THREADS => \&key_not_present,
-                GERMLINE_CALLING_MEM => \&key_not_present,
-
-                TABIX_PATH => \&missing_directory,
-            }
-        ),
-        AMBER_RERUN => if_enabled({
-                BAF_SEGMENTATION_SCRIPT => \&key_not_present,
-            }
-        ),
         AMBER => if_enabled({
                 AMBER_PATH => \&missing_directory,
                 AMBER_QUEUE => \&key_not_present,
@@ -360,14 +339,6 @@ sub configChecks {
                 AMBER_THREADS => \&key_not_present,
                 AMBER_MEM => \&key_not_present,
                 BAF_SNPS => \&missing_file,
-            }
-        ),
-        COBALT_RERUN => if_enabled({
-                COBALT_PATH => \&missing_directory,
-                COBALT_QUEUE => \&key_not_present,
-                COBALT_TIME => \&key_not_present,
-                COBALT_THREADS => \&key_not_present,
-                COBALT_MEM => \&key_not_present,
             }
         ),
         COBALT => if_enabled({
@@ -456,18 +427,6 @@ sub configChecks {
                         TABIX_PATH => \&missing_directory,
                     }
                 ),
-                BPI_RERUN => if_enabled({
-                        BPI_PATH => \&missing_directory,
-                        BPI_QUEUE => \&key_not_present,
-                        BPI_THREADS => \&key_not_present,
-                        BPI_MEM => \&key_not_present,
-                        BPI_TIME => \&key_not_present,
-
-                        BPI_CONTAMINATION_FRACTION => \&key_not_present,
-
-                        TABIX_PATH => \&missing_directory,
-                    }
-                ),
                 GRIDSS => if_enabled({
                         GRIDSS_PATH => \&missing_directory,
                         GRIDSS_BWA_PATH => \&missing_directory,
@@ -503,8 +462,6 @@ sub configChecks {
                         GRIDSS_CONFIG => \&key_not_present,
 
                         TABIX_PATH => \&missing_directory,
-
-                        GRIDSS_REUSE_POSTSTATS => \&key_not_present,
                     }
                 ),
             }

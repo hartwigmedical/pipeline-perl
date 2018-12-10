@@ -12,7 +12,7 @@ use HMF::Pipeline::Functions::Job qw(fromTemplate);
 use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(run runGermlineRerun);
+our @EXPORT_OK = qw(run);
 
 sub run {
     my ($opt) = @_;
@@ -27,35 +27,6 @@ sub run {
 
     return;
 }
-
-sub runGermlineRerun {
-    my ($opt) = @_;
-
-    say "\n### SCHEDULING GERMLINE RERUN PROCESSING ###";
-
-    my (undef, undef, $running_jobs) = refSampleBamAndJobs($opt);
-    my $dirs = createDirs($opt->{OUTPUT_DIR});
-
-    my $final_vcf = catfile($opt->{OUTPUT_DIR}, "$opt->{RUN_NAME}.annotated.vcf.gz");
-
-    my $job_id = fromTemplate(
-        "GermlineRerunProcess",
-        undef,
-        1,
-        qsubJava($opt, "GERMLINE_CALLING"),
-        $running_jobs,
-        $dirs,
-        $opt,
-        final_vcf => $final_vcf,
-        # SABR: comment to avoid perltidy putting on one line
-    );
-
-    push @{$opt->{RUNNING_JOBS}->{germline}}, $job_id if $job_id;
-
-    HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "germline_variant", $opt);
-    return;
-}
-
 
 sub runCaller {
     my ($opt) = @_;

@@ -26,15 +26,9 @@ sub run {
         push @{$opt->{RUNNING_JOBS}->{sv}}, @{$manta_jobs};
     }
 
-    if ($opt->{BPI_RERUN} eq "yes") {
-        my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-        my $bpi_job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-        push @{$opt->{RUNNING_JOBS}->{sv}}, $bpi_job_id;
-    }
-
     if ($opt->{GRIDSS} eq "yes") {
-        if ($opt->{POSTSTATS} eq "no" and $opt->{GRIDSS_REUSE_POSTSTATS} eq "no") {
-            say "\n[WARN] Cannot schedule gridss without scheduling post stats or without reusing existing poststats!";
+        if ($opt->{POSTSTATS} eq "no") {
+            say "\n[WARN] Cannot schedule gridss without scheduling post stats!";
         } else {
             # KODU: We need the insert size metrics when running gridss. Their naming comes out of poststats and is dependent on the mode we run in.
             my ($ref_sample, $tumor_sample, undef, undef, undef, undef) = sampleControlBamsAndJobs($opt);
@@ -44,7 +38,7 @@ sub run {
             if ($opt->{BAM}) {
                 $ref_sample_name = $ref_sample;
                 $tumor_sample_name = $tumor_sample;
-            } elsif ($opt->{FASTQ} or $opt->{GRIDSS_REUSE_POSTSTATS} eq "yes") {
+            } elsif ($opt->{FASTQ}) {
                 $ref_sample_name = join "", $ref_sample, "_dedup";
                 $tumor_sample_name = join "", $tumor_sample, "_dedup";
             }
