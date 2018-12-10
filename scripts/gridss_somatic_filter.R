@@ -88,6 +88,7 @@ names(filters) = names(full_vcf)
 filters[names(full_bpgr)] = bpfiltered
 filters[names(full_begr)] = befiltered
 
+
 vcf = full_vcf[passes_soft_filters(filters)]
 vcf = vcf[is.na(info(vcf)$PARID) | info(vcf)$PARID %in% names(vcf)]
 bpgr = full_bpgr[names(full_bpgr) %in% names(vcf)]
