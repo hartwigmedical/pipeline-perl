@@ -18,7 +18,7 @@ full_vcf=[% dirs.out %]/[% tumor_sample %].gridss.somatic.full.vcf
 
 Rscript ${libgridss}/gridss_somatic_filter.R -p ${gridss_pon} -i ${unzipped_original_vcf} -o ${output_vcf} -f ${full_vcf} -s ${libgridss}
 
-rm ${unzipped_vcf}
+rm ${unzipped_original_vcf}
 mv ${output_vcf}.bgz ${output_vcf}.gz
 mv ${output_vcf}.bgz.tbi ${output_vcf}.gz.tbi
 mv ${full_vcf}.bgz ${full_vcf}.gz
