@@ -42,7 +42,6 @@ sub setupTestConfig {
         BAF_SNPS
         GC_PROFILE
         GRIDSS_BLACKLIST
-        GRIDSS_PON
     );
     my @fake_directory_keys = qw(
         BAMMETRICS_PATH
@@ -50,12 +49,12 @@ sub setupTestConfig {
         DAMAGE_ESTIMATOR_PATH
         BWA_PATH
         CLUSTER_PATH
-        FASTQC_PATH
         GATK_PATH
         GATK_QUEUE_PATH
         MANTA_PATH
         GRIDSS_PATH
         GRIDSS_BWA_PATH
+        GRIDSS_PON
         PICARD_PATH
         AMBER_PATH
         COBALT_PATH

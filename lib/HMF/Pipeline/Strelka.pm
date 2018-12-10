@@ -32,7 +32,7 @@ sub run {
     my $done_file = checkReportedDoneFile("Somatic_$joint_name", undef, $dirs, $opt) or return;
 
     $dirs->{strelka}->{out} = addSubDir($dirs, "strelka");
-    my $unfilter_dependent_jobs;
+
     my ($recalibrated_ref_bam, $recal_ref_jobs) = checkRecalibratedSample($ref_sample, $ref_bam_path, $opt);
     my ($recalibrated_tumor_bam, $recal_tumor_jobs) = checkRecalibratedSample($tumor_sample, $tumor_bam_path, $opt);
     $running_jobs = [ uniq @{$running_jobs}, @{$recal_ref_jobs}, @{$recal_tumor_jobs} ];
@@ -42,7 +42,7 @@ sub run {
 
     my ($strelka_job_id) = runStrelka($recalibrated_ref_bam, $recalibrated_tumor_bam, $joint_name, $running_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $strelka_job_id;
-    $unfilter_dependent_jobs = $opt->{RUNNING_JOBS}->{strelka};
+    my $unfilter_dependent_jobs = $opt->{RUNNING_JOBS}->{strelka};
 
     my ($unfilter_hotspots_job_id, $strelka_vcf) = runStrelkaUnfilterHotspots($joint_name, $unfilter_dependent_jobs, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $unfilter_hotspots_job_id;
@@ -50,7 +50,7 @@ sub run {
     my $post_process_job_id = runStrelkaPostProcess($joint_name, $final_vcf, $unfilter_hotspots_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $post_process_job_id;
 
-    my $done_job_id = markDone($done_file, [ $post_process_job_id ], $dirs, $opt);
+    my $done_job_id = markDone($done_file, [$post_process_job_id], $dirs, $opt);
     push @{$opt->{RUNNING_JOBS}->{strelka}}, $done_job_id;
     return;
 }
@@ -61,9 +61,9 @@ sub checkRecalibratedSample {
     if (index($sample_bam_path, "recalibrated.bam") == -1) {
         say "\nMissing recalibrated file for sample: $sample";
         my ($recalibrated_bam, $recalibration_jobs) = runRecalibrationOnSample($sample, $opt);
-        return($recalibrated_bam, $recalibration_jobs);
+        return ($recalibrated_bam, $recalibration_jobs);
     }
-    return($sample_bam_path, []);
+    return ($sample_bam_path, []);
 }
 
 sub runRecalibrationOnSample {
@@ -75,10 +75,10 @@ sub runRecalibrationOnSample {
     say "Running base recalibration for the following BAM: $sample_bam";
 
     my $known_files = "";
-    $known_files = join " ", map {"-knownSites $_"} split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
+    $known_files = join " ", map { "-knownSites $_" } split '\t', $opt->{BASERECALIBRATION_KNOWN} if $opt->{BASERECALIBRATION_KNOWN};
 
     my ($recalibrated_bam, $job_ids) = HMF::Pipeline::Functions::Bam::bamOperationWithSliceChecks("BaseRecalibration", $sample, $sample_bam, $known_files, "recalibrated", "recal", $opt);
-    return($recalibrated_bam, $job_ids);
+    return ($recalibrated_bam, $job_ids);
 }
 
 sub runStrelka {
@@ -94,12 +94,12 @@ sub runStrelka {
         $running_jobs,
         $dirs,
         $opt,
-        joint_name     => $joint_name,
-        ref_bam_path   => $ref_bam_path,
+        joint_name => $joint_name,
+        ref_bam_path => $ref_bam_path,
         tumor_bam_path => $tumor_bam_path,
     );
 
-    return($job_id);
+    return ($job_id);
 }
 
 sub runStrelkaUnfilterHotspots {
@@ -116,11 +116,12 @@ sub runStrelkaUnfilterHotspots {
         $dirs,
         $opt,
         joint_name => $joint_name,
-        final_vcf  => $final_vcf,
+        final_vcf => $final_vcf,
     );
 
-    return($job_id, $final_vcf);
+    return ($job_id, $final_vcf);
 }
+
 
 sub runStrelkaPostProcess {
     my ($joint_name, $final_vcf, $unfilter_hotspots_job_id, $strelka_vcf, $tumor_sample, $tumor_bam_path, $dirs, $opt) = @_;
@@ -132,14 +133,14 @@ sub runStrelkaPostProcess {
         undef,
         0,
         qsubJava($opt, "STRELKAPOSTPROCESS"),
-        [ $unfilter_hotspots_job_id ],
+        [$unfilter_hotspots_job_id],
         $dirs,
         $opt,
-        tumor_sample   => $tumor_sample,
+        tumor_sample => $tumor_sample,
         tumor_bam_path => $tumor_bam_path,
-        strelka_vcf    => $strelka_vcf,
-        final_vcf      => $final_vcf,
-        joint_name     => $joint_name,
+        strelka_vcf => $strelka_vcf,
+        final_vcf => $final_vcf,
+        joint_name => $joint_name,
     );
 
     HMF::Pipeline::Functions::Metadata::linkVcfArtefacts($final_vcf, "somatic_variant", $opt) if $job_id;
