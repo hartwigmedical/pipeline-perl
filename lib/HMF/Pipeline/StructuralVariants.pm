@@ -92,6 +92,9 @@ sub runGridss {
     my ($cleanup_job_id) = runGridssCleanup($dirs, $ref_sample, $tumor_sample, $joint_name, $ref_sample_sv_bam, $tumor_sample_sv_bam, $assembly_bam, \@gridss_jobs, $opt);
     push @gridss_jobs, $cleanup_job_id;
 
+    my ($filter_job_id) = runGridssFilter($dirs, $tumor_sample, $joint_name, \@gridss_jobs, $opt);
+    push @gridss_jobs, $filter_job_id;
+
     my $done_job_id = markDone($done_file, \@gridss_jobs, $dirs, $opt);
     push @gridss_jobs, $done_job_id;
 
@@ -245,6 +248,25 @@ sub runGridssCleanup {
         tumor_sample_sv_bai => $tumor_sample_sv_bai,
         assembly_bam => $assembly_bam,
         assembly_bai => $assembly_bai,
+    );
+
+    return ($job_id);
+}
+
+sub runGridssFilter {
+    my ($dirs, $tumor_sample, $joint_name, $dependent_jobs, $opt) = @_;
+
+    # KODU: Run with GRIDSS annotate settings, filter takes little resources.
+    my $job_id = fromTemplate(
+        "GridssFilter",
+        undef,
+        1,
+        qsubTemplate($opt, "GRIDSS_ANNOTATE"),
+        $dependent_jobs,
+        $dirs,
+        $opt,
+        tumor_sample => $tumor_sample,
+        joint_name => $joint_name,
     );
 
     return ($job_id);

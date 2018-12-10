@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# -*- TT -*-
+
+[% INCLUDE ErrorHandling.tt %]
+[% INCLUDE Logging.tt job_name="GridssFilter" main_step=joint_name log_name="GridssFilter_${joint_name}.log" %]
+
+
+libgridss=[% opt.OUTPUT_DIR %]/scripts
+gridss_pon=[% opt.GRIDSS_PON_FILE %]
+
+original_vcf=[% dirs.out %]/[% joint_name %].gridss.vcf.gz
+unzipped_original_vcf=$(dirname ${original_vcf})/$(basename -s .gz ${original_vcf})
+gunzip -c ${original_vcf} > ${unzipped_original_vcf}
+
+output_vcf=[% dirs.out %]/[% tumor_sample %].gridss.somatic.vcf
+full_vcf=[% dirs.out %]/[% tumor_sample %].gridss.somatic.full.vcf
+
+Rscript ${libgridss}/gridss_somatic_filter.R -p ${gridss_pon} -i ${unzipped_original_vcf} -o ${output_vcf} -f ${full_vcf} -s ${libgridss}
+
+rm ${unzipped_vcf}
+mv ${output_vcf}.bgz ${output_vcf}.gz
+mv ${output_vcf}.bgz.tbi ${output_vcf}.gz.tbi
+mv ${full_vcf}.bgz ${full_vcf}.gz
+mv ${full_vcf}.bgz.tbi ${full_vcf}.gz.tbi
+
+success
