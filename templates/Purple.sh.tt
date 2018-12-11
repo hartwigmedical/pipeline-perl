@@ -10,7 +10,8 @@ java -Xmx[% opt.PURPLE_MEM %]G -jar "[% opt.PURPLE_PATH %]/purple.jar" \
     -threads [% opt.PURPLE_THREADS %] \
     -gc_profile "[% opt.GC_PROFILE %]" \
     -somatic_vcf [% opt.SOMATIC_VARIANT_VCF %]  \
-    -structural_vcf [% opt.GRIDSS_VCF %] \
+    -structural_vcf [% opt.GRIDSS_FILTERED_VCF %] \
+    -sv_recovery_vcf [% opt.GRIDSS_FULL_VCF %] \
     -baf [% opt.AMBER_BAF_FILE %] \
     -circos [% opt.CIRCOS_PATH %]/circos \
     -ref_genome [%  opt.PURPLE_REF_GENOME_VERSION %]  \

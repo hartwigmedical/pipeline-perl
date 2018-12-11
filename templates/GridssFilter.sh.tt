@@ -20,10 +20,10 @@ Rscript ${libgridss}/gridss_somatic_filter.R -p ${gridss_pon} -i ${unzipped_orig
 
 rm ${unzipped_original_vcf}
 
-mv ${full_vcf}.bgz ${full_vcf}.gz
-mv ${full_vcf}.bgz.tbi ${full_vcf}.gz.tbi
+mv ${full_vcf}.bgz [% full_vcf %]
+mv ${full_vcf}.bgz.tbi [% full_vcf %].tbi
 
-mv ${output_vcf}.bgz [% final_vcf %]
-mv ${output_vcf}.bgz.tbi [% final_vcf %].tbi
+mv ${output_vcf}.bgz [% filtered_vcf %]
+mv ${output_vcf}.bgz.tbi [% filtered_vcf %].tbi
 
 success

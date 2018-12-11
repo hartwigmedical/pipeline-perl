@@ -10,7 +10,6 @@ use List::MoreUtils qw(uniq);
 use HMF::Pipeline::Functions::Config qw(createDirs sampleControlBamsAndJobs);
 use HMF::Pipeline::Functions::Job qw(fromTemplate checkReportedDoneFile markDone);
 use HMF::Pipeline::Functions::Sge qw(qsubTemplate);
-use HMF::Pipeline::Functions::Metadata qw(linkVcfArtefacts);
 
 use parent qw(Exporter);
 our @EXPORT_OK = qw(run);
@@ -250,7 +249,8 @@ sub runGridssCleanup {
 sub runGridssFilter {
     my ($dirs, $tumor_sample, $joint_name, $dependent_jobs, $opt) = @_;
 
-    my $final_vcf = catfile($dirs->{out}, join "", ${tumor_sample}, ".gridss.somatic.vcf.gz");
+    my $filtered_vcf = catfile($dirs->{out}, join "", ${tumor_sample}, ".gridss.somatic.vcf.gz");
+    my $full_vcf = catfile($dirs->{out}, join "", ${tumor_sample}, ".gridss.somatic.full.vcf.gz");
 
     # KODU: Run with GRIDSS annotate settings, filter takes little resources.
     my $job_id = fromTemplate(
@@ -263,12 +263,12 @@ sub runGridssFilter {
         $opt,
         tumor_sample => $tumor_sample,
         joint_name => $joint_name,
-        final_vcf => ${final_vcf},
+        filtered_vcf => $filtered_vcf,
+        full_vcf => $full_vcf,
     );
 
-    $opt->{STRUCTURAL_VARIANT_VCF} = $final_vcf;
-    $opt->{GRIDSS_VCF} = $final_vcf;
-    linkVcfArtefacts($opt->{STRUCTURAL_VARIANT_VCF}, 'structural_variant', $opt);
+    $opt->{GRIDSS_FILTERED_VCF} = $filtered_vcf;
+    $opt->{GRIDSS_FULL_VCF} = $full_vcf;
 
     return ($job_id);
 }
