@@ -1,4 +1,4 @@
-package HMF::Pipeline::StructuralVariants;
+package HMF::Pipeline::Gridss;
 
 use FindBin::libs;
 use discipline;
@@ -20,36 +20,30 @@ sub run {
 
     say "\n### SCHEDULING STRUCTURAL VARIANT CALLING ###";
 
-    $opt->{RUNNING_JOBS}->{sv} = [];
-    if ($opt->{MANTA} eq "yes") {
-        my $manta_jobs = runManta($opt);
-        push @{$opt->{RUNNING_JOBS}->{sv}}, @{$manta_jobs};
-    }
+    $opt->{RUNNING_JOBS}->{gridss} = [];
 
-    if ($opt->{GRIDSS} eq "yes") {
-        if ($opt->{POSTSTATS} eq "no") {
-            say "\n[WARN] Cannot schedule gridss without scheduling post stats!";
-        } else {
-            # KODU: We need the insert size metrics when running gridss. Their naming comes out of poststats and is dependent on the mode we run in.
-            my ($ref_sample, $tumor_sample, undef, undef, undef, undef) = sampleControlBamsAndJobs($opt);
-            my $suffix = "_MultipleMetrics.txt.insert_size_metrics";
-            my $ref_sample_name;
-            my $tumor_sample_name;
-            if ($opt->{BAM}) {
-                $ref_sample_name = $ref_sample;
-                $tumor_sample_name = $tumor_sample;
-            } elsif ($opt->{FASTQ}) {
-                $ref_sample_name = join "", $ref_sample, "_dedup";
-                $tumor_sample_name = join "", $tumor_sample, "_dedup";
-            }
+    if ($opt->{POSTSTATS} eq "no") {
+        say "\n[ERROR] Cannot schedule gridss without scheduling post stats!";
+    } else {
+        # KODU: We need the insert size metrics when running gridss. Their naming comes out of poststats and is dependent on the mode we run in.
+        my ($ref_sample, $tumor_sample, undef, undef, undef, undef) = sampleControlBamsAndJobs($opt);
+        my $suffix = "_MultipleMetrics.txt.insert_size_metrics";
+        my $ref_sample_name;
+        my $tumor_sample_name;
+        if ($opt->{BAM}) {
+            $ref_sample_name = $ref_sample;
+            $tumor_sample_name = $tumor_sample;
+        } elsif ($opt->{FASTQ}) {
+            $ref_sample_name = join "", $ref_sample, "_dedup";
+            $tumor_sample_name = join "", $tumor_sample, "_dedup";
+        }
 
-            $opt->{REF_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $ref_sample_name, join "", $ref_sample_name, $suffix);
-            $opt->{TUMOR_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $tumor_sample_name, join "", $tumor_sample_name, $suffix);
+        $opt->{REF_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $ref_sample_name, join "", $ref_sample_name, $suffix);
+        $opt->{TUMOR_INSERT_SIZE_METRICS} = catfile($opt->{OUTPUT_DIR}, "QCStats", $tumor_sample_name, join "", $tumor_sample_name, $suffix);
 
-            my $gridss_jobs = runGridss($opt);
-            if ($gridss_jobs) {
-                push @{$opt->{RUNNING_JOBS}->{sv}}, @{$gridss_jobs};
-            }
+        my $gridss_jobs = runGridss($opt);
+        if ($gridss_jobs) {
+            push @{$opt->{RUNNING_JOBS}->{gridss}}, @{$gridss_jobs};
         }
     }
 
@@ -256,6 +250,8 @@ sub runGridssCleanup {
 sub runGridssFilter {
     my ($dirs, $tumor_sample, $joint_name, $dependent_jobs, $opt) = @_;
 
+    my $final_vcf = catfile($dirs->{out}, join "", ${tumor_sample}, ".gridss.somatic.vcf.gz");
+
     # KODU: Run with GRIDSS annotate settings, filter takes little resources.
     my $job_id = fromTemplate(
         "GridssFilter",
@@ -267,76 +263,14 @@ sub runGridssFilter {
         $opt,
         tumor_sample => $tumor_sample,
         joint_name => $joint_name,
+        final_vcf => ${final_vcf},
     );
 
-    return ($job_id);
-}
-
-sub runManta {
-    my ($opt) = @_;
-
-    say "\n### SCHEDULING MANTA ###";
-
-    my ($ref_sample, $tumor_sample, $ref_sample_bam, $tumor_sample_bam, $joint_name, $running_jobs) = sampleControlBamsAndJobs($opt);
-
-    my @manta_jobs;
-    my $job_id = runMantaJob($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt);
-    push @manta_jobs, $job_id;
-
-    $job_id = runBreakpointInspector($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, \@manta_jobs, $opt);
-    push @manta_jobs, $job_id;
-    return \@manta_jobs;
-}
-
-sub runMantaJob {
-    my ($tumor_sample_bam, $ref_sample_bam, $joint_name, $running_jobs, $opt) = @_;
-
-    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name));
-
-    my $job_id = fromTemplate(
-        "Manta",
-        undef,
-        1,
-        qsubTemplate($opt, "MANTA"),
-        $running_jobs,
-        $dirs,
-        $opt,
-        ref_sample_bam => $ref_sample_bam,
-        tumor_sample_bam => $tumor_sample_bam,
-        joint_name => $joint_name,
-    );
-
-    return $job_id;
-}
-
-sub runBreakpointInspector {
-    my ($tumor_sample, $tumor_sample_bam, $ref_sample, $ref_sample_bam, $joint_name, $dependent_job_ids, $opt) = @_;
-
-    my $manta_vcf = catfile($opt->{OUTPUT_DIR}, "structuralVariants", "manta", $joint_name, "results", "variants", "somaticSV.vcf.gz");
-
-    my $dirs = createDirs(catfile($opt->{OUTPUT_DIR}, "structuralVariants", "bpi", $joint_name));
-    $opt->{STRUCTURAL_VARIANT_VCF} = catfile($dirs->{out}, "${joint_name}_somaticSV_bpi.vcf");
-
-    my $job_id = fromTemplate(
-        "BreakpointInspector",
-        undef,
-        1,
-        qsubTemplate($opt, "BPI"),
-        $dependent_job_ids,
-        $dirs,
-        $opt,
-        ref_sample => $ref_sample,
-        tumor_sample => $tumor_sample,
-        ref_sample_bam => $ref_sample_bam,
-        tumor_sample_bam => $tumor_sample_bam,
-        joint_name => $joint_name,
-        input_vcf => $manta_vcf,
-    );
-
-    $opt->{STRUCTURAL_VARIANT_VCF} = join "", $opt->{STRUCTURAL_VARIANT_VCF}, ".gz";
+    $opt->{STRUCTURAL_VARIANT_VCF} = $final_vcf;
+    $opt->{GRIDSS_VCF} = $final_vcf;
     linkVcfArtefacts($opt->{STRUCTURAL_VARIANT_VCF}, 'structural_variant', $opt);
 
-    return $job_id;
+    return ($job_id);
 }
 
 1;

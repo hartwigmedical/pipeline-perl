@@ -16,7 +16,7 @@ use HMF::Pipeline::Amber;
 use HMF::Pipeline::Cobalt;
 use HMF::Pipeline::GermlineCalling;
 use HMF::Pipeline::Strelka;
-use HMF::Pipeline::StructuralVariants;
+use HMF::Pipeline::Gridss;
 use HMF::Pipeline::Purple;
 use HMF::Pipeline::HealthCheck;
 use HMF::Pipeline::PipelineCheck;
@@ -41,15 +41,15 @@ sub run {
     if (($opt->{FASTQ} and $opt->{MAPPING} eq "yes") or $opt->{BAM}) {
         # KODU: Always run post stats, even if we start from BAM.
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes" and $opt->{BAM};
+        HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
         HMF::Pipeline::Cobalt::run($opt) if $opt->{COBALT} eq "yes";
-        HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::GermlineCalling::run($opt) if $opt->{GERMLINE_CALLING} eq "yes";
 
         HMF::Pipeline::Strelka::run($opt) if $opt->{STRELKA} eq "yes";
-        HMF::Pipeline::StructuralVariants::run($opt) if $opt->{STRUCTURAL_VARIANT_CALLING} eq "yes";
+        HMF::Pipeline::Gridss::run($opt) if $opt->{GRIDSS} eq "yes";
         HMF::Pipeline::Purple::run($opt) if $opt->{PURPLE} eq "yes";
 
         HMF::Pipeline::HealthCheck::run($opt) if $opt->{HEALTHCHECK} eq "yes";

@@ -355,6 +355,9 @@ sub configChecks {
                 PURPLE_TIME => \&key_not_present,
                 PURPLE_THREADS => \&key_not_present,
                 PURPLE_MEM => \&key_not_present,
+
+                PURPLE_REF_GENOME_VERSION => \&key_not_present,
+
                 CIRCOS_PATH => \&missing_directory,
                 GC_PROFILE => \&missing_file,
             }
@@ -406,63 +409,42 @@ sub configChecks {
                 TABIX_PATH => \&missing_directory,
             }
         ),
-        STRUCTURAL_VARIANT_CALLING => if_enabled({
-                MANTA => if_enabled({
-                        MANTA_PATH => \&missing_directory,
-                        MANTA_QUEUE => \&key_not_present,
-                        MANTA_THREADS => \&key_not_present,
-                        MANTA_MEM => \&key_not_present,
-                        MANTA_TIME => \&key_not_present,
+        GRIDSS => if_enabled({
+                GRIDSS_PATH => \&missing_directory,
+                GRIDSS_BWA_PATH => \&missing_directory,
 
-                        BPI_PATH => \&missing_directory,
-                        BPI_QUEUE => \&key_not_present,
-                        BPI_THREADS => \&key_not_present,
-                        BPI_MEM => \&key_not_present,
-                        BPI_TIME => \&key_not_present,
+                GRIDSS_PREPROCESS_QUEUE => \&key_not_present,
+                GRIDSS_PREPROCESS_THREADS => \&key_not_present,
+                GRIDSS_PREPROCESS_MEM => \&key_not_present,
+                GRIDSS_PREPROCESS_TIME => \&key_not_present,
 
-                        BPI_CONTAMINATION_FRACTION => \&key_not_present,
+                GRIDSS_ASSEMBLE_QUEUE => \&key_not_present,
+                GRIDSS_ASSEMBLE_THREADS => \&key_not_present,
+                GRIDSS_ASSEMBLE_MEM => \&key_not_present,
+                GRIDSS_ASSEMBLE_TIME => \&key_not_present,
 
-                        TABIX_PATH => \&missing_directory,
-                    }
-                ),
-                GRIDSS => if_enabled({
-                        GRIDSS_PATH => \&missing_directory,
-                        GRIDSS_BWA_PATH => \&missing_directory,
+                GRIDSS_ASSEMBLE_POST_PROCESS_QUEUE => \&key_not_present,
+                GRIDSS_ASSEMBLE_POST_PROCESS_THREADS => \&key_not_present,
+                GRIDSS_ASSEMBLE_POST_PROCESS_MEM => \&key_not_present,
+                GRIDSS_ASSEMBLE_POST_PROCESS_TIME => \&key_not_present,
 
-                        GRIDSS_PREPROCESS_QUEUE => \&key_not_present,
-                        GRIDSS_PREPROCESS_THREADS => \&key_not_present,
-                        GRIDSS_PREPROCESS_MEM => \&key_not_present,
-                        GRIDSS_PREPROCESS_TIME => \&key_not_present,
+                GRIDSS_CALLING_QUEUE => \&key_not_present,
+                GRIDSS_CALLING_THREADS => \&key_not_present,
+                GRIDSS_CALLING_MEM => \&key_not_present,
+                GRIDSS_CALLING_TIME => \&key_not_present,
 
-                        GRIDSS_ASSEMBLE_QUEUE => \&key_not_present,
-                        GRIDSS_ASSEMBLE_THREADS => \&key_not_present,
-                        GRIDSS_ASSEMBLE_MEM => \&key_not_present,
-                        GRIDSS_ASSEMBLE_TIME => \&key_not_present,
+                GRIDSS_ANNOTATE_QUEUE => \&key_not_present,
+                GRIDSS_ANNOTATE_THREADS => \&key_not_present,
+                GRIDSS_ANNOTATE_MEM => \&key_not_present,
+                GRIDSS_ANNOTATE_TIME => \&key_not_present,
 
-                        GRIDSS_ASSEMBLE_POST_PROCESS_QUEUE => \&key_not_present,
-                        GRIDSS_ASSEMBLE_POST_PROCESS_THREADS => \&key_not_present,
-                        GRIDSS_ASSEMBLE_POST_PROCESS_MEM => \&key_not_present,
-                        GRIDSS_ASSEMBLE_POST_PROCESS_TIME => \&key_not_present,
+                GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
+                GRIDSS_BWA_BASES_PER_BATCH => \&key_not_present,
+                GRIDSS_BLACKLIST => \&missing_file,
+                GRIDSS_CONFIG => \&key_not_present,
+                GRIDSS_PON => \&missing_directory,
 
-                        GRIDSS_CALLING_QUEUE => \&key_not_present,
-                        GRIDSS_CALLING_THREADS => \&key_not_present,
-                        GRIDSS_CALLING_MEM => \&key_not_present,
-                        GRIDSS_CALLING_TIME => \&key_not_present,
-
-                        GRIDSS_ANNOTATE_QUEUE => \&key_not_present,
-                        GRIDSS_ANNOTATE_THREADS => \&key_not_present,
-                        GRIDSS_ANNOTATE_MEM => \&key_not_present,
-                        GRIDSS_ANNOTATE_TIME => \&key_not_present,
-
-                        GRIDSS_THRESHOLD_COVERAGE => \&key_not_present,
-                        GRIDSS_BWA_BASES_PER_BATCH => \&key_not_present,
-                        GRIDSS_BLACKLIST => \&missing_file,
-                        GRIDSS_CONFIG => \&key_not_present,
-                        GRIDSS_PON => \&missing_directory,
-
-                        TABIX_PATH => \&missing_directory,
-                    }
-                ),
+                TABIX_PATH => \&missing_directory,
             }
         ),
         HEALTHCHECK => if_enabled({

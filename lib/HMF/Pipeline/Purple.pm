@@ -59,7 +59,7 @@ sub dependencies {
     my @jobs;
     push @jobs, @{$opt->{RUNNING_JOBS}->{amber}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{cobalt}};
-    push @jobs, @{$opt->{RUNNING_JOBS}->{sv}};
+    push @jobs, @{$opt->{RUNNING_JOBS}->{gridss}};
     push @jobs, @{$opt->{RUNNING_JOBS}->{strelka}};
     return \@jobs;
 }

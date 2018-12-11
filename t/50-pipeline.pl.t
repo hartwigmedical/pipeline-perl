@@ -51,7 +51,6 @@ sub setupTestConfig {
         CLUSTER_PATH
         GATK_PATH
         GATK_QUEUE_PATH
-        MANTA_PATH
         GRIDSS_PATH
         GRIDSS_BWA_PATH
         GRIDSS_PON
@@ -65,7 +64,6 @@ sub setupTestConfig {
         STRELKA_PATH
         STRELKA_POST_PROCESS_PATH
         TABIX_PATH
-        BPI_PATH
         HEALTH_CHECKER_PATH
     );
     my %required_keys = (
@@ -125,10 +123,6 @@ sub setupDoneFiles {
         catfile("CPCT12345678T", "logs", "BamPrep_CPCT12345678T.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Strelka.done"),
         catfile("somaticVariants", "CPCT12345678R_CPCT12345678T", "logs", "Somatic_CPCT12345678R_CPCT12345678T.done"),
-        catfile("structuralVariants", "manta", "CPCT12345678R_CPCT12345678T", "logs", "Manta.done"),
-        catfile("structuralVariants", "manta", "CPCT12345678R", "logs", "Manta.done"),
-        catfile("structuralVariants", "manta", "CPCT12345678T", "logs", "Manta.done"),
-        catfile("structuralVariants", "bpi", "CPCT12345678R_CPCT12345678T", "logs", "BreakpointInspector.done"),
         catfile("structuralVariants", "gridss", "CPCT12345678R_CPCT12345678T", "logs", "Gridss_CPCT12345678R_CPCT12345678T.done"),
     );
     make_path(
