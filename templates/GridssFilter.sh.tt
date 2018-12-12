@@ -6,7 +6,7 @@
 
 echo "[INFO] Running GRIDSS Filter for [% joint_name %] - $(date)"
 
-libgridss=[% opt.OUTPUT_DIR %]/scripts/
+libgridss=[% opt.OUTPUT_DIR %]/scripts
 gridss_pon=[% opt.GRIDSS_PON %]
 
 original_vcf=[% dirs.out %]/[% joint_name %].gridss.vcf.gz
