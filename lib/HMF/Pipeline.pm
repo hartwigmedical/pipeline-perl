@@ -30,21 +30,16 @@ sub run {
 
     if ($opt->{FASTQ}) {
         HMF::Pipeline::Mapping::run($opt) if $opt->{MAPPING} eq "yes";
-        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
-        HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
-
-        HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt);
     } elsif ($opt->{BAM}) {
         HMF::Pipeline::Mapping::runBamPrep($opt);
     }
 
     if (($opt->{FASTQ} and $opt->{MAPPING} eq "yes") or $opt->{BAM}) {
         # KODU: Always run post stats, even if we start from BAM.
-        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes" and $opt->{BAM};
-
-        # KODU: Link the BAM artifacts even when we already generated BAMs before.
+        HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
         HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt) if $opt->{BAM};
 
+        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
