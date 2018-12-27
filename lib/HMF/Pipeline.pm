@@ -38,7 +38,7 @@ sub run {
         HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
 
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
-        HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt) if $opt->{BAM};
+        HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt);
 
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
