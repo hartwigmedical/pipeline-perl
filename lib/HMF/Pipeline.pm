@@ -35,11 +35,11 @@ sub run {
     }
 
     if (($opt->{FASTQ} and $opt->{MAPPING} eq "yes") or $opt->{BAM}) {
-        # KODU: Always run post stats, even if we start from BAM.
+        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
+
         HMF::Pipeline::Realignment::run($opt) if $opt->{INDEL_REALIGNMENT} eq "yes";
         HMF::Pipeline::Functions::Metadata::linkBamArtefacts($opt) if $opt->{BAM};
 
-        HMF::Pipeline::PostStats::run($opt) if $opt->{POSTSTATS} eq "yes";
         HMF::Pipeline::DamageEstimate::run($opt) if $opt->{DAMAGE_ESTIMATE} eq "yes";
 
         HMF::Pipeline::Amber::run($opt) if $opt->{AMBER} eq "yes";
