@@ -9,6 +9,8 @@ cd "[% dirs.tmp %]"
 assert_not_empty "[% sample_bam_path %]"
 
 java -Xmx[% opt.REALIGNMENT_MASTER_MEM %]G \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath="[% opt.OUTPUT_DIR %]" \
     -Djava.io.tmpdir="[% dirs.tmp %]" \
     -jar "[% opt.GATK_QUEUE_PATH %]/Queue.jar" \
     -jobQueue [% opt.REALIGNMENT_QUEUE %] \
