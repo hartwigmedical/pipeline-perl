@@ -44,6 +44,7 @@ class BaseRecalibration extends QScript {
 
     baseRecalibrator.scatterCount = numScatters
     baseRecalibrator.nct = numCPUThreads
+    baseRecalibrator.dcov = 25000
 
     // KODU: Apply the recalibration to the sequence data
     printReads.input_file :+= bamFile
