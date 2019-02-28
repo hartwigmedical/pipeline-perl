@@ -58,6 +58,7 @@ sub run {
 sub checkRecalibratedSample {
     my ($sample, $sample_bam_path, $opt) = @_;
 
+    say "\nLooking for existing recalibrated bam at: $sample_bam_path";
     if (index($sample_bam_path, "recalibrated.bam") == -1) {
         say "\nMissing recalibrated file for sample: $sample";
         my ($recalibrated_bam, $recalibration_jobs) = runRecalibrationOnSample($sample, $opt);
